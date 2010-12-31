@@ -1,0 +1,9 @@
+hex2passwd
+==========
+
+URL:	http://swift.siphos.be/tools-hex2passwd.html
+
+With hex2passwd you can create passwords that are relatively random yet still
+based on mnemonics. Because its output looks random, attackers will have more
+difficulty finding the mnemonic you use. And, because the tool always generated
+the same password, you can use this tool to create all passwords you require. 

@@ -1,0 +1,127 @@
+.TH HEX2PASSWD "1" "September 2008" "HEX2PASSWD" "User Commands"
+.SH NAME
+hex2passwd \- compute a pseudo-random password based on a hexadecimal hash input
+.SH SYNOPSIS
+\fIecho hexcode\fR |
+.B hex2passwd
+[\fIOPTION\fR]
+.SH DESCRIPTION
+.PP
+Generate a password based on the checksum input. Any hexadecimal input (using
+numbers and lowercase a-f) is accepted which is usually the output given by
+popular checksum tools such as 
+.B md5sum
+, 
+.B sha1sum
+,
+.B sha256sum
+,
+.B cksum
+, ...
+
+The tool selects characters from a character map and outputs the characters on the screen.
+The default character map is 0-9a-zA-Z.!
+
+.TP
+\fB\-1\fR
+Use the first alternative character map 0123456789abcdefghijklmnoprstuvw instead
+of the default
+.TP
+\fB\-2\fR
+Use the second alternative character map 0123456789+-/*() instead of the default
+.TP
+\fB\-m\fR mapping
+Use the given mapping set (full characterset) given
+.TP
+\fB\-s\fR scramble
+Scramble the character map (see 
+.B SCRAMBLING
+)
+.TP
+\fB\-n\fR number
+Only display the first
+.I number
+characters from the resulting character sequence
+.TP
+\fB-d\fR
+Enable debugging output (hardly useful, just ignore it)
+
+.SH SCRAMBLING
+
+With scrambling, the character map itself is manipulated (scrambled) following a
+given pattern. 
+
+The
+.I scrambling
+parameter is a hexadecimal representation (such as 08, 0a, 13, ...) which is
+parsed by the tool using its binary representation.
+
+Let the charactermap be of size 16, then the first (least significant) bit of
+the parameter informs the tool if characters 0-7 and 8-15 need to be switched or
+not. The second bit of the parameter informs the tool if the (new) characters 0-3 and
+4-7 as well as 8-11 and 12-15 need to be switched. The third bit does the same 
+for characters 01, 23, 45, 67, 89, ... etc.
+
+.B Note
+that this scrambling does not make the password much more secure as it is quite
+easy to try out all scrambling values (a charactermap of 64 characters only has
+5 bits of possible scrambling flags, so at most 32 different scrambling values).
+
+It is just a simple feature that the author needed.
+
+.SH USES
+
+You can use
+.B hex2passwd
+to keep track of your less vital passwords without making them too easy to
+guess.
+
+Many people use a mneumonic for the web site accounts or even use the same
+password on all sites. The use of this tool allows you to use such a mneumonic and
+still result with pseudo-random passwords from which it is quite difficult to
+guess the mneumonic used.
+
+It is adviseable to add to your mneumonic a password which you only know. This
+will salt the password to such extend that it is far less easy to obtain the
+mneumonic.
+
+.SH "EXAMPLES"
+
+Obtain a 10-character password based upon the mneumonic
+[\fBreversed username\fR]:[\fBdomainname\fR]_[\fBsequencenumber\fR]^[\fBrandom password\fR]
+
+~$ 
+.B echo neluemrev:siphos.be_1^MyRandomPW | sha1sum | hex2passwd -n 10
+.br
+oGXWGnHhx5
+
+Do the same, but now use scrambling sequence 1010 (hex 0a):
+
+~$ 
+.B echo neluemrev:siphos.be_1^MyRandomPW | sha1sum | hex2passwd -n 10 -s 0a
+.br
+c.LK.3!5Rh
+
+Do the same, but use the second alternative character map instead of the first:
+
+~$
+.B echo neluemrev:siphos.be_1^MyRandomPW | sha1sum | hex2passwd -n 10 -2
+.br
+62+()++97+
+
+.SH AUTHOR
+
+Written by Sven Vermeulen
+
+.SH "REPORTING BUGS"
+
+Report bugs to <sven.vermeulen@siphos.be>.
+
+.SH COPYRIGHT
+Copyright (c) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+

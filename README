@@ -1,0 +1,11 @@
+Small Coding
+============
+
+the small.coding repository contains small tools, scripts, XML/XSL sets, 
+javascript and others which are all licensed under the GPL-3 license (as far as
+it needs to be licensed, some scripts are too small to be licensed and are in
+the public domain).
+
+The following directories are available:
+
+gensetup - Script to automatically install a Gentoo Linux system

@@ -1,0 +1,15 @@
+gensetup
+========
+
+The gensetup script allows you to automatically install a Gentoo Linux system. I
+use it to "seed" my virtual images the moment I want to test something. The
+script is not self-explanatory and the configuration file it uses only
+marginally. I intend to rewrite it in some near future to be more properly
+documented.
+
+It is not meant to be used on production systems and definitely not as a
+replacement for the GLIS (Gentoo Linux Installation Script) or whatever it was
+called when it was still alive.
+
+The only supported installation method for Gentoo Linux remains the manual
+approach as documented in the handbook !

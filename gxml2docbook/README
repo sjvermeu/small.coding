@@ -1,0 +1,9 @@
+gxml2docbook
+============
+
+The gxml2docbook.xsl file is a XSL transformation that will attempt to 
+transform a Gentoo GuideXML Book format into a docbook format, ready to be
+processed with tools like docbook2latex and so forth.
+
+It is currently extremely basic and lacking a lot of features, but for simple
+books (i.e. all non-main handbooks) it does the job nicely.

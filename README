@@ -10,3 +10,4 @@ The following directories are available:
 
 gensetup - Script to automatically install a Gentoo Linux system
 hex2passwd - Tool to generate passwords based on SHA/MD5 checksum input
+gxml2docbook - XSL conversion script from Gentoo GuideXML Book format to DocBook

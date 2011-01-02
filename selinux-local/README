@@ -1,0 +1,12 @@
+selinux-local
+=============
+
+At the base directory, you will find fixlocal.te which makes some small
+system-level changes which I do not feel belong inside a (reusable) module (but
+I can be mistaken).
+
+In refpol_patches you can find the patches that I incorporate in the current
+2.20101213 reference policy in order to have my system up and running (in
+enforcing mode, strict). They are still under development (after adding stuff in
+order to get things working, I also need to start removing stuff again to see if
+things still work then).

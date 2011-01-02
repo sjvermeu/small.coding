@@ -1,0 +1,11 @@
+--- refpolicy.orig/policy/modules/system/raid.te	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/raid.te	2010-12-30 19:41:40.772000499 +0100
+@@ -69,6 +69,8 @@
+ storage_dev_filetrans_fixed_disk(mdadm_t)
+ storage_read_scsi_generic(mdadm_t)
+ 
++allow mdadm_t device_t:blk_file { read };
++
+ term_dontaudit_list_ptys(mdadm_t)
+ 
+ init_dontaudit_getattr_initctl(mdadm_t)

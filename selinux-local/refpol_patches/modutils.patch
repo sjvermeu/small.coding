@@ -1,0 +1,11 @@
+--- refpolicy.orig/policy/modules/system/modutils.te	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/modutils.te	2011-01-02 22:39:28.600000128 +0100
+@@ -119,6 +119,8 @@
+ can_exec(insmod_t, insmod_exec_t)
+ 
+ kernel_load_module(insmod_t)
++# Allow modprobe to request module load
++kernel_request_load_module(insmod_t)
+ kernel_read_system_state(insmod_t)
+ kernel_read_network_state(insmod_t)
+ kernel_write_proc_files(insmod_t)

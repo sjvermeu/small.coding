@@ -1,0 +1,10 @@
+
+module test 1.0;
+
+require {
+	type mozilla_t;
+	class process execmem;
+}
+
+allow mozilla_t self:process { execmem };
+

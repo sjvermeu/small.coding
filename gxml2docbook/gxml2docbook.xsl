@@ -128,7 +128,7 @@
 <emphasis><xsl:apply-templates /></emphasis>
 </xsl:template>
 
-<xsl:template match="file">
+<xsl:template match="path">
 <filename><xsl:apply-templates /></filename>
 </xsl:template>
 

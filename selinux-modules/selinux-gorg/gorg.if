@@ -29,4 +29,6 @@ interface(`gorg_role',`
 
 	ps_process_pattern($2, gorg_t)
 	allow $2 gorg_t:process signal_perms;
+	# Needed for command-usage (pipe)
+	allow gorg_t $2:fifo_file write;
 ')

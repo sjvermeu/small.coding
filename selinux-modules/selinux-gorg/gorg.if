@@ -1,0 +1,32 @@
+## <summary>Policy for gorg</summary>
+
+#######################################
+## <summary>
+##      Role access for gorg
+## </summary>
+## <param name="role">
+##      <summary>
+##      Role allowed access
+##      </summary>
+## </param>
+## <param name="domain">
+##      <summary>
+##      User domain for the role
+##      </summary>
+## </param>
+#
+interface(`gorg_role',`
+	gen_require(`
+		type gorg_t, gorg_exec_t;
+	')
+
+	role $1 types gorg_t;
+
+	domain_auto_trans($2, gorg_exec_t, gorg_t)
+	allow $2 gorg_t:process { noatsecure siginh rlimitinh };
+	allow gorg_t $2:fd use;
+	allow gorg_t $2:process { sigchld signull };
+
+	ps_process_pattern($2, gorg_t)
+	allow $2 gorg_t:process signal_perms;
+')

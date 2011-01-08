@@ -1,0 +1,20 @@
+policy_module(mystaff, 1.0.0)
+
+gen_require(`
+	type staff_t;
+	role staff_r;
+	type user_t;
+	role user_r;
+	type sysadm_t;
+	role sysadm_r;
+')
+
+optional_policy(`
+	gorg_role(staff_r, staff_t)
+')
+
+optional_policy(`
+	skype_role(user_r, user_t)
+	skype_role(staff_r, staff_t)
+	skype_role(sysadm_r, sysadm_t)
+')

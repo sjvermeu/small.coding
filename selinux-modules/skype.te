@@ -1,0 +1,94 @@
+policy_module(skype, 1.0.0)
+
+############################
+# 
+# Declarations
+#
+
+
+type skype_t;
+type skype_exec_t;
+typealias skype_t alias { user_skype_t staff_skype_t sysadm_skype_t };
+application_domain(skype_t, skype_exec_t)
+
+type skype_home_t;
+typealias skype_home_t alias { user_skype_home_t staff_skype_home_t sysadm_skype_home_t };
+userdom_user_home_content(skype_home_t)
+
+type skype_tmpfs_t;
+typealias skype_tmpfs_t alias { user_skype_tmpfs_t staff_skype_tmpfs_t sysadm_skype_tmpfs_t };
+files_tmpfs_file(skype_tmpfs_t)
+ubac_constrained(skype_tmpfs_t)
+
+############################
+#
+# Local policy
+#
+
+# Looks as if the binary needs this; for the time being use the tunable policy
+tunable_policy(`allow_execmem',`
+	allow skype_t self:process { execmem };
+')
+
+# Manage ~/.Skype
+manage_dirs_pattern(skype_t, skype_home_t, skype_home_t)
+manage_files_pattern(skype_t, skype_home_t, skype_home_t)
+manage_lnk_files_pattern(skype_t, skype_home_t, skype_home_t)
+userdom_user_home_dir_filetrans(skype_t, skype_home_t, dir)
+userdom_search_user_home_dirs(skype_t)
+
+# Declare access permissions on skype_tmpfs_t domain for X sessions
+manage_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
+manage_lnk_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
+manage_fifo_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
+manage_sock_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
+fs_tmpfs_filetrans(skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
+
+# Be able to call skype from a terminal (debugging)
+userdom_use_user_terminals(skype_t)
+domain_use_interactive_fds(skype_t)
+
+corecmd_exec_bin(skype_t)
+corecmd_exec_shell(skype_t)
+can_exec(skype_t, skype_exec_t)
+#exec_files_pattern(skype_t, skype_exec_t, skype_exec_t)
+libs_use_ld_so(skype_t)
+files_read_usr_symlinks(skype_t)
+
+# This is an X application
+xserver_user_x_domain_template(skype, skype_t, skype_tmpfs_t)
+
+files_search_var_lib(skype_t)
+miscfiles_read_fonts(skype_t)
+miscfiles_read_localization(skype_t)
+miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
+dbus_system_bus_client(skype_t)
+files_read_etc_files(skype_t)
+libs_read_lib_files(skype_t)
+
+corenet_tcp_bind_generic_node(skype_t)
+corenet_udp_bind_generic_node(skype_t)
+corenet_tcp_bind_generic_port(skype_t)
+corenet_udp_bind_generic_port(skype_t)
+corenet_tcp_connect_generic_port(skype_t)
+corenet_tcp_connect_http_port(skype_t)
+
+dev_read_video_dev(skype_t)
+dev_write_video_dev(skype_t)
+dev_read_sound(skype_t)
+dev_write_sound(skype_t)
+alsa_read_rw_config(skype_t)
+
+files_read_usr_files(skype_t)
+kernel_read_system_state(skype_t)
+sysnet_read_config(skype_t)
+
+# Self 
+allow skype_t self:process { getsched };
+allow skype_t self:unix_stream_socket create_socket_perms;
+allow skype_t self:udp_socket create_stream_socket_perms;
+allow skype_t self:tcp_socket create_stream_socket_perms;
+allow skype_t self:sem create_sem_perms;
+allow skype_t self:netlink_route_socket rw_netlink_socket_perms;
+allow skype_t self:fifo_file rw_fifo_file_perms;
+

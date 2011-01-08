@@ -1,0 +1,30 @@
+## <summary>Policy for skype</summary>
+
+#######################################
+## <summary>
+##      Role access for skype
+## </summary>
+## <param name="role">
+##      <summary>
+##      Role allowed access
+##      </summary>
+## </param>
+## <param name="domain">
+##      <summary>
+##      User domain for the role
+##      </summary>
+## </param>
+#
+interface(`skype_role',`
+  gen_require(`
+    type skype_t, skype_exec_t;
+  ')
+
+  role $1 types skype_t;
+
+  domain_auto_trans($2, skype_exec_t, skype_t)
+  ps_process_pattern($2, skype_t)
+  allow $2 skype_t:process signal;
+  allow skype_t $2:process { sigchld signull };
+  allow skype_t $2:fd { use };
+')

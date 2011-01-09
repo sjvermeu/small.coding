@@ -1,4 +1,4 @@
-## <summary>Policy for skype</summary>
+## <summary>Skype softphone.</summary>
 
 #######################################
 ## <summary>
@@ -33,107 +33,94 @@ template(`skype_role_template',`
 	
 	type $1_skype_t;
 	application_domain($1_skype_t, skype_exec_t)
-	userdom_user_home_content(skype_home_t)
+        ubac_constrained($1_skype_t) # support ubac
+
+	role $2 types $1_skype_t;
 
 	############################
 	#
-	# Local policy
+	# Policy
 	#
-	
-	# Looks as if the binary needs this; for the time being use the tunable policy
-	tunable_policy(`allow_execmem',`
-		allow $1_skype_t self:process { execmem };
-	')
 
-	# Manage ~/.Skype
+	allow $1_skype_t self:process { getsched setsched };
+        allow $1_skype_t self:fifo_file rw_fifo_file_perms;
+	allow $1_skype_t self:unix_stream_socket create_socket_perms;
+
 	manage_dirs_pattern($1_skype_t, skype_home_t, skype_home_t)
 	manage_files_pattern($1_skype_t, skype_home_t, skype_home_t)
 	manage_lnk_files_pattern($1_skype_t, skype_home_t, skype_home_t)
 	userdom_user_home_dir_filetrans($1_skype_t, skype_home_t, dir)
-	userdom_search_user_home_dirs($1_skype_t)
-	
-	# Declare access permissions on skype_tmpfs_t domain for X sessions, ALSA
-	# connectivity and more
+
+	manage_dirs_pattern($3, skype_home_t, skype_home_t)
+	manage_files_pattern($3, skype_home_t, skype_home_t)
+	manage_lnk_files_pattern($3, skype_home_t, skype_home_t)
+
+	relabel_dirs_pattern($3, skype_home_t, skype_home_t)
+	relabel_files_pattern($3, skype_home_t, skype_home_t)
+	relabel_lnk_files_pattern($3, skype_home_t, skype_home_t)
+
 	manage_files_pattern($1_skype_t, skype_tmpfs_t, skype_tmpfs_t)
 	manage_lnk_files_pattern($1_skype_t, skype_tmpfs_t, skype_tmpfs_t)
 	manage_fifo_files_pattern($1_skype_t, skype_tmpfs_t, skype_tmpfs_t)
 	manage_sock_files_pattern($1_skype_t, skype_tmpfs_t, skype_tmpfs_t)
 	fs_tmpfs_filetrans($1_skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
-	
-	# Be able to call skype from a terminal
-	userdom_use_user_terminals($1_skype_t)
-	domain_use_interactive_fds($1_skype_t)
-	
-	# Skype wrapper script sets LD_LIBRARY_PATH to include /opt/skype before
-	# exec'ing skype binary itself (which is reason why wrapper is also labelled
-	# skype_exec_t)
-	corecmd_exec_shell($1_skype_t)
-	can_exec($1_skype_t, skype_exec_t)
-	libs_use_ld_so($1_skype_t)
-	
-	# This is an X application
-	xserver_user_x_domain_template(skype, $1_skype_t, skype_tmpfs_t)
-	
-	# Needed for font support
-	miscfiles_read_fonts($1_skype_t)
-	files_read_etc_files($1_skype_t)
-	
-	# skype has optional support for dbus. If available, we'll enable the proper
-	# allows
-	optional_policy(`
-		dbus_system_bus_client($1_skype_t)
-		dbus_session_bus_client($1_skype_t)
-		corecmd_exec_bin($1_skype_t)
-	')
-	
-	miscfiles_read_localization($1_skype_t)
-	miscfiles_dontaudit_setattr_fonts_dirs($1_skype_t)
-	
+
+        # might want to allow the calling user access to skype_tmpfs_t
+
+	domtrans_pattern($3, skype_exec_t, $1_skype_t)
+
+        can_exec($1_skype_t, skype_exec_t)
+
+	ps_process_pattern($3, $1_skype_t)
+	allow $3 $1_skype_t:process { ptrace signal_perms };
+
+	kernel_read_system_state($1_skype_t)
+
+	corecmd_exec_bin($1_skype_t)
+        corecmd_exec_shell($1_skype_t)
+
+        corenet_all_recvfrom_netlabel($1_skype_t)
+	corenet_all_recvfrom_unlabeled($1_skype_t)
 	corenet_tcp_bind_generic_node($1_skype_t)
 	corenet_udp_bind_generic_node($1_skype_t)
-	corenet_tcp_bind_generic_port($1_skype_t)
-	corenet_udp_bind_generic_port($1_skype_t)
-	corenet_tcp_connect_generic_port($1_skype_t)
+	#corenet_tcp_bind_generic_port($1_skype_t) # why?
+	#corenet_udp_bind_generic_port($1_skype_t) # why?
+	#corenet_tcp_connect_generic_port($1_skype_t) # why?
 	corenet_tcp_connect_http_port($1_skype_t)
-	
-	# Support for audio and video
+        corenet_tcp_sendrecv_http_port($1_skype_t)
+        corenet_sendrecv_http_client_packets($1_skype_t)
+
 	dev_read_video_dev($1_skype_t)
 	dev_write_video_dev($1_skype_t)
 	dev_read_sound($1_skype_t)
 	dev_write_sound($1_skype_t)
-	alsa_read_rw_config($1_skype_t)
-	
-	files_read_usr_files($1_skype_t)
-	kernel_read_system_state($1_skype_t)
-	sysnet_read_config($1_skype_t)
-	
-	# Self 
-	allow $1_skype_t self:process { getsched setsched };
-	allow $1_skype_t self:unix_stream_socket create_socket_perms;
-	allow $1_skype_t self:udp_socket create_stream_socket_perms;
-	allow $1_skype_t self:tcp_socket create_stream_socket_perms;
-	allow $1_skype_t self:sem create_sem_perms;
-	allow $1_skype_t self:netlink_route_socket rw_netlink_socket_perms;
-	allow $1_skype_t self:fifo_file rw_fifo_file_perms;
 
-	##
-	## Role Support
-	##
-	role $2 types skype_t;
+	domain_use_interactive_fds($1_skype_t)
 
-	domain_auto_trans($3, skype_exec_t, $1_skype_t)
+        files_read_etc_files($1_skype_t)
+        files_read_usr_files($1_skype_t)
 
-	# Allow roles to manage the application
-	ps_process_pattern($3, $1_skype_t)
-	allow $3 $1_skype_t:process signal;
-	allow $1_skype_t $3:process { sigchld signull };
-	allow $1_skype_t $3:fd { use };
+        auth_use_nsswitch($1_skype_t)
 
-	# Access to ~/.Skype
-	manage_dirs_pattern($3, skype_home_t, skype_home_t)
-	manage_files_pattern($3, skype_home_t, skype_home_t)
-	manage_lnk_files_pattern($3, skype_home_t, skype_home_t)
-	relabel_dirs_pattern($3, skype_home_t, skype_home_t)
-	relabel_files_pattern($3, skype_home_t, skype_home_t)
-	relabel_lnk_files_pattern($3, skype_home_t, skype_home_t)
+	libs_use_ld_so($1_skype_t)
+
+	miscfiles_read_localization($1_skype_t)
+	miscfiles_dontaudit_setattr_fonts_dirs($1_skype_t)
+
+	userdom_use_user_terminals($1_skype_t)
+
+	xserver_user_x_domain_template($1_skype, $1_skype_t, skype_tmpfs_t)
+
+	tunable_policy(`allow_execmem',`
+		allow $1_skype_t self:process { execmem };
+	')
+
+        optional_policy(`
+                alsa_read_rw_config($1_skype_t)
+        ')
+
+	optional_policy(`
+		dbus_system_bus_client($1_skype_t)
+		dbus_session_bus_client($1_skype_t)
+	')
 ')	

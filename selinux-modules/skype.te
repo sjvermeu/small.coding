@@ -7,7 +7,6 @@ policy_module(skype, 1.0.1)
 
 type skype_t;
 type skype_exec_t;
-typealias skype_t alias { user_skype_t staff_skype_t sysadm_skype_t };
 application_domain(skype_t, skype_exec_t)
 
 type skype_home_t;

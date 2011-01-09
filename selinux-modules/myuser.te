@@ -7,8 +7,8 @@ gen_require(`
   role staff_r;
 ')
 
-optional_policy(`
-  skype_role(user_r, user_t)
-  skype_role(staff_r, staff_t)
-')
+#optional_policy(`
+#  skype_role(user_r, user_t)
+#  skype_role(staff_r, staff_t)
+#')
 

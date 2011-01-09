@@ -1,14 +1,12 @@
-
-module test 1.0;
+module fixlocal 1.0.1;
 
 require {
 	type mozilla_t;
-	type skype_t;
 	type shell_exec_t;
+	type staff_skype_t;
 	class process execmem;
 	class file read;
 }
 
 allow mozilla_t self:process { execmem };
-allow skype_t self:process { execmem };
-allow skype_t shell_exec_t:file { read };
+allow staff_skype_t self:process { execmem };

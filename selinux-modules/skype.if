@@ -45,6 +45,7 @@ template(`skype_role_template',`
 	allow $1_skype_t self:process { getsched setsched };
         allow $1_skype_t self:fifo_file rw_fifo_file_perms;
 	allow $1_skype_t self:unix_stream_socket create_socket_perms;
+	allow $1_skype_t self:sem create_sem_perms;
 
 	manage_dirs_pattern($1_skype_t, skype_home_t, skype_home_t)
 	manage_files_pattern($1_skype_t, skype_home_t, skype_home_t)
@@ -83,12 +84,13 @@ template(`skype_role_template',`
 	corenet_all_recvfrom_unlabeled($1_skype_t)
 	corenet_tcp_bind_generic_node($1_skype_t)
 	corenet_udp_bind_generic_node($1_skype_t)
-	#corenet_tcp_bind_generic_port($1_skype_t) # why?
-	#corenet_udp_bind_generic_port($1_skype_t) # why?
-	#corenet_tcp_connect_generic_port($1_skype_t) # why?
+	corenet_tcp_bind_generic_port($1_skype_t) 
+	corenet_udp_bind_generic_port($1_skype_t) 
+	corenet_tcp_connect_generic_port($1_skype_t)
 	corenet_tcp_connect_http_port($1_skype_t)
         corenet_tcp_sendrecv_http_port($1_skype_t)
         corenet_sendrecv_http_client_packets($1_skype_t)
+	allow $1_skype_t self:tcp_socket create_stream_socket_perms;
 
 	dev_read_video_dev($1_skype_t)
 	dev_write_video_dev($1_skype_t)
@@ -115,9 +117,9 @@ template(`skype_role_template',`
 		allow $1_skype_t self:process { execmem };
 	')
 
-        optional_policy(`
-                alsa_read_rw_config($1_skype_t)
-        ')
+	optional_policy(`
+		alsa_read_rw_config($1_skype_t)
+	')
 
 	optional_policy(`
 		dbus_system_bus_client($1_skype_t)

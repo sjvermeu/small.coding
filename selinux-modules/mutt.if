@@ -74,13 +74,19 @@ template(`mutt_role_template',`
 	files_tmp_filetrans($1_mutt_t, mutt_tmp_t, { file dir })
 	files_search_tmp($1_mutt_t)
 
-
-
 	domtrans_pattern($3, mutt_exec_t, $1_mutt_t)
 
 	read_files_pattern($1_mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
 	read_files_pattern($1_mutt_t, mutt_conf_t, mutt_conf_t)
 	search_dirs_pattern($1_mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
+
+	userdom_search_user_home_content($1_mutt_t)
+	userdom_manage_user_home_content_files($1_mutt_t)
+	userdom_manage_user_home_content_dirs($1_mutt_t)
+
+	corecmd_exec_bin($1_mutt_t)
+	corecmd_exec_shell($1_mutt_t)
+	files_read_usr_files($1_mutt_t)
 
 	ps_process_pattern($3, $1_mutt_t)
 
@@ -91,6 +97,7 @@ template(`mutt_role_template',`
 	userdom_use_user_terminals($1_mutt_t)
 
 	corenet_tcp_connect_pop_port($1_mutt_t)
+	corenet_tcp_connect_smtp_port($1_mutt_t)
 
 	miscfiles_read_localization($1_mutt_t)
 

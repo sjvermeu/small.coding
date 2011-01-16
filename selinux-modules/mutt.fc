@@ -1,0 +1,4 @@
+/usr/bin/mutt          -- gen_context(system_u:object_r:mutt_exec_t,s0)
+HOME_DIR/\.mutt(/.*)?     gen_context(system_u:object_r:mutt_home_t,s0)
+HOME_DIR/\.muttrc      -- gen_context(system_u:object_r:mutt_conf_t,s0)
+/etc/mutt(/.*)?           gen_context(system_u:object_r:mutt_sys_conf_t,s0)

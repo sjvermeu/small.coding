@@ -1,0 +1,99 @@
+## <summary>Mutt e-mail client</summary>
+
+#######################################
+## <summary>
+##      The role template for the mutt module.
+## </summary>
+## <param name="role_prefix">
+##      <summary>
+##      The prefix of the user role (e.g., user
+##      is the prefix for user_r).
+##      </summary>
+## </param>
+## <param name="user_role">
+##      <summary>
+##      The role associated with the user domain.
+##      </summary>
+## </param>
+## <param name="user_domain">
+##      <summary>
+##      The type of the user domain.
+##      </summary>
+## </param>
+#
+template(`mutt_role_template',`
+	gen_require(`
+		type mutt_exec_t, mutt_home_t, mutt_conf_t, mutt_sys_conf_t;
+		type mutt_tmp_t;
+	')
+
+	#######################################
+	#
+	# Declarations
+	#
+	
+	type $1_mutt_t;
+	application_domain($1_mutt_t, mutt_exec_t)
+        ubac_constrained($1_mutt_t)
+
+	role $2 types $1_mutt_t;
+
+	############################
+	#
+	# Policy
+	#
+
+	allow $1_mutt_t self:process signal_perms;
+	#allow $1_mutt_t self:unix_stream_socket create_stream_socket_perms;
+
+	manage_dirs_pattern($1_mutt_t, mutt_home_t, mutt_home_t)
+	manage_files_pattern($1_mutt_t, mutt_home_t, mutt_home_t)
+	#manage_lnk_files_pattern($1_mutt_t, mutt_home_t, mutt_home_t)
+	#manage_sock_files_pattern($1_mutt_t, mutt_home_t, mutt_home_t)
+	#manage_fifo_files_pattern($1_mutt_t, mutt_home_t, mutt_home_t)
+	userdom_user_home_dir_filetrans($1_mutt_t, mutt_home_t, dir)
+	#manage_fifo_files_pattern($1_mutt_t, $1_mutt_t, $1_mutt_t)
+
+	manage_dirs_pattern($3, mutt_home_t, mutt_home_t)
+	manage_files_pattern($3, mutt_home_t, mutt_home_t)
+	#manage_lnk_files_pattern($3, mutt_home_t, mutt_home_t)
+	
+	manage_dirs_pattern($3, mutt_conf_t, mutt_conf_t)
+	manage_files_pattern($3, mutt_conf_t, mutt_conf_t)
+
+	relabel_dirs_pattern($3, mutt_home_t, mutt_home_t)
+	relabel_files_pattern($3, mutt_home_t, mutt_home_t)
+	#relabel_lnk_files_pattern($3, mutt_home_t, mutt_home_t)
+	
+	relabel_dirs_pattern($3, mutt_conf_t, mutt_conf_t)
+	relabel_files_pattern($3, mutt_conf_t, mutt_conf_t)
+
+	manage_dirs_pattern($1_mutt_t, mutt_tmp_t, mutt_tmp_t)
+	manage_files_pattern($1_mutt_t, mutt_tmp_t, mutt_tmp_t)
+	manage_fifo_files_pattern($1_mutt_t, mutt_tmp_t, mutt_tmp_t)
+	files_tmp_filetrans($1_mutt_t, mutt_tmp_t, { file dir })
+	files_search_tmp($1_mutt_t)
+
+
+
+	domtrans_pattern($3, mutt_exec_t, $1_mutt_t)
+
+	read_files_pattern($1_mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
+	read_files_pattern($1_mutt_t, mutt_conf_t, mutt_conf_t)
+	search_dirs_pattern($1_mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
+
+	ps_process_pattern($3, $1_mutt_t)
+
+	domain_use_interactive_fds($1_mutt_t)
+
+        auth_use_nsswitch($1_mutt_t)
+
+	userdom_use_user_terminals($1_mutt_t)
+
+	corenet_tcp_connect_pop_port($1_mutt_t)
+
+	miscfiles_read_localization($1_mutt_t)
+
+	dev_read_rand($1_mutt_t)
+	dev_read_urand($1_mutt_t)
+')	

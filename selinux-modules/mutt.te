@@ -1,0 +1,27 @@
+policy_module(mutt, 1.0.0)
+
+############################
+# 
+# Declarations
+#
+
+type mutt_t;
+type mutt_exec_t;
+application_domain(mutt_t, mutt_exec_t)
+
+type mutt_home_t;
+typealias mutt_home_t alias { user_mutt_home_t staff_mutt_home_t sysadm_mutt_home_t };
+userdom_user_home_content(mutt_home_t)
+
+type mutt_conf_t;
+typealias mutt_conf_t alias { user_mutt_conf_t staff_mutt_conf_t sysadm_mutt_conf_t };
+userdom_user_home_content(mutt_conf_t)
+
+type mutt_sys_conf_t;
+files_type(mutt_sys_conf_t)
+
+type mutt_tmp_t;
+typealias mutt_tmp_t alias { user_mutt_tmp_t staff_mutt_tmp_t sysadm_mutt_tmp_t };
+files_tmp_file(mutt_tmp_t)
+ubac_constrained(mutt_tmp_t)
+

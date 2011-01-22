@@ -3,8 +3,6 @@ module fixlocal 1.0.1;
 require {
 	type mozilla_t;
 	type shell_exec_t;
-	type staff_skype_t;
-	type sysadm_skype_t;
 	type ssh_t, port_t;
 	type ifconfig_t, wpa_cli_t;
 	type initrc_t;
@@ -16,11 +14,12 @@ require {
 	type iceauth_t;
 	type getty_t;
 	type staff_t;
-	type staff_mutt_t, sysadm_mutt_t, proc_t;
+	type mutt_t, proc_t;
 	type qemu_t, qemu_exec_t;
 	type var_run_t;
 	type tmp_t;
 	type staff_dbusd_t;
+	type skype_t;
 	type lib_t;
 	class process { getpgid execmem transition sigkill signal setsched getsched };
 	class file { ioctl getattr read lock open execute_no_trans };
@@ -37,12 +36,10 @@ require {
 
 # Tools with execmem requirement
 allow mozilla_t self:process { execmem };
-allow staff_skype_t self:process { execmem };
-allow sysadm_skype_t self:process { execmem };
-# Allow ssh to -p 1831
+# Allow ssh to more random port
 allow ssh_t port_t:tcp_socket { name_connect };
 # Allow lsof to function properly on skype process
-allow sysadm_t staff_skype_t:fifo_file { getattr };
+allow sysadm_t skype_t:fifo_file { getattr };
 
 ##
 ## These ones need to be incorporated. Just for quick testing
@@ -66,8 +63,5 @@ allow iceauth_t getty_t:fd { use };
 ##
 ## These can be ignored on my system (I don't want them being allowed anyhow)
 ##
-dontaudit staff_skype_t user_home_t:dir { search };
-dontaudit staff_skype_t fs_t:filesystem { getattr };
 dontaudit xserver_t staff_t:process { getpgid };
-dontaudit staff_mutt_t proc_t:file { read };
-dontaudit sysadm_mutt_t proc_t:file { read };
+dontaudit mutt_t proc_t:file { read };

@@ -16,14 +16,23 @@ require {
 	type iceauth_t;
 	type getty_t;
 	type staff_t;
-	class process { getpgid execmem };
-	class file read;
+	type staff_mutt_t, sysadm_mutt_t, proc_t;
+	type qemu_t, qemu_exec_t;
+	type var_run_t;
+	type tmp_t;
+	type staff_dbusd_t;
+	type lib_t;
+	class process { getpgid execmem transition sigkill signal setsched getsched };
+	class file { ioctl getattr read lock open execute_no_trans };
 	class tcp_socket name_connect;
 	class fd use;
-	class unix_dgram_socket { read write };
+	class unix_dgram_socket { read write sendto };
+	class unix_stream_socket { connectto };
 	class fifo_file { getattr };
 	class filesystem { getattr };
-	class dir { search };
+	class dir { search getattr open };
+	class file { execute };
+	class sock_file { read write create };
 }
 
 # Tools with execmem requirement
@@ -34,6 +43,14 @@ allow sysadm_skype_t self:process { execmem };
 allow ssh_t port_t:tcp_socket { name_connect };
 # Allow lsof to function properly on skype process
 allow sysadm_t staff_skype_t:fifo_file { getattr };
+
+##
+## These ones need to be incorporated. Just for quick testing
+##
+allow qemu_t var_run_t:sock_file { write };
+allow qemu_t sysadm_t:unix_stream_socket { connectto };
+allow qemu_t tmp_t:sock_file { create read write };
+allow qemu_t sysadm_t:unix_dgram_socket { sendto };
 
 ##
 ## These ones still need to be validated if we need them for 
@@ -52,3 +69,5 @@ allow iceauth_t getty_t:fd { use };
 dontaudit staff_skype_t user_home_t:dir { search };
 dontaudit staff_skype_t fs_t:filesystem { getattr };
 dontaudit xserver_t staff_t:process { getpgid };
+dontaudit staff_mutt_t proc_t:file { read };
+dontaudit sysadm_mutt_t proc_t:file { read };

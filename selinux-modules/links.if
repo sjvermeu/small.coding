@@ -2,14 +2,8 @@
 
 #######################################
 ## <summary>
-##      The role template for the links module.
+##      The role interface for the links module.
 ## </summary>
-## <param name="role_prefix">
-##      <summary>
-##      The prefix of the user role (e.g., user
-##      is the prefix for user_r).
-##      </summary>
-## </param>
 ## <param name="user_role">
 ##      <summary>
 ##      The role associated with the user domain.
@@ -21,9 +15,9 @@
 ##      </summary>
 ## </param>
 #
-template(`links_role_template',`
+interface(`links_role',`
 	gen_require(`
-		type links_exec_t, links_tmpfs_t, links_home_t;
+		type links_t, links_exec_t, links_tmpfs_t, links_home_t;
 	')
 
 	#######################################
@@ -31,56 +25,22 @@ template(`links_role_template',`
 	# Declarations
 	#
 	
-	type $1_links_t;
-	application_domain($1_links_t, links_exec_t)
-        ubac_constrained($1_links_t)
-
-	role $2 types $1_links_t;
+	role $1 types links_t;
 
 	############################
 	#
 	# Policy
 	#
 
-	allow $1_links_t self:process signal_perms;
-	allow $1_links_t self:unix_stream_socket create_stream_socket_perms;
+	manage_dirs_pattern($2, links_home_t, links_home_t)
+	manage_files_pattern($2, links_home_t, links_home_t)
+	manage_lnk_files_pattern($2, links_home_t, links_home_t)
 
-	manage_dirs_pattern($1_links_t, links_home_t, links_home_t)
-	manage_files_pattern($1_links_t, links_home_t, links_home_t)
-	manage_lnk_files_pattern($1_links_t, links_home_t, links_home_t)
-	manage_sock_files_pattern($1_links_t, links_home_t, links_home_t)
-	manage_fifo_files_pattern($1_links_t, links_home_t, links_home_t)
-	userdom_user_home_dir_filetrans($1_links_t, links_home_t, dir)
+	relabel_dirs_pattern($2, links_home_t, links_home_t)
+	relabel_files_pattern($2, links_home_t, links_home_t)
+	relabel_lnk_files_pattern($2, links_home_t, links_home_t)
 
-	manage_fifo_files_pattern($1_links_t, $1_links_t, $1_links_t)
+	domtrans_pattern($2, links_exec_t, links_t)
 
-	manage_dirs_pattern($3, links_home_t, links_home_t)
-	manage_files_pattern($3, links_home_t, links_home_t)
-	manage_lnk_files_pattern($3, links_home_t, links_home_t)
-
-	manage_files_pattern($1_links_t, links_tmpfs_t, links_tmpfs_t)
-	manage_lnk_files_pattern($1_links_t, links_tmpfs_t, links_tmpfs_t)
-	manage_fifo_files_pattern($1_links_t, links_tmpfs_t, links_tmpfs_t)
-	manage_sock_files_pattern($1_links_t, links_tmpfs_t, links_tmpfs_t)
-	fs_tmpfs_filetrans($1_links_t, links_tmpfs_t, { file lnk_file sock_file fifo_file })
-
-	xserver_user_x_domain_template($1_links, $1_links_t, links_tmpfs_t)
-
-	relabel_dirs_pattern($3, links_home_t, links_home_t)
-	relabel_files_pattern($3, links_home_t, links_home_t)
-	relabel_lnk_files_pattern($3, links_home_t, links_home_t)
-
-	domtrans_pattern($3, links_exec_t, $1_links_t)
-
-	ps_process_pattern($3, $1_links_t)
-
-	domain_use_interactive_fds($1_links_t)
-
-        auth_use_nsswitch($1_links_t)
-
-	userdom_use_user_terminals($1_links_t)
-
-	corenet_tcp_connect_http_port($1_links_t)
-
-	miscfiles_read_localization($1_links_t)
+	ps_process_pattern($2, links_t)
 ')	

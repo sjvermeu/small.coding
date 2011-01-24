@@ -21,9 +21,10 @@ require {
 	type staff_dbusd_t;
 	type skype_t;
 	type lib_t;
+	type node_t;
 	class process { getpgid execmem transition sigkill signal setsched getsched };
 	class file { ioctl getattr read lock open execute_no_trans };
-	class tcp_socket name_connect;
+	class tcp_socket { name_bind name_connect node_bind };
 	class fd use;
 	class unix_dgram_socket { read write sendto };
 	class unix_stream_socket { connectto };
@@ -40,6 +41,9 @@ allow mozilla_t self:process { execmem };
 allow ssh_t port_t:tcp_socket { name_connect };
 # Allow lsof to function properly on skype process
 allow sysadm_t skype_t:fifo_file { getattr };
+# Allow vncviewer -listen mode (should be in its own domain)
+allow staff_t port_t:tcp_socket { name_bind };
+allow staff_t node_t:tcp_socket { node_bind };
 
 ##
 ## These ones need to be incorporated. Just for quick testing

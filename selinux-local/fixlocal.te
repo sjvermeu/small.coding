@@ -29,6 +29,8 @@ require {
 	type xserver_t;
 	type kernel_t;
 	type netutils_t;
+	type xauth_t;
+	type user_tmp_t;
 	class process { setpgid getpgid execmem transition sigkill signal setsched getsched ptrace rlimitinh siginh noatsecure };
 	class file { ioctl getattr read lock open execute_no_trans entrypoint };
 	class tcp_socket { name_bind name_connect node_bind };
@@ -41,6 +43,7 @@ require {
 	class file { execute };
 	class sock_file { read write create };
 	class system { module_request };
+	class capability { chown };
 }
 
 # Tools with execmem requirement
@@ -58,14 +61,6 @@ allow staff_t node_t:tcp_socket { node_bind };
 ## anything that I don't need (denying them doesn't change
 ## behavior here) 
 ## 
-allow ifconfig_t wpa_cli_t:fd { use }; 
-allow ifconfig_t wpa_cli_t:unix_dgram_socket { read write };
-allow initrc_t wpa_cli_t:unix_dgram_socket { read write };
-allow netutils_t wpa_cli_t:fd { use };
-allow iceauth_t getty_t:fd { use };
-# Frequent disassociate/associate ?
-allow initrc_t kernel_t:system { module_request };
-allow netutils_t wpa_cli_t:unix_dgram_socket { read write };
 
 ##
 ## These can be ignored on my system (I don't want them being allowed anyhow)

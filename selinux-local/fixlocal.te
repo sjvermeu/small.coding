@@ -22,8 +22,15 @@ require {
 	type skype_t;
 	type lib_t;
 	type node_t;
-	class process { getpgid execmem transition sigkill signal setsched getsched };
-	class file { ioctl getattr read lock open execute_no_trans };
+	type iceauth_t;
+	type tmp_t;
+	type user_cron_spool_t;
+	type cron_spool_t;
+	type xserver_t;
+	type kernel_t;
+	type netutils_t;
+	class process { setpgid getpgid execmem transition sigkill signal setsched getsched ptrace rlimitinh siginh noatsecure };
+	class file { ioctl getattr read lock open execute_no_trans entrypoint };
 	class tcp_socket { name_bind name_connect node_bind };
 	class fd use;
 	class unix_dgram_socket { read write sendto };
@@ -33,6 +40,7 @@ require {
 	class dir { search getattr open };
 	class file { execute };
 	class sock_file { read write create };
+	class system { module_request };
 }
 
 # Tools with execmem requirement
@@ -46,14 +54,6 @@ allow staff_t port_t:tcp_socket { name_bind };
 allow staff_t node_t:tcp_socket { node_bind };
 
 ##
-## These ones need to be incorporated. Just for quick testing
-##
-allow qemu_t var_run_t:sock_file { write };
-allow qemu_t sysadm_t:unix_stream_socket { connectto };
-allow qemu_t tmp_t:sock_file { create read write };
-allow qemu_t sysadm_t:unix_dgram_socket { sendto };
-
-##
 ## These ones still need to be validated if we need them for 
 ## anything that I don't need (denying them doesn't change
 ## behavior here) 
@@ -63,6 +63,9 @@ allow ifconfig_t wpa_cli_t:unix_dgram_socket { read write };
 allow initrc_t wpa_cli_t:unix_dgram_socket { read write };
 allow netutils_t wpa_cli_t:fd { use };
 allow iceauth_t getty_t:fd { use };
+# Frequent disassociate/associate ?
+allow initrc_t kernel_t:system { module_request };
+allow netutils_t wpa_cli_t:unix_dgram_socket { read write };
 
 ##
 ## These can be ignored on my system (I don't want them being allowed anyhow)

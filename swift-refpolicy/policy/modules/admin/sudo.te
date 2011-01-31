@@ -1,0 +1,12 @@
+policy_module(sudo, 1.7.0.r1)
+
+########################################
+#
+# Declarations
+attribute sudodomain;
+
+type sudo_exec_t;
+application_executable_file(sudo_exec_t)
+
+type sudo_db_t;
+files_type(sudo_db_t)

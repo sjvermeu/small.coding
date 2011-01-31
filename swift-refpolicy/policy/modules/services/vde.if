@@ -1,0 +1,63 @@
+## <summary>Virtual Distributed Ethernet switch service</summary>
+
+########################################
+## <summary>
+#    The rules needed to manage the VDE switches
+## </summary>
+## <param name="role">
+##	<summary>
+##	The role to be allowed to manage the vde domain.
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`vde_admin',`
+	gen_require(`
+		type vde_t, vde_tmp_t;
+		type vde_conf_t, vde_var_run_t;
+		type vde_initrc_exec_t, vde_exec_t;
+	')
+
+	role $1 types vde_t;
+
+	allow $2 vde_t:process { ptrace signal_perms };
+	allow vde_t $2:process { sigchld signull };
+	allow vde_t $2:fd use;
+	allow vde_t $2:tun_socket { relabelfrom };
+	allow vde_t self:tun_socket { relabelfrom relabelto };
+	ps_process_pattern($2, vde_t)
+
+	domain_auto_trans($2, vde_exec_t, vde_t)
+')
+
+########################################
+## <summary>
+#    Allow communication with the VDE service 
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`vde_connect',`
+	gen_require(`
+		type vde_t, vde_var_run_t, vde_tmp_t;
+	')
+	
+	allow $1 vde_var_run_t:sock_file write_sock_file_perms;
+	allow $1 vde_t:unix_stream_socket { connectto };
+	allow $1 vde_t:unix_dgram_socket { sendto };
+	allow vde_t $1:unix_dgram_socket { sendto };
+
+	allow $1 vde_tmp_t:sock_file manage_sock_file_perms;
+	files_tmp_filetrans($1, vde_tmp_t, sock_file)
+
+
+')

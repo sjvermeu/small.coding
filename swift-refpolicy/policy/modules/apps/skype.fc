@@ -1,0 +1,3 @@
+/usr/bin/skype         -- gen_context(system_u:object_r:skype_exec_t,s0)
+/opt/skype/skype       -- gen_context(system_u:object_r:skype_exec_t,s0)
+HOME_DIR/\.Skype(/.*)?    gen_context(system_u:object_r:skype_home_t,s0)

@@ -1,0 +1,7 @@
+/etc/init.d/vde		--	gen_context(system_u:object_r:vde_initrc_exec_t,s0)
+/usr/bin/vde_switch	--	gen_context(system_u:object_r:vde_exec_t,s0)
+/usr/sbin/vde_tunctl	--	gen_context(system_u:object_r:vde_exec_t,s0)
+/etc/vde2(/.*)?			gen_context(system_u:object_r:vde_conf_t,s0)
+/etc/vde2/libvdemgmt(/.*)?	gen_context(system_u:object_r:vde_conf_t,s0)
+/var/run/vde\.ctl(/.*)?		gen_context(system_u:object_r:vde_var_run_t,s0)
+/tmp/vde.[0-9-]*	-s	gen_context(system_u:object_r:vde_tmp_t,s0)

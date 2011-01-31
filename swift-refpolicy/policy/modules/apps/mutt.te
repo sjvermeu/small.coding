@@ -1,0 +1,74 @@
+policy_module(mutt, 1.0.0)
+
+############################
+# 
+# Declarations
+#
+
+type mutt_t;
+type mutt_exec_t;
+application_domain(mutt_t, mutt_exec_t)
+ubac_constrained(mutt_t)
+
+type mutt_home_t;
+typealias mutt_home_t alias { user_mutt_home_t staff_mutt_home_t sysadm_mutt_home_t };
+userdom_user_home_content(mutt_home_t)
+
+type mutt_conf_t;
+typealias mutt_conf_t alias { user_mutt_conf_t staff_mutt_conf_t sysadm_mutt_conf_t };
+userdom_user_home_content(mutt_conf_t)
+
+type mutt_sys_conf_t;
+files_type(mutt_sys_conf_t)
+
+type mutt_tmp_t;
+typealias mutt_tmp_t alias { user_mutt_tmp_t staff_mutt_tmp_t sysadm_mutt_tmp_t };
+files_tmp_file(mutt_tmp_t)
+ubac_constrained(mutt_tmp_t)
+
+############################
+#
+# Local Policy Rules
+#
+
+allow mutt_t self:process signal_perms;
+
+
+manage_dirs_pattern(mutt_t, mutt_home_t, mutt_home_t)
+manage_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
+userdom_user_home_dir_filetrans(mutt_t, mutt_home_t, dir)
+
+manage_dirs_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+manage_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+manage_fifo_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+files_tmp_filetrans(mutt_t, mutt_tmp_t, { file dir })
+files_search_tmp(mutt_t)
+
+read_files_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
+read_files_pattern(mutt_t, mutt_conf_t, mutt_conf_t)
+search_dirs_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
+
+
+corecmd_exec_bin(mutt_t)
+corecmd_exec_shell(mutt_t)
+corenet_tcp_connect_pop_port(mutt_t)
+corenet_tcp_connect_smtp_port(mutt_t)
+dev_read_rand(mutt_t)
+dev_read_urand(mutt_t)
+domain_use_interactive_fds(mutt_t)
+files_read_usr_files(mutt_t)
+
+
+auth_use_nsswitch(mutt_t)
+miscfiles_read_localization(mutt_t)
+userdom_manage_user_home_content_files(mutt_t)
+userdom_manage_user_home_content_dirs(mutt_t)
+userdom_search_user_home_content(mutt_t)
+userdom_use_user_terminals(mutt_t)
+
+
+
+
+tunable_policy(`gentoo_try_dontaudit',`
+	kernel_dontaudit_search_sysctl(mutt_t)
+')

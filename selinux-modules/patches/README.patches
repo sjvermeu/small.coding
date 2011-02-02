@@ -1,0 +1,70 @@
+fix-system-modutils-r5.patch
+	Needed to allow the alsasound init script to load the appropriate ALSA
+	kernel modules	
+	Also dontaudit some statements not used
+
+fix-services-networkmanager-r4.patch
+	Support interactive use of wpa_cli (often used to check and debug WPA
+	authentication issues), support Gentoo's use of wpa_cli to trigger the
+	necessary scripts to further configure the interfaces
+
+fix-system-raid-r5.patch
+	At boot time, mdadm attempts to read a (temporary) block device file,
+	but fails, causing the software RAIDs not to be detected and mounted.
+
+add-apps-skype-r4.patch
+	Add support for the Skype P2P application
+
+add-apps-links-r4.patch
+	Add support for the Links commandline/graphical web browser
+
+add-apps-mutt-r4.patch
+	Add support for the mutt e-mail client
+
+add-services-gorg-r4.patch
+	Add support for the gorg application/service
+
+add-services-vde-r5.patch
+	Add support for the vde (virtual distributed ethernet switch) service
+
+fix-admin-portage-r5.patch
+	Enable setfscreate, needed to deploy java-config
+	Generate the gentoo_try_dontaudit tunable boolean
+	Introduce the necessary dontaudit statements (covered by gentoo_try_dontaudit)
+	Add dontaudit interface for fd use
+
+fix-apps-qemu-r4.patch
+	Disable an optional policy as it contains errors (build failure)
+
+fix-udev.patch
+	Enable udev to launch init scripts (used for instance for network
+	interface detection and enabling)
+
+fix-sudo.patch
+	Enable sudo to access and manage its database files
+
+fix-system-init-r4.patch
+	Allow the init domain to read ALSA related files (used in the alsasound
+	init script)
+
+fix-system-selinuxutil-r5.patch
+	Introduce dontaudit for portage fds
+
+fix-system-iptables-r5.patch
+	Introduce dontaudit for rawip_sockets
+
+fix-services-xserver-r5.patch
+	Fix timer issue (within siginh, a 15-second alarm is waited for)
+	Fix xfce4 issue (xfce4-session creates ICE file in /tmp with user_tmp_t,
+	iceauth_t needs read access to that).
+
+fix-roles-staff-r4.patch
+fix-roles-unprivuser-r4.patch
+	Add support for the links, mutt, gorg and skype applications.
+
+fix-roles-sysadm-r4.patch
+	Add support for the links, mutt, gorg, skype and vde applications.
+	The sysadm role also gets access to the wpa_cli interface and is able to
+	call KVM guests through the commandline (rather than requiring libvirt
+	for this).
+

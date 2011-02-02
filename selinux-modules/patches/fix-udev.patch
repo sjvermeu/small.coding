@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/udev.te.orig	2010-12-19 22:31:39.282000076 +0100
++++ refpolicy/policy/modules/system/udev.te	2010-12-19 22:31:51.665000074 +0100
+@@ -175,6 +175,7 @@
+ 	# during boot, init scripts use /dev/.rcsysinit
+ 	# existance to determine if we are in early booting
+ 	init_getattr_script_status_files(udev_t)
++	init_domtrans_script(udev_t)
+ ')
+ 
+ ifdef(`distro_redhat',`

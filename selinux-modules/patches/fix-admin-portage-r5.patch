@@ -1,0 +1,92 @@
+--- refpolicy.orig/policy/modules/admin/portage.te	2010-08-03 15:11:03.000000000 +0200
++++ refpolicy/policy/modules/admin/portage.te	2011-01-31 20:11:21.094000082 +0100
+@@ -1,10 +1,19 @@
+-policy_module(portage, 1.10.0)
++policy_module(portage, 1.10.0.r1)
+ 
+ ########################################
+ #
+ # Declarations
+ #
+ 
++## <desc>
++## <p>
++##   Set dontaudit statements where Gentoo developers believe they are indeed
++##   cosmetic
++## </p>
++## </desc>
++gen_tunable(gentoo_try_dontaudit, false)
++
++
+ type gcc_config_t;
+ type gcc_config_exec_t;
+ application_domain(gcc_config_t, gcc_config_exec_t)
+@@ -132,6 +141,8 @@
+ 
+ allow portage_t { portage_fetch_t portage_sandbox_t }:process signal;
+ 
++logging_dontaudit_search_logs(portage_fetch_t)
++
+ # transition for rsync and wget
+ corecmd_shell_spec_domtrans(portage_t, portage_fetch_t)
+ rsync_entry_domtrans(portage_t, portage_fetch_t)
+@@ -173,6 +184,10 @@
+ # if sesandbox is disabled, compiling is performed in this domain
+ portage_compile_domain(portage_t)
+ 
++tunable_policy(`gentoo_try_dontaudit',`
++	dontaudit portage_t self:capability { dac_read_search };
++')
++
+ optional_policy(`
+ 	bootloader_domtrans(portage_t)
+ ')
+@@ -274,3 +289,11 @@
+ 	dontaudit portage_sandbox_t portage_cache_t:dir { setattr };
+ 	dontaudit portage_sandbox_t portage_cache_t:file { setattr write };
+ ')
++
++tunable_policy(`gentoo_try_dontaudit',`
++	dontaudit portage_t self:netlink_route_socket { create };
++	dontaudit portage_t self:capability { dac_read_search };
++	dontaudit portage_fetch_t portage_devpts_t:chr_file { read write };
++	kernel_dontaudit_request_load_module(portage_t)
++')
++
+--- refpolicy.orig/policy/modules/admin/portage.if	2010-08-05 14:46:44.000000000 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-01-31 19:49:10.518000088 +0100
+@@ -77,8 +77,8 @@
+ 
+ 	allow $1 self:capability { fowner fsetid mknod setgid setuid chown dac_override net_raw };
+ 	dontaudit $1 self:capability sys_chroot;
+-	allow $1 self:process { setpgid setsched setrlimit signal_perms execmem };
+-	allow $1 self:process ~{ ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap };
++	allow $1 self:process { setpgid setsched setrlimit signal_perms execmem setfscreate };
++	allow $1 self:process ~{ ptrace setcurrent setexec setrlimit execmem execstack execheap };
+ 	allow $1 self:fd use;
+ 	allow $1 self:fifo_file rw_fifo_file_perms;
+ 	allow $1 self:shm create_shm_perms;
+@@ -281,3 +281,23 @@
+ 
+ 	dontaudit $1 portage_tmp_t:file rw_file_perms;
+ ')
++
++########################################
++## <summary>
++##	Do not audit attempts to inherit a
++##	portage file descriptor.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`gentoo_portage_dontaudit_use_fds',`
++	gen_require(`
++		type portage_t;
++	')
++
++	dontaudit $1 portage_t:fd use;
++')
++

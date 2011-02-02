@@ -1,0 +1,13 @@
+--- refpolicy.orig/policy/modules/apps/qemu.if	2010-08-05 14:20:59.000000000 +0200
++++ refpolicy/policy/modules/apps/qemu.if	2011-01-16 17:42:36.805000120 +0100
+@@ -177,10 +177,6 @@
+ 
+ 	qemu_domtrans($1)
+ 	role $2 types qemu_t;
+-
+-	optional_policy(`
+-		samba_run_smb(qemu_t, $2, $3)
+-	')
+ ')
+ 
+ ########################################

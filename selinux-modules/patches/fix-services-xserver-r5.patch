@@ -1,0 +1,60 @@
+--- refpolicy.orig/policy/modules/services/xserver.te	2010-12-13 15:11:02.000000000 +0100
++++ refpolicy/policy/modules/services/xserver.te	2011-01-30 15:04:32.722000186 +0100
+@@ -234,9 +234,11 @@
+ 
+ allow xdm_t iceauth_home_t:file read_file_perms;
+ 
++files_search_tmp(iceauth_t)
+ fs_search_auto_mountpoints(iceauth_t)
+ 
+ userdom_use_user_terminals(iceauth_t)
++userdom_read_user_tmp_files(iceauth_t)
+ 
+ tunable_policy(`use_nfs_home_dirs',`
+ 	fs_manage_nfs_files(iceauth_t)
+@@ -279,6 +281,7 @@
+ 
+ userdom_use_user_terminals(xauth_t)
+ userdom_read_user_tmp_files(xauth_t)
++userdom_read_user_tmp_files(xserver_t)
+ 
+ xserver_rw_xdm_tmp_files(xauth_t)
+ 
+@@ -588,6 +591,9 @@
+ allow xserver_t { root_xdrawable_t x_domain }:x_drawable send;
+ allow xserver_t input_xevent_t:x_event send;
+ 
++# Allow X to process keyboard events
++udev_read_db(xserver_t)
++
+ # setuid/setgid for the wrapper program to change UID
+ # sys_rawio is for iopl access - should not be needed for frame-buffer
+ # sys_admin, locking shared mem?  chowning IPC message queues or semaphores?
+@@ -610,6 +616,7 @@
+ allow xserver_t self:unix_stream_socket { create_stream_socket_perms connectto };
+ allow xserver_t self:tcp_socket create_stream_socket_perms;
+ allow xserver_t self:udp_socket create_socket_perms;
++allow xserver_t self:netlink_kobject_uevent_socket create_socket_perms;
+ 
+ manage_dirs_pattern(xserver_t, xserver_tmp_t, xserver_tmp_t)
+ manage_files_pattern(xserver_t, xserver_tmp_t, xserver_tmp_t)
+--- refpolicy.orig/policy/modules/services/xserver.if	2010-08-05 15:25:29.000000000 +0200
++++ refpolicy/policy/modules/services/xserver.if	2011-01-30 15:11:52.587000186 +0100
+@@ -163,6 +163,7 @@
+ 	relabel_dirs_pattern($2, user_fonts_config_t, user_fonts_config_t)
+ 	relabel_files_pattern($2, user_fonts_config_t, user_fonts_config_t)
+ 
++	allow $2 xserver_t:process { siginh };
+ ')
+ 
+ #######################################
+--- refpolicy.orig/policy/modules/services/xserver.fc	2010-08-03 15:11:09.000000000 +0200
++++ refpolicy/policy/modules/services/xserver.fc	2011-01-03 23:07:16.852000013 +0100
+@@ -5,6 +5,7 @@
+ HOME_DIR/\.fonts(/.*)?		gen_context(system_u:object_r:user_fonts_t,s0)
+ HOME_DIR/\.fonts/auto(/.*)?	gen_context(system_u:object_r:user_fonts_cache_t,s0)
+ HOME_DIR/\.fonts\.cache-.* --	gen_context(system_u:object_r:user_fonts_cache_t,s0)
++HOME_DIR/\.fontconfig(/.*)?	gen_context(system_u:object_r:user_fonts_cache_t,s0)
+ HOME_DIR/\.ICEauthority.* --	gen_context(system_u:object_r:iceauth_home_t,s0)
+ HOME_DIR/\.xauth.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
+ HOME_DIR/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)

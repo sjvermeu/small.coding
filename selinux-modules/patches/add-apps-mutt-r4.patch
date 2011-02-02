@@ -1,0 +1,140 @@
+--- refpolicy.orig/policy/modules/apps/mutt.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/mutt.te	2011-01-22 15:22:46.330000061 +0100
+@@ -0,0 +1,76 @@
++policy_module(mutt, 1.0.0)
++
++############################
++# 
++# Declarations
++#
++
++type mutt_t;
++type mutt_exec_t;
++application_domain(mutt_t, mutt_exec_t)
++ubac_constrained(mutt_t)
++
++type mutt_home_t;
++typealias mutt_home_t alias { user_mutt_home_t staff_mutt_home_t sysadm_mutt_home_t };
++userdom_user_home_content(mutt_home_t)
++
++type mutt_conf_t;
++typealias mutt_conf_t alias { user_mutt_conf_t staff_mutt_conf_t sysadm_mutt_conf_t };
++userdom_user_home_content(mutt_conf_t)
++
++type mutt_sys_conf_t;
++files_type(mutt_sys_conf_t)
++
++type mutt_tmp_t;
++typealias mutt_tmp_t alias { user_mutt_tmp_t staff_mutt_tmp_t sysadm_mutt_tmp_t };
++files_tmp_file(mutt_tmp_t)
++ubac_constrained(mutt_tmp_t)
++
++############################
++#
++# Policy
++#
++
++allow mutt_t self:process signal_perms;
++#allow mutt_t self:unix_stream_socket create_stream_socket_perms;
++
++manage_dirs_pattern(mutt_t, mutt_home_t, mutt_home_t)
++manage_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
++#manage_lnk_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
++#manage_sock_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
++#manage_fifo_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
++userdom_user_home_dir_filetrans(mutt_t, mutt_home_t, dir)
++#manage_fifo_files_pattern(mutt_t, mutt_t, mutt_t)
++
++manage_dirs_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
++manage_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
++manage_fifo_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
++files_tmp_filetrans(mutt_t, mutt_tmp_t, { file dir })
++files_search_tmp(mutt_t)
++
++read_files_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
++read_files_pattern(mutt_t, mutt_conf_t, mutt_conf_t)
++search_dirs_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
++
++userdom_search_user_home_content(mutt_t)
++userdom_manage_user_home_content_files(mutt_t)
++userdom_manage_user_home_content_dirs(mutt_t)
++
++corecmd_exec_bin(mutt_t)
++corecmd_exec_shell(mutt_t)
++files_read_usr_files(mutt_t)
++
++domain_use_interactive_fds(mutt_t)
++
++auth_use_nsswitch(mutt_t)
++
++userdom_use_user_terminals(mutt_t)
++
++corenet_tcp_connect_pop_port(mutt_t)
++corenet_tcp_connect_smtp_port(mutt_t)
++
++miscfiles_read_localization(mutt_t)
++
++dev_read_rand(mutt_t)
++dev_read_urand(mutt_t)
++
+--- refpolicy.orig/policy/modules/apps/mutt.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/mutt.if	2011-01-22 15:17:04.849000058 +0100
+@@ -0,0 +1,51 @@
++## <summary>Mutt e-mail client</summary>
++
++#######################################
++## <summary>
++##      The role for the mutt application.
++## </summary>
++## <param name="user_role">
++##      <summary>
++##      The role associated with the user domain.
++##      </summary>
++## </param>
++## <param name="user_domain">
++##      <summary>
++##      The type of the user domain.
++##      </summary>
++## </param>
++#
++interface(`mutt_role',`
++	gen_require(`
++		type mutt_t, mutt_exec_t, mutt_home_t, mutt_conf_t, mutt_sys_conf_t;
++		type mutt_tmp_t;
++	')
++
++	#######################################
++	#
++	# Declarations
++	#
++	
++	role $1 types mutt_t;
++
++	############################
++	#
++	# Policy
++	#
++
++	manage_dirs_pattern($2, mutt_home_t, mutt_home_t)
++	manage_files_pattern($2, mutt_home_t, mutt_home_t)
++	
++	manage_dirs_pattern($2, mutt_conf_t, mutt_conf_t)
++	manage_files_pattern($2, mutt_conf_t, mutt_conf_t)
++
++	relabel_dirs_pattern($2, mutt_home_t, mutt_home_t)
++	relabel_files_pattern($2, mutt_home_t, mutt_home_t)
++	
++	relabel_dirs_pattern($2, mutt_conf_t, mutt_conf_t)
++	relabel_files_pattern($2, mutt_conf_t, mutt_conf_t)
++
++	domtrans_pattern($2, mutt_exec_t, mutt_t)
++
++	ps_process_pattern($2, mutt_t)
++')	
+--- refpolicy.orig/policy/modules/apps/mutt.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/mutt.fc	2011-01-16 13:56:03.314000081 +0100
+@@ -0,0 +1,4 @@
++/usr/bin/mutt          -- gen_context(system_u:object_r:mutt_exec_t,s0)
++HOME_DIR/\.mutt(/.*)?     gen_context(system_u:object_r:mutt_home_t,s0)
++HOME_DIR/\.muttrc      -- gen_context(system_u:object_r:mutt_conf_t,s0)
++/etc/mutt(/.*)?           gen_context(system_u:object_r:mutt_sys_conf_t,s0)

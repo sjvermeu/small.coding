@@ -1,0 +1,158 @@
+--- refpolicy.orig/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.te	2011-01-30 16:11:46.278000202 +0100
+@@ -0,0 +1,95 @@
++policy_module(skype, 0.0.2)
++
++############################
++# 
++# Declarations
++#
++
++type skype_t;
++type skype_exec_t;
++application_domain(skype_t, skype_exec_t)
++
++type skype_home_t;
++
++type skype_tmpfs_t;
++files_tmpfs_file(skype_tmpfs_t)
++ubac_constrained(skype_tmpfs_t)
++
++############################
++#
++# Policy
++#
++
++allow skype_t self:process { getsched setsched execmem };
++allow skype_t self:fifo_file rw_fifo_file_perms;
++allow skype_t self:unix_stream_socket create_socket_perms;
++allow skype_t self:sem create_sem_perms;
++allow skype_t self:tcp_socket create_stream_socket_perms;
++
++
++manage_dirs_pattern(skype_t, skype_home_t, skype_home_t)
++manage_files_pattern(skype_t, skype_home_t, skype_home_t)
++manage_lnk_files_pattern(skype_t, skype_home_t, skype_home_t)
++userdom_user_home_dir_filetrans(skype_t, skype_home_t, dir)
++userdom_user_home_content(skype_home_t)
++
++manage_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
++manage_lnk_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
++manage_fifo_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
++manage_sock_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
++fs_tmpfs_filetrans(skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
++
++
++kernel_read_system_state(skype_t)
++
++can_exec(skype_t, skype_exec_t)
++corecmd_exec_bin(skype_t)
++corecmd_exec_shell(skype_t)
++corenet_all_recvfrom_netlabel(skype_t)
++corenet_all_recvfrom_unlabeled(skype_t)
++corenet_tcp_bind_generic_node(skype_t)
++corenet_udp_bind_generic_node(skype_t)
++corenet_tcp_bind_generic_port(skype_t) 
++corenet_udp_bind_generic_port(skype_t) 
++corenet_tcp_connect_generic_port(skype_t)
++corenet_tcp_connect_http_port(skype_t)
++corenet_tcp_sendrecv_http_port(skype_t)
++corenet_sendrecv_http_client_packets(skype_t)
++dev_read_sound(skype_t)
++dev_read_video_dev(skype_t)
++dev_write_sound(skype_t)
++dev_write_video_dev(skype_t)
++files_read_etc_files(skype_t)
++files_read_usr_files(skype_t)
++
++
++auth_use_nsswitch(skype_t)
++domain_use_interactive_fds(skype_t)
++libs_use_ld_so(skype_t)
++miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
++miscfiles_read_localization(skype_t)
++userdom_manage_user_home_content_dirs(skype_t)
++userdom_manage_user_home_content_files(skype_t)
++userdom_use_user_terminals(skype_t)
++
++
++xserver_user_x_domain_template(skype, skype_t, skype_tmpfs_t)
++
++tunable_policy(`gentoo_try_dontaudit',`
++	dev_dontaudit_search_sysfs(skype_t)
++	fs_dontaudit_getattr_xattr_fs(skype_t)
++
++	optional_policy(`
++		mozilla_dontaudit_manage_user_home_files(skype_t)
++	')
++')
++
++optional_policy(`
++	alsa_read_rw_config(skype_t)
++')
++
++optional_policy(`
++	dbus_system_bus_client(skype_t)
++	dbus_session_bus_client(skype_t)
++')
++
+--- refpolicy.orig/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.if	2011-01-30 16:09:25.304000190 +0100
+@@ -0,0 +1,51 @@
++## <summary>Skype softphone.</summary>
++
++#######################################
++## <summary>
++##      Role access for the skype module.
++## </summary>
++## <param name="role">
++##      <summary>
++##      The role associated with the user domain.
++##      </summary>
++## </param>
++## <param name="user_domain">
++##      <summary>
++##      The type of the user domain.
++##      </summary>
++## </param>
++#
++interface(`skype_role',`
++	gen_require(`
++		type skype_t, skype_exec_t, skype_tmpfs_t, skype_home_t;
++	')
++
++	#######################################
++	#
++	# Declarations
++	#
++	
++	role $1 types skype_t;
++
++	############################
++	#
++	# Policy
++	#
++
++	manage_dirs_pattern($2, skype_home_t, skype_home_t)
++	manage_files_pattern($2, skype_home_t, skype_home_t)
++	manage_lnk_files_pattern($2, skype_home_t, skype_home_t)
++
++	relabel_dirs_pattern($2, skype_home_t, skype_home_t)
++	relabel_files_pattern($2, skype_home_t, skype_home_t)
++	relabel_lnk_files_pattern($2, skype_home_t, skype_home_t)
++
++	domtrans_pattern($2, skype_exec_t, skype_t)
++
++	ps_process_pattern($2, skype_t)
++	allow $2 skype_t:process { ptrace signal_perms };
++
++	tunable_policy(`gentoo_try_dontaudit',`
++		dontaudit skype_t $2:unix_stream_socket { connectto };
++	')
++')	
+--- refpolicy.orig/policy/modules/apps/skype.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.fc	2011-01-09 21:27:25.364999962 +0100
+@@ -0,0 +1,3 @@
++/usr/bin/skype         -- gen_context(system_u:object_r:skype_exec_t,s0)
++/opt/skype/skype       -- gen_context(system_u:object_r:skype_exec_t,s0)
++HOME_DIR/\.Skype(/.*)?    gen_context(system_u:object_r:skype_home_t,s0)

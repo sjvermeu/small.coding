@@ -315,6 +315,11 @@ ifdef(`distro_gentoo',`
 	optional_policy(`
 		consoletype_exec(update_modules_t)
 	')
+
+	tunable_policy(`gentoo_try_dontaudit',`
+		dontaudit insmod_t self:capability { sys_admin };
+		gentoo_iptables_dontaudit_rw_rawip_socket(insmod_t)
+	')
 ')
 
 ifdef(`distro_ubuntu',`

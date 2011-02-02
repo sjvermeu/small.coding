@@ -52,6 +52,7 @@ dev_dontaudit_getattr_generic_blk_files(mdadm_t)
 dev_read_realtime_clock(mdadm_t)
 # unfortunately needed for DMI decoding:
 dev_read_raw_memory(mdadm_t)
+dev_rw_sysfs(mdadm_t)
 
 domain_use_interactive_fds(mdadm_t)
 
@@ -85,6 +86,12 @@ userdom_dontaudit_search_user_home_content(mdadm_t)
 userdom_dontaudit_use_user_terminals(mdadm_t)
 
 mta_send_mail(mdadm_t)
+
+ifdef(`distro_gentoo',`
+	tunable_policy(`gentoo_try_dontaudit',`
+		files_dontaudit_getattr_all_files(mdadm_t)
+	')
+')
 
 optional_policy(`
 	gpm_dontaudit_getattr_gpmctl(mdadm_t)

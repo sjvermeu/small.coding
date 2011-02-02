@@ -281,3 +281,23 @@ interface(`portage_dontaudit_rw_tmp_files',`
 
 	dontaudit $1 portage_tmp_t:file rw_file_perms;
 ')
+
+########################################
+## <summary>
+##	Do not audit attempts to inherit a
+##	portage file descriptor.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to not audit.
+##	</summary>
+## </param>
+#
+interface(`gentoo_portage_dontaudit_use_fds',`
+	gen_require(`
+		type portage_t;
+	')
+
+	dontaudit $1 portage_t:fd use;
+')
+

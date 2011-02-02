@@ -59,5 +59,7 @@ interface(`vde_connect',`
 	allow $1 vde_tmp_t:sock_file manage_sock_file_perms;
 	files_tmp_filetrans($1, vde_tmp_t, sock_file)
 
-
+	tunable_policy(`gentoo_try_dontaudit',`
+		dontaudit $1 vde_var_run_t:sock_file { setattr };
+	')
 ')

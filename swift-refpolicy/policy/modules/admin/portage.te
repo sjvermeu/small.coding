@@ -141,6 +141,8 @@ logging_log_filetrans(portage_t, portage_log_t, file)
 
 allow portage_t { portage_fetch_t portage_sandbox_t }:process signal;
 
+logging_dontaudit_search_logs(portage_fetch_t)
+
 # transition for rsync and wget
 corecmd_shell_spec_domtrans(portage_t, portage_fetch_t)
 rsync_entry_domtrans(portage_t, portage_fetch_t)
@@ -181,6 +183,10 @@ seutil_domtrans_semanage(portage_t)
 portage_domtrans_gcc_config(portage_t)
 # if sesandbox is disabled, compiling is performed in this domain
 portage_compile_domain(portage_t)
+
+tunable_policy(`gentoo_try_dontaudit',`
+	dontaudit portage_t self:capability { dac_read_search };
+')
 
 optional_policy(`
 	bootloader_domtrans(portage_t)
@@ -287,6 +293,7 @@ ifdef(`hide_broken_symptoms',`
 tunable_policy(`gentoo_try_dontaudit',`
 	dontaudit portage_t self:netlink_route_socket { create };
 	dontaudit portage_t self:capability { dac_read_search };
+	dontaudit portage_fetch_t portage_devpts_t:chr_file { read write };
 	kernel_dontaudit_request_load_module(portage_t)
 ')
 

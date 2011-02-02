@@ -8,9 +8,18 @@ fix-services-networkmanager-r4.patch
 	authentication issues), support Gentoo's use of wpa_cli to trigger the
 	necessary scripts to further configure the interfaces
 
-fix-system-raid-r5.patch
+fix-services-ssh-r7.patch
+	Optionally dontaudit module_request
+
+fix-system-raid-r7.patch
 	At boot time, mdadm attempts to read a (temporary) block device file,
 	but fails, causing the software RAIDs not to be detected and mounted.
+
+fix-system-lvm-r7.patch
+	Allow ipc_info
+
+fix-system-mount-r7.patch
+	Allow setsched
 
 add-apps-skype-r4.patch
 	Add support for the Skype P2P application

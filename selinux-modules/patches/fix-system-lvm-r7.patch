@@ -1,0 +1,10 @@
+--- refpolicy.orig/policy/modules/system/lvm.te	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/lvm.te	2011-02-01 17:06:23.513000008 +0100
+@@ -210,6 +210,7 @@
+ files_etc_filetrans(lvm_t, lvm_metadata_t, file)
+ files_search_mnt(lvm_t)
+ 
++kernel_get_sysvipc_info(lvm_t)
+ kernel_read_system_state(lvm_t)
+ # Read system variables in /proc/sys
+ kernel_read_kernel_sysctls(lvm_t)

@@ -49,8 +49,9 @@ fix-udev.patch
 	Enable udev to launch init scripts (used for instance for network
 	interface detection and enabling)
 
-fix-sudo.patch
-	Enable sudo to access and manage its database files
+fix-system-authlogin-r8.patch
+	Use pam_var_run_t for /var/db/sudo (was /var/run/sudo previously,
+	changed in sudo 1.7.4)
 
 fix-system-init-r4.patch
 	Allow the init domain to read ALSA related files (used in the alsasound

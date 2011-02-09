@@ -17,6 +17,11 @@ typealias wireshark_home_t alias { user_wireshark_home_t staff_wireshark_home_t 
 typealias wireshark_home_t alias { auditadm_wireshark_home_t secadm_wireshark_home_t };
 userdom_user_home_content(wireshark_home_t)
 
+type wireshark_home_exec_t;
+typealias wireshark_home_exec_t alias { user_wireshark_home_exec_t staff_wireshark_home_exec_t sysadm_wireshark_home_exec_t };
+typealias wireshark_home_exec_t alias { auditadm_wireshark_home_exec_t secadm_wireshark_home_exec_t };
+userdom_user_home_content(wireshark_home_exec_t)
+
 type wireshark_tmp_t;
 typealias wireshark_tmp_t alias { user_wireshark_tmp_t staff_wireshark_tmp_t sysadm_wireshark_tmp_t };
 typealias wireshark_tmp_t alias { auditadm_wireshark_tmp_t secadm_wireshark_tmp_t };
@@ -35,24 +40,31 @@ ubac_constrained(wireshark_tmpfs_t)
 #
 
 allow wireshark_t self:capability { net_admin net_raw setgid };
-allow wireshark_t self:process { signal getsched };
+allow wireshark_t self:process { signal getsched setcap };
 allow wireshark_t self:fifo_file { getattr read write };
 allow wireshark_t self:shm destroy;
 allow wireshark_t self:shm create_shm_perms;
 allow wireshark_t self:netlink_route_socket { nlmsg_read create_socket_perms };
-allow wireshark_t self:packet_socket { setopt bind ioctl getopt create read };
+allow wireshark_t self:packet_socket { setopt bind ioctl getopt create read write };
 allow wireshark_t self:tcp_socket create_socket_perms;
 allow wireshark_t self:udp_socket create_socket_perms;
 
 # Re-execute itself (why?)
 can_exec(wireshark_t, wireshark_exec_t)
+can_exec(wireshark_t, wireshark_home_exec_t) # libffi stuff
 corecmd_search_bin(wireshark_t)
+corecmd_exec_bin(wireshark_t)
+corecmd_exec_shell(wireshark_t)
 
 # /home/.wireshark
 manage_dirs_pattern(wireshark_t, wireshark_home_t, wireshark_home_t)
 manage_files_pattern(wireshark_t, wireshark_home_t, wireshark_home_t)
 manage_lnk_files_pattern(wireshark_t, wireshark_home_t, wireshark_home_t)
 userdom_user_home_dir_filetrans(wireshark_t, wireshark_home_t, dir)
+
+# Support for libffi
+manage_files_pattern(wireshark_t, wireshark_home_exec_t, wireshark_home_exec_t)
+userdom_user_home_dir_filetrans(wireshark_t, wireshark_home_exec_t, file)
 
 # Store temporary files
 manage_dirs_pattern(wireshark_t, wireshark_tmp_t, wireshark_tmp_t)
@@ -75,7 +87,10 @@ corecmd_search_bin(wireshark_t)
 corenet_tcp_connect_generic_port(wireshark_t)
 corenet_tcp_sendrecv_generic_if(wireshark_t)
 
+dev_read_sysfs(wireshark_t)
 dev_read_urand(wireshark_t)
+dev_read_rand(wireshark_t)
+dev_search_sysfs(wireshark_t)
 
 files_read_etc_files(wireshark_t)
 files_read_usr_files(wireshark_t)
@@ -93,6 +108,7 @@ seutil_use_newrole_fds(wireshark_t)
 sysnet_read_config(wireshark_t)
 
 userdom_manage_user_home_content_files(wireshark_t)
+userdom_use_user_terminals(wireshark_t)
 
 tunable_policy(`use_nfs_home_dirs',`
 	fs_manage_nfs_dirs(wireshark_t)

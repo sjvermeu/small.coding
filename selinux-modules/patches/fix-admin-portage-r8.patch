@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/admin/portage.te	2010-08-03 15:11:03.000000000 +0200
-+++ refpolicy/policy/modules/admin/portage.te	2011-01-31 20:11:21.094000082 +0100
++++ refpolicy/policy/modules/admin/portage.te	2011-02-07 21:38:39.778000059 +0100
 @@ -1,10 +1,19 @@
 -policy_module(portage, 1.10.0)
 +policy_module(portage, 1.10.0.r1)
@@ -21,6 +21,15 @@
  type gcc_config_t;
  type gcc_config_exec_t;
  application_domain(gcc_config_t, gcc_config_exec_t)
+@@ -122,7 +131,7 @@
+ # - setexec to run portage fetch
+ allow portage_t self:process { setfscreate setexec };
+ # - kill for mysql merging, at least
+-allow portage_t self:capability { sys_nice kill };
++allow portage_t self:capability { sys_nice kill setfcap };
+ 
+ # user post-sync scripts
+ can_exec(portage_t, portage_conf_t)
 @@ -132,6 +141,8 @@
  
  allow portage_t { portage_fetch_t portage_sandbox_t }:process signal;

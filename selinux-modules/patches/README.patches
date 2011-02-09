@@ -36,11 +36,12 @@ add-services-gorg-r4.patch
 add-services-vde-r5.patch
 	Add support for the vde (virtual distributed ethernet switch) service
 
-fix-admin-portage-r5.patch
+fix-admin-portage-r8.patch
 	Enable setfscreate, needed to deploy java-config
 	Generate the gentoo_try_dontaudit tunable boolean
 	Introduce the necessary dontaudit statements (covered by gentoo_try_dontaudit)
 	Add dontaudit interface for fd use
+	Allow setfcap (installation of e.g. wireshark)
 
 fix-apps-qemu-r4.patch
 	Disable an optional policy as it contains errors (build failure)

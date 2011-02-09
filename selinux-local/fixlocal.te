@@ -2,48 +2,16 @@ module fixlocal 1.0.1;
 
 require {
 	type mozilla_t;
-	type shell_exec_t;
 	type ssh_t, port_t;
-	type ifconfig_t, wpa_cli_t;
-	type initrc_t;
 	type sysadm_t;
-	type fs_t;
-	type user_home_t;
-	type netutils_t;
-	type xserver_t;
-	type iceauth_t;
-	type getty_t;
 	type staff_t;
-	type mutt_t, proc_t;
-	type qemu_t, qemu_exec_t;
-	type var_run_t;
-	type tmp_t;
-	type staff_dbusd_t;
 	type skype_t;
-	type lib_t;
 	type node_t;
-	type iceauth_t;
-	type tmp_t;
-	type user_cron_spool_t;
-	type cron_spool_t;
-	type xserver_t;
-	type kernel_t;
-	type netutils_t;
-	type xauth_t;
-	type user_tmp_t;
-	class process { setpgid getpgid execmem transition sigkill signal setsched getsched ptrace rlimitinh siginh noatsecure };
-	class file { ioctl getattr read lock open execute_no_trans entrypoint };
+	type user_home_dir_t;
+	class process { execmem };
 	class tcp_socket { name_bind name_connect node_bind };
-	class fd use;
-	class unix_dgram_socket { read write sendto };
-	class unix_stream_socket { connectto };
 	class fifo_file { getattr };
-	class filesystem { getattr };
-	class dir { search getattr open };
-	class file { execute };
-	class sock_file { read write create };
-	class system { module_request };
-	class capability { chown };
+	class file { create read write unlink execute };
 }
 
 # Tools with execmem requirement
@@ -65,5 +33,3 @@ allow staff_t node_t:tcp_socket { node_bind };
 ##
 ## These can be ignored on my system (I don't want them being allowed anyhow)
 ##
-dontaudit xserver_t staff_t:process { getpgid };
-dontaudit mutt_t proc_t:file { read };

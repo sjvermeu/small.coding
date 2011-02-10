@@ -49,3 +49,27 @@ interface(`mutt_role',`
 
 	ps_process_pattern($2, mutt_t)
 ')	
+
+#######################################
+## <summary>
+##      Allow other domains to manage mutt's temporary files (used for instance
+##      for e-mail drafts)
+## </summary>
+## <param name="target_domain">
+##      <summary>
+##      The type of the target domain that is allowed access.
+##      </summary>
+## </param>
+#
+interface(`mutt_manage_tmp_files',`
+	gen_require(`
+		type mutt_tmp_t;
+	')
+
+	############################
+	#
+	# Policy
+	#
+
+	manage_files_pattern($1, mutt_tmp_t, mutt_tmp_t)
+')

@@ -32,6 +32,7 @@ ubac_constrained(mutt_tmp_t)
 #
 
 allow mutt_t self:process signal_perms;
+allow mutt_t self:fifo_file { getattr read write };
 
 
 manage_dirs_pattern(mutt_t, mutt_home_t, mutt_home_t)
@@ -67,7 +68,9 @@ userdom_search_user_home_content(mutt_t)
 userdom_use_user_terminals(mutt_t)
 
 
-
+optional_policy(`
+	gpg_domtrans(mutt_t)
+')
 
 tunable_policy(`gentoo_try_dontaudit',`
 	kernel_dontaudit_search_sysctl(mutt_t)

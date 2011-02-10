@@ -290,7 +290,7 @@ extractFiles() {
   printf "done\n";
 
   cd ${WORKDIR};
-  MIRROR=$(getValue makeconf.GENTOO_MIRRORS | awk '{print $1}');
+  MIRROR=$(getValue weblocation | awk '{print $1}');
   FETCH=$(awk -F'=' '/stage/ {print $2}' ${DATA});
   SNAP=$(awk -F'=' '/snapshot/ {print $2}' ${DATA});
   printf "Downloading stage ${FETCH##*/}... ";
@@ -340,7 +340,7 @@ extractFiles() {
 
   printf "Prepare chroot... ";
   logPrint "Prepare chroot." >> ${LOG};
-  test -d ${WORKDIR}/etc && mkdir ${WORKDIR}/etc && chmod 755 ${WORKDIR}/etc;
+  test -d ${WORKDIR}/etc || (mkdir ${WORKDIR}/etc && chmod 755 ${WORKDIR}/etc; )
   cp -L /etc/resolv.conf ${WORKDIR}/etc;
   ZONE=$(awk -F'=' '/setup.conf.clock.TIMEZONE=/ {print $2}' ${DATA});
   cp ${WORKDIR}/usr/share/zoneinfo/${ZONE} ${WORKDIR}/etc/localtime;
@@ -421,6 +421,7 @@ generateFstab() {
 configureSystem() {
   HOSTNM=$(awk -F'=' '/setup.conf.hostname.HOSTNAME=/ {print $2}' ${DATA});
   DOMNM=$(awk -F'=' '/setup.domainname=/ {print $2}' ${DATA});
+  LOCALGEN=$(getValue setup.localegen.numentries);
   printf "Setting system specific configuration items:\n";
   logPrint "Setting system specific configuration items:" >> ${LOG};
 
@@ -471,6 +472,15 @@ configureSystem() {
         echo "${VALUE}" >> ${WORKDIR}/etc/portage/package.${PACKAGEFILE}/${FILE};
       done
     done
+  done
+
+  printf "  - Setup /etc/locale.gen\n";
+  logPrint "  - Setup /etc/locale.gen" >> ${LOG};
+  test -f ${WORKDIR}/etc/locale.gen && rm ${WORKDIR}/etc/locale.gen;
+  for NUM in $(seq ${LOCALGEN});
+  do
+    LOCGENENTRY=$(getValue setup.localegen.${NUM}); 
+    echo "${LOCGENENTRY}" >> ${WORKDIR}/etc/locale.gen;
   done
 };
 

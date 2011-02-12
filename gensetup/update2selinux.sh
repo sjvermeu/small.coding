@@ -30,6 +30,7 @@ enable_overlay() {
   mv layman.cfg.new layman.cfg;
 
   # Add hardened-development and sjvermeu overlays
+  layman -S || die "Failed to update layman";
   layman -a hardened-development || die "Failed to add hardened-development";
   layman -a sjvermeu || die "Failed to add sjvermeu";
 

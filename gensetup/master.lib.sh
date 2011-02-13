@@ -101,7 +101,7 @@ initTools() {
 
 cleanupTools() {
   echo ">>> $(date +%Y%m%d-%H%M%S) - Stopping log." >> ${LOG}; 
-  rm ${CONFFILE}.parsed;
+  rm ${CONFFILE};
 };
 
 logMessage() {

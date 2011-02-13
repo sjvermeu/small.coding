@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article version="5.0" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <title>Gentoo Hardened SELinux Testing</title>
+
+    <author>
+      <personname><firstname>Sven</firstname><surname>Vermeulen</surname></personname>
+
+      <affiliation></affiliation>
+    </author>
+
+    <pubdate>2011-02-13</pubdate>
+  </info>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>As an active contributor to the Gentoo Hardened project with regard
+    to SELinux support (both documentation, policy development and ebuilds) I
+    find it important to have a good testing approach. Thanks to
+    virtualization efforts such as KVM, it is possible to generate a
+    semi-automated testing environment, allowing me to test various setups and
+    installations before considering contributions stable enough.</para>
+
+    <para>Of course, why using semi-automated testing rather than fully
+    automated? Well, I'm probably going to automate more and more to the point
+    it is fully automated, but for the time being, it is a semi-automated
+    approach ;-)</para>
+
+    <section>
+      <title>Testing Overview</title>
+
+      <para>The following table shows the tests that I execute. Most tests are
+      based on the documentation offered by Gentoo, which also means that I
+      occasionally have to review the scripts to see if they still follow the
+      instructions (as documentation changes over time).</para>
+
+      <table border="1">
+        <caption>Test Overview for Gentoo Hardened with SELinux</caption>
+
+        <thead>
+          <tr>
+            <th>Test Name</th>
+
+            <th>Test Description</th>
+          </tr>
+        </thead>
+
+        <tr>
+          <td>Stage3 hardened installation</td>
+
+          <td>Perform a blank hardened installation, using the latest
+          stage3-hardened-amd64 snapshot (in the autobuilds directory). Follow
+          the instructions of the Gentoo Handbook closely.</td>
+        </tr>
+
+        <tr>
+          <td>SELinux conversion</td>
+
+          <td>Convert the hardened installation to a SELinux, following the
+          instructions in the Gentoo Hardened SELinux handbook. Enable SELinux
+          enforcing/strict mode and perform a few standard tests.</td>
+        </tr>
+
+        <tr>
+          <td>MySQL installation and testing</td>
+
+          <td>Install MySQL following the MySQL guide and perform a few
+          standard tests.</td>
+        </tr>
+      </table>
+    </section>
+  </section>
+
+  <section>
+    <title>Stage3 Hardened Installation</title>
+
+    <para>This test performs a hardened installation in a virtual environment.
+    At the end, we should have a bootable virtual environment with a small but
+    functional hardened system (with pax/grsecurity hardening active)
+    inside.</para>
+
+    <section>
+      <title>Steps</title>
+
+      <para>The stage3 hardened installation uses a 20Gbyte qemu image (qcow2
+      format):</para>
+
+      <programlisting>~$ <command>qemu-img create -f qcow2 test.img 20G</command></programlisting>
+
+      <para>This image is booted using the system rescue CD ISO:</para>
+
+      <programlisting>~$ <command>qemu-system-x86_64 --enable-kvm -net nic,model=virtio,macaddr=00:11:22:33:44:a0,vlan=0 \
+ -net vde,vlan=0 -drive file=test.img,if=virtio,boot=on -usb -usbdevice tablet -smp 2 \
+ -k nl-be -m 1024 -boot d -cdrom systemrescuecd-x86-2.0.0.iso</command></programlisting>
+
+      <para>The virtual drive (vda) is formatted with a root partition (vda1,
+      ext4), a swap partition and a physical group (vda3) for LVM2. A volume
+      group is then created with usr, home, opt and var as logical
+      volumes.</para>
+
+      <programlisting>~# <command>df -hT</command>
+Filesystem            Type    Size  Used Avail Use% Mounted on
+/dev/vda1             ext4    2.0G  424M  1.5G  23% /
+udev                 tmpfs     10M  104K  9.9M   2% /dev
+shm                  tmpfs    498M     0  498M   0% /dev/shm
+/dev/mapper/vg-usr    ext4    9.9G  2.2G  7.3G  23% /usr
+/dev/mapper/vg-home   ext4    2.0G   67M  1.9G   4% /home
+/dev/mapper/vg-opt    ext4    2.5G   68M  2.3G   3% /opt
+/dev/mapper/vg-var    ext4    2.5G  128M  2.3G   6% /var
+tmpfs                tmpfs    498M     0  498M   0% /tmp</programlisting>
+
+      <para>During the Gentoo installation, the following settings are
+      used.</para>
+
+      <table border="1">
+        <caption>Overview of Configuration Settings</caption>
+
+        <thead>
+          <tr>
+            <th>Setting</th>
+
+            <th>Description</th>
+          </tr>
+        </thead>
+
+        <tr>
+          <td>Profile = hardened/linux/amd64</td>
+
+          <td>The Portage profile selected during the installation is the
+          "hardened/linux/amd64" profile.</td>
+        </tr>
+
+        <tr>
+          <td>USE = -ldap -gtk -xorg -ipv6 -pppd</td>
+
+          <td>The USE flags are modified slightly to keep the number of
+          package dependencies to a minimum.</td>
+        </tr>
+
+        <tr>
+          <td>clock/TIMEZONE = Europe/Brussels</td>
+
+          <td>The timezone is set to Europe/Brussels</td>
+        </tr>
+
+        <tr>
+          <td>keymaps/KEYMAP = be-latin1</td>
+
+          <td>The keymap is set to be-latin1</td>
+        </tr>
+
+        <tr>
+          <td>net/config_eth0 = ( "dhcp" )</td>
+
+          <td>The network configuration uses DHCP</td>
+        </tr>
+
+        <tr>
+          <td>/etc/locale.gen only en_US (ISO-8859-15 and UTF-8)</td>
+
+          <td>The number of locales to be generated by glibc installation is
+          limited to the en_US ones.</td>
+        </tr>
+      </table>
+
+      <para>Also, the following packages are installed:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>mdadm (as I hope to extend the installation later to use two
+          virtual disks in software RAID-1 configuration)</para>
+        </listitem>
+
+        <listitem>
+          <para>lvm2 (as the installation uses LVM2)</para>
+        </listitem>
+
+        <listitem>
+          <para>syslog-ng (system logger), this one is also added to the
+          default runlevel. During the installation, "<command>unset
+          path</command>" is executed (otherwise the installation of syslog-ng
+          fails).</para>
+        </listitem>
+
+        <listitem>
+          <para>dhcpcd (DHCP client)</para>
+        </listitem>
+
+        <listitem>
+          <para>grub (bootloader)</para>
+        </listitem>
+
+        <listitem>
+          <para>layman (to add overlays)</para>
+        </listitem>
+
+        <listitem>
+          <para>vim (personal favorite editor)</para>
+        </listitem>
+
+        <listitem>
+          <para>git (for client)</para>
+        </listitem>
+
+        <listitem>
+          <para>eix (portage package information caching)</para>
+        </listitem>
+
+        <listitem>
+          <para>hardened-sources (kernel sources)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The kernel configuration/build itself is premade (occasionally,
+      the Linux kernel build is done and a binary package is created which can
+      then be reused across all virtual instances) so is not actually
+      tested.</para>
+    </section>
+
+    <section>
+      <title>Deviations</title>
+
+      <para>A few deviations are in place from a standard installation. These
+      deviations are occasionally cleared to ensure that no wrong assumptions
+      are made.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>A local mirror is included to speed up the downloading of
+          source packages. If a source package is absent on the Internet but
+          available on the local mirror, we will not catch this error. To
+          remediate this, the local mirror is sometimes disabled.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </section>
+</article>

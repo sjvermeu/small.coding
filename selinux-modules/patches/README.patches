@@ -73,9 +73,10 @@ fix-roles-staff-r4.patch
 fix-roles-unprivuser-r4.patch
 	Add support for the links, mutt, gorg and skype applications.
 
-fix-roles-sysadm-r4.patch
+fix-roles-sysadm-r8.patch
 	Add support for the links, mutt, gorg, skype and vde applications.
 	The sysadm role also gets access to the wpa_cli interface and is able to
 	call KVM guests through the commandline (rather than requiring libvirt
-	for this).
+	for this). Allow sysadm role admin rights on postgresql (Gentoo doesn't
+	implement dbadm role yet)
 

@@ -8,10 +8,13 @@ require {
 	type skype_t;
 	type node_t;
 	type user_home_dir_t;
+	type gorg_t;
+	type portage_ebuild_t;
 	class process { execmem };
 	class tcp_socket { name_bind name_connect node_bind };
 	class fifo_file { getattr };
-	class file { create read write unlink execute };
+	class file { create read write unlink execute getattr };
+	class dir { search getattr };
 }
 
 # Tools with execmem requirement
@@ -23,6 +26,9 @@ allow sysadm_t skype_t:fifo_file { getattr };
 # Allow vncviewer -listen mode (should be in its own domain)
 allow staff_t port_t:tcp_socket { name_bind };
 allow staff_t node_t:tcp_socket { node_bind };
+
+allow gorg_t portage_ebuild_t:dir { search getattr };
+allow gorg_t portage_ebuild_t:file { getattr read };
 
 ##
 ## These ones still need to be validated if we need them for 

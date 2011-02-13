@@ -404,6 +404,13 @@ optional_policy(`
 	networkmanager_run_wpa_cli(sysadm_t, sysadm_r)
 ')
 
+ifdef(`distro_gentoo', `
+	optional_policy(`
+		postgresql_admin(sysadm_t, sysadm_r)
+		postgresql_domtrans(sysadm_t)
+	')
+')
+
 ifndef(`distro_redhat',`
 	optional_policy(`
 		auth_role(sysadm_r, sysadm_t)

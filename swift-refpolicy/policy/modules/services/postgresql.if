@@ -431,6 +431,8 @@ interface(`postgresql_admin',`
 
 	typeattribute $1 sepgsql_admin_type;
 
+	role $2 types postgresql_t;
+
 	allow $1 postgresql_t:process { ptrace signal_perms };
 	ps_process_pattern($1, postgresql_t)
 

@@ -307,6 +307,7 @@ extractFiles() {
   printf "Extracting stage ${FETCH##*/}... ";
   logPrint "Extracting stage ${FETCH##*/}." >> ${LOG};
   tar xjpf ${FETCH##*/} --exclude='./dev/*' >> ${LOG} 2>&1;
+  rm -f ${FETCH##*/} >> ${LOG} 2>&1;
   printf "done\n";
 
   printf "Extracting /dev files to root filesystem... ";
@@ -331,6 +332,7 @@ extractFiles() {
   printf "Extracting portage snapshot... ";
   logPrint "Extracting portage snapshot." >> ${LOG};
   tar xjf ${SNAP##*/} >> ${LOG} 2>&1;
+  rm -f ${SNAP##*/} >> ${LOG} 2>&1;
   printf "done\n";
 
   printf "Setup make.conf... ";

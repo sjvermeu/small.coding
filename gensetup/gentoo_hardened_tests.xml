@@ -76,6 +76,55 @@
         </tr>
       </table>
     </section>
+
+    <section>
+      <title>Testing Architecture</title>
+
+      <para>To enable semi-automated testing, I run a simple webserver which
+      provides read access to:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>the host distfiles (URL: /gensetup/gentoo/distfiles)</para>
+        </listitem>
+
+        <listitem>
+          <para>the stage3 tarball, portage snapshot and Linux kernel binary
+          package (URL: /gensetup/gentoo)</para>
+        </listitem>
+
+        <listitem>
+          <para>various binhosts for different installation types (URL:
+          /gensetup/gentoo/binhost)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The tests all run inside KVM guests (with network access). The
+      idea is as follows:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Perform a standard stage3 installation, call that
+          "hardened-base".</para>
+        </listitem>
+
+        <listitem>
+          <para>Make a copy-on-write from "hardened-base" and use that one to
+          further test hardened setups, call that "hardened"</para>
+        </listitem>
+
+        <listitem>
+          <para>Make a copy-on-write from "hardened-base" and use that one to
+          test the SELinux installation instructions, call that
+          "selinux-base"</para>
+        </listitem>
+
+        <listitem>
+          <para>Make a copy-on-write from "selinux-base" and use that one to
+          further test various SELinux setups, call them "selinux"</para>
+        </listitem>
+      </orderedlist>
+    </section>
   </section>
 
   <section>
@@ -222,6 +271,10 @@ tmpfs                tmpfs    498M     0  498M   0% /tmp</programlisting>
       the Linux kernel build is done and a binary package is created which can
       then be reused across all virtual instances) so is not actually
       tested.</para>
+
+      <para>The method to automatically perform this installation is scripted
+      and available from
+      http://github.com/sjvermeu/small.coding/gensetup.</para>
     </section>
 
     <section>
@@ -239,6 +292,49 @@ tmpfs                tmpfs    498M     0  498M   0% /tmp</programlisting>
           remediate this, the local mirror is sometimes disabled.</para>
         </listitem>
       </itemizedlist>
+    </section>
+  </section>
+
+  <section>
+    <title>Appendix: Facilitating Using BINHOST</title>
+
+    <para>Portage has the ability to use BINHOSTs for fast deployments.</para>
+
+    <para>Within the test setup, BINHOST can be used to improve build speeds.
+    However, it is important to occasionally clear the BINHOST so that the
+    build process is tested too.</para>
+
+    <section>
+      <title>Feeding the BINHOST</title>
+
+      <para>A binhost should be based upon a Gentoo Portage profile +
+      make.conf setting (including USE flags). The moment this changes, a new
+      BINHOST needs to be set up.</para>
+
+      <para>To set up a BINHOST:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Perform an entire installation up to the point that it is
+          either finished, or that the profile or make.conf changes.</para>
+        </listitem>
+
+        <listitem>
+          <para>Run quickpkg --include-config=y --include-unmodified-config=y
+          for all packages (hint: use /var/db/pkg or, even better, emerge.log
+          output)</para>
+
+          <programlisting>quickpkg --include-config=y --include-unmodified-config=y $(grep "completed emerge.* to /" /var/log/emerge.log | awk '{print "="$8}')</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Upload the entire /usr/portage/packages location to the
+          BINHOST</para>
+        </listitem>
+      </orderedlist>
+
+      <para>In the future, you can refer to this BINHOST using
+      PORTAGE_BINHOST.</para>
     </section>
   </section>
 </article>

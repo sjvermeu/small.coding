@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch profile headers selinux reboot_1 label reboot_2 booleans";
+typeset STEPS="overlay arch tmpfs profile headers selinux reboot_1 label reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -62,6 +62,14 @@ enable_overlay() {
   echo "source /var/lib/layman/make.conf" > /etc/make.conf.new;
   grep -v 'make.conf' /etc/make.conf >> /etc/make.conf.new;
   mv /etc/make.conf.new /etc/make.conf;
+  logMessage "done\n";
+}
+
+set_tmp_context() {
+  logMessage "   > Setting tmp_t context for /tmp... ";
+  grep -v '[ 	]/tmp' /etc/fstab > /etc/fstab.new;
+  echo "tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0" >> /etc/fstab.new;
+  mv /etc/fstab.new /etc/fstab;
   logMessage "done\n";
 }
 
@@ -170,6 +178,12 @@ nextStep;
 stepOK "arch" && (
 logMessage ">>> Step \"arch\" starting...\n";
 runStep set_arch_packages;
+);
+nextStep;
+
+stepOK "tmpfs" && (
+logMessage ">>> Step \"tmpfs\" starting...\n";
+runStep set_tmp_context;
 );
 nextStep;
 

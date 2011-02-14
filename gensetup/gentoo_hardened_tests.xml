@@ -42,41 +42,45 @@
       instructions (as documentation changes over time).</para>
 
       <informaltable>
-        <tgroup cols="2" colsep="1" rowsep="1" align="left">
-	  <colspec colwidth="7cm" />
-	  <colspec colwidth="10cm" />
-        <thead>
-	  <row>
-            <entry>Test Name</entry>
-            <entry>Test Description</entry>
-          </row>
-        </thead>
+        <tgroup align="left" cols="2" colsep="1" rowsep="1">
+          <colspec colwidth="7cm" />
 
-        <tbody>
-        <row>
-          <entry>Stage3 hardened installation</entry>
+          <colspec colwidth="10cm" />
 
-          <entry>Perform a blank hardened installation, using the latest
-          stage3-hardened-amd64 snapshot (in the autobuilds directory). Follow
-          the instructions of the Gentoo Handbook closely.</entry>
-        </row>
+          <thead>
+            <row>
+              <entry>Test Name</entry>
 
-        <row>
-          <entry>SELinux conversion</entry>
+              <entry>Test Description</entry>
+            </row>
+          </thead>
 
-          <entry>Convert the hardened installation to a SELinux, following the
-          instructions in the Gentoo Hardened SELinux handbook. Enable SELinux
-          enforcing/strict mode and perform a few standard tests.</entry>
-        </row>
+          <tbody>
+            <row>
+              <entry>Stage3 hardened installation</entry>
 
-        <row>
-          <entry>MySQL installation and testing</entry>
+              <entry>Perform a blank hardened installation, using the latest
+              stage3-hardened-amd64 snapshot (in the autobuilds directory).
+              Follow the instructions of the Gentoo Handbook closely.</entry>
+            </row>
 
-          <entry>Install MySQL following the MySQL guide and perform a few
-          standard tests.</entry>
-        </row>
-	</tbody>
-	</tgroup>
+            <row>
+              <entry>SELinux conversion</entry>
+
+              <entry>Convert the hardened installation to a SELinux, following
+              the instructions in the Gentoo Hardened SELinux handbook. Enable
+              SELinux enforcing/strict mode and perform a few standard
+              tests.</entry>
+            </row>
+
+            <row>
+              <entry>MySQL installation and testing</entry>
+
+              <entry>Install MySQL following the MySQL guide and perform a few
+              standard tests.</entry>
+            </row>
+          </tbody>
+        </tgroup>
       </informaltable>
     </section>
 
@@ -92,8 +96,8 @@
         </listitem>
 
         <listitem>
-          <para>the stage3 tarball, portage snapshot and Linux kernel binary
-          package (URL: /gensetup/gentoo)</para>
+          <para>the stage3 tarball, portage snapshot, Linux kernel binary
+          package and installation script (URL: /gensetup/gentoo)</para>
         </listitem>
 
         <listitem>
@@ -139,7 +143,7 @@
     inside.</para>
 
     <section>
-      <title>Steps</title>
+      <title>Information</title>
 
       <para>The stage3 hardened installation uses a 20Gbyte qemu image (qcow2
       format):</para>
@@ -174,55 +178,59 @@ tmpfs                tmpfs    498M     0  498M   0% /tmp</programlisting>
       <informaltable>
         <tgroup cols="2" colsep="1" rowsep="1">
           <colspec colwidth="7cm" />
-	  <colspec colwidth="10cm" />
-        <thead>
-          <row>
-            <entry>Setting</entry>
 
-            <entry>Description</entry>
-          </row>
-        </thead>
-        <tbody>
-        <row>
-          <entry>Profile = hardened/linux/amd64</entry>
+          <colspec colwidth="10cm" />
 
-          <entry>The Portage profile selected during the installation is the
-          "hardened/linux/amd64" profile.</entry>
-        </row>
+          <thead>
+            <row>
+              <entry>Setting</entry>
 
-        <row>
-          <entry>USE = -ldap -gtk -xorg -ipv6 -pppd</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
 
-          <entry>The USE flags are modified slightly to keep the number of
-          package dependencies to a minimum.</entry>
-        </row>
+          <tbody>
+            <row>
+              <entry>Profile = hardened/linux/amd64</entry>
 
-        <row>
-          <entry>clock/TIMEZONE = Europe/Brussels</entry>
+              <entry>The Portage profile selected during the installation is
+              the "hardened/linux/amd64" profile.</entry>
+            </row>
 
-          <entry>The timezone is set to Europe/Brussels</entry>
-        </row>
+            <row>
+              <entry>USE = -ldap -gtk -xorg -ipv6 -pppd</entry>
 
-        <row>
-          <entry>keymaps/KEYMAP = be-latin1</entry>
+              <entry>The USE flags are modified slightly to keep the number of
+              package dependencies to a minimum.</entry>
+            </row>
 
-          <entry>The keymap is set to be-latin1</entry>
-        </row>
+            <row>
+              <entry>clock/TIMEZONE = Europe/Brussels</entry>
 
-        <row>
-          <entry>net/config_eth0 = ( "dhcp" )</entry>
+              <entry>The timezone is set to Europe/Brussels</entry>
+            </row>
 
-          <entry>The network configuration uses DHCP</entry>
-        </row>
+            <row>
+              <entry>keymaps/KEYMAP = be-latin1</entry>
 
-        <row>
-          <entry>/etc/locale.gen only en_US (ISO-8859-15 and UTF-8)</entry>
+              <entry>The keymap is set to be-latin1</entry>
+            </row>
 
-          <entry>The number of locales to be generated by glibc installation is
-          limited to the en_US ones.</entry>
-        </row>
-	</tbody>
-	</tgroup>
+            <row>
+              <entry>net/config_eth0 = ( "dhcp" )</entry>
+
+              <entry>The network configuration uses DHCP</entry>
+            </row>
+
+            <row>
+              <entry>/etc/locale.gen only en_US (ISO-8859-15 and
+              UTF-8)</entry>
+
+              <entry>The number of locales to be generated by glibc
+              installation is limited to the en_US ones.</entry>
+            </row>
+          </tbody>
+        </tgroup>
       </informaltable>
 
       <para>Also, the following packages are installed:</para>
@@ -287,17 +295,170 @@ tmpfs                tmpfs    498M     0  498M   0% /tmp</programlisting>
       <title>Deviations</title>
 
       <para>A few deviations are in place from a standard installation. These
-      deviations are occasionally cleared to ensure that no wrong assumptions
-      are made.</para>
+      deviations are occasionally cleared </para>
+    </section>
 
-      <itemizedlist>
+    <section>
+      <title>Steps</title>
+
+      <para>Set up the qemu image (20Gbyte);</para>
+
+      <programlisting>~$ <command>qemu-img create -f qcow2 test.img 20G</command></programlisting>
+
+      <para>Boot the image with the sysresccd livecd:</para>
+
+      <programlisting>~$ <command>qemu-system-x86_64 --enable-kvm -net nic,model=virtio,macaddr=00:11:22:33:44:a0,vlan=0 \
+ -net vde,vlan=0 -drive file=test.img,if=virtio,boot=on -usb -usbdevice tablet -smp 2 \
+ -k nl-be -m 1024 -boot d -cdrom systemrescuecd-x86-2.0.0.iso</command></programlisting>
+
+      <para>Download the installation scripts:</para>
+
+      <programlisting>~# <command>wget http://192.168.100.1:8080/gensetup/gentoo/gensetup.sh</command>
+~# <command>wget http://192.168.100.1:8080/gensetup/gentoo/simple.conf</command>
+~# <command>chmod +x gensetup.sh</command></programlisting>
+
+      <para>Execute the gensetup.sh script to automatically setup the Gentoo
+      Hardened installation:</para>
+
+      <programlisting>~# <command>./gensetup.sh</command></programlisting>
+
+      <para>Finally, reboot the virtual system.</para>
+    </section>
+
+    <section>
+      <title>Additional Tests</title>
+
+      <para>No additional tests are performed right now.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>SELinux Conversion Installation</title>
+
+    <para>In this test, we convert a fresh hardened installation to
+    SELinux.</para>
+
+    <section>
+      <title>Information</title>
+
+      <para>To convert the system, we follow the instructions of the draft
+      SELinux handbook closely, being:</para>
+
+      <orderedlist>
         <listitem>
-          <para>A local mirror is included to speed up the downloading of
-          source packages. If a source package is absent on the Internet but
-          available on the local mirror, we will not catch this error. To
-          remediate this, the local mirror is sometimes disabled.</para>
+          <para>Installing layman and adding the hardened-development
+          overlay</para>
         </listitem>
-      </itemizedlist>
+
+        <listitem>
+          <para>Update the /tmp context to tmp_t (instead of tmpfs_t)</para>
+        </listitem>
+
+        <listitem>
+          <para>Enable a couple of ~arch packages</para>
+        </listitem>
+
+        <listitem>
+          <para>Switch the Gentoo profile to a SELinux hardened one</para>
+        </listitem>
+
+        <listitem>
+          <para>Perform the "manual" changes (automatically now ;-)</para>
+        </listitem>
+
+        <listitem>
+          <para>Upgrade the linux-headers and rebuild glibc</para>
+        </listitem>
+
+        <listitem>
+          <para>We skip the SELinux kernel installation as our kernel is
+          already SELinux aware</para>
+        </listitem>
+
+        <listitem>
+          <para>We update fstab to include /selinux</para>
+        </listitem>
+
+        <listitem>
+          <para>After rebooting, we install the SELinux utilities in the
+          correct order</para>
+        </listitem>
+
+        <listitem>
+          <para>We set our target policy to "strict"</para>
+        </listitem>
+
+        <listitem>
+          <para>We relabel the device files and then the entire
+          filesystem</para>
+        </listitem>
+
+        <listitem>
+          <para>After rebooting, we set the global_ssp boolean to on</para>
+        </listitem>
+      </orderedlist>
+
+      <para>After all this, we're set.</para>
+    </section>
+
+    <section>
+      <title>Deviations</title>
+
+      <para>Currently, the only deviation I have is that the Linux kernel
+      booted with is already SELinux aware, so this step is skipped.</para>
+    </section>
+
+    <section>
+      <title>Steps</title>
+
+      <para>Setup the BINHOST to the selinux-base binhost:</para>
+
+      <programlisting>~# <command>vim /etc/make.conf</command>
+PORTAGE_BINHOST="http://192.168.100.1:8080/gensetup/gentoo/binhost/selinux-base"</programlisting>
+
+      <para>Download the update_selinux.sh and master.lib.sh files:</para>
+
+      <programlisting>~# <command>wget http://192.168.100.1:8080/gensetup/gentoo/update_selinux.sh</command>
+~# <command>wget http://192.168.100.1:8080/gensetup/gentoo/master.lib.sh</command>
+~# <command>chmod +x update_selinux.sh</command></programlisting>
+
+      <para>The update script will ask to reboot the system twice and tell you
+      to continue then with the next step:</para>
+
+      <programlisting>~# <command>touch EMPTY</command>
+~# <command>./update_selinux.sh EMPTY</command>
+After the first reboot:
+~# <command>./update_selinux.sh EMPTY label</command>
+After the second reboot:
+~# <command>./update_selinux.sh EMPTY booleans</command></programlisting>
+
+      <para>The EMPTY file is because the script requires a configuration file
+      to be passed, even though for this script no configuration file is
+      needed. This won't be necessary in future versions of the script.</para>
+    </section>
+
+    <section>
+      <title>Additional Tests</title>
+
+      <para>The next few tests are needed to validate if everything works
+      properly:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Reboot the virtual environment, add "enforcing=1" as kernel
+          parameter to boot in SELinux mode.</para>
+
+          <para>This should work flawlessly.</para>
+        </listitem>
+
+        <listitem>
+          <para>Edit the /etc/selinux/config file to use enforcing/strict
+          mode. Then, update portage (emerge --sync; layman -S) and update
+          world.</para>
+
+          <para>This too should work flawlessly.</para>
+        </listitem>
+      </orderedlist>
     </section>
   </section>
 

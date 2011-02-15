@@ -111,7 +111,7 @@ logMessage() {
 getValue() {
   KEY="$1";
 
-  grep "^${KEY}=" ${CONFFILE} | sed -e 's:^[^=]*::g';
+  grep "^${KEY}=" ${CONFFILE} | sed -e 's:^[^=]*=::g';
 }
 
 listSectionOverview() {
@@ -153,3 +153,75 @@ updateConfFile() {
   done
 }
 
+initChangeFile() {
+  typeset FILENAME=$1;
+  typeset METAFILE=$(mktemp ${FILENAME}.meta-XXXXXX);
+  typeset BACKUPFILE=$(mktemp ${FILENAME}.backup-XXXXXX);
+
+  if [ ! -w ${FILENAME} ];
+  then
+    die "File ${FILENAME} does not exist or is not writeable.";
+  fi
+
+  typeset USER=$(stat --format '%U' ${FILENAME});
+  typeset GROUP=$(stat --format '%G' ${FILENAME});
+  typeset ACCESS=$(stat --format '%a' ${FILENAME});
+
+  cp ${FILENAME} ${BACKUPFILE};
+
+  echo "Backup ${BACKUPFILE}" > ${METAFILE};
+  echo "Unix User ${USER}" >> ${METAFILE};
+  echo "Unix Group ${GROUP}" >> ${METAFILE};
+  echo "Unix Access ${ACCESS}" >> ${METAFILE};
+  if [ -x /usr/bin/secon ];
+  then
+    secon -f ${FILENAME} | sed -e 's:^:SELinux :g' | sed -e 's:\:::g' >> ${METAFILE};
+  fi
+
+  echo ${METAFILE};
+}
+
+commitChangeFile() {
+  typeset FILENAME=$1;
+  typeset METAFILE=$2;
+
+  typeset BACKUPFILE=$(awk '/^Backup/ {print $2}' ${METAFILE});
+
+  rm ${BACKUPFILE} || die "Backup file ${BACKUPFILE} could not be found";
+  rm ${METAFILE} || die "Meta file ${METAFILE} could not be found";
+}
+
+revertChangeFile() {
+  typeset FILENAME=$1;
+  typeset METAFILE=$2;
+
+  typeset BACKUPFILE=$(awk '/^Backup/ {print $2}' ${METAFILE});
+
+  rm ${FILENAME};
+  mv ${BACKUPFILE} ${FILENAME};
+
+  applyMetaOnFile ${FILENAME} ${METAFILE};
+
+  rm ${METAFILE};
+}
+
+applyMetaOnFile() {
+  typeset FILENAME=$1;
+  typeset METAFILE=$2;
+
+  typeset USER=$(awk '/^Unix User / {print $3}' ${METAFILE});
+  typeset GROUP=$(awk '/^Unix Group / {print $3}' ${METAFILE});
+  typeset ACCESS=$(awk '/^Unix Access / {print $3}' ${METAFILE});
+
+  chown ${USER}:${GROUP} ${FILENAME} || die "Failed to restore ownership";
+  chmod ${ACCESS} ${FILENAME} || die "Failed to restore permissions";
+
+  if [ -x /usr/bin/secon ];
+  then
+    typeset SE_USER=$(awk '/SELinux user / {print $3}' ${METAFILE});
+    typeset SE_ROLE=$(awk '/SELinux role / {print $3}' ${METAFILE});
+    typeset SE_TYPE=$(awk '/SELinux type / {print $3}' ${METAFILE});
+
+    chcon -u ${SE_USER} -r ${SE_ROLE} -t ${SE_TYPE} ${FILENAME} || die "Failed to restore SELinux info";
+  fi
+}

@@ -46,37 +46,90 @@ initTools;
 enable_overlay() {
   logMessage "   > Add sjvermeu overlay to config... ";
   cd /etc/layman;
-  grep -B 9999 '^overlays' layman.cfg > layman.cfg.new;
-  echo " http://github.com/sjvermeu/gentoo.overlay/raw/master/overlay.xml" >> layman.cfg.new;
-  grep -A 999 '^# Proxy support' layman.cfg >> layman.cfg.new;
-  mv layman.cfg.new layman.cfg;
-  logMessage "done\n";
 
-  logMessage "   > Add overlays to system... ";
-  layman -S || die "Failed to update layman";
-  layman -a hardened-development || die "Failed to add hardened-development";
-  layman -a sjvermeu || die "Failed to add sjvermeu";
-  logMessage "done\n";
+  grep -q 'gentoo.overlay/raw/master/overlay.xml' /etc/layman/layman.cfg;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/layman/layman.cfg;
+    typeset META=$(initChangeFile ${FILE});
+    awk '{print} /^overlays/ {print " http://github.com/sjvermeu/gentoo.overlay/raw/master/overlay.xml"}' ${FILE} > ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Updating overlay data... ";
+  typeset SKIP=$(getValue skip.layman);
+  if [ "${SKIP}" = "y" ] || [ "${SKIP}" = "yes" ];
+  then
+    logMessage "skipped\n";
+  else
+    layman -S || die "Failed to update layman";
+    logMessage "done\n";
+  fi
+
+  logMessage "   > Add overlay 'hardened-development' to system... ";
+  layman -l | grep -q 'hardened-development';
+  if [ $? -ne 0 ];
+  then
+    layman -a hardened-development || die "Failed to add hardened-development";
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Add overlay 'sjvermeu' to system... ";
+  layman -l | grep -q 'sjvermeu';
+  if [ $? -ne 0 ];
+  then
+    layman -a sjvermeu || die "Failed to add sjvermeu";
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 
   logMessage "   > Update make.conf to use layman... ";
-  echo "source /var/lib/layman/make.conf" > /etc/make.conf.new;
-  grep -v 'make.conf' /etc/make.conf >> /etc/make.conf.new;
-  mv /etc/make.conf.new /etc/make.conf;
-  logMessage "done\n";
+  grep -q '^source /var/lib/layman/make.conf' /etc/make.conf;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/make.conf;
+    typeset META=$(initChangeFile ${FILE});
+    awk 'BEGIN {print "source /var/lib/layman/make.conf"} {print}' ${FILE} > ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 set_tmp_context() {
   logMessage "   > Setting tmp_t context for /tmp... ";
-  grep -v '[ 	]/tmp' /etc/fstab > /etc/fstab.new;
-  echo "tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0" >> /etc/fstab.new;
-  mv /etc/fstab.new /etc/fstab;
-  logMessage "done\n";
+  grep -q '^tmpfs.*object_r:tmp_t' /etc/fstab;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/fstab;
+    typeset META=$(initChangeFile ${FILE});
+    grep -v '[ 	]/tmp' ${FILE} > ${FILE}.new;
+    echo "tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0" >> ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 set_arch_packages() {
   logMessage "   > Setting ~arch packages... ";
-  mkdir -p /etc/portage/package.accept_keywords;
-  cat > /etc/portage/package.accept_keywords/selinux << EOF
+  mkdir -p /etc/portage/package.accept_keywords > /dev/null 2>&1;
+  cat > /etc/portage/package.accept_keywords/selinux-auto << EOF
 sys-libs/libselinux
 sys-apps/policycoreutils
 sys-libs/libsemanage
@@ -87,26 +140,51 @@ sys-apps/checkpolicy
 sec-policy/*
 =sys-process/vixie-cron-4.1-r11
 =sys-kernel/linux-headers-2.6.36.1
+=net-misc/openssh-5.8_p1-r1
 EOF
   logMessage "done\n";
 }
 
 set_profile() {
   logMessage "   > Switching profile to 'selinux/v2refpolicy/amd64/hardened'... ";
-  eselect profile set selinux/v2refpolicy/amd64/hardened || die "Failed to switch profiles";
-  sed -i -e '/FEATURES=/d' /etc/make.conf;
-  echo "FEATURES=\"-loadpolicy\"" >> /etc/make.conf;
-  logMessage "done\n";
+  eselect profile list | grep -q 'selinux/v2refpolicy/amd64/hardened \*$';
+  if [ $? -ne 0 ];
+  then
+    eselect profile set selinux/v2refpolicy/amd64/hardened || die "Failed to switch profiles";
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Setting FEATURES=\"-loadpolicy\"... ";
+  grep -q '^FEATURES=.*loadpolicy' /etc/make.conf;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/make.conf;
+    typeset META=$(initChangeFile ${FILE});
+    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#::g');
+    sed -i -e '/FEATURES=/d' ${FILE};
+    echo "FEATURES=\"${CFEAT}\"" >> ${FILE};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 upgrade_kernel_headers() {
   logMessage "   > Upgrading linux kernel headers... ";
-  emerge -gu sys-kernel/linux-headers || die "Failed to upgrade kernel headers";
-  logMessage "done\n";
+  if [ -d /var/db/pkg/sys-kernel/linux-headers-2.6.36.1 ];
+  then
+    emerge -gu sys-kernel/linux-headers || die "Failed to upgrade kernel headers"; 
+    logMessage "done\n";
 
-  logMessage "   > Rebuilding glibc... ";
-  emerge -g1 glibc || die "Failed to upgrade glibc";
-  logMessage "done\n";
+    logMessage "   > Rebuilding glibc (will reinit)\n";
+    emerge -g1 glibc || die "Failed to upgrade glibc";
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 configure_selinux() {
@@ -120,9 +198,8 @@ configure_selinux() {
   logMessage "     - Installing selinux-base-policy... ";
   FEATURES="-selinux" emerge selinux-base-policy || die "Failed to install SELinux base policy";
   logMessage "done\n";
-  logMessage "   > Upgrading system (-uDN world)... ";
+  logMessage "   > Upgrading system (-uDN world) (might reinit)\n";
   emerge -guDN world || die "Failed to upgrade system (upgrade world)";
-  logMessage "done\n";
   logMessage "   > Installing additional SELinux utilities.\n";
   logMessage "     - Installing setools... ";
   emerge -g setools || die "Failed to install setools";
@@ -135,15 +212,26 @@ configure_selinux() {
   logMessage "done\n";
 
   logMessage "   > Storing POLICY_TYPES=\"strict\" in make.conf... ";
-  grep -v POLICY_TYPES /etc/make.conf > /etc/make.conf.new;
-  echo "POLICY_TYPES=\"strict\"" >> /etc/make.conf.new;
-  mv /etc/make.conf.new /etc/make.conf;
-  logMessage "done\n";
+  grep -q "POLICY_TYPES=\"strict\"" /etc/make.conf;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/make.conf
+    typeset META=$(initChangeFile ${FILE});
+    
+    grep -v POLICY_TYPES ${FILE} > ${FILE}.new;
+    echo "POLICY_TYPES=\"strict\"" >> ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 label_system() {
   logMessage "   > Labelling the dev system... ";
-  mkdir -p /mnt/gentoo;
+  mkdir -p /mnt/gentoo > /dev/null 2>&1;
   mount -o bind / /mnt/gentoo;
   setfiles -r /mnt/gentoo /etc/selinux/strict/contexts/files/file_contexts /mnt/gentoo/dev || die "Failed to run setfiles";
   umount /mnt/gentoo;
@@ -161,7 +249,8 @@ set_booleans() {
 }
 
 fail_reboot() {
-  logMessage "   ** PLEASE REBOOT THE ENVIRONMENT AND CONTINUE WITH THE NEXT STEP **\n";
+  typeset NEXT_STEP=$(echo ${STEPS} | awk '{print $2}');
+  logMessage "   ** PLEASE REBOOT THE ENVIRONMENT AND CONTINUE WITH THE NEXT STEP (${NEXT_STEP})**\n";
   die "Please reboot.";
 }
 

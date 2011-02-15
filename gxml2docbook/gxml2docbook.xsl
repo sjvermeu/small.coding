@@ -132,4 +132,28 @@
 <filename><xsl:apply-templates /></filename>
 </xsl:template>
 
+<xsl:template match="table">
+<table>
+  <xsl:apply-templates select="thead|tr"/>
+</table>
+</xsl:template>
+
+<xsl:template match="thead">
+<xsl:apply-templates />
+</xsl:template>
+
+<xsl:template match="tr">
+<tr>
+  <xsl:apply-templates /> 
+</tr>
+</xsl:template>
+
+<xsl:template match="th">
+<th><xsl:apply-templates /></th>
+</xsl:template>
+
+<xsl:template match="td">
+<ti><xsl:apply-templates /></ti>
+</xsl:template>
+
 </xsl:stylesheet>

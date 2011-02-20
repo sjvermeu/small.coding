@@ -13,3 +13,7 @@ called when it was still alive.
 
 The only supported installation method for Gentoo Linux remains the manual
 approach as documented in the handbook !
+
+The tests/ directory contains test scripts used to
+- Convert a base system to a Gentoo Hardened SELinux system
+- Install MySQL and perform some basic tests (cfr. the documentation)

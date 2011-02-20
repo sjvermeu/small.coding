@@ -46,7 +46,7 @@ fix-admin-portage-r8.patch
 fix-apps-qemu-r4.patch
 	Disable an optional policy as it contains errors (build failure)
 
-fix-udev.patch
+fix-system-udev-r9.patch
 	Enable udev to launch init scripts (used for instance for network
 	interface detection and enabling)
 

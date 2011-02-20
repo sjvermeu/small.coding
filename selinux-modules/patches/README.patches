@@ -67,7 +67,7 @@ fix-system-iptables-r5.patch
 fix-services-postgresql-r8.patch
 	Allow admin to transition to postgresql_t domain
 
-fix-services-xserver-r5.patch
+fix-services-xserver-r9.patch
 	Fix timer issue (within siginh, a 15-second alarm is waited for)
 	Fix xfce4 issue (xfce4-session creates ICE file in /tmp with user_tmp_t,
 	iceauth_t needs read access to that).

@@ -96,6 +96,7 @@ interface(`xserver_restricted_role',`
 	miscfiles_read_fonts($2)
 
 	xserver_common_x_domain_template(user, $2)
+	xserver_domtrans($2)
 	xserver_unconfined($2)
 	xserver_xsession_entry_type($2)
 	xserver_dontaudit_write_log($2)
@@ -163,7 +164,6 @@ interface(`xserver_role',`
 	relabel_dirs_pattern($2, user_fonts_config_t, user_fonts_config_t)
 	relabel_files_pattern($2, user_fonts_config_t, user_fonts_config_t)
 
-	allow $2 xserver_t:process { siginh };
 ')
 
 #######################################

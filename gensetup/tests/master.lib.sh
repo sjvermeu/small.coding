@@ -173,9 +173,13 @@ initChangeFile() {
   echo "Unix User ${USER}" >> ${METAFILE};
   echo "Unix Group ${GROUP}" >> ${METAFILE};
   echo "Unix Access ${ACCESS}" >> ${METAFILE};
-  if [ -x /usr/bin/secon ];
+  if [ -x /usr/bin/secon ] && [ -x /usr/sbin/sestatus ];
   then
-    secon -f ${FILENAME} | sed -e 's:^:SELinux :g' | sed -e 's:\:::g' >> ${METAFILE};
+    typeset SESTATUS=$(sestatus | awk '/^SELinux status/ { print $3}');
+    if [ "${SESTATUS}" != "disabled" ];
+    then
+      secon -f ${FILENAME} | sed -e 's:^:SELinux :g' | sed -e 's:\:::g' >> ${METAFILE};
+    fi
   fi
 
   echo ${METAFILE};
@@ -216,12 +220,16 @@ applyMetaOnFile() {
   chown ${USER}:${GROUP} ${FILENAME} || die "Failed to restore ownership";
   chmod ${ACCESS} ${FILENAME} || die "Failed to restore permissions";
 
-  if [ -x /usr/bin/secon ];
+  if [ -x /usr/bin/secon ] && [ -x /usr/sbin/sestatus ];
   then
-    typeset SE_USER=$(awk '/SELinux user / {print $3}' ${METAFILE});
-    typeset SE_ROLE=$(awk '/SELinux role / {print $3}' ${METAFILE});
-    typeset SE_TYPE=$(awk '/SELinux type / {print $3}' ${METAFILE});
+    typeset SESTATUS=$(sestatus | awk '/^SELinux status/ { print $3}');
+    if [ "${SESTATUS}" != "disabled" ];
+    then
+      typeset SE_USER=$(awk '/SELinux user / {print $3}' ${METAFILE});
+      typeset SE_ROLE=$(awk '/SELinux role / {print $3}' ${METAFILE});
+      typeset SE_TYPE=$(awk '/SELinux type / {print $3}' ${METAFILE});
 
-    chcon -u ${SE_USER} -r ${SE_ROLE} -t ${SE_TYPE} ${FILENAME} || die "Failed to restore SELinux info";
+      chcon -u ${SE_USER} -r ${SE_ROLE} -t ${SE_TYPE} ${FILENAME} || die "Failed to restore SELinux info";
+    fi
   fi
 }

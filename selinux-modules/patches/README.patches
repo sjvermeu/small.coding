@@ -21,6 +21,10 @@ fix-system-lvm-r7.patch
 fix-system-mount-r7.patch
 	Allow setsched
 
+fix-system-sysnetwork-r9.patch
+	Allow dhcpcd to read/write /proc/sys/net files and allow communication
+	(netlink_route_socket)
+
 add-apps-skype-r4.patch
 	Add support for the Skype P2P application
 

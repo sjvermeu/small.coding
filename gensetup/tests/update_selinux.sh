@@ -162,7 +162,7 @@ set_profile() {
   then
     typeset FILE=/etc/make.conf;
     typeset META=$(initChangeFile ${FILE});
-    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#::g');
+    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#::g' -e 's:"::g');
     sed -i -e '/FEATURES=/d' ${FILE};
     echo "FEATURES=\"${CFEAT}\"" >> ${FILE};
     commitChangeFile ${FILE} ${META};

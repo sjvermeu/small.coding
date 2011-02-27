@@ -45,7 +45,7 @@ initTools;
 
 installdb() {
   logMessage "  > Installing 'mysql'... ";
-  emerge -pu mysql || die "Failed to install MySQL (emerge failed)";
+  installSoftware -u mysql || die "Failed to install MySQL (emerge failed)";
   logMessage "done\n";
 }
 
@@ -54,20 +54,37 @@ configdb() {
   logMessage "  > Running \"emerge --config =dev-db/${DBVERS}... ";
   MYSQL_ROOT_PASSWORD=$(getValue mysql.rootpassword);
   export MYSQL_ROOT_PASSWORD;
-  emerge --config =dev-db/${DBVERS} || die "Failed to configure MySQL";
+  installSoftware --config =dev-db/${DBVERS} || die "Failed to configure MySQL";
   logMessage "done\n";
 }
 
 startdb() {
-
+  die "Please start MySQL (/etc/init.d/mysql start) and continue with 'createdb'";
 }
 
 createdb() {
-
+  logMessage "  > Creating a database called 'gentoo'... ";
+  mysqladmin -u root -h localhost -p $(getValue mysql.rootpassword) "create database gentoo;"
+  if [ $? -eq 0 ];
+  then
+    logMessage "done\n";
+  else
+    logMessage "failed!\n";
+    die "Failed to create database.";
+  fi
 }
 
 filldb() {
-
+  logMessage "  > Filling database 'gentoo'... ";
+  # TODO use gentoo, perhaps better use a full SQL script and perform an import from there?
+  mysqladmin -u root -h localhost -p $(getValue mysql.rootpassword) "create table developers (name varchar(128), email varchar(128), job varchar(128));"
+  if [ $? -eq 0 ];
+  then
+    logMessage "done\n";
+  else
+    logMessage "failed!\n";
+    die "Failed to create developers table";
+  fi
 }
 
 createusers() {

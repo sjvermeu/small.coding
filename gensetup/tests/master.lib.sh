@@ -25,6 +25,10 @@
 ## Helper commands
 ##
 
+installSoftware() {
+  emerge --binpkg-respect-use=y -g $*;
+}
+
 die() {
   echo "!!! $*" >&3;
   rm -f ${FAILED};

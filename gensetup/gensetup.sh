@@ -503,7 +503,7 @@ installTools() {
     then
       FULLCMD="${PRESTEP}; ";
     fi
-    FULLCMD="${FULLCMD} ${PREPEND} emerge -g ${PACKAGE}; ";
+    FULLCMD="${FULLCMD} ${PREPEND} emerge --binpkg-respect-use=y -g ${PACKAGE}; ";
     if [ -n "${POSTSTEP}" ];
     then
       FULLCMD="${FULLCMD} ${POSTSTEP};";
@@ -536,7 +536,7 @@ installTools() {
 installGrub() {
   printf "  - Installing GRUB... ";
   logPrint "   - Installing GRUB" >> ${LOG};
-  runChrootCommand emerge -g grub >> ${LOG} 2>&1;
+  runChrootCommand emerge --binpkg-respect-use=y -g grub >> ${LOG} 2>&1;
   printf "done\n";
 
   ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
@@ -558,7 +558,7 @@ installKernel() {
   KERNELPACKAGE=$(awk -F'=' '/kernel.package=/ {print $2}' ${DATA});
   printf "  - Installing kernel ${KERNELPACKAGE} (source code)... ";
   logPrint "   - Installing kernel ${KERNELPACKAGE} (source code)" >> ${LOG};
-  runChrootCommand emerge -g ${KERNELPACKAGE} >> ${LOG} 2>&1;
+  runChrootCommand emerge --binpkg-respect-use=y -g ${KERNELPACKAGE} >> ${LOG} 2>&1;
   printf "done\n";
 
   INSTALLTYPE=$(getValue kernel.install);

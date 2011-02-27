@@ -176,11 +176,11 @@ upgrade_kernel_headers() {
   logMessage "   > Upgrading linux kernel headers... ";
   if [ -d /var/db/pkg/sys-kernel/linux-headers-2.6.36.1 ];
   then
-    emerge -gu sys-kernel/linux-headers || die "Failed to upgrade kernel headers"; 
+    installSoftware -u sys-kernel/linux-headers || die "Failed to upgrade kernel headers"; 
     logMessage "done\n";
 
     logMessage "   > Rebuilding glibc (will reinit)\n";
-    emerge -g1 glibc || die "Failed to upgrade glibc";
+    installSoftware -1 glibc || die "Failed to upgrade glibc";
     logMessage "done\n";
   else
     logMessage "skipped\n";
@@ -190,25 +190,25 @@ upgrade_kernel_headers() {
 configure_selinux() {
   logMessage "   > Installing SELinux utilities.\n";
   logMessage "     - Installing checkpolicy... ";
-  emerge -g1 checkpolicy || die "Failed to install checkpolicy";
+  installSoftware -1 checkpolicy || die "Failed to install checkpolicy";
   logMessage "done\n";
   logMessage "     - Installing policycoreutils... ";
-  emerge -g1 policycoreutils || die "Failed to install policycoreutils";
+  installSoftware -1 policycoreutils || die "Failed to install policycoreutils";
   logMessage "done\n";
   logMessage "     - Installing selinux-base-policy... ";
-  FEATURES="-selinux" emerge selinux-base-policy || die "Failed to install SELinux base policy";
+  FEATURES="-selinux" installSoftware selinux-base-policy || die "Failed to install SELinux base policy";
   logMessage "done\n";
   logMessage "   > Upgrading system (-uDN world) (might reinit)\n";
-  emerge -guDN world || die "Failed to upgrade system (upgrade world)";
+  installSoftware -uDN world || die "Failed to upgrade system (upgrade world)";
   logMessage "   > Installing additional SELinux utilities.\n";
   logMessage "     - Installing setools... ";
-  emerge -g setools || die "Failed to install setools";
+  installSoftware setools || die "Failed to install setools";
   logMessage "done\n";
   logMessage "     - Installing sepolgen... ";
-  emerge -g sepolgen || die "Failed to install sepolgen";
+  installSoftware sepolgen || die "Failed to install sepolgen";
   logMessage "done\n";
   logMessage "     - Installing checkpolicy again... ";
-  emerge -g checkpolicy || die "Failed to install checkpolicy";
+  installSoftware checkpolicy || die "Failed to install checkpolicy";
   logMessage "done\n";
 
   logMessage "   > Storing POLICY_TYPES=\"strict\" in make.conf... ";

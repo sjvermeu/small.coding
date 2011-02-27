@@ -108,8 +108,20 @@ cleanupTools() {
   rm ${CONFFILE};
 };
 
+logTestMessage() {
+  printf "%-8s - %-3s - %-53s - " $1 "$2" "$3" >&3;
+}
+
 logMessage() {
   printf "$*" >&3;
+}
+
+logOK() {
+  logMessage "success\n";
+}
+
+logNOK() {
+  logMessage "failed!\n";
 }
 
 getValue() {

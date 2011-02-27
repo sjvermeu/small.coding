@@ -1,0 +1,16 @@
+genmodoverview
+==============
+
+The genmodoverview script scans your system for files that are listed in the 
+reference policy (that Gentoo Hardened uses) as requiring a specific type.
+This hints you, as security administrator, about potential sec-policy/* 
+packages that you might need.
+
+For instance:
+
+  ~# ./genmodoverview.sh -c LISTING
+  shutdown
+  xserver
+
+In this case, you might want to install sec-policy/selinux-shutdown and
+sec-policy/selinux-xserver.

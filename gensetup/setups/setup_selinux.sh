@@ -212,15 +212,15 @@ configure_selinux() {
   installSoftware checkpolicy || die "Failed to install checkpolicy";
   logMessage "done\n";
 
-  logMessage "   > Storing POLICY_TYPES=\"strict\" in make.conf... ";
-  grep -q "POLICY_TYPES=\"strict\"" /etc/make.conf;
+  logMessage "   > Storing POLICY_TYPES value in make.conf... ";
+  grep -q "POLICY_TYPES=\"$(getValue POLICY_TYPES)\"" /etc/make.conf;
   if [ $? -ne 0 ];
   then
     typeset FILE=/etc/make.conf
     typeset META=$(initChangeFile ${FILE});
     
     grep -v POLICY_TYPES ${FILE} > ${FILE}.new;
-    echo "POLICY_TYPES=\"strict\"" >> ${FILE}.new;
+    echo "POLICY_TYPES=\"$(getValue POLICY_TYPES)\"" >> ${FILE}.new;
     mv ${FILE}.new ${FILE};
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -234,7 +234,8 @@ label_system() {
   logMessage "   > Labelling the dev system... ";
   mkdir -p /mnt/gentoo > /dev/null 2>&1;
   mount -o bind / /mnt/gentoo;
-  setfiles -r /mnt/gentoo /etc/selinux/strict/contexts/files/file_contexts /mnt/gentoo/dev || die "Failed to run setfiles";
+  TYPE=$(awk -F'=' '/^SELINUXTYPE/ {print $2}' /etc/selinux/config);
+  setfiles -r /mnt/gentoo /etc/selinux/${TYPE}/contexts/files/file_contexts /mnt/gentoo/dev || die "Failed to run setfiles";
   umount /mnt/gentoo;
   logMessage "done\n";
 

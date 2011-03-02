@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="installdb configdb startdb filldb userok userfail dropall";
+typeset STEPS="installdb configdb startdb";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -64,60 +64,7 @@ configdb() {
 }
 
 startdb() {
-  die "Please start MySQL (/etc/init.d/mysql start) and continue with 'filldb'";
-}
-
-filldb() {
-  logMessage "  > Filling database 'gentoo'... ";
-  typeset TMPSQLFILE=$(mktemp);
-  cat > ${TMPSQLFILE} << EOF
-CREATE DATABASE IF NOT EXISTS \`gentoo\`;
-USE gentoo;
-DROP TABLE IF EXISTS \`developers\`;
-CREATE TABLE \`developers\` (
- name VARCHAR(120),
- email VARCHAR(120),
- job VARCHAR(120)
-);
-INSERT INTO developers VALUES ('Sven Vermeulen', 'sven.vermeulen@siphos.be', 'Contributor for SELinux');
-INSERT INTO developers VALUES ('Test Subject', 'ts@gentoo.org', 'Testing Developer');
-GRANT ALL ON gentoo.* TO 'admin'@'localhost' IDENTIFIED by 'adminpassword';
-GRANT SELECT ON gentoo.* TO 'guest'@'localhost' IDENTIFIED by 'guestpassword';
-EOF
-  mysql -u root -h localhost -p$(getValue mysql.rootpassword) < ${TMPSQLFILE};
-  if [ $? -eq 0 ];
-  then
-    logMessage "done\n";
-  else
-    logMessage "failed!\n";
-    die "Failed to create database";
-  fi
-  rm ${TMPSQLFILE};
-}
-
-userok() {
-  logMessage "  > Testing valid user access... ";
-  mysql -u admin -padminpassword -h localhost gentoo -e "create table if not exists test (id integer);" || die "Failed to create test table in gentoo database";
-  mysql -u admin -padminpassword -h localhost gentoo -e "show tables;" | grep -q test || die "Test table 'test' could not be found";
-  mysql -u admin -padminpassword -h localhost gentoo -e "drop table test;" || die "Test table could not be dropped";
-  mysql -u guest -pguestpassword -h localhost gentoo -e "describe developers;" | grep -q 'name' || die "Failed to describe developers table as guest user.";
-  mysql -u guest -pguestpassword -h localhost gentoo -e "select name from developers;" | grep 'Sven Vermeulen' || die "Failed to see particular row in developers table.";
-  logMessage "ok\n";
-}
-
-userfail() {
-  logMessage "  > Testing invalid user access... ";
-  mysql -u test -ptestpassword -h localhost gentoo -e "select * from developers;" && die "Did not receive an ACCESS DENIED for the test user.";
-  mysql -u guest -pguestpassword -h localhost gentoo -e "create table test (id integer);" && die "Did not receive an ACCESS DENIED for the guest user.";
-  logMessage "ok\n";
-}
-
-dropall() {
-  logMessage "  > Revoking and dropping test grants and database... ";
-  mysql -u root -p$(getValue mysql.rootpassword) -h localhost -e "drop database gentoo;" || die "Failed to drop test database";
-  mysql -u root -p$(getValue mysql.rootpassword) -h localhost -e "revoke all on gentoo.* from 'guest'@'localhost';" || die "Failed to revoke grants for guest";
-  mysql -u root -p$(getValue mysql.rootpassword) -h localhost -e "revoke all on gentoo.* from 'admin'@'localhost';" || die "Failed to revoke grants for admin";
-  logMessage "ok\n";
+  die "Please start MySQL (/etc/init.d/mysql start). No further actions needed then.";
 }
 
 stepOK "installdb" && (
@@ -135,30 +82,6 @@ nextStep;
 stepOK "startdb" && (
 logMessage ">>> Step \"startdb\" starting...\n";
 runStep startdb;
-);
-nextStep;
-
-stepOK "filldb" && (
-logMessage ">>> Step \"filldb\" starting...\n";
-runStep filldb;
-);
-nextStep;
-
-stepOK "userok" && (
-logMessage ">>> Step \"userok\" starting...\n";
-runStep userok;
-);
-nextStep;
-
-stepOK "userfail" && (
-logMessage ">>> Step \"userfail\" starting...\n";
-runStep userfail;
-);
-nextStep;
-
-stepOK "dropall" && (
-logMessage ">>> Step \"dropall\" starting...\n";
-runStep dropall;
 );
 nextStep;
 

@@ -157,14 +157,14 @@ set_profile() {
   fi
 
   logMessage "   > Setting FEATURES=\"-loadpolicy\"... ";
-  grep -q '^FEATURES=.*loadpolicy' /etc/make.conf;
+  grep -q '^FEATURES=.*-loadpolicy' /etc/make.conf;
   if [ $? -ne 0 ];
   then
     typeset FILE=/etc/make.conf;
     typeset META=$(initChangeFile ${FILE});
-    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#::g' -e 's:"::g');
+    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#.*::g' -e 's:"::g');
     sed -i -e '/FEATURES=/d' ${FILE};
-    echo "FEATURES=\"${CFEAT}\"" >> ${FILE};
+    echo "FEATURES=\"${CFEAT}\" -loadpolicy" >> ${FILE};
     commitChangeFile ${FILE} ${META};
     logMessage "done\n";
   else
@@ -174,9 +174,10 @@ set_profile() {
 
 upgrade_kernel_headers() {
   logMessage "   > Upgrading linux kernel headers... ";
-  if [ -d /var/db/pkg/sys-kernel/linux-headers-2.6.36.1 ];
+  LASTVERS=$(versionsort 2.6.36.1 $(ls /var/db/pkg/sys-kernel | grep '^linux-headers-' | sed -e 's:.*linux-headers-::g') | tail -1);
+  if [ "${LASTVERS}" = "2.6.36.1" ]
   then
-    installSoftware -u sys-kernel/linux-headers || die "Failed to upgrade kernel headers"; 
+    installSoftware -u '>sys-kernel/linux-headers-2.6.36' || die "Failed to upgrade kernel headers"; 
     logMessage "done\n";
 
     logMessage "   > Rebuilding glibc (will reinit)\n";

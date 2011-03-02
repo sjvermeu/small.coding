@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="installdb configdb labelfiles startdb filldb userok userfail dropall";
+typeset STEPS="installdb configdb labelfiles startdb";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -74,58 +74,7 @@ labelfiles() {
 startdb() {
   logMessage "** Run the following commands to initialize the database:\n";
   logMessage "**   /etc/init.d/postgresql-* start\n";
-  logMessage "**   su postgres -\n";
-  logMessage "**   createuser admin (answer 'n' to all questions)\n";
-  logMessage "**   createuser guest (answer 'n' to all questions)\n";
-  die "Please follow above manual commands and then continue with 'filldb'";
-}
-
-filldb() {
-  logMessage "  > Filling database 'gentoo'... ";
-  typeset TMPSQLFILE=$(mktemp);
-  cat > ${TMPSQLFILE} << EOF
-CREATE DATABASE gentoo;
-\c gentoo;
-DROP TABLE IF EXISTS developers;
-CREATE TABLE developers (
- name VARCHAR(120),
- email VARCHAR(120),
- job VARCHAR(120)
-);
-INSERT INTO developers VALUES ('Sven Vermeulen', 'sven.vermeulen@siphos.be', 'Contributor for SELinux');
-INSERT INTO developers VALUES ('Test Subject', 'ts@gentoo.org', 'Testing Developer');
-GRANT ALL privileges ON database gentoo TO admin;
-GRANT SELECT ON table developers TO guest;
-EOF
-  chmod 644 ${TMPSQLFILE};
-  chcon -t postgresql_var_run_t ${TMPSQLFILE};
-  su postgres -c "psql --file ${TMPSQLFILE}" 2>&1 | grep FATAL && die "Failed to fill test database gentoo";
-  logMessage "done\n";
-  rm ${TMPSQLFILE};
-}
-
-userok() {
-  logMessage "  > Testing valid user access... ";
-  su postgres -c "psql -U admin gentoo -c \"create table test (id integer);\"" 2>&1 | grep FATAL && die "Failed to create test table in gentoo database";
-  su postgres -c "psql -U admin gentoo -c \"\\d test\"" 2>&1 | grep FATAL && die "Failed to describe test table";
-  su postgres -c "psql -U admin gentoo -c \"drop table test;\"" 2>&1 | grep FATAL && die "Test table could not be dropped";
-  su postgres -c "psql -U guest gentoo -c \"\\d developers\"" | grep -q 'name' || die "Failed to describe developers table as guest user.";
-  su postgres -c "psql -U guest gentoo -c \"select name from developers;\"" | grep 'Sven Vermeulen' || die "Failed to see particular row in developers table.";
-  logMessage "ok\n";
-}
-
-userfail() {
-  logMessage "  > Testing invalid user access... ";
-  su postgres -c "psql -U test gentoo -c \"select * from developers;\"" 2>&1 | grep FATAL || die "Did not receive a FATAL error on the test user.";
-  logMessage "ok\n";
-}
-
-dropall() {
-  logMessage "  > Revoking and dropping test grants and database... ";
-  su postgres -c "psql -c \"drop database gentoo;\"" 2>&1 | grep FATAL && die "Failed to drop gentoo database";
-  su postgres -c "dropuser admin" 2>&1 | grep FATAL && die "Failed to remove admin role";
-  su postgres -c "dropuser guest" 2>&1 | grep FATAL && die "Failed to remove guest role";
-  logMessage "ok\n";
+  die "Please follow above manual commands. No further actions needed then.";
 }
 
 stepOK "installdb" && (
@@ -149,30 +98,6 @@ nextStep;
 stepOK "startdb" && (
 logMessage ">>> Step \"startdb\" starting...\n";
 runStep startdb;
-);
-nextStep;
-
-stepOK "filldb" && (
-logMessage ">>> Step \"filldb\" starting...\n";
-runStep filldb;
-);
-nextStep;
-
-stepOK "userok" && (
-logMessage ">>> Step \"userok\" starting...\n";
-runStep userok;
-);
-nextStep;
-
-stepOK "userfail" && (
-logMessage ">>> Step \"userfail\" starting...\n";
-runStep userfail;
-);
-nextStep;
-
-stepOK "dropall" && (
-logMessage ">>> Step \"dropall\" starting...\n";
-runStep dropall;
 );
 nextStep;
 

@@ -387,6 +387,10 @@ umountDisks() {
       RC=$((${RC}+$?));
     done
   done
+  mount -o remount,ro ${WORKDIR} >> ${LOG} 2>&1;
+  sync >> ${LOG} 2>&1;
+  sleep 1;
+  sync >> ${LOG} 2>&1;
   umount ${WORKDIR} >> ${LOG} 2>&1;
   printf "done\n";
 };

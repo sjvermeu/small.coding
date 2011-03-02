@@ -73,7 +73,7 @@ exittest() {
 }
 
 stepOK "inittest" && (
-logTestMessage inittest "- -" "Create temporary working database (gentoo)";
+logTestMessage inittest "- -" "(No need to initialize tests)";
 logMessage "\n";
 runStep inittest;
 );
@@ -87,7 +87,7 @@ runStep portage;
 nextStep;
 
 stepOK "exittest" && (
-logTestMessage exittest "- -" "Cleanup temporary working database (gentoo)";
+logTestMessage exittest "- -" "(No need to clean up tests)";
 logMessage "\n";
 runStep exittest;
 );

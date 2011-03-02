@@ -44,7 +44,13 @@ initTools;
 ##
 
 inittest() {
-  logTestMessage inittest 001 "Load SQL file (restore database dump)";
+  logTestMessage inittest 001 "Create admin role";
+  su postgres -c "createuser admin -S -R -D" 2>&1 | grep ERROR && logNOK || logOK;
+
+  logTestMessage inittest 002 "Create guest role";
+  su postgres -c "createuser guest -S -R -D" 2>&1 | grep ERROR && logNOK || logOK;
+
+  logTestMessage inittest 003 "Load SQL file (restore database dump)";
   typeset TMPSQLFILE=$(mktemp);
   cat > ${TMPSQLFILE} << EOF
 CREATE DATABASE gentoo;
@@ -64,12 +70,6 @@ EOF
   chcon -t postgresql_var_run_t ${TMPSQLFILE};
   su postgres -c "psql --file ${TMPSQLFILE}" 2>&1 | grep FATAL && logNOK || logOK;
   rm ${TMPSQLFILE};
-
-  logTestMessage inittest 002 "Create admin role";
-  su postgres -c "createuser admin -S -R -D" && logOK || logNOK;
-
-  logTestMessage inittest 003 "Create guest role";
-  su postgres -c "createuser guest -S -R -D" && logOK || logNOK;
 }
 
 userok() {
@@ -83,10 +83,10 @@ userok() {
   su postgres -c "psql -U admin gentoo -c \"drop table test;\"" 2>&1 | grep FATAL && logNOK || logOK;
 
   logTestMessage userok 004 "Describe table (as guest) through psql command";
-  su postgres -c "psql -U guest gentoo -c \"\\d developers\"" | grep -q 'name' || logNOK && logOK;
+  su postgres -c "psql -U guest gentoo -c \"\\d developers\"" | grep -q 'name' && logOK || logNOK;
 
   logTestMessage userok 005 "Query test data (as guest) through psql command";
-  su postgres -c "psql -U guest gentoo -c \"select name from developers;\"" | grep 'Sven Vermeulen' || logNOK && logOK;
+  su postgres -c "psql -U guest gentoo -c \"select name from developers;\"" | grep 'Sven Vermeulen' && logOK || logNOK;
 
   logTestMessage userok 006 "Testing invalid user access";
   su postgres -c "psql -U test gentoo -c \"select * from developers;\"" 2>&1 | grep FATAL || logNOK && logOK;

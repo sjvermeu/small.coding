@@ -43,12 +43,12 @@ stepOK() {
   [ -f ${FAILED} ] || return 1;
 
   [ "x${STEPFROM}" = "x" ] && return 0;
-  echo "${STEPS}" | grep " ${STEPFROM}" > /dev/null 2>&1;
+  echo "${STEPS}" | grep "\(^\| \)${STEPFROM}" > /dev/null 2>&1;
   if [ $? -ne 0 ];
   then
     # Check if last step
     [ "x${STEPTO}" = "x" ] && return 0;
-    echo "${STEPS}" | grep " ${STEPTO}" > /dev/null 2>&1;
+    echo "${STEPS}" | grep "\(^\| \)${STEPTO}" > /dev/null 2>&1;
     if [ $? -eq 0 ];
     then
       return 0;

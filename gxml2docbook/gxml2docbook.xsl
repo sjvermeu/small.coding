@@ -133,8 +133,14 @@
 </xsl:template>
 
 <xsl:template match="table">
+<xsl:variable name="numcol" select="count(tr[1]/th|tr[1]/td)"/>
 <table>
+  <tgroup cols="{$numcol}" align='left' colsep='1' rowsep='1'> 
+  <!-- TODO see if thead can be implemented. -->
+  <tfoot>
   <xsl:apply-templates select="thead|tr"/>
+  </tfoot>
+  </tgroup>
 </table>
 </xsl:template>
 
@@ -143,17 +149,17 @@
 </xsl:template>
 
 <xsl:template match="tr">
-<tr>
+<row>
   <xsl:apply-templates /> 
-</tr>
+</row>
 </xsl:template>
 
 <xsl:template match="th">
-<th><xsl:apply-templates /></th>
+<entry><xsl:apply-templates /></entry>
 </xsl:template>
 
-<xsl:template match="td">
-<ti><xsl:apply-templates /></ti>
+<xsl:template match="ti">
+<entry><xsl:apply-templates /></entry>
 </xsl:template>
 
 </xsl:stylesheet>

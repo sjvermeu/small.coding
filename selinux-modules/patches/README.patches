@@ -25,6 +25,9 @@ fix-system-sysnetwork-r9.patch
 	Allow dhcpcd to read/write /proc/sys/net files and allow communication
 	(netlink_route_socket)
 
+fix-system-unconfined-r9.patch
+	Allow unconfined domains to transition to portage domain
+
 add-apps-skype-r4.patch
 	Add support for the Skype P2P application
 

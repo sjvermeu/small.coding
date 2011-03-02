@@ -52,6 +52,8 @@ userdom_user_home_dir_filetrans_user_home_content(unconfined_t, { dir file lnk_f
 ifdef(`distro_gentoo',`
 	seutil_run_runinit(unconfined_t, unconfined_r)
 	seutil_init_script_run_runinit(unconfined_t, unconfined_r)
+	portage_run(unconfined_t, unconfined_r)
+	portage_run_gcc_config(unconfined_t, unconfined_r)
 ')
 
 optional_policy(`

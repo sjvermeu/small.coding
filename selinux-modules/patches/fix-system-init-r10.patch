@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/system/init.te	2010-12-13 15:11:02.000000000 +0100
-+++ refpolicy/policy/modules/system/init.te	2011-01-15 20:37:25.339000008 +0100
++++ refpolicy/policy/modules/system/init.te	2011-03-03 15:58:28.900999997 +0100
 @@ -169,6 +169,9 @@
  miscfiles_read_localization(init_t)
  
@@ -10,3 +10,11 @@
  	allow init_t self:process { getcap setcap };
  ')
  
+@@ -844,3 +847,7 @@
+ optional_policy(`
+ 	zebra_read_config(initrc_t)
+ ')
++
++optional_policy(`
++	courier_read_config(initrc_t)
++')

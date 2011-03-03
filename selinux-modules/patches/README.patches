@@ -62,9 +62,10 @@ fix-system-authlogin-r8.patch
 	Use pam_var_run_t for /var/db/sudo (was /var/run/sudo previously,
 	changed in sudo 1.7.4)
 
-fix-system-init-r4.patch
+fix-system-init-r10.patch
 	Allow the init domain to read ALSA related files (used in the alsasound
 	init script)
+	Allow the init domain to read Courier-related config files
 
 fix-system-selinuxutil-r10.patch
 	Introduce dontaudit for portage fds

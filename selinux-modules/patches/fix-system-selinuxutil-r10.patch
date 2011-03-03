@@ -1,0 +1,29 @@
+--- refpolicy.orig/policy/modules/system/selinuxutil.te	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2011-01-31 19:50:23.293000082 +0100
+@@ -579,6 +579,12 @@
+ 	fs_rw_tmpfs_chr_files(setfiles_t)
+ ')
+ 
++ifdef(`distro_gentoo',`
++	tunable_policy(`gentoo_try_dontaudit',`
++		gentoo_portage_dontaudit_use_fds(load_policy_t)
++	')
++')
++
+ ifdef(`distro_redhat', `
+ 	fs_rw_tmpfs_chr_files(setfiles_t)
+ 	fs_rw_tmpfs_blk_files(setfiles_t)
+--- refpolicy.orig/policy/modules/system/selinuxutil.fc	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/selinuxutil.fc	2011-03-03 15:30:32.707999997 +0100
+@@ -39,7 +39,11 @@
+ /usr/sbin/run_init		--	gen_context(system_u:object_r:run_init_exec_t,s0)
+ /usr/sbin/setfiles.*		--	gen_context(system_u:object_r:setfiles_exec_t,s0)
+ /usr/sbin/setsebool		--	gen_context(system_u:object_r:semanage_exec_t,s0)
++ifdef(`distro_gentoo',`
++/usr/sbin/semanage-.*		--	gen_context(system_u:object_r:semanage_exec_t,s0)
++',`
+ /usr/sbin/semanage		--	gen_context(system_u:object_r:semanage_exec_t,s0)
++')
+ /usr/sbin/semodule		--	gen_context(system_u:object_r:semanage_exec_t,s0)
+ 
+ #

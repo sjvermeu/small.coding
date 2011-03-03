@@ -66,8 +66,9 @@ fix-system-init-r4.patch
 	Allow the init domain to read ALSA related files (used in the alsasound
 	init script)
 
-fix-system-selinuxutil-r5.patch
+fix-system-selinuxutil-r10.patch
 	Introduce dontaudit for portage fds
+	semanage is gentoo-introduced python wrapper for semanage-.*
 
 fix-system-iptables-r5.patch
 	Introduce dontaudit for rawip_sockets

@@ -93,7 +93,7 @@ mta_mailserver_delivery(postfix_virtual_t)
 #
 
 # chown is to set the correct ownership of queue dirs
-allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config };
+allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config dac_read_search };
 allow postfix_master_t self:fifo_file rw_fifo_file_perms;
 allow postfix_master_t self:tcp_socket create_stream_socket_perms;
 allow postfix_master_t self:udp_socket create_socket_perms;
@@ -589,6 +589,7 @@ corecmd_exec_bin(postfix_smtpd_t)
 # for OpenSSL certificates
 files_read_usr_files(postfix_smtpd_t)
 mta_read_aliases(postfix_smtpd_t)
+mta_read_config(postfix_smtpd_t)
 
 optional_policy(`
 	dovecot_stream_connect_auth(postfix_smtpd_t)

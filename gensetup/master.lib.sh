@@ -138,37 +138,6 @@ listSectionOverview() {
   grep "^${SECTION}." ${CONFFILE} | sed -e 's:=:\.:g' | awk -F'.' '{print $'${FIELD}'}' | sort | uniq;
 }
 
-updateConfFile() {
-  SECTION="$1";
-  FILE="$2";
-
-  VARIABLES=$(listSectionOverview ${SECTION});
-  
-  for VARIABLE in ${VARIABLES};
-  do
-    VALUE=$(awk -F'=' "/${SECTION}.${VARIABLE}=/ {print \$2}" ${CONFFILE});
-    FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
-    if [ "${FIRSTCHAR}" = "(" ];
-    then
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
-      else
-        echo "${VARIABLE}=${VALUE}" >> ${FILE};
-      fi
-    else
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
-      else
-        echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
-      fi
-    fi
-  done
-}
-
 initChangeFile() {
   typeset FILENAME=$1;
   typeset METAFILE=$(mktemp ${FILENAME}.meta-XXXXXX);
@@ -249,3 +218,36 @@ applyMetaOnFile() {
     fi
   fi
 }
+
+updateConfFile() {
+  SECTION="$1";
+  FILE="$2";
+
+  VARIABLES=$(listSectionOverview ${SECTION});
+  
+  for VARIABLE in ${VARIABLES};
+  do
+    VALUE=$(awk -F'=' "/${SECTION}.${VARIABLE}=/ {print \$2}" ${CONFFILE});
+    FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
+    if [ "${FIRSTCHAR}" = "(" ];
+    then
+      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+      if [ $? -eq 0 ];
+      then
+        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
+      else
+        echo "${VARIABLE}=${VALUE}" >> ${FILE};
+      fi
+    else
+      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+      if [ $? -eq 0 ];
+      then
+        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
+      else
+        echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
+      fi
+    fi
+  done
+}
+
+

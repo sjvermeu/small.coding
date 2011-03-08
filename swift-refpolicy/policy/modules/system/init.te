@@ -847,3 +847,7 @@ optional_policy(`
 optional_policy(`
 	zebra_read_config(initrc_t)
 ')
+
+optional_policy(`
+	courier_read_config(initrc_t)
+')

@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="";
+typeset STEPS="installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail mysql startmysql loadsql apache apache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -162,8 +162,9 @@ certificates() {
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
+  pushd /etc/ssl/misc;
+
   logMessage "  > Running CA.pl -newreq-nodes... ";
-  cd /etc/ssl/misc;
   printf "\n\n\n\n\n\n\n\n\n" | ./CA.pl -newreq-nodes || die "Failed to run CA.pl -newreq-nodes"
   logMessage "done\n";
 
@@ -186,6 +187,8 @@ certificates() {
   printf "$(getValue openssl.httpd.privkey_pass)\n" | openssl rsa -in privkey.pem -out new.cert.key || die "Failed to create new certificate";
   openssl x509 -in new.cert.csr -out new.cert.cert -req -signkey new.cert.key -days 365 || die "Failed to sign certificates";
   logMessage "done\n";
+
+  popd;
 }
 
 updatepostfix() {
@@ -199,6 +202,251 @@ restartpostfix() {
   die "Execute /etc/init.d/postfix reload and continue with step vmail."
 }
 
+vmail() {
+  logMessage "  > Creating vmail user... ";
+  getent passwd vmail;
+  if [ $? -ne 0 ];
+  then
+    useradd -d /home/vmail -s /bin/false -m vmail;
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "  > Creating mailbox infrastructure... ";
+  mkdir -p /home/vmail/virt-domain.com/foo
+  chown -R vmail:vmail /home/vmail/virt-domain.com
+  maildirmake /home/vmail/virt-domain.com/foo/.maildir
+  logMessage "done\n";
+}
+
+mysql() {
+  logMessage "  > Installing MySQL... ";
+  installSoftware -u mysql || die "Failed to install MySQL"
+  logMessage "done\n";
+
+  logMessage "  > Downloading genericmailsql.sql file... ";
+  if [ ! -f genericmailsql.sql ];
+  then
+    wget $(getValue mysql.genericmailsql.url);
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+  logMessage "done\n";
+}
+
+startmysql() {
+  logMessage "  > Please run run_init mysql_install_db\n";
+  logMessage "    (Hint: use same password as in mysql.root.password)\n";
+  logMessage "  > Next, start mysql (/etc/init.d/mysql start)\n";
+  logMessage "  > Finally, run mysql_secure_installation\n";
+  die "When finished, continue with loadsql step"
+}
+
+loadsql() {
+  logMessage "  > Creating mailsql database... ";
+  mysqladmin -u root --password=$(getValue mysql.root.password) create mailsql;
+  if [ $? -eq 0 ];
+  then
+    logMessage "done\n";
+
+    logMessage "  > Populating with genericmailsql.sql file... ";
+    mysql -u root --password=$(getValue mysql.root.password) mailsql < genericmailsql.sql;
+    echo "GRANT SELECT,INSERT,UPDATE,DELETE ON mailsql.* TO mailsql@localhost IDENTIFIED BY \'$(getValye mysql.mailsql.password)\'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.rootpass);
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+}
+
+apache() {
+  logMessage "  > Installing apache... ";
+  installSoftware -u apache || die "Failed to install apache";
+  logMessage "done\n";
+
+  logMessage "  > Installing phpmyadmin... ";
+  installSoftware -u phpmyadmin || die "Failed to install phpmyadmin... ";
+  logMessage "done\n";
+
+  logMessage "  > Setting up SSL keys... ";
+  cp /etc/ssl/misc/new.cert.cert /etc/apache2/ssl || die "Copy failed of new.cert.cert";
+  cp /etc/ssl/misc/new.cert.key /etc/apache2/ssl || die "Copy failed of new.cert.key";
+  logMessage "done\n";
+}
+
+setupapache() {
+  logMessage "  > Go to /etc/apache2/vhosts.d\n";
+  logMessage "  > Create a new conf (copy existing, name it ssl-vhost.conf)\n";
+  logMessage "  > Edit ssl-vhost.conf, set NameVirtualHost, ServerName, DocumentRoot, SSL stuff\n";
+  logMessage "  > Also, add -D SSL -D PHP5 to the APACHE2_OPTS in /etc/conf.d/apache2\n";
+  die "Continue with the phpmyadmin step."
+}
+
+phpmyadmin() {
+  logMessage "  > Editing config.inc.php... ";
+  typeset FILE=/var/www/localhost/htdocs/phpmyadmin;
+  cp ${FILE}/config.sample.inc.php ${FILE}/config.inc.php;
+  FILE=${FILE}/config.inc.php;
+  typeset META=$(initChangeFile ${FILE});
+  sed -i -e "s:\(\$cfg\['blowfish_secret'\]\).*:\1 = \'$(getValue phpmyadmin.config.blowfish_secret)\';" ${FILE};
+  sed -i -e "s:\(\$cfg\['Servers'\]\[\$i\]\['host'\]\).*:\1 = \'$(getValue phpmyadmin.config.host)\';" ${FILE};
+  sed -i -e "s:\(\$cfg\['Servers'\]\[\$i\]\['controluser'\]\).*:\1 = 'mailsql';" ${FILE};
+  sed -i -e "s:\(\$cfg\['Servers'\]\[\$i\]\['controlpass'\]\).*:\1 = \'$(getValue mysql.mailsql.password)\';" ${FILE};
+  sed -i -e "s:\(\$cfg\['Servers'\]\[\$i\]\['user'\]\).*:\1 = 'mailsql';" ${FILE};
+  sed -i -e "s:\(\$cfg\['Servers'\]\[\$i\]\['password'\]\).*:\1 = \'$(getValue mysql.mailsql.password)\';" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
+mysqlauth() {
+  logMessage "  > Editing authdaemonrc... ";
+  typeset FILE=/etc/courier/authlib/authdaemonrc;
+  typeset META=$(initChangeFile ${FILE});
+  sed -i -e "s:^\(authmodulelist\).*:\1=\"$(getValue authdaemonrc.authmodulelist)\"" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing authmysqlrc... ";
+  FILE=/etc/courier/authlib/authmysqlrc;
+  META=$(initChangeFile ${FILE});
+  for VAR in SERVER USERNAME PASSWORD DATABASE USER_TABLE CLEAR_PWFIELD UID_FIELD GID_FIELD LOGIN_FIELD HOME_FIELD NAME_FIELD MAILDIR_FIELD;
+  do
+    sed -i -e "s:^MYSQL_${VAR}:MYSQL_${VAR}  $(getValue authmysqlrc.MYSQL_${VAR})" ${FILE};
+  done
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
+restartauth() {
+  logMessage "  > Run /etc/init.d/courier-authlib restart\n";
+  logMessage "  > Run /etc/init.d/saslauthd restart\n";
+  die "Continue with step mysqlpostfix."
+}
+
+mysqlpostfix() {
+  logMessage "  > Editing mysql-aliases.cf... ";
+  typeset FILE=/etc/postfix/mysql-aliases.cf;
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-aliases ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-relocated.cf... ";
+  FILE=/etc/postfix/mysql-relocated.cf;
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-relocated ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-transport.cf... ";
+  FILE=/etc/postfix/mysql-transport.cf;
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-transport ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-virtual-maps.cf... ";
+  FILE=/etc/postfix/mysql-virtual-maps.cf
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-virtual-maps ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-virtual-maps.cf... ";
+  FILE=/etc/postfix/mysql-virtual-maps.cf
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-virtual-uid ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-virtual-uid.cf... ";
+  FILE=/etc/postfix/mysql-virtual-uid.cf
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-virtual-uid ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing mysql-virtual.cf... ";
+  FILE=/etc/postfix/mysql-virtual.cf
+  if [ ! -f ${FILE} ];
+  then
+    touch ${FILE};
+  fi
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.mysql-virtual ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Editing main.cf... ";
+  FILE=/etc/postfix/main.cf;
+  META=$(initChangeFile ${FILE});
+  updateEqualConfFile postfix.3.main ${FILE};
+  VMUID=$(id -u vmail);
+  VMGID=$(id -g vmail);
+  setOrUpdateQuotedVariable virtual_gid_maps static:${VMGID} ${FILE};
+  setOrUpdateQuotedVariable virtual_minimum_uid ${VMUID} ${FILE};
+  setOrUpdateQuotedVariable virtual_uid_maps static:${VMUID} ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Setting file permissions... ";
+  chmod 640 /etc/postfix/mysql-*.cf;
+  chgrp postfix /etc/postfix/mysql-*.cf;
+  logMessage "done\n";
+}
+
+restartpostfix2() {
+  logMessage "  > Please run /etc/init.d/postfix restart";
+  die "Continue with squirrelmail";
+}
+
+squirrelmail() {
+  logMessage "  > Installing squirrelmail... ";
+  installSoftware -u squirrelmail || die "Failed to install squirrelmail"
+  logMessage "done\n";
+
+  logMessage "  > Configuring squirrelmail... ";
+  typeset ATOM=$(qlist -IC squirrelmail);
+  typeset SVERS=$(qlist -ICv squirrelmail | sed -e "s:${ATOM}-::g");
+  webapp-config -I -h localhost -d /mail squirrelmail ${SVERS} || die "Failed to install squirrelmail";
+  logMessage "done\n";
+}
 
 stepOK "postfix" && (
 logMessage ">>> Step \"postfix\" starting...\n";
@@ -254,5 +502,78 @@ runStep restartpostfix;
 );
 nextStep;
 
+stepOK "vmail" && (
+logMessage ">>> Step \"vmail\" starting...\n";
+runStep vmail;
+);
+nextStep;
+
+stepOK "mysql" && (
+logMessage ">>> Step \"mysql\" starting...\n";
+runStep mysql;
+);
+nextStep;
+
+stepOK "startmysql" && (
+logMessage ">>> Step \"startmysql\" starting...\n";
+runStep startmysql;
+);
+nextStep;
+
+stepOK "loadsql" && (
+logMessage ">>> Step \"loadsql\" starting...\n";
+runStep loadsql;
+);
+nextStep;
+
+stepOK "apache" && (
+logMessage ">>> Step \"apache\" starting...\n";
+runStep apache;
+);
+nextStep;
+
+stepOK "setupapache" && (
+logMessage ">>> Step \"setupapache\" starting...\n";
+runStep apache;
+);
+nextStep;
+
+stepOK "phpmyadmin" && (
+logMessage ">>> Step \"phpmyadmin\" starting...\n";
+runStep phpmyadmin;
+);
+nextStep;
+
+stepOK "mysqlauth" && (
+logMessage ">>> Step \"mysqlauth\" starting...\n";
+runStep mysqlauth;
+);
+nextStep;
+
+stepOK "restartauth" && (
+logMessage ">>> Step \"restartauth\" starting...\n";
+runStep restartauth;
+);
+nextStep;
+
+stepOK "mysqlpostfix" && (
+logMessage ">>> Step \"mysqlpostfix\" starting...\n";
+runStep mysqlpostfix;
+);
+nextStep;
+
+stepOK "restartpostfix2" && (
+logMessage ">>> Step \"restartpostfix2\" starting...\n";
+runStep restartpostfix2;
+);
+nextStep;
+
+stepOK "squirrelmail" && (
+logMessage ">>> Step \"squirrelmail\" starting...\n";
+runStep squirrelmail;
+);
+nextStep;
+
 cleanupTools;
 rm ${FAILED};
+

@@ -219,7 +219,45 @@ applyMetaOnFile() {
   fi
 }
 
-updateConfFile() {
+setOrUpdateQuotedVariable() {
+  VARIABLE=$1;
+  VALUE=$2;
+  FILE=$3;
+
+  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+  if [ $? -eq 0 ];
+  then
+    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
+  else
+    echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
+  fi
+}
+
+setOrUpdateUnquotedVariable() {
+  VARIABLE=$1;
+  VALUE=$2;
+  FILE=$3;
+
+  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+  if [ $? -eq 0 ];
+  then
+    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
+  else
+    echo "${VARIABLE}=${VALUE}" >> ${FILE};
+  fi
+}
+
+# updateEqualConfFile - Update the given configuration file
+#
+# Arguments:
+#   arg1 = section within the setup configuration file (a.b.c.d)
+#   arg2 = target configuration file to update
+#
+# The updateEqualConfFile will substitute the variables as given in the
+# configuratino file (a.b.c.d.KEYWORD) in the configuration file to the
+# new value. The value is automatically quoted (KEY="VALUE") unless the
+# value starts with (, like in KEY=(foo bar bleh) to support arrays.
+updateEqualConfFile() {
   SECTION="$1";
   FILE="$2";
 
@@ -231,23 +269,28 @@ updateConfFile() {
     FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
     if [ "${FIRSTCHAR}" = "(" ];
     then
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
-      else
-        echo "${VARIABLE}=${VALUE}" >> ${FILE};
-      fi
+      setOrUpdateUnquotedVariable ${VARIABLE} ${VALUE} ${FILE};
     else
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
-      else
-        echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
-      fi
+      setOrUpdateQuotedVariable ${VARIABLE} ${VALUE} ${FILE};
     fi
   done
 }
 
+setOrUpdateQuotedVariable() {
+  VARIABLE=$1;
+  VALUE=$2;
+
+  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+  if [ $? -eq 0 ];
+  then
+    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
+  else
+    echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
+  fi
+}
+
+# Deprecated, use updateEqualConfFile
+updateConfFile() {
+  updateEqualConfFile $1 $2;
+}
 

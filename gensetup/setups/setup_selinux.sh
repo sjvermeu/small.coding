@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch tmpfs profile headers selinux reboot_1 label reboot_2 booleans";
+typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -172,22 +172,6 @@ set_profile() {
   fi
 }
 
-upgrade_kernel_headers() {
-  logMessage "   > Upgrading linux kernel headers... ";
-  LASTVERS=$(versionsort 2.6.36.1 $(ls /var/db/pkg/sys-kernel | grep '^linux-headers-' | sed -e 's:.*linux-headers-::g') | tail -1);
-  if [ "${LASTVERS}" = "2.6.36.1" ]
-  then
-    installSoftware -u '>sys-kernel/linux-headers-2.6.36' || die "Failed to upgrade kernel headers"; 
-    logMessage "done\n";
-
-    logMessage "   > Rebuilding glibc (will reinit)\n";
-    installSoftware -1 glibc || die "Failed to upgrade glibc";
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-}
-
 configure_selinux() {
   logMessage "   > Installing SELinux utilities.\n";
   logMessage "     - Installing checkpolicy... ";
@@ -281,12 +265,6 @@ nextStep;
 stepOK "profile" && (
 logMessage ">>> Step \"profile\" starting...\n";
 runStep set_profile;
-);
-nextStep;
-
-stepOK "headers" && (
-logMessage ">>> Step \"headers\" starting...\n";
-runStep upgrade_kernel_headers;
 );
 nextStep;
 

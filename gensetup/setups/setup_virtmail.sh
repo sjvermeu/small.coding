@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail mysql startmysql loadsql apache apache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
+typeset STEPS="installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -49,7 +49,7 @@ installpostfix() {
   logMessage "done\n";
 
   logMessage "  > Updating main.cf... ";
-  updateConfFile postfix.1.main /etc/postfix/main.cf;
+  updateEqualNoQuotConfFile postfix.1.main /etc/postfix/main.cf;
   logMessage "done\n";
 
   logMessage "  > Updating master.cf... ";
@@ -63,7 +63,7 @@ installpostfix() {
 
 startpostfix() {
   logMessage "  > Need to start postfix!\n";
-  die "Start postfix init script (/etc/init.d/postfix start) and continue with step \"courier\"";
+  die "Start postfix init script (/etc/init.d/postfix start) and continue with step \"installcourier\"";
 }
 
 installcourier() {
@@ -100,11 +100,43 @@ installcourier() {
   logMessage "done\n";
 
   logMessage "  > Running mkpop3dcert... ";
-  mkpop3dcert || die "Failed to run mkpop3dcert";
+  mkpop3dcert;
+  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/pop3d.pem ]; # file exists
+  then
+    die "Failed to run mkpop3dcert";
+  fi
   logMessage "done\n";
 
   logMessage "  > Running mkimapdcert... ";
-  mkimapdcert || die "Failed to run mkipapcert";
+  mkimapdcert;
+  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/imapd.pem ];
+  then
+    die "Failed to run mkipapcert";
+  fi
+  logMessage "done\n";
+
+  for FILENM in imapd pop3d;
+  do
+    logMessage "  > Updating /etc/courier-imap/${FILENM} file... ";
+    FILE=/etc/courier-imap/${FILENM}
+    META=$(initChangeFile ${FILE});
+    setOrUpdateUnquotedVariable PIDFILE /var/run/courier/${FILENM}.pid ${FILE}
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+
+    logMessage "  > Updating /etc/courier-imap/${FILENM}-ssl file... ";
+    FILE=/etc/courier-imap/${FILENM}-ssl
+    META=$(initChangeFile ${FILE});
+    setOrUpdateUnquotedVariable SSLPIDFILE /var/run/courier/${FILENM}-ssl.pid ${FILE}
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  done
+
+  logMessage "  > Creating /var/run/courier location... ";
+  mkdir -p /var/run/courier;
+  restorecon -R /var/run/courier;
   logMessage "done\n";
 }
 
@@ -114,10 +146,14 @@ startcourier() {
   logMessage "  > Run /etc/init.d/courier-imapd-ssl start\n";
   logMessage "  > Run /etc/init.d/courier-pop3d start\n";
   logMessage "  > Run /etc/init.d/courier-pop3d-ssl start\n";
-  die "Please continue with step 'sasl' when done.";
+  die "Please continue with step 'installsasl' when done.";
 }
 
 installsasl() {
+  logMessage "  > Installing selinux-sasl... ";
+  installSoftware -u selinux-sasl || die "Failed to install selinux-sasl"
+  logMessage "done\n";
+
   logMessage "  > Installing cyrus-sasl... "
   installSoftware -u cyrus-sasl || die "Failed to install cyrus-sasl"
   logMessage "done\n";
@@ -152,12 +188,15 @@ certificates() {
   logMessage "  > Editing openssl.cnf... ";
   typeset FILE=/etc/ssl/openssl.cnf;
   typeset META=$(initChangeFile ${FILE});
-  sed -i -e "s:^countryName_default.*:countryName_default = $(getValue openssl.cnf.countryName_default)" ${FILE};
-  sed -i -e "s:^stateOrProvinceName_default.*:stateOrProvinceName_default = $(getValue openssl.cnf.stateOrProvinceName_default)" ${FILE};
-  sed -i -e "s:^localityName_default.*:localityName_default = $(getValue openssl.cnf.localityName_default)" ${FILE};
-  sed -i -e "s:^0.organizationName_default.*:0.organizationName_default = $(getValue openssl.cnf.0_organizationName_default)" ${FILE};
-  sed -i -e "s:^commonName_default.*:commonName_default = $(getValue openssl.cnf.commonName_default)" ${FILE};
-  sed -i -e "s:^emailAddress_default.*:emailAddress_default = $(getValue openssl.cnf.emailAddress_default)" ${FILE};
+  sed -i -e "s:^countryName_default.*:countryName_default = $(getValue openssl.cnf.countryName_default):g" ${FILE};
+  sed -i -e "s:^stateOrProvinceName_default.*:stateOrProvinceName_default = $(getValue openssl.cnf.stateOrProvinceName_default):g" ${FILE};
+  sed -i -e "s:^localityName_default.*:localityName_default = $(getValue openssl.cnf.localityName_default):g" ${FILE};
+  sed -i -e "s:^0.organizationName_default.*:0.organizationName_default = $(getValue openssl.cnf.0_organizationName_default):g" ${FILE};
+  # commonName_default is not given by default
+  awk '/^commonName_max/ {print "commonName_default = Foo";} {print}' ${FILE} > ${FILE}.new;
+  mv ${FILE}.new ${FILE};
+  sed -i -e "s:^commonName_default.*:commonName_default = $(getValue openssl.cnf.commonName_default):g" ${FILE};
+  sed -i -e "s:^emailAddress_default.*:emailAddress_default = $(getValue openssl.cnf.emailAddress_default):g" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -193,7 +232,7 @@ certificates() {
 
 updatepostfix() {
   logMessage "  > Updating main.cf... ";
-  updateConfFile postfix.1.main /etc/postfix/main.cf;
+  updateEqualNoQuotConfFile postfix.1.main /etc/postfix/main.cf;
   logMessage "done\n";
 }
 
@@ -220,7 +259,7 @@ vmail() {
   logMessage "done\n";
 }
 
-mysql() {
+installmysql() {
   logMessage "  > Installing MySQL... ";
   installSoftware -u mysql || die "Failed to install MySQL"
   logMessage "done\n";
@@ -233,11 +272,10 @@ mysql() {
   else
     logMessage "skipped\n";
   fi
-  logMessage "done\n";
 }
 
 startmysql() {
-  logMessage "  > Please run run_init mysql_install_db\n";
+  logMessage "  > Please run emerge --config mysql (if not already done)\n";
   logMessage "    (Hint: use same password as in mysql.root.password)\n";
   logMessage "  > Next, start mysql (/etc/init.d/mysql start)\n";
   logMessage "  > Finally, run mysql_secure_installation\n";
@@ -260,9 +298,19 @@ loadsql() {
   fi
 }
 
-apache() {
+installapache() {
   logMessage "  > Installing apache... ";
-  installSoftware -u apache || die "Failed to install apache";
+  installSoftware -u apache;
+  if [ $? -ne 0 ];
+  then
+    logMessage "failed\n";
+    logMessage "    Trying to apply fix (mkdir.sh should be bin_t)... ";
+    chcon -t bin_t /usr/share/build-1/mkdir.sh;
+    logMessage "done\n";
+
+    logMessage "  > Installing apache (again)... ";
+    installSoftware -u apache || die "Failed to install apache";
+  fi
   logMessage "done\n";
 
   logMessage "  > Installing phpmyadmin... ";
@@ -335,7 +383,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   typeset META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-aliases ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-aliases ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -347,7 +395,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-relocated ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-relocated ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -359,7 +407,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-transport ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-transport ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -371,7 +419,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-virtual-maps ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-virtual-maps ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -383,7 +431,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-virtual-uid ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-virtual-uid ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -395,7 +443,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-virtual-uid ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-virtual-uid ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -407,7 +455,7 @@ mysqlpostfix() {
     touch ${FILE};
   fi
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.mysql-virtual ${FILE};
+  updateEqualNoQuotConfFile postfix.mysql-virtual ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -415,12 +463,12 @@ mysqlpostfix() {
   logMessage "  > Editing main.cf... ";
   FILE=/etc/postfix/main.cf;
   META=$(initChangeFile ${FILE});
-  updateEqualConfFile postfix.3.main ${FILE};
+  updateEqualNoQuotConfFile postfix.3.main ${FILE};
   VMUID=$(id -u vmail);
   VMGID=$(id -g vmail);
-  setOrUpdateQuotedVariable virtual_gid_maps static:${VMGID} ${FILE};
-  setOrUpdateQuotedVariable virtual_minimum_uid ${VMUID} ${FILE};
-  setOrUpdateQuotedVariable virtual_uid_maps static:${VMUID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_gid_maps static:${VMGID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_minimum_uid ${VMUID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_uid_maps static:${VMUID} ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -448,8 +496,8 @@ squirrelmail() {
   logMessage "done\n";
 }
 
-stepOK "postfix" && (
-logMessage ">>> Step \"postfix\" starting...\n";
+stepOK "installpostfix" && (
+logMessage ">>> Step \"installpostfix\" starting...\n";
 runStep installpostfix;
 );
 nextStep;
@@ -460,8 +508,8 @@ runStep startpostfix;
 );
 nextStep;
 
-stepOK "courier" && (
-logMessage ">>> Step \"courier\" starting...\n";
+stepOK "installcourier" && (
+logMessage ">>> Step \"installcourier\" starting...\n";
 runStep installcourier;
 );
 nextStep;
@@ -472,8 +520,8 @@ runStep startcourier;
 );
 nextStep;
 
-stepOK "sasl" && (
-logMessage ">>> Step \"sasl\" starting...\n";
+stepOK "installsasl" && (
+logMessage ">>> Step \"installsasl\" starting...\n";
 runStep installsasl;
 );
 nextStep;
@@ -508,9 +556,9 @@ runStep vmail;
 );
 nextStep;
 
-stepOK "mysql" && (
-logMessage ">>> Step \"mysql\" starting...\n";
-runStep mysql;
+stepOK "installmysql" && (
+logMessage ">>> Step \"installmysql\" starting...\n";
+runStep installmysql;
 );
 nextStep;
 
@@ -526,15 +574,15 @@ runStep loadsql;
 );
 nextStep;
 
-stepOK "apache" && (
-logMessage ">>> Step \"apache\" starting...\n";
-runStep apache;
+stepOK "installapache" && (
+logMessage ">>> Step \"installapache\" starting...\n";
+runStep installapache;
 );
 nextStep;
 
 stepOK "setupapache" && (
 logMessage ">>> Step \"setupapache\" starting...\n";
-runStep apache;
+runStep installapache;
 );
 nextStep;
 

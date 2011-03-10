@@ -265,28 +265,38 @@ updateEqualConfFile() {
   
   for VARIABLE in ${VARIABLES};
   do
-    VALUE=$(awk -F'=' "/${SECTION}.${VARIABLE}=/ {print \$2}" ${CONFFILE});
+    VALUE=$(getValue ${SECTION}.${VARIABLE});
     FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
     if [ "${FIRSTCHAR}" = "(" ];
     then
-      setOrUpdateUnquotedVariable ${VARIABLE} ${VALUE} ${FILE};
+      setOrUpdateUnquotedVariable ${VARIABLE} "${VALUE}" ${FILE};
     else
-      setOrUpdateQuotedVariable ${VARIABLE} ${VALUE} ${FILE};
+      setOrUpdateQuotedVariable ${VARIABLE} "${VALUE}" ${FILE};
     fi
   done
 }
 
-setOrUpdateQuotedVariable() {
-  VARIABLE=$1;
-  VALUE=$2;
+# updateEqualNoQuotConfFile - Update the given configuration file
+#
+# Arguments:
+#   arg1 = section within the setup configuration file (a.b.c.d)
+#   arg2 = target configuration file to update
+#
+# The updateEqualNoQuotConfFile will substitute the variables as given in the
+# configuratino file (a.b.c.d.KEYWORD) in the configuration file to the
+# new value. The value is automatically quoted (KEY="VALUE") unless the
+# value starts with (, like in KEY=(foo bar bleh) to support arrays.
+updateEqualNoQuotConfFile() {
+  SECTION="$1";
+  FILE="$2";
 
-  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-  if [ $? -eq 0 ];
-  then
-    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
-  else
-    echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
-  fi
+  VARIABLES=$(listSectionOverview ${SECTION});
+  
+  for VARIABLE in ${VARIABLES};
+  do
+    VALUE=$(getValue ${SECTION}.${VARIABLE});
+    setOrUpdateUnquotedVariable ${VARIABLE} "${VALUE}" ${FILE};
+  done
 }
 
 # Deprecated, use updateEqualConfFile

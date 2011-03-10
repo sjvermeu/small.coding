@@ -138,6 +138,14 @@ installcourier() {
   mkdir -p /var/run/courier;
   restorecon -R /var/run/courier;
   logMessage "done\n";
+
+  logMessage "  > Setting privileges on /var/lib/courier... ";
+  restorecon -R /var/lib/courier;
+  logMessage "done\n";
+
+  logMessage "  > Relabelling courier-authlib... ";
+  rlpkg courier-authlib;
+  logMesssage "done\n";
 }
 
 startcourier() {
@@ -208,7 +216,7 @@ certificates() {
   logMessage "done\n";
 
   logMessage "  > Running CA.pl -newca... ";
-  printf "\n$(getValue openssl.CA.privkey_pass)\n$(getValue openssl.CA.privkey_pass)\n\n\n\n\n\n\n\n\n\n$(getValue openssl.CA.privkey_pass)\n" ./CA.pl -newca || die "Failed to run CA.pl -newca"
+  printf "\n$(getValue openssl.CA.privkey_pass)\n$(getValue openssl.CA.privkey_pass)\n\n\n\n\n\n\n\n\n\n$(getValue openssl.CA.privkey_pass)\n" | ./CA.pl -newca || die "Failed to run CA.pl -newca"
   logMessage "done\n";
 
   logMessage "  > Running CA.pl -sign... ";

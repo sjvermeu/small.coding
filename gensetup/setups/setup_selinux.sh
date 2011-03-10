@@ -232,6 +232,8 @@ set_booleans() {
   logMessage "   > Setting global_ssp boolean... ";
   setsebool -P global_ssp on || die "Failed to set global boolean";
   logMessage "done\n";
+
+  logMessage "   Done. Don't forget to edit lvm-st{op,art}.sh.\n";
 }
 
 fail_reboot() {

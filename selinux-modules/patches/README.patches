@@ -23,7 +23,8 @@ fix-system-mount-r7.patch
 
 fix-system-sysnetwork-r9.patch
 	Allow dhcpcd to read/write /proc/sys/net files and allow communication
-	(netlink_route_socket)
+	(netlink_route_socket).
+	Allow dhcpcd to edit resolv.conf
 
 fix-system-unconfined-r9.patch
 	Allow unconfined domains to transition to portage domain
@@ -43,13 +44,14 @@ add-services-gorg-r4.patch
 add-services-vde-r5.patch
 	Add support for the vde (virtual distributed ethernet switch) service
 
-fix-admin-portage-r9.patch
+fix-admin-portage-r11.patch
 	Enable setfscreate, needed to deploy java-config
 	Generate the gentoo_try_dontaudit tunable boolean
 	Introduce the necessary dontaudit statements (covered by gentoo_try_dontaudit)
 	Add dontaudit interface for fd use
 	Allow setfcap (installation of e.g. wireshark)
 	Allow ptrace within sandbox (some system package builds require this)
+	Allow port 8080 for portage_fetch_t domain
 
 fix-apps-qemu-r4.patch
 	Disable an optional policy as it contains errors (build failure)
@@ -66,6 +68,9 @@ fix-system-init-r10.patch
 	Allow the init domain to read ALSA related files (used in the alsasound
 	init script)
 	Allow the init domain to read Courier-related config files
+
+fix-system-logging-r11.patch
+	Do not mark /var/spool/postfix/pid as var_run_t, master will fail to start then. 
 
 fix-system-selinuxutil-r10.patch
 	Introduce dontaudit for portage fds

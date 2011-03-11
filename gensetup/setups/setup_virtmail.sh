@@ -300,7 +300,7 @@ loadsql() {
 
     logMessage "  > Populating with genericmailsql.sql file... ";
     mysql -u root --password=$(getValue mysql.root.password) mailsql < genericmailsql.sql;
-    echo "GRANT SELECT,INSERT,UPDATE,DELETE ON mailsql.* TO mailsql@localhost IDENTIFIED BY \'$(getValue mysql.mailsql.password)\'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.root.password);
+    echo "GRANT SELECT,INSERT,UPDATE,DELETE ON mailsql.* TO mailsql@localhost IDENTIFIED BY '$(getValue mysql.mailsql.password)'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.root.password);
     logMessage "done\n";
   else
     logMessage "skipped\n";

@@ -125,9 +125,21 @@ logNOK() {
 }
 
 getValue() {
-  KEY="$1";
+  typeset KEY="$1";
+  typeset RETVAL="";
 
-  grep "^${KEY}=" ${CONFFILE} | sed -e 's:^[^=]*=::g';
+  RETVAL=$(grep "^${KEY}=" ${CONFFILE} | sed -e 's:^[^=]*=::g';);
+  FIRSTTWOCHAR=$(echo ${RETVAL} | sed -e 's:\(..\).*:\1:g');
+  FIRSTTHREECHAR=$(echo ${RETVAL} | sed -e 's:\(...\).*:\1:g');
+  if [ "${FIRSTTWOCHAR}" = "%_" ];
+  then
+    KEY=$(echo ${RETVAL} | sed -e 's:%_::g');
+    RETVAL=$(getValue ${KEY});
+  elif [ "${FIRSTTHREECHAR}" = "%%_" ];
+  then
+    RETVAL=$(echo ${RETVAL} | sed -e 's:^%%_:%_:g');
+  fi
+  echo ${RETVAL};
 }
 
 listSectionOverview() {

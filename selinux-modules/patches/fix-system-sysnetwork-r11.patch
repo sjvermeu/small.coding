@@ -17,3 +17,13 @@
  
  corecmd_exec_bin(dhcpc_t)
  corecmd_exec_shell(dhcpc_t)
+--- refpolicy.orig/policy/modules/system/sysnetwork.fc	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/sysnetwork.fc	2011-03-11 17:42:12.698000024 +0100
+@@ -60,6 +60,7 @@
+ /var/lib/wifiroamd(/.*)?	gen_context(system_u:object_r:dhcpc_state_t,s0)
+ 
+ /var/run/dhclient.*	--	gen_context(system_u:object_r:dhcpc_var_run_t,s0)
++/var/run/dhcpcd(/.*)?		gen_context(system_u:object_r:dhcpc_var_run_t,s0)
+ 
+ ifdef(`distro_gentoo',`
+ /var/lib/dhcpc(/.*)?		gen_context(system_u:object_r:dhcpc_state_t,s0)

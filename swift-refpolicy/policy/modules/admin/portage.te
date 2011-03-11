@@ -13,7 +13,6 @@ policy_module(portage, 1.10.0.r1)
 ## </desc>
 gen_tunable(gentoo_try_dontaudit, false)
 
-
 type gcc_config_t;
 type gcc_config_exec_t;
 application_domain(gcc_config_t, gcc_config_exec_t)
@@ -253,6 +252,8 @@ corenet_tcp_sendrecv_all_ports(portage_fetch_t)
 # it occasionally comes up
 corenet_tcp_connect_all_reserved_ports(portage_fetch_t)
 corenet_tcp_connect_generic_port(portage_fetch_t)
+corenet_tcp_connect_http_cache_port(portage_fetch_t) # In case of cache server connections/proxy
+corenet_tcp_connect_http_cache_port(portage_t) # emerge fetches binpkgs from PORTAGE_BINHOST ?
 
 dev_dontaudit_read_rand(portage_fetch_t)
 

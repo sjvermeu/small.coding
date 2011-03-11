@@ -59,6 +59,10 @@ installpostfix() {
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
+
+  logMessage "  > Relabelling /var/spool/postfix... ";
+  restorecon -R -r /var/spool/postfix;
+  logMessage "done\n";
 }
 
 startpostfix() {
@@ -145,7 +149,7 @@ installcourier() {
 
   logMessage "  > Relabelling courier-authlib... ";
   rlpkg courier-authlib;
-  logMesssage "done\n";
+  logMessage "done\n";
 }
 
 startcourier() {
@@ -215,13 +219,15 @@ certificates() {
   printf "\n\n\n\n\n\n\n\n\n" | ./CA.pl -newreq-nodes || die "Failed to run CA.pl -newreq-nodes"
   logMessage "done\n";
 
-  logMessage "  > Running CA.pl -newca... ";
-  printf "\n$(getValue openssl.CA.privkey_pass)\n$(getValue openssl.CA.privkey_pass)\n\n\n\n\n\n\n\n\n\n$(getValue openssl.CA.privkey_pass)\n" | ./CA.pl -newca || die "Failed to run CA.pl -newca"
-  logMessage "done\n";
+  logMessage "  > Now running CA.pl -newca\n";
+  logMessage "  > Use the following answers:\n";
+  logMessage "  > <return>$(getValue openssl.CA.privkey_pass)<10 x return>$(getValue openssl.CA.privkey_pass)<return>\n";
+  ./CA.pl -newca || die "Failed to run CA.pl -newca"
 
-  logMessage "  > Running CA.pl -sign... ";
-  printf "$(getValue openssl.CA.privkey_pass)\ny\n" | ./CA.pl -sign || die "Failed to run CA.pl -sign";
-  logMessage "done\n";
+  logMessage "  > Now running CA.pl -sign\n";
+  logMessage "  > Use the following answers:\n";
+  logMessage "  > $(getValue openssl.CA.privkey_pass)<return>y<return>\n";
+  ./CA.pl -sign || die "Failed to run CA.pl -sign";
 
   logMessage "  > Copying certificates to postfix location... ";
   cp newcert.pem /etc/postfix || die "Failed to copy certificate newcert.pem";
@@ -330,13 +336,19 @@ installapache() {
   cp /etc/ssl/misc/new.cert.cert /etc/apache2/ssl || die "Copy failed of new.cert.cert";
   cp /etc/ssl/misc/new.cert.key /etc/apache2/ssl || die "Copy failed of new.cert.key";
   logMessage "done\n";
+
+  logMessage "  > Updating /etc/conf.d/apache... ";
+  typeset FILE=/etc/conf.d/apache2;
+  typeset META=$(initChangeFile ${FILE});
+  setOrUpdateQuotedVariable APACHE2_OPTS "-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE -D PHP5" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
 }
 
 setupapache() {
-  logMessage "  > Go to /etc/apache2/vhosts.d\n";
-  logMessage "  > Create a new conf (copy existing, name it ssl-vhost.conf)\n";
-  logMessage "  > Edit ssl-vhost.conf, set NameVirtualHost, ServerName, DocumentRoot, SSL stuff\n";
-  logMessage "  > Also, add -D SSL -D PHP5 to the APACHE2_OPTS in /etc/conf.d/apache2\n";
+  logMessage "  > Add -D SSL -D PHP5 to the APACHE2_OPTS in /etc/conf.d/apache2\n";
+  logMessage "  > Then, run /etc/init.d/apache start\n";
   die "Continue with the phpmyadmin step."
 }
 
@@ -375,6 +387,10 @@ mysqlauth() {
   done
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Relabelling cyrus-sasl package... ";
+  rlpkg cyrus-sasl;
   logMessage "done\n";
 }
 
@@ -591,7 +607,7 @@ nextStep;
 
 stepOK "setupapache" && (
 logMessage ">>> Step \"setupapache\" starting...\n";
-runStep installapache;
+runStep setupapache;
 );
 nextStep;
 

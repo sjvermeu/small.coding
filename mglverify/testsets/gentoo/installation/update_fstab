@@ -1,0 +1,6 @@
+/topic 0
+The /etc/fstab file on your system still contains at least one placeholder 
+like /dev/BOOT, /dev/ROOT or /dev/SWAP. 
+
+Please substitute these placeholders with the real devices for your boot,
+root or swap device.

@@ -1,0 +1,4 @@
+file:regexp:/etc/fstab:^/dev/BOOT:update_fstab/0:
+file:regexp:/etc/fstab:^/dev/ROOT:update_fstab/0:
+file:regexp:/etc/fstab:^/dev/SWAP:update_fstab/0:
+file:regexp:/etc/resolv.conf:nameserver 8.8.8.8:google::

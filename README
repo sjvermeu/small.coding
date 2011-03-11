@@ -15,3 +15,4 @@ hex2passwd - Tool to generate passwords based on SHA/MD5 checksum input
 selinux-local - Local patches and fixes to SELinux policy not ready for global publication
 selinux-modules - Modules I created 
 swift-refpolicy - Reference policy and updates used to set up the Gentoo Hardened SELinux policies
+mglverify - Test script allowing to validate settings and such

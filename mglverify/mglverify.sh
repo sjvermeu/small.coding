@@ -31,6 +31,54 @@ hasKey() {
 }
 
 #
+# hasTestSuite - Test if the online resource holds a testset file
+#
+hasTestSuite() {
+  typeset ONLINERES="$1";
+  wget -q --spider "${ONLINERES}";
+  return $?;
+}
+
+#
+# fetchTestSuite - Fetch the testsuite and all affiliated files
+#
+fetchTestSuite() {
+  typeset ONLINEDIR="$1";
+  typeset SUITEDIR=$(mktemp -d ${TMPWORKDIR}/mgl_XXXXXXXX);
+  
+  pushd ${SUITEDIR} > /dev/null 2>&1;
+  wget -q ${ONLINEDIR}/testset;
+  for RESOURCE in $(listResourcesInSet ${SUITEDIR}/testset);
+  do
+    wget -q ${ONLINEDIR}/${RESOURCE};
+  done
+  popd > /dev/null 2>&1;
+
+  echo ${SUITEDIR};
+}
+
+#
+# listResourcesInSet - List the files/resources as mentioned in the testset
+#
+listResourcesInSet() {
+  awk -F':' '/^resource:/ {print $2}' ${1}; 
+}
+
+#
+# cleanupFolder - Clean up temporary folder
+#
+cleanupFolder() {
+  typeset DIR="${1}";
+
+  [ ! -d "${DIR}" ] && die "Failed to clean up location ${DIR} - not a directory!";
+  echo ${DIR} | grep -q '/mgl_[^/]*';
+  if [ $? -eq 0 ];
+  then
+    rm -r "${DIR}";
+  fi
+}
+
+#
 # runTestSet - Run the testset identified on the commandline
 # 
 runTestSet() {
@@ -53,6 +101,8 @@ runTestSet() {
     then
       typeset LOCALTEST=$(fetchTestSuite ${SOURCE}/${TESTSET});
       executeTest ${LOCALTEST};
+      # Cleanup files
+      cleanupFolder ${LOCALTEST};
     fi
   done
 }

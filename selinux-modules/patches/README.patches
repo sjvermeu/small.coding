@@ -8,6 +8,9 @@ fix-services-networkmanager-r4.patch
 	authentication issues), support Gentoo's use of wpa_cli to trigger the
 	necessary scripts to further configure the interfaces
 
+fix-services-postfix-r11.patch
+	Add postfix_run_master interface
+
 fix-services-ssh-r7.patch
 	Optionally dontaudit module_request
 

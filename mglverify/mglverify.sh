@@ -58,6 +58,53 @@ runTestSet() {
 }
 
 #
+# executeDescription - Show the description 
+#
+executeDescription() {
+  typeset TESTLINE="$1";
+  typeset TESTDIR="$2";
+
+  typeset STRING=$(echo ${TESTLINE} |  sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $2}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
+  MGLFAILMESSAGE=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $3}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
+  MGLFAILFILE=$(echo ${MGLFAILMESSAGE} | awk -F'/' '{print $1}');
+  MGLFAILPART=$(echo ${MGLFAILMESSAGE} | awk -F'/' '{print $2}');
+  export MGLFAILFILE;
+  export MGLFAILPART;
+
+  echo ${STRING};
+}
+
+#
+# displayFailureMessage - Display the description' failure message, if applicable
+#
+displayFailureMessage() {
+  typeset TESTDIR="$1";
+  typeset MSGFILE="$2";
+  typeset MSGPART="$3";
+
+  if [ -n "${MGLFAILFILE}" ] && [ "${MGLVERBOSE}" = "yes" ];
+  then
+    if [ -n "${MGLFAILPART}" ];
+    then
+      awk "BEGIN {P=0} /\/topic ${MGLFAILPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MGLFAILFILE};
+    else
+      cat ${TESTDIR}/${MGLFAILFILE};
+    fi
+    MGLFAILFILE="";
+    export MGLFAILFILE;
+    MGLFAILPART="";
+    export MGLFAILPART;
+  fi
+
+  if [ -n "${MSGPART}" ];
+  then
+    awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE};
+  else
+    cat ${TESTDIR}/${MSGFILE};
+  fi
+}
+
+#
 # executeFileRegexpTest - Execute a regexp matching test against a file
 #
 executeFileRegexpTest() {
@@ -77,16 +124,7 @@ executeFileRegexpTest() {
       typeset MSGFILE=$(echo ${OKMSG} | awk -F'/' '{print $1}');
       typeset MSGPART=$(echo ${OKMSG} | awk -F'/' '{print $2}');
 
-      echo "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-      echo "-- Test on file ${FILENAME} results in a MATCH:";
-      echo "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-      
-      if [ -n "${MSGPART}" ];
-      then
-        awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE};
-      else
-        cat ${TESTDIR}/${MSGFILE};
-      fi
+      displayFailureMessage "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
     fi
   else
     if [ -n "${FAILMSG}" ];
@@ -94,16 +132,7 @@ executeFileRegexpTest() {
       typeset MSGFILE=$(echo ${FAILMSG} | awk -F'/' '{print $1}');
       typeset MSGPART=$(echo ${FAILMSG} | awk -F'/' '{print $2}');
 
-      echo "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-      echo "-- Test on file ${FILENAME} results in a FAILURE:";
-      echo "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-
-      if [ -n "${MSGPART}" ];
-      then
-        awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE};
-      else
-        cat ${TESTDIR}/${MSGFILE};
-      fi
+      displayFailureMessage "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
     fi
   fi
 }
@@ -138,6 +167,9 @@ executeTest() {
       [Ff][Ii][Ll][Ee])
         executeFileTest "${line}" "${TESTDIR}";
 	;;
+      [Dd][Ee][Ss][Cc]|[Dd][Ee][Ss][Cc][Rr][Ii][Pp][Tt][Ii][Oo][Nn])
+        executeDescription "${line}" "${TESTDIR}";
+	;;
     esac
   done < ${TESTSET};
 }
@@ -156,12 +188,13 @@ readConfig() {
     hasKey workdir ${MGLVERIFYCONF} || die "Key workdir is not found in the configuration file (${MGLVERIFYCONF})!"
     TMPWORKDIR=$(getKeyValue workdir ${MGLVERIFYCONF});
   else
-    cat << EOF
-Error! Could not find a configuration file for this application.
-
-Please set MGLVERIFYCONF environment variable to point to a proper
-configuration file, or use ~/.mglverifyrc.
+    cat > ~/.mglverifyrc << EOF
+workdir=/tmp
+source.http=http://swift.siphos.be/mglverify/data
 EOF
+    export MGLVERIFYCONF=~/.mglverifyrc
+    hasKey workdir ${MGLVERIFYCONF} || die "Key workdir is not found in the configuration file ${MGLVERIFYCONF})!"
+    TMPWORKDIR=$(getKeyValue workdir ${MGLVERIFYCONF});
   fi
 }
 
@@ -170,7 +203,7 @@ EOF
 #
 usage() {
   cat << EOF
-Usage: $0 <name>
+Usage: $0 [-v] <name>
 
 Name is the name of the testset you want to execute. The testsets are loaded
 from the location(s) that are stored in your ~/.mglverifyrc file (or in the 
@@ -182,7 +215,7 @@ EOF
 ##
 ## Main
 ##
-if [ $# -ne 1 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "/?" ];
+if [ $# -lt 1 ] || [ $# -gt 2 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "/?" ];
 then
   usage;
   exit 0;
@@ -190,4 +223,13 @@ fi
 
 readConfig
 
-runTestSet $1;
+if [ "$1" = "-v" ];
+then
+  export MGLVERBOSE="yes";
+  runTestSet $2;
+else
+  export MGLVERBOSE="no";
+  runTestSet $1;
+fi
+
+

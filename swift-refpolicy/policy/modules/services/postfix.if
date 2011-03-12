@@ -360,6 +360,39 @@ interface(`postfix_run_map',`
 
 ########################################
 ## <summary>
+##	Execute postfix_$1 in the postfix_$1 domain, and
+##	allow the specified role the postfix_$1 domain.
+## </summary>
+## <param name="subdomain">
+##      <summary>
+##      Postfix subdomain, like master, postqueue, map, ...
+##      </summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`postfix_run',`
+	gen_require(`
+		type postfix_$1_t;
+		type postfix_$1_exec_t;
+	')
+
+	postfix_domtrans_$1($2)
+	role $3 types postfix_$1_t;
+')
+
+
+########################################
+## <summary>
 ##	Execute the master postfix program in the
 ##	postfix_master domain.
 ## </summary>
@@ -395,6 +428,33 @@ interface(`postfix_exec_master',`
 
 	can_exec($1, postfix_master_exec_t)
 ')
+
+########################################
+## <summary>
+##	Execute the master postfix programs in the
+##	master domain.
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`postfix_run_master',`
+	gen_require(`
+		type postfix_master_exec_t;
+		type postfix_master_t;
+	')
+
+	role $1 types { postfix_master_exec_t postfix_master_t };
+	postfix_domtrans_master($2)
+')
+
 
 #######################################
 ## <summary>

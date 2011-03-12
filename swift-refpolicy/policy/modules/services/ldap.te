@@ -42,11 +42,12 @@ files_pid_file(slapd_var_run_t)
 # cjp: why net_raw?
 allow slapd_t self:capability { kill setgid setuid net_raw dac_override dac_read_search };
 dontaudit slapd_t self:capability sys_tty_config;
-allow slapd_t self:process setsched;
+allow slapd_t self:process { setsched signal };
 allow slapd_t self:fifo_file rw_fifo_file_perms;
 allow slapd_t self:udp_socket create_socket_perms;
 #slapd needs to listen and accept needed by ldapsearch (slapd needs to accept from ldapseach)
 allow slapd_t self:tcp_socket create_stream_socket_perms;
+allow slapd_t self:unix_stream_socket listen;
 
 allow slapd_t slapd_cert_t:dir list_dir_perms;
 read_files_pattern(slapd_t, slapd_cert_t, slapd_cert_t)
@@ -114,6 +115,7 @@ miscfiles_read_localization(slapd_t)
 
 userdom_dontaudit_use_unpriv_user_fds(slapd_t)
 userdom_dontaudit_search_user_home_dirs(slapd_t)
+userdom_use_user_terminals(slapd_t)
 
 optional_policy(`
 	kerberos_keytab_template(slapd, slapd_t)

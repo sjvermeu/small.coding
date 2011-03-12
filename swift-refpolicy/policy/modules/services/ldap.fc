@@ -8,7 +8,16 @@ ifdef(`distro_debian',`
 /usr/lib/slapd		--	gen_context(system_u:object_r:slapd_exec_t,s0)
 ')
 
+ifdef(`distro_gentoo',`
+/usr/lib(64)?/openldap/slapd	--	gen_context(system_u:object_r:slapd_exec_t,s0)
+')
+
 /var/lib/ldap(/.*)?		gen_context(system_u:object_r:slapd_db_t,s0)
+ifdef(`distro_gentoo',`
+/var/lib/openldap-data(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
+/var/lib/openldap-ldbm(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
+/var/lib/openldap-slurpd(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
+')
 /var/lib/ldap/replog(/.*)?	gen_context(system_u:object_r:slapd_replog_t,s0)
 
 /var/run/ldapi		-s	gen_context(system_u:object_r:slapd_var_run_t,s0)

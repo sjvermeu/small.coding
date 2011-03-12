@@ -27,7 +27,7 @@
  optional_policy(`
  	dovecot_stream_connect_auth(postfix_smtpd_t)
 --- refpolicy.orig/policy/modules/services/postfix.if	2010-09-10 17:05:45.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.if	2011-03-12 15:22:28.552999997 +0100
++++ refpolicy/policy/modules/services/postfix.if	2011-03-12 15:52:02.897999997 +0100
 @@ -57,6 +57,7 @@
  	allow postfix_$1_t postfix_spool_t:dir list_dir_perms;
  
@@ -36,7 +36,47 @@
  	files_pid_filetrans(postfix_$1_t, postfix_var_run_t, file)
  
  	kernel_read_system_state(postfix_$1_t)
-@@ -395,6 +396,33 @@
+@@ -359,6 +360,39 @@
+ 
+ ########################################
+ ## <summary>
++##	Execute postfix_$1 in the postfix_$1 domain, and
++##	allow the specified role the postfix_$1 domain.
++## </summary>
++## <param name="subdomain">
++##      <summary>
++##      Postfix subdomain, like master, postqueue, map, ...
++##      </summary>
++## </param>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`postfix_run',`
++	gen_require(`
++		type postfix_$1_t;
++		type postfix_$1_exec_t;
++	')
++
++	postfix_domtrans_$1($2)
++	role $3 types postfix_$1_t;
++')
++
++
++########################################
++## <summary>
+ ##	Execute the master postfix program in the
+ ##	postfix_master domain.
+ ## </summary>
+@@ -395,6 +429,33 @@
  	can_exec($1, postfix_master_exec_t)
  ')
  
@@ -62,7 +102,7 @@
 +		type postfix_master_t;
 +	')
 +
-+	role $1 type postfix_master_exec_t,postfix_master_t;
++	role $1 types { postfix_master_exec_t postfix_master_t };
 +	postfix_domtrans_master($2)
 +')
 +

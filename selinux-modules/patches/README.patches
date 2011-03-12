@@ -3,6 +3,9 @@ fix-system-modutils-r5.patch
 	kernel modules	
 	Also dontaudit some statements not used
 
+fix-services-ldap-r11.patch
+	Enhance ldap administration with domtrans on slapd_exec_t
+
 fix-services-networkmanager-r4.patch
 	Support interactive use of wpa_cli (often used to check and debug WPA
 	authentication issues), support Gentoo's use of wpa_cli to trigger the

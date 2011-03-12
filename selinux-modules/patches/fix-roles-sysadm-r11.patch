@@ -1,6 +1,17 @@
 --- refpolicy.orig/policy/modules/roles/sysadm.te	2010-12-13 15:11:01.000000000 +0100
-+++ refpolicy/policy/modules/roles/sysadm.te	2011-03-12 15:24:28.955999997 +0100
-@@ -400,6 +400,21 @@
++++ refpolicy/policy/modules/roles/sysadm.te	2011-03-12 21:51:37.121999996 +0100
+@@ -174,6 +174,10 @@
+ ')
+ 
+ optional_policy(`
++	ldap_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	libs_run_ldconfig(sysadm_t, sysadm_r)
+ ')
+ 
+@@ -400,6 +404,22 @@
  	yam_run(sysadm_t, sysadm_r)
  ')
  
@@ -9,7 +20,8 @@
 +')
 +
 +optional_policy(`
-+	postfix_run_master(sysadm_r, sysadm_t)
++	postfix_run(master, sysadm_t, sysadm_r)
++	postfix_run(postqueue, sysadm_t, sysadm_r)
 +')
 +
 +ifdef(`distro_gentoo', `
@@ -22,7 +34,7 @@
  ifndef(`distro_redhat',`
  	optional_policy(`
  		auth_role(sysadm_r, sysadm_t)
-@@ -448,5 +463,34 @@
+@@ -448,5 +468,34 @@
  	optional_policy(`
  		java_role(sysadm_r, sysadm_t)
  	')

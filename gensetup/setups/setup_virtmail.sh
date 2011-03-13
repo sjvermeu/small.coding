@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem restartnet installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
+typeset STEPS="configsystem installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -93,15 +93,38 @@ configsystem() {
   logMessage "  > Updating /etc/make.conf... ";
   FILE=/etc/make.conf;
   META=$(initChangeFile ${FILE});
-  updateEqualQuotConfFile sys.makeconf ${FILE};
+  updateEqualConfFile sys.makeconf ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
-}
 
-restartnet() {
-  logMessage "  > Please reboot the system!";
-  die "Continue with installpostfix then.";
+  logMessage "  > Setting up swapspace (128M)... ";
+  if [ ! -f /swapfile ];
+  then
+    dd if=/dev/zero of=/swapfile bs=1024k count=128;
+    chcon -t swapfile_t /swapfile;
+    mkswap /swapfile;
+    swapon /swapfile;
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "  > Configuring fstab... ";
+  grep -q '/swapfile' /etc/fstab;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/fstab;
+    typeset META=$(initChangeFile ${FILE});
+    echo "/swapfile	none	swap	sw	0 0" >> /etc/fstab
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  die "Please restart networking and continue with installpostfix."
 }
 
 installpostfix() {
@@ -123,6 +146,10 @@ installpostfix() {
 
   logMessage "  > Relabelling /var/spool/postfix... ";
   restorecon -R -r /var/spool/postfix;
+  logMessage "done\n";
+
+  logMessage "  > Adding postfix to default runlevel... ";
+  rc-update add postfix default;
   logMessage "done\n";
 }
 
@@ -219,6 +246,10 @@ installcourier() {
   logMessage "  > Relabelling courier-authlib... ";
   rlpkg courier-authlib;
   logMessage "done\n";
+
+  logMessage "  > Adding courier-imapd to default runlevel... ";
+  rc-update add courier-imapd default;
+  logMessage "done\n";
 }
 
 startcourier() {
@@ -257,6 +288,10 @@ installsasl() {
   echo "SASLAUTHD_OPTS=$(getValue sasl.saslauthd.SASLAUTHD_OPTS)" >> ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Adding saslauthd to default runlevel... ";
+  rc-update add saslauthd default;
   logMessage "done\n";
 }
 
@@ -356,6 +391,10 @@ installmysql() {
   else
     logMessage "skipped\n";
   fi
+
+  logMessage "  > Adding mysql to default runlevel... ";
+  rc-update add mysql default;
+  logMessage "done\n";
 }
 
 startmysql() {
@@ -580,51 +619,12 @@ mysqlpostfix() {
 
 restartpostfix2() {
   logMessage "  > Please run /etc/init.d/postfix restart";
-  die "Continue with squirrelmail";
-}
-
-squirrelmail() {
-  logMessage "  > Installing squirrelmail... ";
-  installSoftware -u squirrelmail || die "Failed to install squirrelmail"
-  logMessage "done\n";
-
-  logMessage "  > Configuring squirrelmail... ";
-  typeset ATOM=$(qlist -IC squirrelmail);
-  typeset SVERS=$(qlist -ICv squirrelmail | sed -e "s:${ATOM}-::g");
-  webapp-config -I -h localhost -d /mail squirrelmail ${SVERS} || die "Failed to install squirrelmail";
-  logMessage "done\n";
-
-  logMessage "  > Setting httpd_can_network_connect* to on... ";
-  setsebool -P httpd_can_network_connect on;
-  setsebool -P httpd_can_sendmail on;
-  #setsebool -P httpd_can_network_connect_db on; 
-  #^^ looks like this isn't needed for phpmyadmin to work?
-  logMessage "done\n";
-
-  logMessage "  > Mark writeable files as such... ";
-  mkdir -p /var/spool/squirrelmail/attach;
-  chcon -R -t httpd_squirrelmail_t /var/spool/squirrelmail;
-  chcon -R -t httpd_squirrelmail_t /var/www/localhost/htdocs/squirrelmail/data;
-  logMessage "done\n";
-
-  logMessage "  > Edit php.ini... ";
-  typeset FILE=/etc/php/apache2-php5*/php.ini;
-  typeset META=$(initChangeFile ${FILE});
-  setOrUpdateQuotedVariable date.timezone "=" "$(getValue php.date_timezone)" ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
+  logMessage "  > All is then completed.";
 }
 
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
-);
-nextStep;
-
-stepOK "restartnet" && (
-logMessage ">>> Step \"restartnet\" starting...\n";
-runStep restartnet;
 );
 nextStep;
 

@@ -156,7 +156,7 @@ setupsystem() {
     typeset META=$(initChangeFile ${FILE});
     echo "/swapfile	none	swap	sw	0 0" >> /etc/fstab
     applyMetaOnFile ${FILE} ${META};
-    commitChangeFile ${FILE} ${EMTA};
+    commitChangeFile ${FILE} ${META};
     logMessage "done\n";
   else
     logMessage "skipped\n";

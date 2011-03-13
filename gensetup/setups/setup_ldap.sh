@@ -60,7 +60,7 @@ installldap() {
 
   logMessage "  > Generating LDAP password... ";
   typeset LDAPPASS=$(slappasswd -s $(getValue openldap.password));
-  logMesage "done\n";
+  logMessage "done\n";
 
   logMessage "  > Updating /etc/openldap/slapd.conf... ";
   typeset FILE=/etc/openldap/slapd.conf;
@@ -70,10 +70,11 @@ installldap() {
   grep -B 999 core.schema ${FILE} > ${FILE}.new;
   for NUM in $(seq ${NUMS});
   do
-    echo "include $(getValue openldap.slapd.include.${NUM})";
+    echo "include $(getValue openldap.slapd.include.${NUM})" >> ${FILE}.new;
   done
-  grep -A 999 ${FILE} | grep -v \.schema >> ${FILE}.new;
+  grep -A 999 "core.schema" ${FILE} | grep -v ".schema" >> ${FILE}.new;
   mv ${FILE}.new ${FILE};
+
   ##### --> Add access controls
   grep -B 9999 '^# rootdn' ${FILE} > ${FILE}.new;
   cat >> ${FILE}.new << EOF

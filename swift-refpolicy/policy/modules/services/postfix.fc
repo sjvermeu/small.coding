@@ -34,9 +34,7 @@ ifdef(`distro_redhat', `
 ')
 /etc/postfix/postfix-script.* -- gen_context(system_u:object_r:postfix_exec_t,s0)
 /etc/postfix/prng_exch	--	gen_context(system_u:object_r:postfix_prng_t,s0)
-ifndef(`distro_gentoo',`
 /usr/sbin/postalias	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
-')
 /usr/sbin/postcat	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
 /usr/sbin/postdrop	--	gen_context(system_u:object_r:postfix_postdrop_exec_t,s0)
 /usr/sbin/postfix	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
@@ -51,7 +49,7 @@ ifndef(`distro_gentoo',`
 
 /var/spool/postfix(/.*)?		gen_context(system_u:object_r:postfix_spool_t,s0)
 /var/spool/postfix/maildrop(/.*)? gen_context(system_u:object_r:postfix_spool_maildrop_t,s0)
-/var/spool/postfix/pid/.*	gen_context(system_u:object_r:postfix_var_run_t,s0)
+/var/spool/postfix/pid(/.*)?	gen_context(system_u:object_r:postfix_var_run_t,s0)
 /var/spool/postfix/private(/.*)? gen_context(system_u:object_r:postfix_private_t,s0)
 /var/spool/postfix/public(/.*)? gen_context(system_u:object_r:postfix_public_t,s0)
 /var/spool/postfix/bounce(/.*)? gen_context(system_u:object_r:postfix_spool_bounce_t,s0)

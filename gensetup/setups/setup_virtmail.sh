@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
+typeset STEPS="configsystem restartnet installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 squirrelmail";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -42,6 +42,67 @@ initTools;
 ##
 ## Functions
 ##
+
+configsystem() {
+  logMessage "  > Updating /etc/conf.d/net... ";
+  typeset FILE=/etc/conf.d/net;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile conf.net ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating /etc/conf.d/hostname... ";
+  typeset FILE=/etc/conf.d/hostname;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile conf.hostname ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Setting hostname... ";
+  hostname $(getValue conf.hostname.HOSTNAME);
+  logMessage "done\n";
+
+  logMessage "  > Updating /etc/resolv.conf... ";
+  FILE=/etc/resolv.conf;
+  META=$(initChangeFile ${FILE});
+  echo "$(getValue sys.resolv)" > ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating 70-persistent-net.rules... ";
+  FILE=/etc/udev/rules.d/70-persistent-net.rules;
+  META=$(initChangeFile ${FILE});
+  typeset MACA=$(ifconfig -a | awk '/eth/ {print $5}');
+  sed -i -e "s|\(SUBSYSTEM.*ATTR{address}==\"\).*\(\", ATTR{dev_id}.*NAME=\"eth0\"\)|\1${MACA}\2|g" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating /etc/hosts... ";
+  FILE=/etc/hosts;
+  META=$(initChangeFile ${FILE});
+  echo "127.0.0.1     localhost" > ${FILE};
+  echo "$(getValue sys.hosts)"  >> ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating /etc/make.conf... ";
+  FILE=/etc/make.conf;
+  META=$(initChangeFile ${FILE});
+  updateEqualQuotConfFile sys.makeconf ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
+restartnet() {
+  logMessage "  > Please reboot the system!";
+  die "Continue with installpostfix then.";
+}
 
 installpostfix() {
   logMessage "  > Installing 'postfix'... ";
@@ -124,7 +185,7 @@ installcourier() {
     logMessage "  > Updating /etc/courier-imap/${FILENM} file... ";
     FILE=/etc/courier-imap/${FILENM}
     META=$(initChangeFile ${FILE});
-    setOrUpdateUnquotedVariable PIDFILE /var/run/courier/${FILENM}.pid ${FILE}
+    setOrUpdateUnquotedVariable PIDFILE "=" /var/run/courier/${FILENM}.pid ${FILE}
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
     logMessage "done\n";
@@ -132,19 +193,27 @@ installcourier() {
     logMessage "  > Updating /etc/courier-imap/${FILENM}-ssl file... ";
     FILE=/etc/courier-imap/${FILENM}-ssl
     META=$(initChangeFile ${FILE});
-    setOrUpdateUnquotedVariable SSLPIDFILE /var/run/courier/${FILENM}-ssl.pid ${FILE}
+    setOrUpdateUnquotedVariable SSLPIDFILE "=" /var/run/courier/${FILENM}-ssl.pid ${FILE}
+    setOrUpdateUnquotedVariable TLS_CACHEFILE "=" /var/run/courier-imap/couriersslcache ${FILE}
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
     logMessage "done\n";
   done
 
   logMessage "  > Creating /var/run/courier location... ";
-  mkdir -p /var/run/courier;
+  mkdir -p /var/run/courier/authdaemon;
   restorecon -R /var/run/courier;
   logMessage "done\n";
 
   logMessage "  > Setting privileges on /var/lib/courier... ";
   restorecon -R /var/lib/courier;
+  logMessage "done\n";
+
+  logMessage "  > Creating link from lib to run (authdaemon)... ";
+  pushd /var/lib/courier;
+  rm -rf authdaemon;
+  ln -s /var/run/courier/authdaemon;
+  popd;
   logMessage "done\n";
 
   logMessage "  > Relabelling courier-authlib... ";
@@ -221,7 +290,7 @@ certificates() {
 
   logMessage "  > Now running CA.pl -newca\n";
   logMessage "  > Use the following answers:\n";
-  logMessage "  > <return>$(getValue openssl.CA.privkey_pass)<10 x return>$(getValue openssl.CA.privkey_pass)<return>\n";
+  logMessage "  > <return>$(getValue openssl.CA.privkey_pass)<return>$(getValue openssl.CA.privkey_pass)<10 x return>$(getValue openssl.CA.privkey_pass)<return>\n";
   ./CA.pl -newca || die "Failed to run CA.pl -newca"
 
   logMessage "  > Now running CA.pl -sign\n";
@@ -291,7 +360,7 @@ installmysql() {
 
 startmysql() {
   logMessage "  > Please run emerge --config mysql (if not already done)\n";
-  logMessage "    (Hint: use same password as in mysql.root.password)\n";
+  logMessage "    (Hint: use password $(getValue mysql.root.password))\n";
   logMessage "  > Next, start mysql (/etc/init.d/mysql start)\n";
   logMessage "  > Finally, run mysql_secure_installation\n";
   die "When finished, continue with loadsql step"
@@ -340,15 +409,19 @@ installapache() {
   logMessage "  > Updating /etc/conf.d/apache... ";
   typeset FILE=/etc/conf.d/apache2;
   typeset META=$(initChangeFile ${FILE});
-  setOrUpdateQuotedVariable APACHE2_OPTS "-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE -D PHP5" ${FILE};
+  setOrUpdateQuotedVariable APACHE2_OPTS "=" "-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE -D PHP5" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Symlinking libphp5.so... ";
+  pushd /usr/lib64/apache2/modules;
+  ln -s /usr/lib64/php*/apache2/libphp5.so . || die "Failed to set symlink"
   logMessage "done\n";
 }
 
 setupapache() {
-  logMessage "  > Add -D SSL -D PHP5 to the APACHE2_OPTS in /etc/conf.d/apache2\n";
-  logMessage "  > Then, run /etc/init.d/apache start\n";
+  logMessage "  > Then, run /etc/init.d/apache2 start\n";
   die "Continue with the phpmyadmin step."
 }
 
@@ -373,7 +446,7 @@ mysqlauth() {
   logMessage "  > Editing authdaemonrc... ";
   typeset FILE=/etc/courier/authlib/authdaemonrc;
   typeset META=$(initChangeFile ${FILE});
-  sed -i -e "s:^\(authmodulelist\).*:\1=\"$(getValue authdaemonrc.authmodulelist)\"" ${FILE};
+  sed -i -e "s:^\(authmodulelist=\).*:\1\"$(getValue authdaemonrc.authmodulelist)\":g" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -381,10 +454,9 @@ mysqlauth() {
   logMessage "  > Editing authmysqlrc... ";
   FILE=/etc/courier/authlib/authmysqlrc;
   META=$(initChangeFile ${FILE});
-  for VAR in SERVER USERNAME PASSWORD DATABASE USER_TABLE CLEAR_PWFIELD UID_FIELD GID_FIELD LOGIN_FIELD HOME_FIELD NAME_FIELD MAILDIR_FIELD;
-  do
-    sed -i -e "s:^MYSQL_${VAR}:MYSQL_${VAR}  $(getValue authmysqlrc.MYSQL_${VAR})" ${FILE};
-  done
+  updateWhitespaceNoQuotConfFile authmysqlrc ${FILE};
+  # Comment out MYSQL_CRYPT_PWFIELD
+  sed -i -e "s:^MYSQL_CRYPT_PWFIELD\(.*\):#MYSQL_CRYPT_PWFIELD\1:g" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -396,7 +468,9 @@ mysqlauth() {
 
 restartauth() {
   logMessage "  > Run /etc/init.d/courier-authlib restart\n";
-  logMessage "  > Run /etc/init.d/saslauthd restart\n";
+  logMessage "  > Run /etc/init.d/saslauthd stop\n";
+  logMessage "  > Run restorecon -R -r /var/lib/sasl2\n";
+  logMessage "  > Run /etc/init.d/saslauthd start\n";
   die "Continue with step mysqlpostfix."
 }
 
@@ -449,8 +523,8 @@ mysqlpostfix() {
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
-  logMessage "  > Editing mysql-virtual-maps.cf... ";
-  FILE=/etc/postfix/mysql-virtual-maps.cf
+  logMessage "  > Editing mysql-virtual-uid.cf... ";
+  FILE=/etc/postfix/mysql-virtual-uid.cf
   if [ ! -f ${FILE} ];
   then
     touch ${FILE};
@@ -491,9 +565,9 @@ mysqlpostfix() {
   updateEqualNoQuotConfFile postfix.3.main ${FILE};
   VMUID=$(id -u vmail);
   VMGID=$(id -g vmail);
-  setOrUpdateUnquotedVariable virtual_gid_maps static:${VMGID} ${FILE};
-  setOrUpdateUnquotedVariable virtual_minimum_uid ${VMUID} ${FILE};
-  setOrUpdateUnquotedVariable virtual_uid_maps static:${VMUID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_gid_maps "=" static:${VMGID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_minimum_uid "=" ${VMUID} ${FILE};
+  setOrUpdateUnquotedVariable virtual_uid_maps "=" static:${VMUID} ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -519,7 +593,40 @@ squirrelmail() {
   typeset SVERS=$(qlist -ICv squirrelmail | sed -e "s:${ATOM}-::g");
   webapp-config -I -h localhost -d /mail squirrelmail ${SVERS} || die "Failed to install squirrelmail";
   logMessage "done\n";
+
+  logMessage "  > Setting httpd_can_network_connect* to on... ";
+  setsebool -P httpd_can_network_connect on;
+  setsebool -P httpd_can_sendmail on;
+  #setsebool -P httpd_can_network_connect_db on; 
+  #^^ looks like this isn't needed for phpmyadmin to work?
+  logMessage "done\n";
+
+  logMessage "  > Mark writeable files as such... ";
+  mkdir -p /var/spool/squirrelmail/attach;
+  chcon -R -t httpd_squirrelmail_t /var/spool/squirrelmail;
+  chcon -R -t httpd_squirrelmail_t /var/www/localhost/htdocs/squirrelmail/data;
+  logMessage "done\n";
+
+  logMessage "  > Edit php.ini... ";
+  typeset FILE=/etc/php/apache2-php5*/php.ini;
+  typeset META=$(initChangeFile ${FILE});
+  setOrUpdateQuotedVariable date.timezone "=" "$(getValue php.date_timezone)" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
 }
+
+stepOK "configsystem" && (
+logMessage ">>> Step \"configsystem\" starting...\n";
+runStep configsystem;
+);
+nextStep;
+
+stepOK "restartnet" && (
+logMessage ">>> Step \"restartnet\" starting...\n";
+runStep restartnet;
+);
+nextStep;
 
 stepOK "installpostfix" && (
 logMessage ">>> Step \"installpostfix\" starting...\n";

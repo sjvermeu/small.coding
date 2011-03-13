@@ -233,29 +233,38 @@ applyMetaOnFile() {
 
 setOrUpdateQuotedVariable() {
   VARIABLE=$1;
-  VALUE=$2;
-  FILE=$3;
+  SPACER="$2";
+  VALUE="$3";
+  FILE=$4;
 
-  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+  grep "^${VARIABLE}${SPACER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
+    sed -i -e "s:^${VARIABLE}${SPACER}.*:${VARIABLE}${SPACER}\"${VALUE}\":g" ${FILE};
   else
-    echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
+    echo "${VARIABLE}${SPACER}\"${VALUE}\"" >> ${FILE};
   fi
 }
 
 setOrUpdateUnquotedVariable() {
   VARIABLE=$1;
-  VALUE=$2;
-  FILE=$3;
+  SPACER="$2";
+  VALUE="$3";
+  FILE=$4;
 
-  grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
+  TESTER="${SPACER}";
+
+  if [ "${SPACER}" = " " ];
+  then
+    TESTER="[ 	]";
+  fi
+    
+  grep "^${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
+    sed -i -e "s:^${VARIABLE}${TESTER}.*:${VARIABLE}${SPACER}${VALUE}:g" ${FILE};
   else
-    echo "${VARIABLE}=${VALUE}" >> ${FILE};
+    echo "${VARIABLE}${SPACER}${VALUE}" >> ${FILE};
   fi
 }
 
@@ -281,9 +290,9 @@ updateEqualConfFile() {
     FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
     if [ "${FIRSTCHAR}" = "(" ];
     then
-      setOrUpdateUnquotedVariable ${VARIABLE} "${VALUE}" ${FILE};
+      setOrUpdateUnquotedVariable ${VARIABLE} "=" "${VALUE}" ${FILE};
     else
-      setOrUpdateQuotedVariable ${VARIABLE} "${VALUE}" ${FILE};
+      setOrUpdateQuotedVariable ${VARIABLE} "=" "${VALUE}" ${FILE};
     fi
   done
 }
@@ -307,9 +316,33 @@ updateEqualNoQuotConfFile() {
   for VARIABLE in ${VARIABLES};
   do
     VALUE=$(getValue ${SECTION}.${VARIABLE});
-    setOrUpdateUnquotedVariable ${VARIABLE} "${VALUE}" ${FILE};
+    setOrUpdateUnquotedVariable ${VARIABLE} "=" "${VALUE}" ${FILE};
   done
 }
+
+
+# updateWhitespaceNoQuotConfFile - Update the given configuration file
+#
+# Arguments:
+#   arg1 = section within the setup configuration file (a.b.c.d)
+#   arg2 = target configuration file to update
+#
+# The updateEqualNoQuotConfFile will substitute the variables as given in the
+# configuratino file (a.b.c.d.KEYWORD) in the configuration file to the
+# new value. The value is not quoted
+updateWhitespaceNoQuotConfFile() {
+  SECTION="$1";
+  FILE="$2";
+
+  VARIABLES=$(listSectionOverview ${SECTION});
+  
+  for VARIABLE in ${VARIABLES};
+  do
+    VALUE=$(getValue ${SECTION}.${VARIABLE});
+    setOrUpdateUnquotedVariable  ${VARIABLE} " " "${VALUE}" ${FILE};
+  done
+}
+
 
 # Deprecated, use updateEqualConfFile
 updateConfFile() {

@@ -43,6 +43,42 @@ initTools;
 ## Functions
 ##
 
+configsystem() {
+  logMessage "  > Updating /etc/conf.d/net... ";
+  typeset FILE=/etc/conf.d/net;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile conf.net ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating /etc/conf.d/hostname... ";
+  typeset FILE=/etc/conf.d/hostname;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile conf.hostname ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+
+  logMessage "  > Updating /etc/resolv.conf... ";
+  FILE=/etc/resolv.conf;
+  META=$(initChangeFile ${FILE});
+  echo "$(getValue sys.resolv)" > ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Updating 70-persistent-net.rules... ";
+  FILE=/etc/udev/rules.d/70-persistent-net.rules;
+  META=$(initChangeFile ${FILE});
+  typeset MACA=$(ifconfig -a | awk '/eth/ {print $5}');
+  sed -i -e "s:\(SUBSYSTEM.*ATTR{address}==\"\).*\(\", ATTR{dev_id}.*NAME=\"eth0\"\):\1${MACA}\2:g" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
 installdb() {
   logMessage "  > Installing 'mysql'... ";
   installSoftware -u mysql || die "Failed to install MySQL (emerge failed)";

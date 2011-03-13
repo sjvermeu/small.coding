@@ -27,12 +27,12 @@
  optional_policy(`
  	dovecot_stream_connect_auth(postfix_smtpd_t)
 --- refpolicy.orig/policy/modules/services/postfix.if	2010-09-10 17:05:45.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.if	2011-03-12 15:52:02.897999997 +0100
++++ refpolicy/policy/modules/services/postfix.if	2011-03-13 16:01:32.148000000 +0100
 @@ -57,6 +57,7 @@
  	allow postfix_$1_t postfix_spool_t:dir list_dir_perms;
  
  	allow postfix_$1_t postfix_var_run_t:file manage_file_perms;
-+	allow postfix_$1_t postfix_var_run_t:dir list_dir_perms;
++	allow postfix_$1_t postfix_var_run_t:dir rw_dir_perms;
  	files_pid_filetrans(postfix_$1_t, postfix_var_run_t, file)
  
  	kernel_read_system_state(postfix_$1_t)
@@ -111,8 +111,8 @@
  ## <summary>
  ##	Connect to postfix master process using a unix domain stream socket.
 --- refpolicy.orig/policy/modules/services/postfix.fc	2010-08-03 15:11:07.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.fc	2011-03-03 15:12:19.081999996 +0100
-@@ -16,24 +16,27 @@
++++ refpolicy/policy/modules/services/postfix.fc	2011-03-13 15:54:11.765000000 +0100
+@@ -16,20 +16,21 @@
  /usr/libexec/postfix/pipe --	gen_context(system_u:object_r:postfix_pipe_exec_t,s0)
  /usr/libexec/postfix/virtual --	gen_context(system_u:object_r:postfix_virtual_exec_t,s0)
  ', `
@@ -148,9 +148,12 @@
  ')
  /etc/postfix/postfix-script.* -- gen_context(system_u:object_r:postfix_exec_t,s0)
  /etc/postfix/prng_exch	--	gen_context(system_u:object_r:postfix_prng_t,s0)
-+ifndef(`distro_gentoo',`
- /usr/sbin/postalias	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
-+')
- /usr/sbin/postcat	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
- /usr/sbin/postdrop	--	gen_context(system_u:object_r:postfix_postdrop_exec_t,s0)
- /usr/sbin/postfix	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
+@@ -48,7 +49,7 @@
+ 
+ /var/spool/postfix(/.*)?		gen_context(system_u:object_r:postfix_spool_t,s0)
+ /var/spool/postfix/maildrop(/.*)? gen_context(system_u:object_r:postfix_spool_maildrop_t,s0)
+-/var/spool/postfix/pid/.*	gen_context(system_u:object_r:postfix_var_run_t,s0)
++/var/spool/postfix/pid(/.*)?	gen_context(system_u:object_r:postfix_var_run_t,s0)
+ /var/spool/postfix/private(/.*)? gen_context(system_u:object_r:postfix_private_t,s0)
+ /var/spool/postfix/public(/.*)? gen_context(system_u:object_r:postfix_public_t,s0)
+ /var/spool/postfix/bounce(/.*)? gen_context(system_u:object_r:postfix_spool_bounce_t,s0)

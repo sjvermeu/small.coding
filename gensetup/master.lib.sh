@@ -237,10 +237,17 @@ setOrUpdateQuotedVariable() {
   VALUE="$3";
   FILE=$4;
 
-  grep "^${VARIABLE}${SPACER}" ${FILE} > /dev/null 2>&1;
+  TESTER="${SPACER}";
+
+  if [ "${SPACER}" = " " ];
+  then
+    TESTER="[ 	]";
+  fi
+
+  grep "^${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s:^${VARIABLE}${SPACER}.*:${VARIABLE}${SPACER}\"${VALUE}\":g" ${FILE};
+    sed -i -e "s|^${VARIABLE}${TESTER}.*|${VARIABLE}${SPACER}\"${VALUE}\"|g" ${FILE};
   else
     echo "${VARIABLE}${SPACER}\"${VALUE}\"" >> ${FILE};
   fi
@@ -262,7 +269,7 @@ setOrUpdateUnquotedVariable() {
   grep "^${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s:^${VARIABLE}${TESTER}.*:${VARIABLE}${SPACER}${VALUE}:g" ${FILE};
+    sed -i -e "s|^${VARIABLE}${TESTER}.*|${VARIABLE}${SPACER}${VALUE}|g" ${FILE};
   else
     echo "${VARIABLE}${SPACER}${VALUE}" >> ${FILE};
   fi
@@ -340,6 +347,28 @@ updateWhitespaceNoQuotConfFile() {
   do
     VALUE=$(getValue ${SECTION}.${VARIABLE});
     setOrUpdateUnquotedVariable  ${VARIABLE} " " "${VALUE}" ${FILE};
+  done
+}
+
+# updateWhitespaceConfFile - Update the given configuration file
+#
+# Arguments:
+#   arg1 = section within the setup configuration file (a.b.c.d)
+#   arg2 = target configuration file to update
+#
+# The updateWhitespaceConfFile will substitute the variables as given in the
+# configuratino file (a.b.c.d.KEYWORD) in the configuration file to the
+# new value. The value is quoted
+updateWhitespaceConfFile() {
+  SECTION="$1";
+  FILE="$2";
+
+  VARIABLES=$(listSectionOverview ${SECTION});
+  
+  for VARIABLE in ${VARIABLES};
+  do
+    VALUE=$(getValue ${SECTION}.${VARIABLE});
+    setOrUpdateQuotedVariable  ${VARIABLE} " " "${VALUE}" ${FILE};
   done
 }
 

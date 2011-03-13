@@ -3,6 +3,9 @@ fix-system-modutils-r5.patch
 	kernel modules	
 	Also dontaudit some statements not used
 
+fix-services-courier-r11.patch
+	Enable stream connect from courier_tcpd to courier_authdaemon
+
 fix-services-ldap-r11.patch
 	Enhance ldap administration with domtrans on slapd_exec_t
 

@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installdb configdb labelfiles startdb";
+typeset STEPS="configsystem installdb configdb labelfiles startdb setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -87,6 +87,10 @@ startdb() {
   die "Please follow above manual commands. No further actions needed then.";
 }
 
+setuppam() {
+  _setuppam;
+}
+
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -114,6 +118,12 @@ nextStep;
 stepOK "startdb" && (
 logMessage ">>> Step \"startdb\" starting...\n";
 runStep startdb;
+);
+nextStep;
+
+stepOK "setuppam" && (
+logMessage ">>> Step \"setuppam\" starting...\n";
+runStep setuppam;
 );
 nextStep;
 

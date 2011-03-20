@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installldap setupldap setuppam";
+typeset STEPS="configsystem users installldap setupldap setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -47,6 +47,29 @@ initTools;
 configsystem() {
   _configsystem;
   die "Please restart the network and continue with step installldap.";
+}
+
+users() {
+  logMessage "  > Creating test users (user, staff, test)... ";
+  typeset TU=$(getValue testusers.enable);
+  if [ "${TU}" = "true" ];
+  then
+    useradd -m user;
+    useradd -m staff;
+    useradd -m test;
+    # Create a SELinux user called test
+    semanage user -a -R 'staff_r sysadm_r' -P test test_u
+    # Map Linux users to SELinux users
+    semanage login -a -s staff_u staff;
+    semanage login -a -s test_u test;
+    # Clear and reset
+    restorecon -R -r -F /home/test /home/user /home/staff;
+    # Set passwords
+    printf "$(getValue testusers.user.password)\n$(getValue testusers.user.password)\n" | passwd user;
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 installldap() {
@@ -196,6 +219,12 @@ setuppam() {
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
+);
+nextStep;
+
+stepOK "users" && (
+logMessage ">>> Step \"users\" starting...\n";
+runStep users;
 );
 nextStep;
 

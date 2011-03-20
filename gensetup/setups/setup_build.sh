@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem configureportage installsoftware setuplighttpd";
+typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -100,6 +100,10 @@ setuplighttpd() {
   logMessage "done\n";
 }
 
+setuppam() {
+  _setuppam;
+}
+
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -121,6 +125,12 @@ nextStep;
 stepOK "setuplighttpd" && (
 logMessage ">>> Step \"setuplighttpd\" starting...\n";
 runStep setuplighttpd;
+);
+nextStep;
+
+stepOK "setuppam" && (
+logMessage ">>> Step \"setuppam\" starting...\n";
+runStep setuppam;
 );
 nextStep;
 

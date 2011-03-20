@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installapache installsquirrel";
+typeset STEPS="configsystem installapache installsquirrel setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -105,8 +105,10 @@ installsquirrel() {
   pushd /usr/lib64/apache2/modules;
   ln -s /usr/lib64/php*/apache2/libphp5.so . || die "Failed to set symlink"
   logMessage "done\n";
+}
 
-
+setuppam() {
+  _setuppam;
 }
 
 stepOK "configsystem" && (
@@ -124,6 +126,12 @@ nextStep;
 stepOK "installsquirrel" && (
 logMessage ">>> Step \"installsquirrel\" starting...\n";
 runStep installsquirrel;
+);
+nextStep;
+
+stepOK "setuppam" && (
+logMessage ">>> Step \"setuppam\" starting...\n";
+runStep setuppam;
 );
 nextStep;
 

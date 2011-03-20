@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2";
+typeset STEPS="configsystem installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -547,7 +547,11 @@ mysqlpostfix() {
 
 restartpostfix2() {
   logMessage "  > Please run /etc/init.d/postfix restart\n";
-  logMessage "  > All is then completed.\n";
+  die "When finished, continue with step \"setuppam\".";
+}
+
+setuppam() {
+  _setuppam;
 }
 
 stepOK "configsystem" && (
@@ -673,6 +677,12 @@ nextStep;
 stepOK "restartpostfix2" && (
 logMessage ">>> Step \"restartpostfix2\" starting...\n";
 runStep restartpostfix2;
+);
+nextStep;
+
+stepOK "setuppam" && (
+logMessage ">>> Step \"setuppam\" starting...\n";
+runStep setuppam;
 );
 nextStep;
 

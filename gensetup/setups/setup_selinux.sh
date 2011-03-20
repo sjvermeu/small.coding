@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 users booleans";
+typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -253,29 +253,6 @@ fail_reboot() {
   die "Please reboot.";
 }
 
-users() {
-  logMessage "  > Creating test users (user, staff, test)... ";
-  typeset TU=$(getValue testusers.enable);
-  if [ "${TU}" = "true" ];
-  then
-    useradd -m user;
-    useradd -m staff;
-    useradd -m test;
-    # Create a SELinux user called test
-    semanage user -a -R 'staff_r sysadm_r' -P test test_u
-    # Map Linux users to SELinux users
-    semanage login -a -s staff_u staff;
-    semanage login -a -s test_u test;
-    # Clear and reset
-    restorecon -R -r -F /home/test /home/user /home/staff;
-    # Set passwords
-    printf "$(getValue testusers.user.password)\n$(getValue testusers.user.password)\n" | passwd user;
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-}
-
 ##
 ## Main
 ## 
@@ -325,12 +302,6 @@ nextStep;
 stepOK "reboot_2" && (
 logMessage ">>> Step \"reboot_2\" starting...\n";
 runStep fail_reboot;
-);
-nextStep;
-
-stepOK "users" && (
-logMessage ">>> Step \"users\" starting...\n";
-runStep users;
 );
 nextStep;
 

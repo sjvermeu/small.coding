@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installbind configbind";
+typeset STEPS="configsystem installbind configbind setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -82,7 +82,7 @@ options {
 	pid-file "/var/run/named/named.pid";
 
 	listen-on-v6 { ::1; };
-	listen-on { 127.0.0.1; 192.168.100.71; };
+	listen-on { 127.0.0.1; @IPADDRESS@; };
 
 	allow-query {
 		trusted;
@@ -129,7 +129,7 @@ controls {
 	inet 127.0.0.1 port 953 allow { 127.0.0.1/32; ::1/128; } keys { "rndc-key"; };
 };
 EOF
-
+  sed -i -e "s:@IPADDRESS@:$(getValue dns.listen):g" ${FILE};
   typeset DNSTYPE="$(getValue dns.type)";
   if [ "${DNSTYPE}" = "master" ];
   then
@@ -165,11 +165,13 @@ EOF
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
-  logMessage "  > Configuring virtdomain.com.internal zone file... ";
-  FILE="/var/bind/pri/virtdomain.com.internal";
-  touch ${FILE};
-  META=$(initChangeFile ${FILE});
-  cat > /var/bind/pri/virtdomain.com.internal << EOF
+  if [ "$(getValue dns.type)" = "master" ];
+  then
+    logMessage "  > Configuring virtdomain.com.internal zone file... ";
+    FILE="/var/bind/pri/virtdomain.com.internal";
+    touch ${FILE};
+    META=$(initChangeFile ${FILE});
+    cat > /var/bind/pri/virtdomain.com.internal << EOF
 \$TTL 2d
 @	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
 	2011031502	; serial
@@ -194,9 +196,14 @@ ldap.virtdomain.com.	IN A	192.168.100.55
 mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
 EOF
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  fi
+}
+
+setuppam() {
+  _setuppam;
 }
 
 stepOK "configsystem" && (
@@ -214,6 +221,12 @@ nextStep;
 stepOK "configbind" && (
 logMessage ">>> Step \"configbind\" starting...\n";
 runStep configbind;
+);
+nextStep;
+
+stepOK "setuppam" && (
+logMessage ">>> Step \"setuppam\" starting...\n";
+runStep setuppam;
 );
 nextStep;
 

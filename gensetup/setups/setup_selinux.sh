@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 booleans users";
+typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 users booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -137,6 +137,8 @@ sys-libs/libsepol
 app-admin/setools
 dev-python/sepolgen
 sys-apps/checkpolicy
+# build issue with audit-1.7.3, python3 related?
+=sys-process/audit-1.7.4
 sec-policy/*
 =sys-process/vixie-cron-4.1-r11
 =sys-kernel/linux-headers-2.6.36.1
@@ -226,6 +228,15 @@ label_system() {
   logMessage "   > Labelling the entire system... ";
   rlpkg -a -r || die "Failed to relabel the entire system";
   logMessage "done\n";
+
+  logMessage "   > Clearing udev persistent rule for eth0... ";
+  if [ -f /etc/udev/rules.d/70-persistent-net.rules ];
+  then
+    rm /etc/udev/rules.d/70-persistent-net.rules;
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 set_booleans() {
@@ -317,15 +328,15 @@ runStep fail_reboot;
 );
 nextStep;
 
-stepOK "booleans" && (
-logMessage ">>> Step \"booleans\" starting...\n";
-runStep set_booleans;
-);
-nextStep;
-
 stepOK "users" && (
 logMessage ">>> Step \"users\" starting...\n";
 runStep users;
+);
+nextStep;
+
+stepOK "booleans" && (
+logMessage ">>> Step \"booleans\" starting...\n";
+runStep set_booleans;
 );
 nextStep;
 

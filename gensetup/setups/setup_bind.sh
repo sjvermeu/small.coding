@@ -61,6 +61,8 @@ installbind() {
 
 configbind() {
   logMessage "  > Configuring named.conf... ";
+  typeset FILE="/etc/bind/named.conf";
+  typeset META=$(initChangeFile ${FILE});
   cat > /etc/bind/named.conf << EOF
 acl "xfer" {
 	/* Deny transfers by default except for the listed hosts.
@@ -126,7 +128,12 @@ include "/etc/bind/rndc.key";
 controls {
 	inet 127.0.0.1 port 953 allow { 127.0.0.1/32; ::1/128; } keys { "rndc-key"; };
 };
+EOF
 
+  typeset DNSTYPE="$(getValue dns.type)";
+  if [ "${DNSTYPE}" = "master" ];
+  then
+    cat >> ${FILE} << EOF
 view "internal" {
 	match-clients { 192.168.100.0/24; localhost; };
 	recursion yes;
@@ -138,11 +145,32 @@ view "internal" {
 	};
 };
 EOF
+  elif [ "${DNSTYPE}" = "slave" ];
+  then
+    cat >> ${FILE} << EOF
+view "internal" {
+	match-clients { 192.168.100.0/24; localhost; };
+	recursion yes;
+
+	zone "virtdomain.com" {
+		type slave;
+		file "pri/virtdomain.com.internal";
+		masters {@MASTER@;};
+	};
+};
+EOF
+    sed -i -e "s:@MASTER@:$(getValue dns.master):g" ${FILE};
+  fi
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
   logMessage "  > Configuring virtdomain.com.internal zone file... ";
+  FILE="/var/bind/pri/virtdomain.com.internal";
+  touch ${FILE};
+  META=$(initChangeFile ${FILE});
   cat > /var/bind/pri/virtdomain.com.internal << EOF
-$TTL 2d
+\$TTL 2d
 @	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
 	2011031502	; serial
 	3h		; refresh
@@ -161,9 +189,13 @@ www1.virtdomain.com.	IN A	192.168.100.61
 www2.virtdomain.com.	IN A	192.168.100.62
 ldap1.virtdomain.com.	IN A	192.168.100.55
 ldap2.virtdomain.com.	IN A	192.168.100.56
+ldap.virtdomain.com.	IN A	192.168.100.55
+			IN A	192.168.100.56
 mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
 EOF
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 }
 

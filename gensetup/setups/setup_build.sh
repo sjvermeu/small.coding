@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configurenet configureportage installsoftware setuplighttpd setupsystem";
+typeset STEPS="configsystem configureportage installsoftware setuplighttpd";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -35,6 +35,7 @@ typeset FAILED=$(mktemp);
 export FAILED;
 
 [ -f master.lib.sh ] && source ./master.lib.sh;
+[ -f common.lib.sh ] && source ./common.lib.sh;
 
 initTools;
 
@@ -43,48 +44,9 @@ initTools;
 ## Functions
 ##
 
-configurenet() {
-  logMessage "  > Updating /etc/conf.d/net... ";
-  typeset FILE=/etc/conf.d/net;
-  typeset META=$(initChangeFile ${FILE});
-  updateEqualNoQuotConfFile conf.net ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Updating /etc/conf.d/hostname... ";
-  FILE=/etc/conf.d/hostname;
-  META=$(initChangeFile ${FILE});
-  updateEqualQuotConfFile conf.hostname ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Updating /etc/hosts... ";
-  FILE=/etc/hosts;
-  META=$(initChangeFile ${FILE});
-  echo "127.0.0.1       localhost" > ${FILE};
-  echo "$(getValue etc.hosts)"    >> ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Updating /etc/resolv.conf... ";
-  FILE=/etc/resolv.conf
-  META=$(initChangeFile ${FILE});
-  echo "$(getValue etc.resolv)" > ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Editing 70-persistent-net.rules... ";
-  FILE=/etc/udev/rules.d/70-persistent-net.rules;
-  META=$(initChangeFile ${FILE});
-  typeset MACA=$(ifconfig -a | awk '/eth/ {print $5}');
-  sed -i -e "s|\(SUBSYSTEM.*ATTR{address}==\"\).*\(\", ATTR{dev_id}.*NAME=\"eth0\"\)|\1${MACA}\2|g" ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
+configsystem() {
+  _configsystem;
+  die "Please restart the system and continue with step configureportage.";
 }
 
 configureportage() {
@@ -138,34 +100,9 @@ setuplighttpd() {
   logMessage "done\n";
 }
 
-setupsystem() {
-  logMessage "  > Setting up swapspace (128M)... ";
-  if [ ! -f /swapfile ];
-  then
-    dd if=/dev/zero of=/swapfile bs=1024k count=128;
-    chcon -t swapfile_t /swapfile;
-    mkswap /swapfile;
-    swapon /swapfile;
-  fi
-
-  logMessage "  > Configuring fstab... ";
-  grep -q '/swapfile' /etc/fstab;
-  if [ $? -ne 0 ];
-  then
-    typeset FILE=/etc/fstab;
-    typeset META=$(initChangeFile ${FILE});
-    echo "/swapfile	none	swap	sw	0 0" >> /etc/fstab
-    applyMetaOnFile ${FILE} ${META};
-    commitChangeFile ${FILE} ${META};
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-}
-
-stepOK "configurenet" && (
-logMessage ">>> Step \"configurenet\" starting...\n";
-runStep configurenet;
+stepOK "configsystem" && (
+logMessage ">>> Step \"configsystem\" starting...\n";
+runStep configsystem;
 );
 nextStep;
 
@@ -184,12 +121,6 @@ nextStep;
 stepOK "setuplighttpd" && (
 logMessage ">>> Step \"setuplighttpd\" starting...\n";
 runStep setuplighttpd;
-);
-nextStep;
-
-stepOK "setupsystem" && (
-logMessage ">>> Step \"setupsystem\" starting...\n";
-runStep setupsystem;
 );
 nextStep;
 

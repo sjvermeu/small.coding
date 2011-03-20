@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installapache";
+typeset STEPS="configsystem installapache installsquirrel";
 export STEPS;
 
 typeset STEPFROM=$2;

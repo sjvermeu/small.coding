@@ -1,15 +1,12 @@
 /topic 0
-  #####
-  # The /etc/fstab file on your system still contains at least one placeholder 
-  # like /dev/BOOT, /dev/ROOT or /dev/SWAP. 
-  # 
-  # Please substitute these placeholders with the real devices for your boot,
-  # root or swap device.
-  #####
+The /etc/fstab file on your system still contains at least one placeholder 
+like /dev/BOOT, /dev/ROOT or /dev/SWAP. 
 
+Please substitute these placeholders with the real devices for your boot,
+root or swap device.
 /topic BOOT
-  (!) Detected /dev/BOOT in your /etc/fstab
+Detected /dev/BOOT in your /etc/fstab
 /topic ROOT
-  (!) Detected /dev/ROOT in your /etc/fstab
+Detected /dev/ROOT in your /etc/fstab
 /topic SWAP
-  (!) Detected /dev/SWAP in your /etc/fstab
+Detected /dev/SWAP in your /etc/fstab

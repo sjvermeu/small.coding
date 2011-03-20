@@ -318,6 +318,10 @@ extractFiles() {
   umount ${WORKDIR}/mnt;
   printf "done\n";
 
+  printf "Removing stage ${FETCH##*/} from system... ";
+  rm -f ${FETCH##*/};
+  printf "done\n";
+
   printf "Creating /selinux mountpoint... ";
   logPrint "Creating /selinux mountpoint" >> ${LOG};
   test -d ${WORKDIR}/selinux || mkdir ${WORKDIR}/selinux
@@ -333,6 +337,10 @@ extractFiles() {
   logPrint "Extracting portage snapshot." >> ${LOG};
   tar xjf ${SNAP##*/} >> ${LOG} 2>&1;
   rm -f ${SNAP##*/} >> ${LOG} 2>&1;
+  printf "done\n";
+
+  printf "Removing snapshot ${SNAP##*/}... ";
+  rm -f ${SNAP##*/};
   printf "done\n";
 
   printf "Setup make.conf... ";
@@ -369,7 +377,7 @@ umountDisks() {
     do
       mount | awk '{print $3}' | grep "${DEVSYS}$" > /dev/null 2>&1;
       [ $? -eq 0 ] || continue;
-      umount ${DEVSYS} >> ${LOG} 2>&1;
+      umount -l ${DEVSYS} >> ${LOG} 2>&1;
       RC=$((${RC}+$?));
     done
   done
@@ -391,7 +399,7 @@ umountDisks() {
   sync >> ${LOG} 2>&1;
   sleep 1;
   sync >> ${LOG} 2>&1;
-  umount ${WORKDIR} >> ${LOG} 2>&1;
+  umount -l ${WORKDIR} >> ${LOG} 2>&1;
   printf "done\n";
 };
 
@@ -472,10 +480,10 @@ configureSystem() {
     FILELIST=$(listSectionOverview portage.package.${PACKAGEFILE});
     for FILE in ${FILELIST};
     do
-      VALUES=$(getValue portage.package.${PACKAGEFILE}.${FILE});
+      VALUES=$(getValue portage.package.${PACKAGEFILE}.${FILE} | sed -e 's:\\ :_SPACE_:g');
       for VALUE in ${VALUES};
       do
-        echo "${VALUE}" >> ${WORKDIR}/etc/portage/package.${PACKAGEFILE}/${FILE};
+        echo "${VALUE}" | sed -e 's:_SPACE_: :g' >> ${WORKDIR}/etc/portage/package.${PACKAGEFILE}/${FILE};
       done
     done
   done

@@ -204,6 +204,7 @@ optional_policy(`
 	mysql_stream_connect(postfix_cleanup_t)
 	mysql_stream_connect(postfix_local_t)
 	mysql_stream_connect(postfix_virtual_t)
+	mysql_stream_connect(postfix_smtpd_t)
 ')
 
 optional_policy(`

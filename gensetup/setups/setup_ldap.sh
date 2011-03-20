@@ -65,31 +65,57 @@ installldap() {
   logMessage "  > Updating /etc/openldap/slapd.conf... ";
   typeset FILE=/etc/openldap/slapd.conf;
   typeset META=$(initChangeFile ${FILE});
-  ##### --> Add includes for schemas
-  typeset NUMS=$(getValue openldap.slapd.include.seq);
-  grep -B 999 core.schema ${FILE} > ${FILE}.new;
-  for NUM in $(seq ${NUMS});
-  do
-    echo "include $(getValue openldap.slapd.include.${NUM})" >> ${FILE}.new;
-  done
-  grep -A 999 "core.schema" ${FILE} | grep -v ".schema" >> ${FILE}.new;
-  mv ${FILE}.new ${FILE};
+  cat > ${FILE} << EOF
+include /etc/openldap/schema/core.schema
+include /etc/openldap/schema/cosine.schema
+include /etc/openldap/schema/inetorgperson.schema
+include /etc/openldap/schema/nis.schema
+include /etc/openldap/schema/misc.schema
 
-  ##### --> Add access controls
-  grep -B 9999 '^# rootdn' ${FILE} > ${FILE}.new;
-  cat >> ${FILE}.new << EOF
+pidfile /var/run/openldap/slapd.pid
+argsfile /var/run/openldap/slapd.args
+
+serverID 001
+loglevel 0
+
+## Access Controls
 access to dn.base="" by * read
 access to dn.base="cn=Subschema" by * read
 access to *
-	by self write
-	by users read
-	by anonymous read
+  by self write
+  by users read
+  by anonymous read
+
+## Database definition
+datbase hdb
+suffix "dc=virtdomain,dc=com"
+checkpoint 32 30
+rootdn "cn=Manager,dc=virtdomain,dc=com"
+rootpw "{SSHA}BLABLABLA"
+directory "/var/lib/openldap-ldbm"
+index objectClass eq
+
+## Synchronisation (pull from other)
+syncrepl rid=000
+  provider=ldap://ldap2.virtdomain.com
+  type=refreshAndPersist
+  retry="5 5 300 +"
+  searchbase="dc=virtdomain,dc=com"
+  attrs="*,+"
+  bindmethod="simple"
+  binddn="cn=ldap.virtdomain.com,dc=virtdomain,dc=com"
+  credentials="ldapsyncpass"
+
+index entryCSN eq
+index entryUUID eq
+
+mirrormode TRUE
+
+overlay syncprov
+syncprov-checkpoint 100 10
 EOF
-  grep -A 9999 '^# rootdn' ${FILE} | grep -v '^# rootdn' >> ${FILE}.new
-  mv ${FILE}.new ${FILE};
-  ##### --> Add database updates
   updateWhitespaceConfFile openldap.slapd.db ${FILE};
-  ##### --> Set encrypted password
+  updateWhitespaceConfFile openldap.slapd.syncrepl ${FILE};
   setOrUpdateQuotedVariable rootpw " " "${LDAPPASS}" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
@@ -130,7 +156,7 @@ setupldap() {
 
   logMessage "  > Extracting MigrationTools... ";
   typeset TMPDIR=$(getValue migration.workdir);
-  typeset TOOLS=$(getValue migration.tools);
+  typeset TOOLS=$(getValue migration.toolkit);
   if [ ! -d ${TMPDIR} ];
   then
     mkdir -p ${TMPDIR};
@@ -149,87 +175,22 @@ setupldap() {
   popd;
   logMessage "done\n";
 
+  logMessage "  ! Please start ldap.\n";
   logMessage "  ! Please run make_master.sh in ${TMPDIR}/${TOOLS}\n";
   logMessage "  ! remember, basedn is the dc=..,dc=.. part.\n";
   logMessage "  !           rootdn is the cn=..,dc=..,dc=.. part.\n";
-  die "When finished, continue with step TODO."
+  logMessage "  !\n";
+  logMessage "  ! Next, disable SELinux temporarily (need to read shadow)\n";
+  logMessage "  ! Run \"grep 100 /etc/passwd > passwd.ldap\"\n";
+  logMessage "  ! Run \"ETC_SHADOW=/etc/shadow ./migrate_passwd.pl ./passwd.ldap > passwd.ldif\"\n";
+  logMessage "  ! Update passwd.ldif (substitute rootdn).\n";
+  logMessage "  ! Run ldapadd -x -D \"cn=...\" -W -f ./passwd.ldif\n";
+  logMessage "  ! Also validate the synchronisation, set a password on the host, might want to add simpleSecurityObject etc.\n";
+  die "When finished, continue with step setuppam."
 }
 
 setuppam() {
-  logMessage "  > Installing PAM software... ";
-  installSoftware -u pam_ldap || die "Failed to install pam_ldap";
-  installSoftware -u nss_ldap || die "Failed to install nss_ldap";
-  logMessage "done\n";
-
-  logMessage "  > Updating system-auth PAM configuration... ";
-  typeset FILE=/etc/pam.d/system-auth;
-  typeset META=$(initChangeFile ${FILE});
-
-  sed -i -e "s|auth.*required.*pam_unix\(.*\)|auth	sufficient	pam_unix\1|g" ${FILE};
-  grep -q 'auth.*pam_ldap' ${FILE};
-  if [ $? -ne 0 ];
-  then
-    awk "{print} /auth.*pam_unix/ {print \"auth	sufficient	 pam_ldap.so use_first_pass\"}" ${FILE} > ${FILE}.new;
-    mv ${FILE}.new ${FILE};
-  fi
-
-  grep -q 'account.*pam_ldap' ${FILE};
-  if [ $? -ne 0 ];
-  then
-    awk "{print} /account.*pam_unix/ {print \"account	sufficient	pam_ldap.so\"}" ${FILE} > ${FILE}.new;
-    mv ${FILE}.new ${FILE};
-  fi
-
-  sed -i -e "s|password.*required.*pam_unix\(.*\)|password	sufficient	pam_unix\1|g" ${FILE};
-  grep -q 'password.*pam_ldap' ${FILE};
-  if [ $? -ne 0 ];
-  then
-    awk "{print} /password.*pam_unix/ {print \"password	sufficient	pam_ldap.so use_authtok use_first_pass\"}" ${FILE} > ${FILE}.new;
-    mv ${FILE}.new ${FILE};
-  fi
-
-  grep -q 'session.*pam_ldap' ${FILE};
-  if [ $? -ne 0 ];
-  then
-    awk "{print} /session.*pam_unix/ {print \"session	optional	pam_ldap.so\"}" ${FILE} > ${FILE}.new;
-    mv ${FILE}.new ${FILE};
-  fi
-
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Updating /etc/ldap.conf... ";
-  FILE=/etc/ldap.conf;
-  META=$(initChangeFile ${FILE});
-  grep -q '^host' ${FILE};
-  if [ $? -eq 0 ];
-  then
-    sed -i -e "s|^host|# host|g" ${FILE};
-  fi
-
-  grep -q '^base' ${FILE};
-  if [ $? -eq 0 ];
-  then
-    sed -i -e "s|^base|# base|g" ${FILE};
-  fi
-
-  setOrUpdateQuotedVariable suffix " " "$(getValue openldap.slapd.db.suffix)" ${FILE};
-  updateWhitespaceNoQuotConfFile etc.ldap ${FILE};
-
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Update nsswitch.conf... ";
-  FILE=/etc/nsswitch.conf
-  META=$(initChangeFile ${FILE});
-  sed -i -e "s|passwd:.*|passwd:	files ldap|g" ${FILE};
-  sed -i -e "s|group:.*|group:	files ldap|g" ${FILE};
-  sed -i -e "s|shadow:.*|shadow:	files ldap|g" ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
+  _setuppam;
 }
 
 stepOK "configsystem" && (

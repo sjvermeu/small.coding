@@ -113,33 +113,36 @@ runTestSet() {
 executeDescription() {
   typeset TESTLINE="$1";
   typeset TESTDIR="$2";
-
-  typeset STRING=$(echo ${TESTLINE} |  sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $2}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
-  MGLFAILMESSAGE=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $3}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
+  typeset SEPR=$(echo ${TESTLINE} | sed -e 's:\(.\).*:\1:g');
+  typeset STRING=$(echo ${TESTLINE} |  awk -F"${SEPR}" '{print $4}');
+  typeset TESTNUM=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $2}');
+  MGLFAILMESSAGE=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $5}');
   MGLFAILFILE=$(echo ${MGLFAILMESSAGE} | awk -F'/' '{print $1}');
   MGLFAILPART=$(echo ${MGLFAILMESSAGE} | awk -F'/' '{print $2}');
   export MGLFAILFILE;
   export MGLFAILPART;
 
-  echo ${STRING};
+  echo ${TESTNUM} - ${STRING};
 }
 
 #
 # displayFailureMessage - Display the description' failure message, if applicable
 #
 displayFailureMessage() {
-  typeset TESTDIR="$1";
-  typeset MSGFILE="$2";
-  typeset MSGPART="$3";
+  typeset TESTNUM="$1";
+  typeset TESTDIR="$2";
+  typeset MSGFILE="$3";
+  typeset MSGPART="$4";
 
   if [ -n "${MGLFAILFILE}" ] && [ "${MGLVERBOSE}" = "yes" ];
   then
     if [ -n "${MGLFAILPART}" ];
     then
-      awk "BEGIN {P=0} /\/topic ${MGLFAILPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MGLFAILFILE};
+      awk "BEGIN {P=0} /\/topic ${MGLFAILPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MGLFAILFILE} | sed -e 's:^:  + :g';
     else
-      cat ${TESTDIR}/${MGLFAILFILE};
+      cat ${TESTDIR}/${MGLFAILFILE} | sed -e 's:^:  + :g';
     fi
+    echo "  ";
     MGLFAILFILE="";
     export MGLFAILFILE;
     MGLFAILPART="";
@@ -148,9 +151,9 @@ displayFailureMessage() {
 
   if [ -n "${MSGPART}" ];
   then
-    awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE};
+    awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE} | sed -e "s:^:  (!) ${TESTNUM} -> :g";
   else
-    cat ${TESTDIR}/${MSGFILE};
+    cat ${TESTDIR}/${MSGFILE} | sed -e "s:^:  (!) ${TESTNUM} -> :g";
   fi
 }
 
@@ -160,11 +163,13 @@ displayFailureMessage() {
 executeFileRegexpTest() {
   typeset TESTLINE="$1";
   typeset TESTDIR="$2";
+  typeset SEPR=$(echo ${TESTLINE} | sed -e 's:\(.\).*:\1:g');
 
-  typeset FILENAME=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $3}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
-  typeset EXPRESSION=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $4}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
-  typeset OKMSG=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $5}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
-  typeset FAILMSG=$(echo ${TESTLINE} | sed -e 's:\\\::%_BaCkSlAsH||7:g' | awk -F':' '{print $6}' | sed -e 's:%_BaCkSlAsH||7:\\\::g');
+  typeset FILENAME=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $5}');
+  typeset EXPRESSION=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $6}');
+  typeset OKMSG=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $7}');
+  typeset FAILMSG=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $8}');
+  typeset TESTNUM=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $2}');
 
   grep -q "${EXPRESSION}" "${FILENAME}";
   if [ $? -eq 0 ];
@@ -174,7 +179,7 @@ executeFileRegexpTest() {
       typeset MSGFILE=$(echo ${OKMSG} | awk -F'/' '{print $1}');
       typeset MSGPART=$(echo ${OKMSG} | awk -F'/' '{print $2}');
 
-      displayFailureMessage "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
+      displayFailureMessage ${TESTNUM} "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
     fi
   else
     if [ -n "${FAILMSG}" ];
@@ -182,7 +187,7 @@ executeFileRegexpTest() {
       typeset MSGFILE=$(echo ${FAILMSG} | awk -F'/' '{print $1}');
       typeset MSGPART=$(echo ${FAILMSG} | awk -F'/' '{print $2}');
 
-      displayFailureMessage "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
+      displayFailureMessage ${TESTNUM} "${TESTDIR}" "${MSGFILE}" "${MSGPART}";
     fi
   fi
 }
@@ -193,8 +198,9 @@ executeFileRegexpTest() {
 executeFileTest() {
   typeset TESTLINE="$1";
   typeset TESTDIR="$2";
+  typeset SEPR=$(echo ${TESTLINE} | sed -e 's:\(.\).*:\1:g');
 
-  typeset TESTACTION=$(echo ${TESTLINE} | awk -F':' '{print $2}');
+  typeset TESTACTION=$(echo ${TESTLINE} | awk -F"${SEPR}" '{print $4}');
 
   case "${TESTACTION}" in
     [Rr][Ee][Gg][Ee][Xx][Pp])
@@ -212,7 +218,8 @@ executeTest() {
 
   while read line
   do
-    typeset TYPE=$(echo ${line} | awk -F':' '{print $1}');
+    typeset SEPR=$(echo ${line} | sed -e 's:\(.\).*:\1:g');
+    typeset TYPE=$(echo ${line} | awk -F"${SEPR}" '{print $3}');
     case "${TYPE}" in
       [Ff][Ii][Ll][Ee])
         executeFileTest "${line}" "${TESTDIR}";

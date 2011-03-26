@@ -1,0 +1,56 @@
+Script started on Sat Mar 26 22:25:30 2011
+
+ [32;01m*[0m [35;01mkeychain [0m[36m2.7.1[0m ~ [32;01mhttp://www.funtoo.org[0m
+ [32;01m*[0m Found existing ssh-agent: [36m5469[0m
+ [32;01m*[0m Found existing gpg-agent: [36m5494[0m
+ [32;01m*[0m Adding [36m1[0m ssh key(s): /home/swift/.ssh/id_dsa
+ [31;01m* Error[0m: Problem adding; giving up
+
+TODO: read up on pictures taken from laptop and resolve (bootdown errors)
+TODO: read up on the libsandbox.so issue in portage
+TODO: amixer set Capture cap 8
+]0;swift@hpl:~[?1034h[01;32mswift@hpl[01;34m ~ $[00m cd Development/Centralized/small.coding/
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [Kls
+README  [0m[01;34mgenmodoverview[0m  [01;34mgensetup[0m  [01;34mgxml2docbook[0m  [01;34mhex2passwd[0m  [01;34mmglshow[0m  [01;34mmglverify[0m  [01;34mselinux-local[0m  [01;34mselinux-modules[0m  [01;34mswift-refpolicy[0m
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m git checkout -b devel
+Switched to a new branch 'devel'
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m nano README
+[?1049h[1;32r(B[m[4l[?7h[?12l[?25h[?1h=[?1h=[?1h=[39;49m[39;49m(B[m[H[2J(B[0;7m  GNU nano 2.2.5                               File: README                                                                     [3;1H(B[mSmall Coding[4d============[6dthe small.coding repository contains small tools, scripts, XML/XSL sets,[7djavascript and others which are all licensed under the GPL-3 license (as far as[8dit needs to be licensed, some scripts are too small to be licensed and are in[9dthe public domain).[11dThe following directories are available:[13dgenmodoverview - Script to inform you which sec-policy/* packages you might need[14dgensetup - Script to automatically install a Gentoo Linux system[15dgxml2docbook - XSL conversion script from Gentoo GuideXML Book format to DocBook[16dhex2passwd - Tool to generate passwords based on SHA/MD5 checksum input[17dselinux-local - Local patches and fixes to SELinux policy not ready for global publication[18dselinux-modules - Modules I created[19dswift-refpolicy - Reference policy and updates used to set up the Gentoo Hardened SELinux policies[20dmglverify - Test script allowing to validate settings and such[30;56H(B[0;7m[ Read 18 lines ][31d^G(B[m Get Help[31;22H(B[0;7m^O(B[m WriteOut[31;43H(B[0;7m^W(B[m Where Is[31;64H(B[0;7m^V(B[m Next Page[31;85H(B[0;7m^U(B[m UnCut Text[31;106H(B[0;7mM-|(B[m First Line[32d(B[0;7m^X(B[m Exit[32;22H(B[0;7m^R(B[m Read File[32;43H(B[0;7m^Y(B[m Prev Page[32;64H(B[0;7m^K(B[m Cut Text[32;85H(B[0;7m^C(B[m Cur Pos[32;106H(B[0;7mM-?(B[m Last Line[3d[4d[5d[6d[7d[8d[9d[10d[11d[12d[13d[14d[15d[16d[17d[18d[19d[20d[21d[1;119H(B[0;7mModified[21d(B[mmglsho[30d[K[21;7Hw - Script to display command-line activities[30d(B[0;7mSave modified buffer (ANSWERING "No" WILL DESTROY CHANGES) ?                                                                    [31;1H Y(B[m Yes[K[32d(B[0;7m N(B[m No  [32;17H(B[0;7m^C(B[m Cancel[K[30;62H(B[0;7mFile Name to Write: README                                  [31d^G(B[m Get Help[31;33H(B[0;7mM-D(B[m DOS Format[31;65H(B[0;7mM-A(B[m Append[31;97H(B[0;7mM-B(B[m Backup File[32d(B[0;7m^C(B[m Cancel[17G         [33G(B[0;7mM-M(B[m Mac Format[32;65H(B[0;7mM-P(B[m Prepend[30;27H[31d[39;49m(B[m[J[1;119H(B[0;7m        [30;55H(B[m[1K (B[0;7m[ Wrote 19 lines ](B[m[K[32;128H[32;1H[?1049l[?1l>]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m git add README 
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m git commit -m 'U Add mglshow information in README file'
+[devel da57b6a] Add mglshow information in README file
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [Kgit format-patch -n -s master
+0001-Add-mglshow-information-in-README-file.patch
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [Kcat 0001-Add-mglshow-information-in-README-file.patch 
+From da57b6a5c36b3e44035624ee4af51b8a0ce6b379 Mon Sep 17 00:00:00 2001
+From: Sven Vermeulen <sven.vermeulen@siphos.be>
+Date: Sat, 26 Mar 2011 22:26:03 +0100
+Subject: [PATCH 1/1] Add mglshow information in README file
+
+
+Signed-off-by: Sven Vermeulen <sven.vermeulen@siphos.be>
+---
+ README |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/README b/README
+index 64be982..5e0dab1 100644
+--- a/README
++++ b/README
+@@ -16,3 +16,4 @@ selinux-local - Local patches and fixes to SELinux policy not ready for global p
+ selinux-modules - Modules I created 
+ swift-refpolicy - Reference policy and updates used to set up the Gentoo Hardened SELinux policies
+ mglverify - Test script allowing to validate settings and such
++mglshow - Script to display command-line activities
+-- 
+1.7.3.4
+
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [K# You can now inlcu   clude this text in your e-mail to submit online patches
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [Kgit checkout master
+Switched to branch 'master'
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m rm 0001-Add-mglshow-information-in-README-file.patch 
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m [Kgit branch -D devel
+Deleted branch devel (was da57b6a).
+]0;swift@hpl:~/Development/Centralized/small.coding[01;32mswift@hpl[01;34m small.coding $[00m exit
+
+Script done on Sat Mar 26 22:26:38 2011

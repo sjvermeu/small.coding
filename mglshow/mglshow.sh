@@ -40,6 +40,20 @@ hasReplayScript() {
 }
 
 #
+# fetchIndex - Fetch the index file
+#
+fetchIndex() {
+  typeset ONLINEDIR="$1";
+  typeset SUITEDIR=$(mktemp -d ${TMPWORKDIR}/mgl_XXXXXXXX);
+
+  pushd ${SUITEDIR} > /dev/null 2>&1;
+  wget -q ${ONLINEDIR};
+  popd > /dev/null 2>&1;
+
+  echo ${SUITEDIR};
+}
+
+#
 # fetchReplayScript - Fetch the session and timing scripts
 #
 fetchReplayScript() {
@@ -73,13 +87,14 @@ cleanupFolder() {
 # 
 runReplayScript() {
   typeset REPLAYSCRIPT=$1;
+  typeset SPEED=$2;
 
   # Phase 1 - Look for the testset on the system
   for SOURCE in $(getKeyValue source.local ${MGLSHOWCONF});
   do
     if [ -f ${SOURCE}/${REPLAYSCRIPT}.session ];
     then
-      executeReplayScript ${SOURCE}/${REPLAYSCRIPT};
+      executeReplayScript ${SOURCE}/${REPLAYSCRIPT} ${SPEED};
     fi
   done
 
@@ -89,8 +104,8 @@ runReplayScript() {
     hasReplayScript ${SOURCE}/${REPLAYSCRIPT}.session;
     if [ $? -eq 0 ];
     then
-      typeset LOCALTEST=$(fetchTestSuite ${SOURCE}/${TESTSET});
-      executeReplayScript ${LOCALTEST};
+      typeset LOCALTEST=$(fetchReplayScript ${SOURCE}/${TESTSET});
+      executeReplayScript ${LOCALTEST} ${SPEED};
       # Cleanup files
       cleanupFolder ${LOCALTEST};
     fi
@@ -98,14 +113,45 @@ runReplayScript() {
 }
 
 #
-# executeTest - Execute the test(s) in the testsuite
+# showIndex - Show the current list of replayable activities
+# 
+showIndex() {
+  typeset INDEXNAME=$1;
+
+  # Phase 1 - Look for the index on the system
+  for SOURCE in $(getKeyValue source.local ${MGLSHOWCONF});
+  do
+    if [ -f ${SOURCE}/${INDEXNAME}/INDEX ];
+    then
+      cat ${SOURCE}/${INDEXNAME}/INDEX;
+    fi
+  done
+
+  # Phase 2 - Look for the testset on web server locations
+  for SOURCE in $(getKeyValue source.http ${MGLSHOWCONF});
+  do
+    hasReplayScript ${SOURCE}/${INDEXNAME}/INDEX;
+    if [ $? -eq 0 ];
+    then
+      typeset LOCALTEST=$(fetchIndex ${SOURCE}/${INDEXNAME}/INDEX);
+      cat ${LOCALTEST}/INDEX;
+      # Cleanup files
+      cleanupFolder ${LOCALTEST};
+    fi
+  done
+}
+
+
+#
+# executeReplayScript - Execute the test(s) in the testsuite
 #
 executeReplayScript() {
   typeset TESTDIR=$1;
+  typeset SPEED=$2;
   typeset SESSIONSCRIPT=${TESTDIR}.session;
   typeset TIMINGSCRIPT=${TESTDIR}.timing;
 
-  scriptreplay ${TIMINGSCRIPT} ${SESSIONSCRIPT};
+  scriptreplay ${TIMINGSCRIPT} ${SESSIONSCRIPT} ${SPEED};
 }
 
 #
@@ -137,11 +183,21 @@ EOF
 #
 usage() {
   cat << EOF
-Usage: $0 <name>
+Usage: $0 <name> [<speed>]
+       $0 -i [<category>]
 
-Name is the name of the replay session you want to execute. The sessions are loaded
-from the location(s) that are stored in your ~/.mglshowrc file (or in the 
-file pointed towards by the MGLSHOWCONF environment variable).
+<name> is the name of the replay session you want to execute. The sessions
+are loaded from the location(s) that are stored in your ~/.mglshowrc file
+(or in the file pointed towards by the MGLSHOWCONF environment variable).
+
+<speed> is the optional speed factor in which the scriptreplay function 
+should display the information. For instance, a <speed> value of 2 means
+that the output is shown at twice the regular speed. 0.5 is half the regular
+speed.
+
+In case of -i, then the list of supported replays is shown (or categories
+if there are subcategories). If a <category> is given, then the replays for
+that particular category and its subcategories is shown.
 EOF
 }
 
@@ -157,6 +213,11 @@ fi
 
 readConfig
 
-runReplayScript $1;
+if [ "$1" = "-i" ];
+then
+  showIndex $2;
+else
+  runReplayScript $1 $2;
+fi
 
 

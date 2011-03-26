@@ -1,13 +1,10 @@
 :resource:update_fstab
-:resource:google
-:1:description:Validating /etc/fstab correctness... :update_fstab/0
-# The 5th field is what needs to happen if the regular expression matches.
-# The 6th field is what needs to happen if the regular expression doesn't match.
-# If after a description a field is hit, then the message of the description
-# is shown once. Then, each line of the hit is shown.
-# 
-:1.1:file:regexp:/etc/fstab:^/dev/BOOT:update_fstab/BOOT:
-:1.2:file:regexp:/etc/fstab:^/dev/ROOT::update_fstab/ROOT
-:1.3:file:regexp:/etc/fstab:^/dev/SWAP:update_fstab/SWAP:
-:2:description:Verifying if the Google nameserver is not selected... :
-:2.1:file:regexp:/etc/resolv.conf:nameserver 8.8.8.8:google::
+:resource:etc_files
+:6:description:Installing the Gentoo Base System:
+:6.1:description:Validating if resolv.conf contains nameservers... :etc_files/resolv
+,6.1.2,file,regexp,/etc/resolv.conf,^nameserver [0-9\.:]*,,etc_files/resolv_nameserver
+:8:description:Configuring your System:
+:8.1:description:Checking /etc/fstab... :update_fstab/0
+:8.1.1:file:regexp:/etc/fstab:^/dev/BOOT:update_fstab/BOOT:
+:8.1.2:file:regexp:/etc/fstab:^/dev/ROOT:update_fstab/ROOT:
+:8.1.3:file:regexp:/etc/fstab:^/dev/SWAP:update_fstab/SWAP:

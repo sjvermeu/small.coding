@@ -138,7 +138,7 @@ displayFailureMessage() {
   then
     if [ -n "${MGLFAILPART}" ];
     then
-      awk "BEGIN {P=0} /\/topic ${MGLFAILPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MGLFAILFILE} | sed -e 's:^:  + :g';
+      awk "BEGIN {P=0} /\/topic ${MGLFAILPART}\$/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MGLFAILFILE} | sed -e 's:^:  + :g';
     else
       cat ${TESTDIR}/${MGLFAILFILE} | sed -e 's:^:  + :g';
     fi
@@ -151,7 +151,7 @@ displayFailureMessage() {
 
   if [ -n "${MSGPART}" ];
   then
-    awk "BEGIN {P=0} /\/topic ${MSGPART}/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE} | sed -e "s:^:  (!) ${TESTNUM} -> :g";
+    awk "BEGIN {P=0} /\/topic ${MSGPART}\$/ {P=1; next} /\/topic / {P=0} P==1 {print}" ${TESTDIR}/${MSGFILE} | sed -e "s:^:  (!) ${TESTNUM} -> :g";
   else
     cat ${TESTDIR}/${MSGFILE} | sed -e "s:^:  (!) ${TESTNUM} -> :g";
   fi

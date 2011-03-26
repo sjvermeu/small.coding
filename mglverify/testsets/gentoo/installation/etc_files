@@ -1,0 +1,15 @@
+/topic resolv
+The /etc/resolv.conf file contains the list of name servers that Linux 
+needs to query when it wants to resolve DNS names (like www.gentoo.org)
+towards their IP address. If the file is empty or does not contain any
+"nameserver" definitions, then name resolving will not work.
+
+A correct example for this file would be:
+  nameserver 8.8.8.8
+  nameserver 192.168.100.1
+
+Although the resolv.conf file in your Gentoo installation is copied in
+chapter 6, it is created earlier in the installation (chapter 3).
+
+/topic resolv_nameserver
+No "nameserver" entries found in /etc/resolv.conf

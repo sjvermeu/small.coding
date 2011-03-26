@@ -299,9 +299,9 @@ vmail() {
   logMessage "  > Creating mailbox infrastructure... ";
   mkdir -p /home/vmail/virt-domain.com/user1
   mkdir -p /home/vmail/virt-domain.com/user2
-  chown -R vmail:vmail /home/vmail/virt-domain.com
   maildirmake /home/vmail/virt-domain.com/user1/.maildir
   maildirmake /home/vmail/virt-domain.com/user2/.maildir
+  chown -R vmail:vmail /home/vmail/virt-domain.com
   logMessage "done\n";
 }
 

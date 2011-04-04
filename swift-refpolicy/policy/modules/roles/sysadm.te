@@ -265,7 +265,7 @@ optional_policy(`
 ')
 
 optional_policy(`
-	raid_domtrans_mdadm(sysadm_t)
+	gentoo_raid_mdadm_role(sysadm_r, sysadm_t)
 ')
 
 optional_policy(`

@@ -1,0 +1,68 @@
+--- refpolicy.orig/policy/modules/system/raid.te	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/raid.te	2011-04-04 22:05:27.353000000 +0200
+@@ -52,6 +52,7 @@
+ dev_read_realtime_clock(mdadm_t)
+ # unfortunately needed for DMI decoding:
+ dev_read_raw_memory(mdadm_t)
++dev_rw_sysfs(mdadm_t)
+ 
+ domain_use_interactive_fds(mdadm_t)
+ 
+@@ -69,7 +70,11 @@
+ storage_dev_filetrans_fixed_disk(mdadm_t)
+ storage_read_scsi_generic(mdadm_t)
+ 
++allow mdadm_t device_t:blk_file { read ioctl };
++allow mdadm_t device_t:dir { create };
++
+ term_dontaudit_list_ptys(mdadm_t)
++term_dontaudit_use_unallocated_ttys(mdadm_t)
+ 
+ init_dontaudit_getattr_initctl(mdadm_t)
+ 
+@@ -83,6 +88,12 @@
+ 
+ mta_send_mail(mdadm_t)
+ 
++ifdef(`distro_gentoo',`
++	tunable_policy(`gentoo_try_dontaudit',`
++		files_dontaudit_getattr_all_files(mdadm_t)
++	')
++')
++
+ optional_policy(`
+ 	gpm_dontaudit_getattr_gpmctl(mdadm_t)
+ ')
+--- refpolicy.orig/policy/modules/system/raid.if	2010-08-05 15:25:55.000000000 +0200
++++ refpolicy/policy/modules/system/raid.if	2011-04-04 21:36:04.685000002 +0200
+@@ -21,6 +21,30 @@
+ 
+ ########################################
+ ## <summary>
++##	Allow execution and transitioning into mdadm_t
++## </summary>
++## <param name="role">
++##      <summary>
++##      Role allowed to access mdadm_t domain
++##      </summary>
++## </param>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++interface(`gentoo_raid_mdadm_role',`
++	gen_require(`
++		type mdadm_t, mdadm_exec_t;
++	')
++	role $1 types { mdadm_t mdadm_exec_t };
++	raid_domtrans_mdadm($2)
++')
++
++
++########################################
++## <summary>
+ ##	Create, read, write, and delete the mdadm pid files.
+ ## </summary>
+ ## <desc>

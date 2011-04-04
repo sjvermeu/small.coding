@@ -1,0 +1,53 @@
+Script started on Wed Mar 30 22:32:01 2011
+# # This is a SELinux enabled systeml 
+# sestatus
+SELinux status:                 enabled
+SELinuxfs mount:                /selinux
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy version:                 24
+Policy from config file:        strict
+# # This is a no-multilib system
+# gcc -print-multi-lib
+.;
+# # On a multi-lib system, you'd have something like:
+# #
+# # .;
+# # 32;@m32
+# #
+# # So, what's the profile I'm suing?      using?
+# eselect profile list
+[32m[1mAvailable profile symlink targets:[0;10m
+  [1m[1][0;10m   [0;10mdefault/linux/amd64/10.0[0;10m
+  [1m[2][0;10m   [0;10mdefault/linux/amd64/10.0/desktop[0;10m
+  [1m[3][0;10m   [0;10mdefault/linux/amd64/10.0/desktop/gnome[0;10m
+  [1m[4][0;10m   [0;10mdefault/linux/amd64/10.0/desktop/kde[0;10m
+  [1m[5][0;10m   [0;10mdefault/linux/amd64/10.0/developer[0;10m
+  [1m[6][0;10m   [0;10mdefault/linux/amd64/10.0/no-multilib[0;10m
+  [1m[7][0;10m   [0;10mdefault/linux/amd64/10.0/server[0;10m
+  [1m[8][0;10m   [0;10mhardened/linux/amd64[0;10m
+  [1m[9][0;10m   [0;10mhardened/linux/amd64/no-multilib[0;10m
+  [1m[10][0;10m  [0;10mhardened/linux/amd64/no-multilib/selinux [34m[1m*[0;10m[0;10m
+  [1m[11][0;10m  [0;10mselinux/2007.0/amd64[0;10m
+  [1m[12][0;10m  [0;10mselinux/2007.0/amd64/hardened[0;10m
+  [1m[13][0;10m  [0;10mselinux/v2refpolicy/amd64[0;10m
+  [1m[14][0;10m  [0;10mselinux/v2refpolicy/amd64/desktop[0;10m
+  [1m[15][0;10m  [0;10mselinux/v2refpolicy/amd64/developer[0;10m
+  [1m[16][0;10m  [0;10mselinux/v2refpolicy/amd64/hardened[0;10m
+  [1m[17][0;10m  [0;10mselinux/v2refpolicy/amd64/server[0;10m
+# cd /usr/portage/profiles/hardened/linux/amd64/no-multilib/selinux
+# cat parent
+..
+../../../../../selinux/v2refpolicy
+# cd /usr/portage/profiles
+# # To make sure eselec tpr    t profile can find it, you'll need
+# # to have a line like the following in profiles.desc:
+# grep 'lib/selinux' profiles.desc
+amd64		hardened/linux/amd64/no-multilib/selinux		dev
+# # Just to show that i'm not overriding anything in /ec tc/portage/profile
+# cd /etc/portage/profile
+cd: 19: can't cd to /etc/portage/profile
+# # There ya h go, perfectly possible to have SELinux with no-mut ltilib ;-)
+# 
+
+Script done on Wed Mar 30 22:33:54 2011

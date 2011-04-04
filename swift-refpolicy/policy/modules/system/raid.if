@@ -21,6 +21,30 @@ interface(`raid_domtrans_mdadm',`
 
 ########################################
 ## <summary>
+##	Allow execution and transitioning into mdadm_t
+## </summary>
+## <param name="role">
+##      <summary>
+##      Role allowed to access mdadm_t domain
+##      </summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+interface(`gentoo_raid_mdadm_role',`
+	gen_require(`
+		type mdadm_t, mdadm_exec_t;
+	')
+	role $1 types { mdadm_t mdadm_exec_t };
+	raid_domtrans_mdadm($2)
+')
+
+
+########################################
+## <summary>
 ##	Create, read, write, and delete the mdadm pid files.
 ## </summary>
 ## <desc>

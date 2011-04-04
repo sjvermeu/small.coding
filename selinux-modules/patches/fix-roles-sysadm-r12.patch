@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/roles/sysadm.te	2010-12-13 15:11:01.000000000 +0100
-+++ refpolicy/policy/modules/roles/sysadm.te	2011-03-12 21:51:37.121999996 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2011-04-04 21:37:32.590000002 +0200
 @@ -174,6 +174,10 @@
  ')
  
@@ -11,6 +11,15 @@
  	libs_run_ldconfig(sysadm_t, sysadm_r)
  ')
  
+@@ -261,7 +265,7 @@
+ ')
+ 
+ optional_policy(`
+-	raid_domtrans_mdadm(sysadm_t)
++	gentoo_raid_mdadm_role(sysadm_r, sysadm_t)
+ ')
+ 
+ optional_policy(`
 @@ -400,6 +404,22 @@
  	yam_run(sysadm_t, sysadm_r)
  ')

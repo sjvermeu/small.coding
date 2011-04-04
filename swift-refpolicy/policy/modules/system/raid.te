@@ -74,6 +74,7 @@ allow mdadm_t device_t:blk_file { read ioctl };
 allow mdadm_t device_t:dir { create };
 
 term_dontaudit_list_ptys(mdadm_t)
+term_dontaudit_use_unallocated_ttys(mdadm_t)
 
 init_dontaudit_getattr_initctl(mdadm_t)
 

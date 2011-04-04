@@ -20,15 +20,17 @@ fix-services-postfix-r11.patch
 fix-services-ssh-r7.patch
 	Optionally dontaudit module_request
 
-fix-system-raid-r7.patch
+fix-system-raid-r12.patch
 	At boot time, mdadm attempts to read a (temporary) block device file,
 	but fails, causing the software RAIDs not to be detected and mounted.
+	Allow roles (gentoo_raid_mdadm_role interface)
 
 fix-system-lvm-r7.patch
 	Allow ipc_info
 
-fix-system-mount-r7.patch
+fix-system-mount-r12.patch
 	Allow setsched
+	Add dontaudits (gentoo_try_dontaudit)
 
 fix-system-sysnetwork-r9.patch
 	Allow dhcpcd to read/write /proc/sys/net files and allow communication
@@ -68,6 +70,9 @@ fix-apps-qemu-r4.patch
 fix-kernel-corecommands-r11.patch
 	Add courier binary location
 
+fix-kernel-files-r12.patch
+	Add gentoo_files_dontaudit_write_all_mountpoints
+
 fix-system-udev-r9.patch
 	Enable udev to launch init scripts (used for instance for network
 	interface detection and enabling)
@@ -103,9 +108,10 @@ fix-roles-staff-r4.patch
 fix-roles-unprivuser-r4.patch
 	Add support for the links, mutt, gorg and skype applications.
 
-fix-roles-sysadm-r8.patch
+fix-roles-sysadm-r12.patch
 	Add support for the links, mutt, gorg, skype and vde applications.
 	The sysadm role also gets access to the wpa_cli interface and is able to
 	call KVM guests through the commandline (rather than requiring libvirt
 	for this). Grant sysadm role admin rights for postgresql
+	Grant mdadm access rights
 

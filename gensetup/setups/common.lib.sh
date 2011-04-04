@@ -106,6 +106,8 @@ _setuppam() {
     awk "{print} /auth.*pam_unix/ {print \"auth	sufficient	 pam_ldap.so use_first_pass\"}" ${FILE} > ${FILE}.new;
     mv ${FILE}.new ${FILE};
   fi
+  awk "{print} /auth.*pam_ldap/ {print \"auth	required	pam_deny.so\"}" ${FILE} > ${FILE}.new;
+  mv ${FILE}.new ${FILE};
 
   grep -q 'account.*pam_ldap' ${FILE};
   if [ $? -ne 0 ];

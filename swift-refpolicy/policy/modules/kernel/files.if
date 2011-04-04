@@ -1428,6 +1428,25 @@ interface(`files_search_all_mountpoints',`
 
 ########################################
 ## <summary>
+##	Do not audit write attempts on mount points.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to ignore write attempts
+##	</summary>
+## </param>
+#
+interface(`gentoo_files_dontaudit_write_all_mountpoints',`
+	gen_require(`
+		attribute mountpoint;
+	')
+
+	dontaudit $1 mountpoint:dir write;
+')
+
+
+########################################
+## <summary>
 ##	Do not audit searching of all mount points.
 ## </summary>
 ## <param name="domain">

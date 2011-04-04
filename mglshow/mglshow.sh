@@ -104,8 +104,8 @@ runReplayScript() {
     hasReplayScript ${SOURCE}/${REPLAYSCRIPT}.session;
     if [ $? -eq 0 ];
     then
-      typeset LOCALTEST=$(fetchReplayScript ${SOURCE}/${TESTSET});
-      executeReplayScript ${LOCALTEST} ${SPEED};
+      typeset LOCALTEST=$(fetchReplayScript ${SOURCE}/${REPLAYSCRIPT});
+      executeReplayScript ${LOCALTEST}/$(basename ${REPLAYSCRIPT}) ${SPEED};
       # Cleanup files
       cleanupFolder ${LOCALTEST};
     fi

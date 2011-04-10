@@ -14,6 +14,13 @@ getSetting() {
 filevalid() {
   EXPRESSION="$1";
   FILENAME="$2";
+  RULE="$3";
+  RUNDIR=$(getSetting rundir);
+
+  if [ -f ${RUNDIR}/${FILENAME}.${RULE}.run ];
+  then
+    return 1;
+  fi
 
   echo ${FILENAME} | grep -e ${EXPRESSION} > /dev/null 2>&1;
   return $?;

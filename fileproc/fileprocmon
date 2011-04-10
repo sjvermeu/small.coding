@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if [ -f ./fileproc.lib.sh ];
+then
+  source ./fileproc.lib.sh;
+else
+  echo "Could not find fileproc.lib.sh.";
+  exit 1;
+fi
+
+fileproc_sourced;
+if [ $? -ne 87 ];
+then
+  echo "File procedures not succesfully sourced!";
+  exit 1;
+fi
+
+RUNDIR=$(getSetting rundir);
+
+for FILE in $(find ${RUNDIR} -type f -name '*.run');
+do
+  ## Missing PID file -> fileprocrun killed?
+  PIDFILE=${FILE%%run}pid;
+  if [ -f ${PIDFILE} ];
+  then
+    PID=$(cat ${PIDFILE});
+    ps -ef | awk '{print $2}' | grep ${PID} > /dev/null 2>&1;
+    if [ $? -ne 0 ];
+    then
+      echo "Process pid = ${PID} does not exist, but needed according to ${FILE}.";
+    fi
+  fi
+
+  ## Missing state=finished in runfile -> execution killed?
+  grep 'state=finished' ${FILE} > /dev/null 2>&1;
+  if [ $? -ne 0 ];
+  then
+    SCRIPT=$(awk -F'=' '/runscript=/ {print $2}' ${FILE});
+    FILENAME=$(awk -F'=' '/filename=/ {print $2}' ${FILE});
+    echo "Processing rule ${SCRIPT} for file ${FILENAME} called but did not end correctly.";
+  fi
+
+done

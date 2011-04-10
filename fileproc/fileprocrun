@@ -34,7 +34,9 @@ startsupervise() {
   fi
 
   lock ${FILE}.${RUNSCRIPT};
-  echo "pid = $$" > ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
+  echo "pid=$$" > ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
+  echo "runscript=${RUNSCRIPT}" >> ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
+  echo "filename=${FILENAME}" >> ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
   echo "$$" > ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid;
   unlock ${FILE}.${RUNSCRIPT};
 };
@@ -61,10 +63,14 @@ executerulescript() {
   RUNSCRIPT="$1";
   FILENAME="$2";
   RULEDIR=$(getSetting rulesdir);
+  RUNDIR=$(getSetting rundir);
+  FILEDIR=$(dirname ${FILENAME});
+  FILE=$(basename ${FILENAME});
 
   (
     . ${RULEDIR}/${RUNSCRIPT};
     execute ${FILENAME};
+    echo "state=finished" >> ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
   )
 };
 

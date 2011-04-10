@@ -1,0 +1,105 @@
+#!/bin/sh
+
+if [ -f ./fileproc.lib.sh ];
+then
+  source ./fileproc.lib.sh;
+else
+  echo "Could not find fileproc.lib.sh.";
+  exit 1;
+fi
+
+fileproc_sourced;
+if [ $? -ne 87 ];
+then
+  echo "File procedures not succesfully sourced!";
+  exit 1;
+fi
+
+listRunStates() {
+  RUNDIR=$(getSetting rundir);
+  RULESDIR=$(getSetting rulesdir);
+
+  for RULE in ${RULESDIR}/*;
+  do
+    RULENAME=$(basename ${RULE});
+    echo "Rule \"${RULENAME}\":";
+    for FILE in $(find ${RUNDIR} -type f -name *.${RULENAME}.run);
+    do
+      FILENAME=$(echo ${FILE} | sed -e "s:${RUNDIR}::g" | sed -e "s:.${RULENAME}.run::g");
+      grep 'state=finished' ${FILE} > /dev/null 2>&1;
+      if [ $? -eq 0 ];
+      then
+        echo "  - ${FILENAME} (finished)";
+      else
+        echo "  - ${FILENAME} (running)";
+      fi
+    done
+  done;
+
+};
+
+usage() {
+  cat << EOF
+Usage: $0 reset <filename> <rule>;
+          Resets the fileproc state for this run. Useful when you want
+	  to rerun the activities if they failed inproperly.
+
+       $0 remove <filename> <rule>;
+          Remove the fileproc state for this run. Useful when
+	  fileprocmon is complaining but the source file does not exist
+	  anymore
+
+       $0 list
+          List all runstates.
+
+       $0 help
+          Display this help.
+EOF
+  exit 1;
+};
+
+if [ $# -eq 0 ];
+then
+  usage;
+fi
+
+COMMAND="$1";
+RUNDIR=$(getSetting rundir);
+shift;
+
+case "${COMMAND}" in
+  "reset")
+    FILENAME="$1";
+    RULENAME="$2";
+    if [ ! -f ${FILENAME} ];
+    then
+      echo "File ${FILENAME} does not exist (anymore), use 'remove' if you want to remove the runstate.";
+      exit 1;
+    fi
+    if [ ! -f ${RUNDIR}/${FILENAME}.${RULENAME}.run ];
+    then
+      echo "There is no run-state available for rule ${RULENAME} and file ${FILENAME}.";
+      exit 2;
+    fi
+    rm ${RUNDIR}/${FILENAME}.${RULENAME}.run;
+    ;;
+  "remove")
+    FILENAME="$1";
+    RULENAME="$2";
+    if [ ! -f ${RUNDIR}/${FILENAME}.${RULENAME}.run ];
+    then
+      echo "There is no run-state available for rule ${RULENAME} and file ${FILENAME}.";
+      exit 2;
+    fi
+    rm ${RUNDIR}/${FILENAME}.${RULENAME}.run;
+    ;;
+  "list")
+    listRunStates;
+    ;;
+  "help")
+    usage;
+    ;;
+  *)
+    usage;
+    ;;
+esac

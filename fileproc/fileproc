@@ -55,6 +55,8 @@ RULEDIR=$(getSetting rulesdir);
 LOGDIR=$(getSetting logdir);
 FILENAME="$1";
 DATE=$(date +"%Y-%m-%d %H:%M:%S");
+MINHITS=$(getSetting minhits);
+COUNT=0;
 
 logtrigger "${FILENAME}";
 for FILE in ${RULEDIR}/*;
@@ -68,6 +70,22 @@ do
     then
       echo "${DATE} - Calling \"fileprocrun ${BASEFILE} ${FILENAME}\"" >> ${LOGDIR}/${BASEFILE}.log;
       nohup fileprocrun ${BASEFILE} ${FILENAME} >> ${LOGDIR}/${BASEFILE}.log 2>&1 &
+      exit 0;
+    else
+      exit 1;
     fi
   )
+  if [ $? -eq 0 ];
+  then
+    COUNT=$((${COUNT}+1));
+  fi
 done
+
+if [ ${COUNT} -lt ${MINHITS} ];
+then
+  echo "${COUNT} processes launched, but a minimum of ${MINHITS} was requested.";
+  exit 1;
+else
+  echo "${COUNT} processes launched.";
+  exit 0;
+fi

@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuppam";
+typeset STEPS="configsystem configureportage installsoftware setuplighttpd";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -98,10 +98,10 @@ setuplighttpd() {
   logMessage "  > Enabling auto-startup... ";
   rc-update add lighttpd default;
   logMessage "done\n";
-}
 
-setuppam() {
-  _setuppam;
+  logMessage "  > Run restorecon on packages folder... ";
+  restorecon -R /var/www/localhost/htdocs;
+  logMessage "done\n";
 }
 
 stepOK "configsystem" && (
@@ -125,12 +125,6 @@ nextStep;
 stepOK "setuplighttpd" && (
 logMessage ">>> Step \"setuplighttpd\" starting...\n";
 runStep setuplighttpd;
-);
-nextStep;
-
-stepOK "setuppam" && (
-logMessage ">>> Step \"setuppam\" starting...\n";
-runStep setuppam;
 );
 nextStep;
 

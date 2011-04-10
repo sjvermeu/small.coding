@@ -110,7 +110,7 @@ access to *
   by anonymous read
 
 ## Database definition
-datbase hdb
+database hdb
 suffix "dc=virtdomain,dc=com"
 checkpoint 32 30
 rootdn "cn=Manager,dc=virtdomain,dc=com"

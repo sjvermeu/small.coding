@@ -1,0 +1,76 @@
+#!/bin/sh
+
+if [ -f fileproc.lib.sh ];
+then
+  source fileproc.lib.sh;
+else
+  echo "Could not find fileproc.lib.sh.";
+  exit 1;
+fi
+
+startsupervise() {
+  RUNDIR=$(getSetting rundir);
+  RUNSCRIPT="$1";
+  FILENAME="$2";
+  
+  FILEDIR=$(dirname ${FILENAME});
+  FILE=$(basename ${FILENAME});
+  mkdir -p ${RUNDIR}/${FILEDIR};
+  if [ -f ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run ];
+  then
+    echo "This file is already (being) processed (${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run exists)";
+    if [ -f ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid ];
+    then
+      echo "Running process presumably has PID = $(cat ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid)";
+    fi
+    exit 1;
+  fi
+  
+  if [ -f ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid ];
+  then
+    echo "PID file (${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid) found but no run information.";
+    echo "This should never happen. Bailing out...";
+    exit 2;
+  fi
+
+  lock ${FILE}.${RUNSCRIPT};
+  echo "pid = $$" > ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.run;
+  echo "$$" > ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid;
+  unlock ${FILE}.${RUNSCRIPT};
+};
+
+stopsupervise() {
+  RUNDIR=$(getSetting rundir);
+  RUNSCRIPT="$1";
+  FILENAME="$2";
+  
+  FILEDIR=$(dirname ${FILENAME});
+  FILE=$(basename ${FILENAME});
+  if [ ! -f ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid ];
+  then
+    echo "PID file (${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid) not found ?";
+    return 0;
+  fi
+
+  lock ${FILE}.${RUNSCRIPT};
+  rm ${RUNDIR}/${FILEDIR}/${FILE}.${RUNSCRIPT}.pid;
+  unlock ${FILE}.${RUNSCRIPT};
+};
+
+executerulescript() {
+  RUNSCRIPT="$1";
+  FILENAME="$2";
+  RULEDIR=$(getSetting rulesdir);
+
+  (
+    . ${RULEDIR}/${RUNSCRIPT};
+    execute ${FILENAME};
+  )
+};
+
+RUNSCRIPT="$1";
+FILENAME="$2";
+
+startsupervise "${RUNSCRIPT}" "${FILENAME}";
+executerulescript "${RUNSCRIPT}" "${FILENAME}";
+stopsupervise "${RUNSCRIPT}" "${FILENAME}";

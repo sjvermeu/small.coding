@@ -1,0 +1,73 @@
+#!/bin/sh
+
+if [ -f ./fileproc.lib.sh ];
+then
+  source ./fileproc.lib.sh;
+else
+  echo "Could not find fileproc.lib.sh.";
+  exit 1;
+fi
+
+fileproc_sourced;
+if [ $? -ne 87 ];
+then
+  echo "File procedures not succesfully sourced!";
+  exit 1;
+fi
+
+# Display usage
+usage() {
+  cat << EOF
+Usage: $0 <file>
+EOF
+  exit 1;
+}
+
+# Log when and which file we are going to process (auditing)
+logtrigger() {
+  FILE="$1";
+  LOGFILE=$(getSetting logfile);
+  DATE=$(date +"%Y-%m-%d %H:%M:%S");
+  WHOAMI=$(whoami);
+
+  lock logfile;
+  
+  if [ ! -f ${LOGFILE} ];
+  then
+    touch ${LOGFILE};
+  fi
+
+  echo "${DATE} : ${WHOAMI} called $0 with argument ${FILE}" >> ${LOGFILE};
+
+  unlock logfile;
+}
+
+if [ $# -ne 1 ];
+then
+  usage;
+  exit 1;
+fi
+
+##
+## Main code
+##
+RULEDIR=$(getSetting rulesdir);
+LOGDIR=$(getSetting logdir);
+FILENAME="$1";
+DATE=$(date +"%Y-%m-%d %H:%M:%S");
+
+logtrigger "${FILENAME}";
+for FILE in ${RULEDIR}/*;
+do
+  [ ! -f ${FILE} ] && continue;
+  BASEFILE=$(basename ${FILE});
+  (
+    . ${FILE};
+    test ${FILENAME};
+    if [ $? -eq 0 ];
+    then
+      echo "${DATE} - Calling \"fileprocrun ${BASEFILE} ${FILENAME}\"" >> ${LOGDIR}/${BASEFILE}.log;
+      nohup fileprocrun ${BASEFILE} ${FILENAME} >> ${LOGDIR}/${BASEFILE}.log 2>&1 &
+    fi
+  )
+done

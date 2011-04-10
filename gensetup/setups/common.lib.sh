@@ -21,6 +21,7 @@ _configsystem() {
 
   logMessage "  > Updating /etc/resolv.conf... ";
   FILE=/etc/resolv.conf;
+  restorecon ${FILE};
   META=$(initChangeFile ${FILE});
   echo "search $(getValue sys.resolv.search)" > ${FILE};
   for NS in $(getValue sys.resolv.nameservers);

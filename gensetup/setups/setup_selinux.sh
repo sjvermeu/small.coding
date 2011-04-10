@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch tmpfs profile selinux reboot_1 label reboot_2 booleans";
+typeset STEPS="overlay arch tmpfs profile python selinux reboot_1 label reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -174,6 +174,18 @@ set_profile() {
   fi
 }
 
+set_python() {
+  logMessage "   > Switching python to 'python2.7'... ";
+  eselect python list | grep -q 'python2.7 \*$';
+  if [ $? -ne 0 ];
+  then
+    eselect python set python2.7 || die "Failed to switch python";
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+}
+
 configure_selinux() {
   logMessage "   > Installing SELinux utilities.\n";
   logMessage "     - Installing checkpolicy... ";
@@ -278,6 +290,12 @@ nextStep;
 stepOK "profile" && (
 logMessage ">>> Step \"profile\" starting...\n";
 runStep set_profile;
+);
+nextStep;
+
+stepOK "python" && (
+logMessage ">>> Step \"python\" starting...\n";
+runStep set_python;
 );
 nextStep;
 

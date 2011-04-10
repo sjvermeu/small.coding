@@ -16,3 +16,5 @@ selinux-local - Local patches and fixes to SELinux policy not ready for global p
 selinux-modules - Modules I created 
 swift-refpolicy - Reference policy and updates used to set up the Gentoo Hardened SELinux policies
 mglverify - Test script allowing to validate settings and such
+mglshow - Script that easily displays (using scriptreplay) how to do stuff in the commandline
+fileproc - Set of scripts to process files in a controlled manner

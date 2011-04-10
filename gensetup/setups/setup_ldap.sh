@@ -98,7 +98,7 @@ include /etc/openldap/schema/misc.schema
 pidfile /var/run/openldap/slapd.pid
 argsfile /var/run/openldap/slapd.args
 
-serverID 001
+serverID SERVERID
 loglevel 0
 
 ## Access Controls
@@ -120,13 +120,13 @@ index objectClass eq
 
 ## Synchronisation (pull from other)
 syncrepl rid=000
-  provider=ldap://ldap2.virtdomain.com
+  provider=ldap://PROVIDER.virtdomain.com
   type=refreshAndPersist
   retry="5 5 300 +"
   searchbase="dc=virtdomain,dc=com"
   attrs="*,+"
   bindmethod="simple"
-  binddn="cn=ldap.virtdomain.com,dc=virtdomain,dc=com"
+  binddn="cn=ldapreader.virtdomain.com,dc=virtdomain,dc=com"
   credentials="ldapsyncpass"
 
 index entryCSN eq
@@ -140,6 +140,7 @@ EOF
   updateWhitespaceConfFile openldap.slapd.db ${FILE};
   updateWhitespaceConfFile openldap.slapd.syncrepl ${FILE};
   setOrUpdateQuotedVariable rootpw " " "${LDAPPASS}" ${FILE};
+  setOrUpdateUnquotedVariable serverID " " $(getValue openldap.slapd.serverID) ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -203,12 +204,8 @@ setupldap() {
   logMessage "  ! remember, basedn is the dc=..,dc=.. part.\n";
   logMessage "  !           rootdn is the cn=..,dc=..,dc=.. part.\n";
   logMessage "  !\n";
-  logMessage "  ! Next, disable SELinux temporarily (need to read shadow)\n";
-  logMessage "  ! Run \"grep 100 /etc/passwd > passwd.ldap\"\n";
-  logMessage "  ! Run \"ETC_SHADOW=/etc/shadow ./migrate_passwd.pl ./passwd.ldap > passwd.ldif\"\n";
-  logMessage "  ! Update passwd.ldif (substitute rootdn).\n";
+  logMessage "  ! Create ldif for ldapreader.\n";
   logMessage "  ! Run ldapadd -x -D \"cn=...\" -W -f ./passwd.ldif\n";
-  logMessage "  ! Also validate the synchronisation, set a password on the host, might want to add simpleSecurityObject etc.\n";
   die "When finished, continue with step setuppam."
 }
 

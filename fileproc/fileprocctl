@@ -15,6 +15,28 @@ then
   exit 1;
 fi
 
+removeAllStates() {
+  RULE="$1";
+  RUNDIR=$(getSetting rundir);
+
+  for FILE in $(find ${RUNDIR} -type f -name *.${RULE}.run);
+  do
+    FILENAME=$(echo ${FILE} | sed -e "s:${RUNDIR}::g" | sed -e "s:.${RULE}.run$::g");
+    if [ -f ${FILE%%run}pid ];
+    then
+      echo "Skipping ${FILENAME} state as it has not completed yet.";
+      continue;
+    fi
+    grep 'state=finished' ${FILE} > /dev/null 2>&1;
+    if [ $? -ne 0 ];
+    then
+      echo "Skipping ${FILENAME} state as it did not end succesfully.";
+      continue;
+    fi
+    rm ${FILE};
+  done
+}
+
 listRunStates() {
   RUNDIR=$(getSetting rundir);
   RULESDIR=$(getSetting rulesdir);
@@ -48,6 +70,9 @@ Usage: $0 reset <filename> <rule>;
           Remove the fileproc state for this run. Useful when
 	  fileprocmon is complaining but the source file does not exist
 	  anymore
+
+       $0 removeall <rule>
+          Remove all runstates pertaining to the selected rule.
 
        $0 list
           List all runstates.
@@ -92,6 +117,10 @@ case "${COMMAND}" in
       exit 2;
     fi
     rm ${RUNDIR}/${FILENAME}.${RULENAME}.run;
+    ;;
+  "removeall")
+    RULENAME="$1";
+    removeAllStates ${RULENAME};
     ;;
   "list")
     listRunStates;

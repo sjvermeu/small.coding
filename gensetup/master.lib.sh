@@ -244,10 +244,10 @@ setOrUpdateQuotedVariable() {
     TESTER="[ 	]";
   fi
 
-  grep "^${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
+  grep "^[ ]*${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s|^${VARIABLE}${TESTER}.*|${VARIABLE}${SPACER}\"${VALUE}\"|g" ${FILE};
+    sed -i -e "s|^\([ ]*\)${VARIABLE}${TESTER}.*|\1${VARIABLE}${SPACER}\"${VALUE}\"|g" ${FILE};
   else
     echo "${VARIABLE}${SPACER}\"${VALUE}\"" >> ${FILE};
   fi
@@ -266,10 +266,11 @@ setOrUpdateUnquotedVariable() {
     TESTER="[ 	]";
   fi
     
-  grep "^${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
+  grep "^[ ]*${VARIABLE}${TESTER}" ${FILE} > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
-    sed -i -e "s|^${VARIABLE}${TESTER}.*|${VARIABLE}${SPACER}${VALUE}|g" ${FILE};
+    # Preserve indentation
+    sed -i -e "s|^\([ ]*\)${VARIABLE}${TESTER}.*|\1${VARIABLE}${SPACER}${VALUE}|g" ${FILE};
   else
     echo "${VARIABLE}${SPACER}${VALUE}" >> ${FILE};
   fi

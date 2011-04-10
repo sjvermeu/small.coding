@@ -33,7 +33,7 @@ do
 
   ## Missing state=finished in runfile -> execution killed?
   grep 'state=finished' ${FILE} > /dev/null 2>&1;
-  if [ $? -ne 0 ];
+  if [ $? -ne 0 ] && [ ! -f ${PIDFILE} ];
   then
     SCRIPT=$(awk -F'=' '/runscript=/ {print $2}' ${FILE});
     FILENAME=$(awk -F'=' '/filename=/ {print $2}' ${FILE});

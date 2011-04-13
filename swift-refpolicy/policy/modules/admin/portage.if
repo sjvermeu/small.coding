@@ -123,6 +123,11 @@ interface(`portage_compile_domain',`
 	manage_sock_files_pattern($1, portage_tmpfs_t, portage_tmpfs_t)
 	fs_tmpfs_filetrans($1, portage_tmpfs_t, { dir file lnk_file sock_file fifo_file })
 
+	# Support the -9999 ebuilds
+	manage_dirs_pattern($1, portage_svnsrc_t, portage_svnsrc_t)
+	manage_files_pattern($1, portage_svnsrc_t, portage_svnsrc_t)
+	manage_lnk_files_pattern($1, portage_svnsrc_t, portage_svnsrc_t)
+
 	kernel_read_system_state($1)
 	kernel_read_network_state($1)
 	kernel_read_software_raid_state($1)

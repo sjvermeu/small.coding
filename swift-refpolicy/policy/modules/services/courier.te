@@ -77,6 +77,10 @@ userdom_search_user_home_dirs(courier_authdaemon_t)
 
 courier_domtrans_pop(courier_authdaemon_t)
 
+tunable_policy(`gentoo_try_dontaudit',`
+	dontaudit courier_authdaemon_t self:capability dac_read_search;
+)
+
 ########################################
 #
 # Calendar (PCP) local policy

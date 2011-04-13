@@ -136,6 +136,10 @@ tunable_policy(`mysql_connect_any',`
 	corenet_sendrecv_all_client_packets(mysqld_t)
 ')
 
+tunable_policy(`gentoo_try_dontaudit',`
+	dontaudit mysqld_t self:capability dac_read_search;
+')
+
 optional_policy(`
 	daemontools_service_domain(mysqld_t, mysqld_exec_t)
 ')

@@ -205,6 +205,7 @@ ldap.virtdomain.com.	IN A	192.168.100.55
 			IN A	192.168.100.56
 mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
+proxy.virtdomain.com.	IN A	192.168.100.63
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -234,6 +235,7 @@ EOF
 56.100.168.192.in-addr.arpa.	IN	PTR	ldap2.virtdomain.com.
 51.100.168.192.in-addr.arpa.	IN	PTR	mail1.virtdomain.com.
 50.100.168.192.in-addr.arpa.	IN	PTR	build.virtdomain.com.
+63.100.168.192.in-addr.arpa.	IN	PTR	proxy.virtdomain.com.
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};

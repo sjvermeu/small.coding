@@ -89,8 +89,9 @@ installsquirrel() {
   mkdir -p /var/spool/squirrelmail/attach;
   chown apache:apache /var/spool/squirrelmail/attach;
   restorecon -R -r /var/www/localhost;
-  chcon -R -t httpd_squirrelmail_t /var/spool/squirrelmail;
-  chcon -R -t httpd_squirrelmail_t /var/www/localhost/htdocs/squirrelmail/data;
+  semanage fcontext -a -t httpd_squirrelmail_t "/var/www/localhost/htdocs/squirrelmail/data(/.*)?";
+  restorecon -R /var/spool/squirrelmail;
+  restorecon -R /var/www/localhost/htdocs/squirrelmail/data;
   logMessage "done\n";
 
   logMessage "  > Edit php.ini... ";

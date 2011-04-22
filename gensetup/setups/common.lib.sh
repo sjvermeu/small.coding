@@ -89,6 +89,10 @@ _configsystem() {
   else
     logMessage "skipped\n";
   fi
+
+  logMessage "  > Restoring /etc/selinux context... ";
+  restorecon -R /etc/selinux;
+  logMessage "done\n";
 }
 
 _setuppam() {

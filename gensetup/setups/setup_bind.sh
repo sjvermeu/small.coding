@@ -65,10 +65,7 @@ configbind() {
   typeset META=$(initChangeFile ${FILE});
   cat > /etc/bind/named.conf << EOF
 acl "xfer" {
-	/* Deny transfers by default except for the listed hosts.
-	 * If we have other name servers, place them here.
-	 */
-	none;
+	@SECUNDARY@;
 };
 
 acl "trusted" {
@@ -97,7 +94,7 @@ options {
 	};
 
 	allow-transfer {
-		none;
+		xfer;
 	};
 
 	allow-update {
@@ -130,6 +127,7 @@ controls {
 };
 EOF
   sed -i -e "s:@IPADDRESS@:$(getValue dns.listen):g" ${FILE};
+  sed -i -e "s:@SECUNDARY@:$(getValue dns.secundary):g" ${FILE};
   typeset DNSTYPE="$(getValue dns.type)";
   if [ "${DNSTYPE}" = "master" ];
   then
@@ -141,7 +139,13 @@ view "internal" {
 	zone "virtdomain.com" {
 		type master;
 		file "pri/virtdomain.com.internal";
-		allow-transfer { any; };
+		allow-transfer { xfer; };
+	};
+
+	zone "100.168.192.in-addr.arpa" {
+		type master;
+		file "pri/192.168.100.internal";
+		allow-transfer { xfer; };
 	};
 };
 EOF
@@ -155,6 +159,12 @@ view "internal" {
 	zone "virtdomain.com" {
 		type slave;
 		file "pri/virtdomain.com.internal";
+		masters {@MASTER@;};
+	};
+
+	zone "100.168.192.in-addr.arpa" {
+		type slave;
+		file "pri/192.168.100.internal";
 		masters {@MASTER@;};
 	};
 };
@@ -172,9 +182,9 @@ EOF
     touch ${FILE};
     META=$(initChangeFile ${FILE});
     cat > /var/bind/pri/virtdomain.com.internal << EOF
-\$TTL 2d
+\$TTL 1200 
 @	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
-	2011031502	; serial
+	2011042201	; serial
 	3h		; refresh
 	1h		; retry
 	1w		; expiry
@@ -198,6 +208,43 @@ build.virtdomain.com.	IN A	192.168.100.50
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+
+    logMessage "  > Configuring 192.168.100.internal zone file... ";
+    FILE="/var/bind/pri/192.168.100.internal";
+    touch ${FILE};
+    META=$(initChangeFile ${FILE});
+    cat > /var/bind/pri/192.168.100.internal << EOF
+\$TTL 1200
+@	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
+	2011042201	; serial
+	3h		; refresh
+	1h		; retry
+	1w		; expiry
+	1d )		; minimum
+
+100.168.192.in-addr.arpa.	IN	NS	192.168.100.71
+100.168.192.in-addr.arpa.	IN	NS	192.168.100.72
+71.100.168.192.in-addr.arpa.	IN	PTR	ns1.virtdomain.com.
+72.100.168.192.in-addr.arpa.	IN	PTR	ns2.virtdomain.com.
+52.100.168.192.in-addr.arpa.	IN	PTR	postgres.virtdomain.com.
+61.100.168.192.in-addr.arpa.	IN	PTR	www1.virtdomain.com.
+62.100.168.192.in-addr.arpa.	IN	PTR	www2.virtdomain.com.
+55.100.168.192.in-addr.arpa.	IN	PTR	ldap1.virtdomain.com.
+56.100.168.192.in-addr.arpa.	IN	PTR	ldap2.virtdomain.com.
+51.100.168.192.in-addr.arpa.	IN	PTR	mail1.virtdomain.com.
+50.100.168.192.in-addr.arpa.	IN	PTR	build.virtdomain.com.
+EOF
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  fi
+
+  if [ "${DNSTYPE}" = "slave" ];
+  then
+    logMessage "  > Allowing slave to write master zone information locally... ";
+    chmod g+w /var/bind/pri /var/bind/sec;
+    setsebool -P named_write_masters_zones on;
     logMessage "done\n";
   fi
 }

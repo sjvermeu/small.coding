@@ -46,7 +46,7 @@ initTools;
 
 configsystem() {
   _configsystem;
-  die "Please restart the network and continue with step installldap.";
+  die "Please restart the network and continue with step users.";
 }
 
 users() {
@@ -138,7 +138,7 @@ overlay syncprov
 syncprov-checkpoint 100 10
 EOF
   updateWhitespaceConfFile openldap.slapd.db ${FILE};
-  updateWhitespaceConfFile openldap.slapd.syncrepl ${FILE};
+  updateEqualConfFile openldap.slapd.syncrepl ${FILE};
   setOrUpdateQuotedVariable rootpw " " "${LDAPPASS}" ${FILE};
   setOrUpdateUnquotedVariable serverID " " $(getValue openldap.slapd.serverID) ${FILE};
   applyMetaOnFile ${FILE} ${META};

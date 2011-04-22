@@ -68,6 +68,7 @@ _configsystem() {
   then
     dd if=/dev/zero of=/swapfile bs=1024k count=128;
     chcon -t swapfile_t /swapfile;
+    semanage fcontext -a -t swapfile_t "/swapfile";
     mkswap /swapfile;
     swapon /swapfile;
     logMessage "done\n";

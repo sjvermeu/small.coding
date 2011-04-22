@@ -84,7 +84,7 @@ labelfiles() {
 startdb() {
   logMessage "** Run the following commands to initialize the database:\n";
   logMessage "**   /etc/init.d/postgresql-* start\n";
-  die "Please follow above manual commands. No further actions needed then.";
+  die "Please follow above manual commands. Finish with setuppam step.";
 }
 
 setuppam() {

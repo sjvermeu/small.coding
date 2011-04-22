@@ -53,7 +53,7 @@ configureportage() {
   logMessage "  > Editing make.conf... ";
   typeset FILE=/etc/make.conf;
   typeset META=$(initChangeFile ${FILE});
-  updateEqualQuotConfFile etc.makeconf ${FILE};
+  updateEqualConfFile etc.makeconf ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";

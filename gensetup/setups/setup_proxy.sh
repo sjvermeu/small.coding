@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installsquid setuppam";
+typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -59,6 +59,58 @@ installsquid() {
   logMessage "done\n";
 }
 
+installprivoxy() {
+  logMessage "  > Installing 'privoxy'... ";
+  installSoftware -u privoxy || die "Failed to install privoxy (emerge failed)";
+  logMessage "done\n";
+
+  logMessage "  > Adding privoxy to default runlevel... ";
+  rc-update add privoxy default
+  logMessage "done\n";
+}
+
+configsquid() {
+  # If not created, /etc/init.d/squid wants to create it but the policy
+  # dictates that initrc can't.
+  logMessage "  > Creating cache directory for init... ";
+  mkdir -p /var/cache/squid/00 || die "Failed to create cache location";
+  chown squid:squid /var/cache/squid/00 || die "Failed to change ownership of cache location";
+  logMessage "done\n";
+
+  logMessage "  > Setting cache location... ";
+  typeset FILE=/etc/squid/squid.conf;
+  typeset META=$(initChangeFile ${FILE});
+  setOrUpdateUnquotedVariable cache_dir " " "ufs /var/cache/squid 256 16 256" ${FILE};
+  setOrUpdateUnquotedVariable shutdown_lifetime " " "5 seconds" ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Creating cache directory (by squid).\n";
+  run_init squid -z || die "Failed to create cache directories.";
+}
+
+configprivoxy() {
+  logMessage "  > Updating 'config' file... ";
+  typeset FILE=/etc/privoxy/config;
+  typeset META=$(initChangeFile ${FILE});
+  setOrUpdateUnquotedVariable listen-address " " 0.0.0.0:8118 ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Blocking cnn.com... ";
+  FILE=/etc/privoxy/user.action;
+  META=$(initChangeFile ${FILE});
+  grep -v GENSETUP_ADDED ${FILE} > ${FILE}.new;
+  echo "{ +block{News Portals are not allowed}} #GENSETUP_ADDED" >> ${FILE}.new;
+  echo ".cnn.com #GENSETUP_ADDED" >> ${FILE}.new;
+  mv ${FILE}.new ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
 setuppam() {
   _setuppam;
 }
@@ -72,6 +124,24 @@ nextStep;
 stepOK "installsquid" && (
 logMessage ">>> Step \"installsquid\" starting...\n";
 runStep installsquid;
+);
+nextStep;
+
+stepOK "installprivoxy" && (
+logMessage ">>> Step \"installprivoxy\" starting...\n";
+runStep installprivoxy;
+);
+nextStep;
+
+stepOK "configsquid" && (
+logMessage ">>> Step \"configsquid\" starting...\n";
+runStep configsquid;
+);
+nextStep;
+
+stepOK "configprivoxy" && (
+logMessage ">>> Step \"configprivoxy\" starting...\n";
+runStep configprivoxy;
 );
 nextStep;
 

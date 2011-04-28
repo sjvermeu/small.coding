@@ -548,7 +548,7 @@ installTools() {
 installGrub() {
   printf "  - Installing GRUB... ";
   logPrint "   - Installing GRUB" >> ${LOG};
-  runChrootCommand emerge --binpkg-respect-use=y -g grub >> ${LOG} 2>&1;
+  runChrootCommand emerge --binpkg-respect-use=y -g grub-static >> ${LOG} 2>&1;
   printf "done\n";
 
   ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});

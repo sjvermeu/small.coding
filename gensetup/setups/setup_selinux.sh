@@ -167,11 +167,20 @@ set_profile() {
     typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#.*::g' -e 's:"::g');
     sed -i -e '/FEATURES=/d' ${FILE};
     echo "FEATURES=\"${CFEAT} -loadpolicy\"" >> ${FILE};
+    applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
     logMessage "done\n";
   else
     logMessage "skipped\n";
   fi
+
+  logMessage "    > Setting PORTAGE_BINHOST... ";
+  typeset FILE=/etc/make.conf;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualConfFile etc.make.conf ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
 }
 
 set_python() {

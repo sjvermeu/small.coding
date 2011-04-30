@@ -205,6 +205,7 @@ ldap.virtdomain.com.	IN A	192.168.100.55
 			IN A	192.168.100.56
 mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
+rsync.virtdomain.com.	IN CNAME build.virtdomain.com.
 proxy.virtdomain.com.	IN A	192.168.100.63
 EOF
     applyMetaOnFile ${FILE} ${META};

@@ -171,7 +171,7 @@ pam_member_attribute memberuid
 pam_password exop
 scope one
 timelimit 2
-uri ldap://ldap.virtdomain.com/
+uri ldap://ldap.virtdomain.com/ ldap://ldap1.virtdomain.com ldap://ldap2.virtdomain.com
 EOF
 
   applyMetaOnFile ${FILE} ${META};

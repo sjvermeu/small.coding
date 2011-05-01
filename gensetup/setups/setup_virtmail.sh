@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installpostfix startpostfix installcourier startcourier installsasl startsasl certificates updatepostfix restartpostfix vmail installmysql startmysql loadsql installapache setupapache phpmyadmin mysqlauth restartauth mysqlpostfix restartpostfix2 setuppam";
+typeset STEPS="configsystem installpostfix installcourier installsasl certificates updatepostfix vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth mysqlpostfix setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -34,8 +34,8 @@ export LOG;
 typeset FAILED=$(mktemp);
 export FAILED;
 
-[ -f master.lib.sh ] && source ./master.lib.sh;
-[ -f common.lib.sh ] && source ./common.lib.sh;
+[ -f master.lib.sh ] && source ./master.lib.sh || exit 1;
+[ -f common.lib.sh ] && source ./common.lib.sh || exit 1;
 
 initTools;
 
@@ -73,11 +73,6 @@ installpostfix() {
   logMessage "  > Adding postfix to default runlevel... ";
   rc-update add postfix default;
   logMessage "done\n";
-}
-
-startpostfix() {
-  logMessage "  > Need to start postfix!\n";
-  die "Start postfix init script (/etc/init.d/postfix start) and continue with step \"installcourier\"";
 }
 
 installcourier() {
@@ -174,15 +169,6 @@ installcourier() {
   logMessage "done\n";
 }
 
-startcourier() {
-  logMessage "  > Need to start courier!\n";
-  logMessage "  > Run /etc/init.d/courier-imapd start\n";
-  logMessage "  > Run /etc/init.d/courier-imapd-ssl start\n";
-  logMessage "  > Run /etc/init.d/courier-pop3d start\n";
-  logMessage "  > Run /etc/init.d/courier-pop3d-ssl start\n";
-  die "Please continue with step 'installsasl' when done.";
-}
-
 installsasl() {
   logMessage "  > Installing selinux-sasl... ";
   installSoftware -u selinux-sasl || die "Failed to install selinux-sasl"
@@ -219,11 +205,6 @@ installsasl() {
   logMessage "  > Relabelling files for cyrus-sasl... ";
   rlpkg cyrus-sasl;
   logMessage "done\n";
-}
-
-startsasl() {
-  logMessage "  > Please run /etc/init.d/saslauthd start\n";
-  die "When finished, continue with step certificates.";
 }
 
 certificates() {
@@ -278,11 +259,6 @@ updatepostfix() {
   logMessage "  > Updating main.cf... ";
   updateEqualNoQuotConfFile postfix.1.main /etc/postfix/main.cf;
   logMessage "done\n";
-}
-
-restartpostfix() {
-  logMessage "  > Please reload postfix and continue with step 'vmail'\n"
-  die "Execute /etc/init.d/postfix reload and continue with step vmail."
 }
 
 vmail() {
@@ -387,11 +363,6 @@ installapache() {
   logMessage "done\n";
 }
 
-setupapache() {
-  logMessage "  > Then, run /etc/init.d/apache2 start\n";
-  die "Continue with the phpmyadmin step."
-}
-
 phpmyadmin() {
   logMessage "  > Editing config.inc.php... ";
   typeset FILE=/var/www/localhost/htdocs/phpmyadmin;
@@ -431,14 +402,6 @@ mysqlauth() {
   logMessage "  > Relabelling cyrus-sasl package... ";
   rlpkg cyrus-sasl;
   logMessage "done\n";
-}
-
-restartauth() {
-  logMessage "  > Run /etc/init.d/courier-authlib restart\n";
-  logMessage "  > Run /etc/init.d/saslauthd stop\n";
-  logMessage "  > Run restorecon -R -r /var/lib/sasl2\n";
-  logMessage "  > Run /etc/init.d/saslauthd start\n";
-  die "Continue with step mysqlpostfix."
 }
 
 mysqlpostfix() {
@@ -545,11 +508,6 @@ mysqlpostfix() {
   logMessage "done\n";
 }
 
-restartpostfix2() {
-  logMessage "  > Please run /etc/init.d/postfix restart\n";
-  die "When finished, continue with step \"setuppam\".";
-}
-
 setuppam() {
   _setuppam;
 }
@@ -566,33 +524,15 @@ runStep installpostfix;
 );
 nextStep;
 
-stepOK "startpostfix" && (
-logMessage ">>> Step \"startpostfix\" starting...\n";
-runStep startpostfix;
-);
-nextStep;
-
 stepOK "installcourier" && (
 logMessage ">>> Step \"installcourier\" starting...\n";
 runStep installcourier;
 );
 nextStep;
 
-stepOK "startcourier" && (
-logMessage ">>> Step \"startcourier\" starting...\n";
-runStep startcourier;
-);
-nextStep;
-
 stepOK "installsasl" && (
 logMessage ">>> Step \"installsasl\" starting...\n";
 runStep installsasl;
-);
-nextStep;
-
-stepOK "startsasl" && (
-logMessage ">>> Step \"startsasl\" starting...\n";
-runStep startsasl;
 );
 nextStep;
 
@@ -605,12 +545,6 @@ nextStep;
 stepOK "updatepostfix" && (
 logMessage ">>> Step \"updatepostfix\" starting...\n";
 runStep updatepostfix;
-);
-nextStep;
-
-stepOK "restartpostfix" && (
-logMessage ">>> Step \"restartpostfix\" starting...\n";
-runStep restartpostfix;
 );
 nextStep;
 
@@ -644,12 +578,6 @@ runStep installapache;
 );
 nextStep;
 
-stepOK "setupapache" && (
-logMessage ">>> Step \"setupapache\" starting...\n";
-runStep setupapache;
-);
-nextStep;
-
 stepOK "phpmyadmin" && (
 logMessage ">>> Step \"phpmyadmin\" starting...\n";
 runStep phpmyadmin;
@@ -662,21 +590,9 @@ runStep mysqlauth;
 );
 nextStep;
 
-stepOK "restartauth" && (
-logMessage ">>> Step \"restartauth\" starting...\n";
-runStep restartauth;
-);
-nextStep;
-
 stepOK "mysqlpostfix" && (
 logMessage ">>> Step \"mysqlpostfix\" starting...\n";
 runStep mysqlpostfix;
-);
-nextStep;
-
-stepOK "restartpostfix2" && (
-logMessage ">>> Step \"restartpostfix2\" starting...\n";
-runStep restartpostfix2;
 );
 nextStep;
 

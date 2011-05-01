@@ -34,7 +34,7 @@ export LOG;
 typeset FAILED=$(mktemp);
 export FAILED;
 
-[ -f master.lib.sh ] && source ./master.lib.sh;
+[ -f master.lib.sh ] && source ./master.lib.sh || exit 1;
 
 initTools;
 

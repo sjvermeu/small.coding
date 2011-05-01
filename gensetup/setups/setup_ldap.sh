@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem users installldap setupldap setuppam";
+typeset STEPS="configsystem users installldap setupldap setupsync setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -34,8 +34,8 @@ export LOG;
 typeset FAILED=$(mktemp);
 export FAILED;
 
-[ -f master.lib.sh ] && source ./master.lib.sh;
-[ -f common.lib.sh ] && source ./common.lib.sh;
+[ -f master.lib.sh ] && source ./master.lib.sh || exit 1;
+[ -f common.lib.sh ] && source ./common.lib.sh || exit 1;
 
 initTools;
 
@@ -206,7 +206,21 @@ setupldap() {
   logMessage "  !\n";
   logMessage "  ! Create ldif for ldapreader.\n";
   logMessage "  ! Run ldapadd -x -D \"cn=...\" -W -f ./passwd.ldif\n";
-  die "When finished, continue with step setuppam."
+  die "When finished, continue with step setupsync."
+}
+
+setupsync() {
+  logMessage "  > Adding ldapreader ldif... ";
+  cat > /root/ldapreader.ldif << EOF
+dn: cn=ldapreader.virtdomain.com,dc=virtdomain,dc=com
+userPassword: {SSHA}XvbdAv6rdskp9HgFaFL9YhGkJH3HSkiM
+objectClass: organizationalRole
+objectClass: simpleSecurityObject
+cn: ldapreader.virtdomain.com
+description: LDAP reader used for synchronization
+EOF
+  ldapadd -x -w $(getValue openldap.password) -D "cn=Manager,dc=virtdomain,dc=com" -f /root/ldapreader.ldif;
+  logMessage "done\n";
 }
 
 setuppam() {
@@ -234,6 +248,12 @@ nextStep;
 stepOK "setupldap" && (
 logMessage ">>> Step \"setupldap\" starting...\n";
 runStep setupldap;
+);
+nextStep;
+
+stepOK "setupsync" && (
+logMessage ">>> Step \"setupsync\" starting...\n";
+runStep setupsync;
 );
 nextStep;
 

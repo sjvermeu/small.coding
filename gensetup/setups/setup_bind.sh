@@ -34,8 +34,8 @@ export LOG;
 typeset FAILED=$(mktemp);
 export FAILED;
 
-[ -f master.lib.sh ] && source ./master.lib.sh;
-[ -f common.lib.sh ] && source ./common.lib.sh;
+[ -f master.lib.sh ] && source ./master.lib.sh || exit 1;
+[ -f common.lib.sh ] && source ./common.lib.sh || exit 1;
 
 initTools;
 
@@ -225,8 +225,8 @@ EOF
 	1w		; expiry
 	1d )		; minimum
 
-100.168.192.in-addr.arpa.	IN	NS	192.168.100.71
-100.168.192.in-addr.arpa.	IN	NS	192.168.100.72
+100.168.192.in-addr.arpa.	IN	NS	ns1.virtdomain.com.
+100.168.192.in-addr.arpa.	IN	NS	ns1.virtdomain.com.
 71.100.168.192.in-addr.arpa.	IN	PTR	ns1.virtdomain.com.
 72.100.168.192.in-addr.arpa.	IN	PTR	ns2.virtdomain.com.
 52.100.168.192.in-addr.arpa.	IN	PTR	postgres.virtdomain.com.
@@ -243,11 +243,11 @@ EOF
     logMessage "done\n";
   fi
 
-  if [ "${DNSTYPE}" = "slave" ];
+  if [ "$(getValue dns.type)" = "slave" ];
   then
     logMessage "  > Allowing slave to write master zone information locally... ";
     chmod g+w /var/bind/pri /var/bind/sec;
-    setsebool -P named_write_masters_zones on;
+    setsebool -P named_write_master_zones on;
     logMessage "done\n";
   fi
 }

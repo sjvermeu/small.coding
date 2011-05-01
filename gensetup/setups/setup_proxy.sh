@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam";
+typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam finalize";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -34,8 +34,8 @@ export LOG;
 typeset FAILED=$(mktemp);
 export FAILED;
 
-[ -f master.lib.sh ] && source ./master.lib.sh;
-[ -f common.lib.sh ] && source ./common.lib.sh;
+[ -f master.lib.sh ] && source ./master.lib.sh || exit 1;
+[ -f common.lib.sh ] && source ./common.lib.sh || exit 1;
 
 initTools;
 
@@ -86,8 +86,9 @@ configsquid() {
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
-  logMessage "  > Creating cache directory (by squid).\n";
-  run_init squid -z || die "Failed to create cache directories.";
+  logMessage "  > Setting the cache label... ";
+  restorecon -R /var/cache/squid;
+  logMessage "done\n";
 }
 
 configprivoxy() {
@@ -113,6 +114,11 @@ configprivoxy() {
 
 setuppam() {
   _setuppam;
+}
+
+finalize() {
+  logMessage "  > Creating cache directory (by squid).\n";
+  LogMessage "    Please run 'run_init squid -z'.\n"
 }
 
 stepOK "configsystem" && (
@@ -148,6 +154,12 @@ nextStep;
 stepOK "setuppam" && (
 logMessage ">>> Step \"setuppam\" starting...\n";
 runStep setuppam;
+);
+nextStep;
+
+stepOK "finalize" && (
+logMessage ">>> Step \"finalize\" starting...\n";
+runStep finalize;
 );
 nextStep;
 

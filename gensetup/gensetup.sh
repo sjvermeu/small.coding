@@ -567,12 +567,21 @@ installGrub() {
 };
 
 installKernel() {
-  KERNELPACKAGE=$(awk -F'=' '/kernel.package=/ {print $2}' ${DATA});
-  printf "  - Installing kernel ${KERNELPACKAGE} (source code)... ";
-  logPrint "   - Installing kernel ${KERNELPACKAGE} (source code)" >> ${LOG};
-  runChrootCommand emerge --binpkg-respect-use=y -g ${KERNELPACKAGE} >> ${LOG} 2>&1;
-  printf "done\n";
-
+  KERNELINSTALL=$(getValue kernelsources.install);
+  if [ "${KERNELINSTALL}" = "provided" ];
+  then
+    KERNELVERSION=$(runChrootCommand emerge --color n -p ${KERNELPACKAGE} | grep ${KERNELPACKAGE} | sed -e "s:.*/\(${KERNELPACKAGE}.*\):\1:g");
+    printf "  - Marking kernel ${KERNELVERSION} as provided... ";
+    mkdir -p ${WORKDIR}/etc/portage/make.profile;
+    echo ${KERNELVERSION} >> ${WORKDIR}/etc/portage/make.profile/kernelsources;
+    printf "done\n";
+  else
+    KERNELPACKAGE=$(awk -F'=' '/kernel.package=/ {print $2}' ${DATA});
+    printf "  - Installing kernel ${KERNELPACKAGE} (source code)... ";
+    logPrint "   - Installing kernel ${KERNELPACKAGE} (source code)" >> ${LOG};
+    runChrootCommand emerge --binpkg-respect-use=y -g ${KERNELPACKAGE} >> ${LOG} 2>&1;
+    printf "done\n";
+  fi
   INSTALLTYPE=$(getValue kernel.install);
   if [ "${INSTALLTYPE}" = "binary" ];
   then

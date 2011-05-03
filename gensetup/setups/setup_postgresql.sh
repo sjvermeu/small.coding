@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installdb configdb labelfiles startdb setuppam";
+typeset STEPS="configsystem installdb configdb labelfiles setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -81,12 +81,6 @@ labelfiles() {
   logMessage "done\n";
 }
 
-startdb() {
-  logMessage "** Run the following commands to initialize the database:\n";
-  logMessage "**   /etc/init.d/postgresql-* start\n";
-  die "Please follow above manual commands. Finish with setuppam step.";
-}
-
 setuppam() {
   _setuppam;
 }
@@ -112,12 +106,6 @@ nextStep;
 stepOK "labelfiles" && (
 logMessage ">>> Step \"labelfiles\" starting...\n";
 runStep labelfiles;
-);
-nextStep;
-
-stepOK "startdb" && (
-logMessage ">>> Step \"startdb\" starting...\n";
-runStep startdb;
 );
 nextStep;
 

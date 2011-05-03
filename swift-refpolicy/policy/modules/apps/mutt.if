@@ -47,6 +47,7 @@ interface(`mutt_role',`
 
 	domtrans_pattern($2, mutt_exec_t, mutt_t)
 
+	allow $2 mutt_t:process signal;
 	ps_process_pattern($2, mutt_t)
 ')	
 

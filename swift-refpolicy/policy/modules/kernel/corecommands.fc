@@ -211,6 +211,7 @@ ifdef(`distro_gentoo',`
 /usr/lib(64)?/mailman/bin(/.*)?		gen_context(system_u:object_r:bin_t,s0)
 /usr/lib(64)?/mailman/mail(/.*)?	gen_context(system_u:object_r:bin_t,s0)
 /usr/lib(64)?/mediawiki/math/texvc.*	gen_context(system_u:object_r:bin_t,s0)
+/usr/lib(64)?/misc/glibc/getconf/.*	--	gen_context(system_u:object_r:bin_t,s0)
 /usr/lib(64)?/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
 /usr/lib(64)?/nagios/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
 /usr/lib(64)?/netsaint/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
@@ -258,6 +259,9 @@ ifdef(`distro_gentoo',`
 /usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
 /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
 /usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)
+ifdef(`distro_gentoo',`
+/usr/share/build-1/mkdir.sh	--	gen_context(system_u:object_r:bin_t,s0)
+')
 /usr/share/dayplanner/dayplanner --	gen_context(system_u:object_r:bin_t,s0)
 /usr/share/debconf/.+		--	gen_context(system_u:object_r:bin_t,s0)
 /usr/share/denyhosts/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)

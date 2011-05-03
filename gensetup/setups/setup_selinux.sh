@@ -174,7 +174,7 @@ set_profile() {
     logMessage "skipped\n";
   fi
 
-  logMessage "    > Setting PORTAGE_BINHOST... ";
+  logMessage "   > Setting PORTAGE_BINHOST... ";
   typeset FILE=/etc/make.conf;
   typeset META=$(initChangeFile ${FILE});
   updateEqualConfFile etc.make.conf ${FILE};

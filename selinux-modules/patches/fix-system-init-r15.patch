@@ -1,6 +1,14 @@
 --- refpolicy.orig/policy/modules/system/init.te	2010-12-13 15:11:02.000000000 +0100
-+++ refpolicy/policy/modules/system/init.te	2011-03-03 15:58:28.900999997 +0100
-@@ -169,6 +169,9 @@
++++ refpolicy/policy/modules/system/init.te	2011-05-13 23:37:46.603000085 +0200
+@@ -70,6 +70,7 @@
+ 
+ type initrc_state_t;
+ files_type(initrc_state_t)
++files_mountpoint(initrc_state_t)
+ 
+ type initrc_tmp_t;
+ files_tmp_file(initrc_tmp_t)
+@@ -169,6 +170,9 @@
  miscfiles_read_localization(init_t)
  
  ifdef(`distro_gentoo',`
@@ -10,7 +18,7 @@
  	allow init_t self:process { getcap setcap };
  ')
  
-@@ -844,3 +847,7 @@
+@@ -844,3 +848,7 @@
  optional_policy(`
  	zebra_read_config(initrc_t)
  ')

@@ -1,0 +1,54 @@
+--- refpolicy.orig/policy/modules/kernel/corecommands.fc	2010-10-27 19:52:48.000000000 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2011-05-14 15:01:08.412000000 +0200
+@@ -138,13 +138,23 @@
+ /lib64/udev/[^/]*		--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ ifdef(`distro_gentoo',`
+-/lib/dhcpcd/dhcpcd-run-hooks	--	gen_context(system_u:object_r:bin_t,s0)
++# Both /lib64 and /lib separate, Gentoo does not support file_contexts.subs yet
++# Also, lib(64)? regular expressions aren't specific enough (the /lib64.* expression
++# would then override all these
+ /lib64/dhcpcd/dhcpcd-run-hooks	--	gen_context(system_u:object_r:bin_t,s0)
+-
++/lib64/rcscripts/addons(/.*)?		gen_context(system_u:object_r:bin_t,s0)
++/lib64/rcscripts/sh(/.*)?			gen_context(system_u:object_r:bin_t,s0)
++/lib64/rcscripts/net\.modules\.d/helpers\.d/dhclient-.* -- gen_context(system_u:object_r:bin_t,s0)
++/lib64/rcscripts/net\.modules\.d/helpers\.d/udhcpc-.* -- gen_context(system_u:object_r:bin_t,s0)
++/lib64/rc/bin/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/lib64/rc/sh/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/lib/dhcpcd/dhcpcd-run-hooks	--	gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/addons(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/sh(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/net\.modules\.d/helpers\.d/dhclient-.* -- gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/net\.modules\.d/helpers\.d/udhcpc-.* -- gen_context(system_u:object_r:bin_t,s0)
++/lib/rc/bin/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/lib/rc/sh/.*			--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+ #
+@@ -201,6 +211,7 @@
+ /usr/lib(64)?/ConsoleKit/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/ConsoleKit/run-session.d(/.*)? gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/courier(/.*)?		gen_context(system_u:object_r:bin_t,s0)
++/usr/lib(64)?/courier-imap/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/cups(/.*)? 		gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/cyrus-imapd/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/dpkg/.+		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -210,6 +221,7 @@
+ /usr/lib(64)?/mailman/bin(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/mailman/mail(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/mediawiki/math/texvc.*	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib(64)?/misc/glibc/getconf/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/nagios/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib(64)?/netsaint/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+@@ -257,6 +269,9 @@
+ /usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)
++ifdef(`distro_gentoo',`
++/usr/share/build-1/mkdir.sh	--	gen_context(system_u:object_r:bin_t,s0)
++')
+ /usr/share/dayplanner/dayplanner --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/debconf/.+		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/denyhosts/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)

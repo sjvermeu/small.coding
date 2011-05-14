@@ -41,12 +41,13 @@
  	domain_entry_file($1, initrc_exec_t)
  ')
 --- refpolicy.orig/policy/modules/system/init.fc	2010-08-03 15:11:04.000000000 +0200
-+++ refpolicy/policy/modules/system/init.fc	2011-05-13 20:30:26.136000088 +0200
-@@ -51,6 +51,7 @@
++++ refpolicy/policy/modules/system/init.fc	2011-05-14 14:29:02.063000000 +0200
+@@ -51,6 +51,8 @@
  ifdef(`distro_gentoo', `
  /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
  /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
-+/lib(64)?/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/lib64/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/lib/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
  ')
  
  /var/run/utmp		--	gen_context(system_u:object_r:initrc_var_run_t,s0)

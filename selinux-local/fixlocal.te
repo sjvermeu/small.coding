@@ -10,11 +10,16 @@ require {
 	type user_home_dir_t;
 	type gorg_t;
 	type portage_ebuild_t;
+	type run_init_t;
+	type tmp_t;
+	type initrc_tmp_t;
+	type initrc_exec_t;
 	class process { execmem };
 	class tcp_socket { name_bind name_connect node_bind };
 	class fifo_file { getattr };
-	class file { create read write unlink execute getattr };
-	class dir { search getattr };
+	class file { create read write unlink execute getattr execute_no_trans };
+	class lnk_file { read };
+	class dir { search getattr read };
 }
 
 # Tools with execmem requirement
@@ -26,6 +31,12 @@ allow sysadm_t skype_t:fifo_file { getattr };
 # Allow vncviewer -listen mode (should be in its own domain)
 allow staff_t port_t:tcp_socket { name_bind };
 allow staff_t node_t:tcp_socket { node_bind };
+# openrc stuff
+#allow run_init_t tmp_t:dir { search };
+#allow run_init_t initrc_tmp_t:file { read write getattr };
+#allow run_init_t initrc_tmp_t:dir { search read };
+#allow run_init_t initrc_tmp_t:lnk_file { read };
+#allow run_init_t initrc_exec_t:file { execute_no_trans };
 
 allow gorg_t portage_ebuild_t:dir { search getattr };
 allow gorg_t portage_ebuild_t:file { getattr read };

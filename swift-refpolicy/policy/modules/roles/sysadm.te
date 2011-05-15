@@ -48,6 +48,10 @@ ifdef(`direct_sysadm_daemon',`
 		optional_policy(`
 			seutil_init_script_run_runinit(sysadm_t, sysadm_r)
 		')
+
+		optional_policy(`
+			gentoo_init_initrc_exec_notrans(sysadm, sysadm_r, sysadm_t)
+		')
 	')
 ')
 

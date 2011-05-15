@@ -27,7 +27,7 @@
 +	courier_read_config(initrc_t)
 +')
 --- refpolicy.orig/policy/modules/system/init.if	2010-10-11 15:32:08.000000000 +0200
-+++ refpolicy/policy/modules/system/init.if	2011-05-13 21:02:37.064000084 +0200
++++ refpolicy/policy/modules/system/init.if	2011-05-14 21:53:57.021000000 +0200
 @@ -756,6 +756,11 @@
  	gen_require(`
  		type initrc_exec_t;
@@ -40,6 +40,33 @@
  
  	domain_entry_file($1, initrc_exec_t)
  ')
+@@ -1459,6 +1464,26 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Manage the init script status files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`gentoo_init_manage_script_status_files',`
++	gen_require(`
++		type initrc_state_t;
++	')
++
++	manage_lnk_files_pattern($1, initrc_state_t, initrc_state_t)
++	manage_files_pattern($1, initrc_state_t, initrc_state_t)
++	manage_dirs_pattern($1, initrc_state_t, initrc_state_t)
++')
++
++########################################
+ ## <summary>
+ ##	Do not audit attempts to read init script
+ ##	status files.
 --- refpolicy.orig/policy/modules/system/init.fc	2010-08-03 15:11:04.000000000 +0200
 +++ refpolicy/policy/modules/system/init.fc	2011-05-14 14:29:02.063000000 +0200
 @@ -51,6 +51,8 @@

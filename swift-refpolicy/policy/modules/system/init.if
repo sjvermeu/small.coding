@@ -756,6 +756,11 @@ interface(`init_script_file_entry_type',`
 	gen_require(`
 		type initrc_exec_t;
 	')
+	
+	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
+	# wants to execute initrc_exec_t (no transition needed anymore) whereas
+	# runscript previously was a binary
+	allow $1 initrc_exec_t:file execute_no_trans;
 
 	domain_entry_file($1, initrc_exec_t)
 ')
@@ -1456,6 +1461,56 @@ interface(`init_getattr_script_status_files',`
 	')
 
 	getattr_files_pattern($1, initrc_state_t, initrc_state_t)
+')
+
+########################################
+## <summary>
+##   Do not perform a domain transition when calling initrc_exec_t. We use an
+##   intermediate domain $1_initrc_notrans_t for this.
+## </summary>
+## <param name="prefix">
+##   <summary>
+##   Prefix for the calling role/type
+##   </summary>
+## </param>
+## <param name="role">
+##   <summary>
+##   Source role
+##   </summary>
+## </param>
+## <param name="domain">
+##   <summary>
+##   Source domain
+##   </summary>
+## </param>
+#
+template(`gentoo_init_initrc_exec_notrans',`
+	gen_require(`
+		type initrc_exec_t;
+		type initrc_notrans_exec_t;
+	')
+
+	type $1_initrc_notrans_t;
+	application_domain($1_initrc_notrans_t, initrc_notrans_exec_t)
+	role $2 types $1_initrc_notrans_t;
+
+	###########################################
+	#
+	# Local policy
+	#
+	
+	#allow $1_initrc_notrans_t self:process signal_perms;
+	#allow $1_initrc_notrans_t $3:process signal;
+	#allow $3 $1_initrc_notrans_t:process signal;
+
+	domain_use_interactive_fds($1_initrc_notrans_t)
+	userdom_use_user_terminals($1_initrc_notrans_t)
+
+	domtrans_pattern($3, initrc_notrans_exec_t, $1_initrc_notrans_t)
+	domain_entry_file($3, initrc_exec_t)
+
+	domtrans_pattern($1_initrc_notrans_t, initrc_exec_t, $3)
+	corecmd_exec_shell($1_initrc_notrans_t)
 ')
 
 ########################################

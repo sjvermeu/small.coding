@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch tmpfs profile python selinux reboot_1 label reboot_2 booleans";
+typeset STEPS="overlay arch mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -108,7 +108,7 @@ enable_overlay() {
   fi
 }
 
-set_tmp_context() {
+set_mount_context() {
   logMessage "   > Setting tmp_t context for /tmp... ";
   grep -q '^tmpfs.*object_r:tmp_t' /etc/fstab;
   if [ $? -ne 0 ];
@@ -117,6 +117,22 @@ set_tmp_context() {
     typeset META=$(initChangeFile ${FILE});
     grep -v '[ 	]/tmp' ${FILE} > ${FILE}.new;
     echo "tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0" >> ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Setting initrc_state_t context for rc-svcdir... ";
+  grep -q '^rc-svcdir.*' /etc/fstab;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/fstab;
+    typeset META=$(initChangeFile ${FILE});
+    grep -v '[ 	]rc-svcdir' ${FILE} > ${FILE}.new;
+    echo "rc-svcdir   /lib64/rc/init.d   tmpfs       rw,rootcontext=system_u:object_r:initrc_state_t,seclabel,nosuid,nodev,noexec,relatime,size=1024k,mode=755  0 0" >> ${FILE}.new;
     mv ${FILE}.new ${FILE};
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -260,6 +276,17 @@ label_system() {
   fi
 }
 
+pam_run_init() {
+  logMessage "   > Updating /etc/pam.d/run_init... ";
+  typeset FILE=/etc/pam.d/run_init
+  typeset META=$(initChangeFile ${FILE});
+  awk '{print} /^#%PAM-1.0/ {print "auth  sufficient  pam_rootok.so"}' ${FILE} > ${FILE}.new;
+  mv ${FILE}.new ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+}
+
 set_booleans() {
   logMessage "   > Setting global_ssp boolean... ";
   setsebool -P global_ssp on || die "Failed to set global boolean";
@@ -290,9 +317,9 @@ runStep set_arch_packages;
 );
 nextStep;
 
-stepOK "tmpfs" && (
-logMessage ">>> Step \"tmpfs\" starting...\n";
-runStep set_tmp_context;
+stepOK "mountcontext" && (
+logMessage ">>> Step \"mountcontext\" starting...\n";
+runStep set_mount_context;
 );
 nextStep;
 
@@ -323,6 +350,12 @@ nextStep;
 stepOK "label" && (
 logMessage ">>> Step \"label\" starting...\n";
 runStep label_system;
+);
+nextStep;
+
+stepOK "pam" && (
+logMessage ">>> Step \"pam\" starting...\n";
+runStep pam_run_init;
 );
 nextStep;
 

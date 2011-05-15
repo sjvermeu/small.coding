@@ -68,8 +68,17 @@ type initrc_devpts_t;
 term_pty(initrc_devpts_t)
 files_type(initrc_devpts_t)
 
+## Specific to Gentoo
+# We create an initrc_notrans_exec_t which is used by the gentoo_init_initrc_exec_notrans template.
+# This allows a domain (sysadm_t) to transition temporarily to sysadm_initrc_notrans_t which, when
+# executing an initrc_exec_t file, transitions to sysadm_t again. This workaround is needed for things
+# like rc-update and rc-status which need to run in sysadm_t domain, but are nothing more but wrappers
+# on top of /sbin/rc (which is labelled initrc_exec_t).
+type initrc_notrans_exec_t, exec_type;
+
 type initrc_state_t;
 files_type(initrc_state_t)
+files_mountpoint(initrc_state_t)
 
 type initrc_tmp_t;
 files_tmp_file(initrc_tmp_t)

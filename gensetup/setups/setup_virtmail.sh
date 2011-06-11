@@ -302,11 +302,18 @@ installmysql() {
 }
 
 startmysql() {
-  logMessage "  > Please run emerge --config mysql (if not already done)\n";
-  logMessage "    (Hint: use password $(getValue mysql.root.password))\n";
-  logMessage "  > Next, start mysql (/etc/init.d/mysql start)\n";
-  logMessage "  > Finally, run mysql_secure_installation\n";
-  die "When finished, continue with loadsql step"
+  logMessage "  > Running 'emerge --config myqsl'... ";
+  export MYSQL_ROOT_PASSWORD=$(mysql.root.password);
+  emerge --config mysql;
+  logMessage "done\n";
+
+  logMessage "  > Starting mysql service... ";
+  run_init /etc/init.d/mysql start;
+  logMessage "done\n";
+
+  logMessage "  > Running mysql_secure_installation... ";
+  printf "N\n\n\n\n\n\n\n\n\n\n\n\n\n\n" | mysql_secure_installation;
+  logMessage "done\n";
 }
 
 loadsql() {

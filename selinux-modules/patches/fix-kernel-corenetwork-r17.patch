@@ -14,8 +14,8 @@
  type zookeeper_client_port_t, port_type;
  type zookeeper_client_client_packet_t, packet_type, client_packet_type;
 --- refpolicy.orig/policy/modules/kernel/corenetwork.if	2010-12-13 15:13:08.000000000 +0100
-+++ refpolicy/policy/modules/kernel/corenetwork.if	2011-06-12 11:19:58.276000575 +0200
-@@ -67355,8 +67355,64 @@
++++ refpolicy/policy/modules/kernel/corenetwork.if	2011-06-12 11:52:48.830000690 +0200
+@@ -67355,11 +67355,87 @@
  	allow $1 xserver_server_packet_t:packet relabelto;
  ')
  
@@ -34,11 +34,11 @@
 +	gen_require(`
 +		type zabbix_client_port_t;
 +	')
- 
++
 +	allow $1 zabbix_client_port_t:tcp_socket name_bind;
 +	
 +')
- 
++
 +########################################
 +## <summary>
 +##	Bind TCP sockets to the zabbix server port.
@@ -61,6 +61,26 @@
 +
 +########################################
 +## <summary>
++##	Send and receive TCP traffic on the zabbix client port.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <infoflow type="both" weight="10"/>
++#
++interface(`corenet_tcp_sendrecv_zabbix_client_port',`
++	gen_require(`
++		type zabbix_client_port_t;
++	')
+ 
++	allow $1 zabbix_client_port_t:tcp_socket { send_msg recv_msg };
++')
+ 
+ 
+ ########################################
+ ## <summary>
 +##	Send and receive TCP traffic on the zabbix server port.
 +## </summary>
 +## <param name="domain">
@@ -77,13 +97,34 @@
 +
 +	allow $1 zabbix_server_port_t:tcp_socket { send_msg recv_msg };
 +')
++
++########################################
++## <summary>
+ ##	Send and receive TCP traffic on the zookeeper_client port.
+ ## </summary>
+ ## <param name="domain">
+@@ -67528,6 +67604,43 @@
  
  ########################################
  ## <summary>
-@@ -67528,6 +67584,25 @@
- 
- ########################################
- ## <summary>
++##	Make a TCP connection to the zabbix client port.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`corenet_tcp_connect_zabbix_client_port',`
++	gen_require(`
++		type zabbix_client_port_t;
++	')
++
++	allow $1 zabbix_client_port_t:tcp_socket name_connect;
++')
++
++########################################
++## <summary>
 +##	Make a TCP connection to the zabbix server port.
 +## </summary>
 +## <param name="domain">
@@ -106,7 +147,7 @@
  ##	Make a TCP connection to the zookeeper_client port.
  ## </summary>
  ## <param name="domain">
-@@ -67544,6 +67619,26 @@
+@@ -67544,6 +67657,26 @@
  	allow $1 zookeeper_client_port_t:tcp_socket name_connect;
  ')
  
@@ -133,7 +174,7 @@
  
  ########################################
  ## <summary>
-@@ -67585,6 +67680,25 @@
+@@ -67585,6 +67718,25 @@
  
  ########################################
  ## <summary>
@@ -159,7 +200,7 @@
  ##	Receive zookeeper_client_client packets.
  ## </summary>
  ## <param name="domain">
-@@ -67622,6 +67736,22 @@
+@@ -67622,6 +67774,22 @@
  ')
  
  ########################################

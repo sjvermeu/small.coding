@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/services/zabbix.te	2010-12-13 15:11:02.000000000 +0100
-+++ refpolicy/policy/modules/services/zabbix.te	2011-06-12 11:20:38.091000577 +0200
++++ refpolicy/policy/modules/services/zabbix.te	2011-06-12 11:53:16.739000691 +0200
 @@ -9,17 +9,33 @@
  type zabbix_exec_t;
  init_daemon_domain(zabbix_t, zabbix_exec_t)
@@ -46,7 +46,7 @@
  
  # log files
  allow zabbix_t zabbix_log_t:dir setattr;
-@@ -39,14 +59,64 @@
+@@ -39,14 +59,66 @@
  manage_files_pattern(zabbix_t, zabbix_var_run_t, zabbix_var_run_t)
  files_pid_filetrans(zabbix_t, zabbix_var_run_t, { dir file })
  
@@ -61,6 +61,8 @@
  miscfiles_read_localization(zabbix_t)
 +corenet_tcp_bind_generic_node(zabbix_t)
 +corenet_tcp_bind_zabbix_server_port(zabbix_t)
++
++zabbix_client_tcp_connect(zabbix_t)
  
  optional_policy(`
 +	# Support MySQL connectivity both local (stream) and through network (tcp)
@@ -112,8 +114,8 @@
 +
 +kernel_read_system_state(zabbix_agent_t)
 --- refpolicy.orig/policy/modules/services/zabbix.if	2010-08-03 15:11:09.000000000 +0200
-+++ refpolicy/policy/modules/services/zabbix.if	2011-06-12 11:27:28.751000601 +0200
-@@ -79,6 +79,27 @@
++++ refpolicy/policy/modules/services/zabbix.if	2011-06-12 11:52:54.780000690 +0200
+@@ -79,6 +79,49 @@
  
  ########################################
  ## <summary>
@@ -135,6 +137,28 @@
 +	corenet_tcp_connect_zabbix_server_port($1)
 +	corenet_sendrecv_zabbix_client_packets($1)
 +')
++
++########################################
++## <summary>
++## 	Allow connectivity to a zabbix client
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`zabbix_client_tcp_connect',`
++	gen_require(`
++		type zabbix_agent_t;
++	')
++
++	corenet_tcp_recvfrom_labeled($1, zabbix_agent_t)
++	corenet_tcp_sendrecv_zabbix_client_port($1)
++	corenet_tcp_connect_zabbix_client_port($1)
++	corenet_sendrecv_zabbix_client_packets($1)
++')
++
 +
 +########################################
 +## <summary>

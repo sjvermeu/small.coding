@@ -1,0 +1,158 @@
+--- refpolicy.orig/policy/modules/services/zabbix.te	2010-12-13 15:11:02.000000000 +0100
++++ refpolicy/policy/modules/services/zabbix.te	2011-06-12 11:20:38.091000577 +0200
+@@ -9,17 +9,33 @@
+ type zabbix_exec_t;
+ init_daemon_domain(zabbix_t, zabbix_exec_t)
+ 
++type zabbix_agent_t;
++type zabbix_agent_exec_t;
++init_daemon_domain(zabbix_agent_t, zabbix_agent_exec_t)
++
+ type zabbix_initrc_exec_t;
+ init_script_file(zabbix_initrc_exec_t)
+ 
++type zabbix_agent_initrc_exec_t;
++init_script_file(zabbix_agent_initrc_exec_t)
++
+ # log files
+ type zabbix_log_t;
+ logging_log_file(zabbix_log_t)
+ 
++type zabbix_agent_log_t;
++logging_log_file(zabbix_agent_log_t)
++
+ # pid files
+ type zabbix_var_run_t;
+ files_pid_file(zabbix_var_run_t)
+ 
++type zabbix_agent_var_run_t;
++files_pid_file(zabbix_agent_var_run_t)
++
++type zabbix_tmpfs_t;
++files_tmpfs_file(zabbix_tmpfs_t);
++
+ ########################################
+ #
+ # zabbix local policy
+@@ -27,7 +43,11 @@
+ 
+ allow zabbix_t self:capability { setuid setgid };
+ allow zabbix_t self:fifo_file rw_file_perms;
++allow zabbix_t self:process { setsched getsched };
+ allow zabbix_t self:unix_stream_socket create_stream_socket_perms;
++allow zabbix_t self:sem { create unix_write unix_read read write associate destroy }; #mutex requirement for log file
++allow zabbix_t self:shm create_shm_perms;
++allow zabbix_t self:tcp_socket create_stream_socket_perms;
+ 
+ # log files
+ allow zabbix_t zabbix_log_t:dir setattr;
+@@ -39,14 +59,64 @@
+ manage_files_pattern(zabbix_t, zabbix_var_run_t, zabbix_var_run_t)
+ files_pid_filetrans(zabbix_t, zabbix_var_run_t, { dir file })
+ 
++sysnet_dns_name_resolve(zabbix_t)
++
++fs_tmpfs_filetrans(zabbix_t, zabbix_tmpfs_t, { dir file })
++manage_files_pattern(zabbix_t, tmpfs_t, zabbix_tmpfs_t)
++
++# configuration file
+ files_read_etc_files(zabbix_t)
+ 
+ miscfiles_read_localization(zabbix_t)
++corenet_tcp_bind_generic_node(zabbix_t)
++corenet_tcp_bind_zabbix_server_port(zabbix_t)
+ 
+ optional_policy(`
++	# Support MySQL connectivity both local (stream) and through network (tcp)
+ 	mysql_stream_connect(zabbix_t)
++	mysql_tcp_connect(zabbix_t)
+ ')
+ 
+ optional_policy(`
+ 	postgresql_stream_connect(zabbix_t)
+ ')
++
++########################################
++#
++# zabbix agent local policy
++#
++
++allow zabbix_agent_t self:capability { setuid setgid };
++allow zabbix_agent_t self:fifo_file rw_file_perms;
++allow zabbix_agent_t self:process { setsched getsched };
++allow zabbix_agent_t self:unix_stream_socket create_stream_socket_perms;
++allow zabbix_agent_t self:sem { create unix_write unix_read read write associate destroy }; #mutex requirement for log file
++allow zabbix_agent_t self:tcp_socket create_stream_socket_perms;
++allow zabbix_agent_t self:shm create_shm_perms;
++
++# log files
++allow zabbix_agent_t zabbix_log_t:dir setattr;
++manage_files_pattern(zabbix_agent_t, zabbix_log_t, zabbix_agent_log_t)
++logging_log_filetrans(zabbix_agent_t, zabbix_log_t, file)
++filetrans_pattern(zabbix_agent_t, zabbix_log_t, zabbix_agent_log_t, file)
++
++# pid file
++manage_dirs_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_agent_var_run_t)
++manage_files_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_agent_var_run_t)
++files_pid_filetrans(zabbix_agent_t, zabbix_agent_var_run_t, dir)
++filetrans_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_agent_var_run_t, file)
++
++files_read_etc_files(zabbix_agent_t)
++
++fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, { dir file })
++manage_files_pattern(zabbix_agent_t, tmpfs_t, zabbix_tmpfs_t)
++
++miscfiles_read_localization(zabbix_agent_t)
++
++sysnet_dns_name_resolve(zabbix_agent_t)
++
++corenet_tcp_bind_generic_node(zabbix_agent_t)
++corenet_tcp_bind_zabbix_client_port(zabbix_agent_t)
++zabbix_server_tcp_connect(zabbix_agent_t)
++
++kernel_read_system_state(zabbix_agent_t)
+--- refpolicy.orig/policy/modules/services/zabbix.if	2010-08-03 15:11:09.000000000 +0200
++++ refpolicy/policy/modules/services/zabbix.if	2011-06-12 11:15:29.465000559 +0200
+@@ -79,6 +79,27 @@
+ 
+ ########################################
+ ## <summary>
++## 	Allow connectivity to the zabbix server
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`zabbix_server_tcp_connect',`
++	gen_require(`
++		type zabbix_server_t;
++	')
++
++	corenet_tcp_recvfrom_labeled($1, zabbix_server_t)
++	corenet_tcp_sendrecv_zabbix_server_port($1)
++	corenet_tcp_connect_zabbix_server_port($1)
++	corenet_sendrecv_zabbix_client_packets($1)
++')
++
++########################################
++## <summary>
+ ##	All of the rules required to administrate 
+ ##	an zabbix environment
+ ## </summary>
+--- refpolicy.orig/policy/modules/services/zabbix.fc	2010-08-03 15:11:09.000000000 +0200
++++ refpolicy/policy/modules/services/zabbix.fc	2011-06-12 10:52:28.605000478 +0200
+@@ -1,7 +1,9 @@
+ /etc/rc\.d/init\.d/zabbix --	gen_context(system_u:object_r:zabbix_initrc_exec_t,s0)
++/etc/rc\.d/init\.d/zabbix-agentd --	gen_context(system_u:object_r:zabbix_agent_initrc_exec_t,s0)
+ 
+-/usr/bin/zabbix_server	--	gen_context(system_u:object_r:zabbix_exec_t,s0)
++/usr/(s)?bin/zabbix_server	--	gen_context(system_u:object_r:zabbix_exec_t,s0)
++/usr/(s)?bin/zabbix_agentd	--	gen_context(system_u:object_r:zabbix_agent_exec_t,s0)
+ 
+-/var/log/zabbix(/.*)?		gen_context(system_u:object_r:zabbix_log_t,s0)
++/var/log/zabbix(/.*)?	-d	gen_context(system_u:object_r:zabbix_log_t,s0)
+ 
+-/var/run/zabbix(/.*)?		gen_context(system_u:object_r:zabbix_var_run_t,s0)
++/var/run/zabbix(/.*)?	-d	gen_context(system_u:object_r:zabbix_var_run_t,s0)

@@ -112,7 +112,7 @@
 +
 +kernel_read_system_state(zabbix_agent_t)
 --- refpolicy.orig/policy/modules/services/zabbix.if	2010-08-03 15:11:09.000000000 +0200
-+++ refpolicy/policy/modules/services/zabbix.if	2011-06-12 11:15:29.465000559 +0200
++++ refpolicy/policy/modules/services/zabbix.if	2011-06-12 11:27:28.751000601 +0200
 @@ -79,6 +79,27 @@
  
  ########################################
@@ -127,10 +127,10 @@
 +#
 +interface(`zabbix_server_tcp_connect',`
 +	gen_require(`
-+		type zabbix_server_t;
++		type zabbix_t;
 +	')
 +
-+	corenet_tcp_recvfrom_labeled($1, zabbix_server_t)
++	corenet_tcp_recvfrom_labeled($1, zabbix_t)
 +	corenet_tcp_sendrecv_zabbix_server_port($1)
 +	corenet_tcp_connect_zabbix_server_port($1)
 +	corenet_sendrecv_zabbix_client_packets($1)

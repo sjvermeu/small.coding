@@ -74,6 +74,9 @@ fix-kernel-corecommands-r11.patch
 	Add mkdir.sh mapping for apache installation
 	Correct labelling for glibc/getconf weirdness in /usr/lib(64)
 
+fix-kernel-corenetwork-r17.patch
+	Add zabbix_port_t type
+
 fix-kernel-files-r12.patch
 	Add gentoo_files_dontaudit_write_all_mountpoints
 

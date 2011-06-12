@@ -1,0 +1,63 @@
+--- refpolicy.orig/policy/modules/kernel/corenetwork.te	2010-12-13 15:13:08.000000000 +0100
++++ refpolicy/policy/modules/kernel/corenetwork.te	2011-06-12 10:26:23.014000387 +0200
+@@ -1449,6 +1449,12 @@
+ type xserver_server_packet_t, packet_type, server_packet_type;
+ portcon tcp 6000-6020 gen_context(system_u:object_r:xserver_port_t,s0)
+ 
++type zabbix_client_port_t, port_type;
++type zabbix_server_port_t, port_type;
++type zabbix_client_packet_t, packet_type, client_packet_type;
++type zabbix_server_packet_t, packet_type, server_packet_type;
++portcon tcp 10050 gen_context(system_u:object_r:zabbix_client_port_t,s0)
++portcon tcp 10051 gen_context(system_u:object_r:zabbix_server_port_t,s0)
+ 
+ type zookeeper_client_port_t, port_type;
+ type zookeeper_client_client_packet_t, packet_type, client_packet_type;
+--- refpolicy.orig/policy/modules/kernel/corenetwork.if	2010-12-13 15:13:08.000000000 +0100
++++ refpolicy/policy/modules/kernel/corenetwork.if	2011-06-12 10:25:18.714000383 +0200
+@@ -67355,6 +67355,45 @@
+ 	allow $1 xserver_server_packet_t:packet relabelto;
+ ')
+ 
++########################################
++## <summary>
++##	Bind TCP sockets to the zabbix client port.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <infoflow type="none"/>
++#
++interface(`corenet_tcp_bind_zabbix_client_port',`
++	gen_require(`
++		type zabbix_client_port_t;
++	')
++
++	allow $1 zabbix_client_port_t:tcp_socket name_bind;
++	
++')
++
++########################################
++## <summary>
++##	Bind TCP sockets to the zabbix server port.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <infoflow type="none"/>
++#
++interface(`corenet_tcp_bind_zabbix_server_port',`
++	gen_require(`
++		type zabbix_server_port_t;
++	')
++
++	allow $1 zabbix_server_port_t:tcp_socket name_bind;
++	
++')
+ 
+ 
+ 

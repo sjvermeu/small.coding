@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installapache installsquirrel setuppam";
+typeset STEPS="configsystem installapache installsquirrel installzabbix setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -97,6 +97,7 @@ installsquirrel() {
   logMessage "  > Edit php.ini... ";
   typeset FILE=/etc/php/apache2-php5*/php.ini;
   typeset META=$(initChangeFile ${FILE});
+  updateEqualConfFile php.settings ${FILE};
   setOrUpdateQuotedVariable date.timezone "=" "$(getValue php.date_timezone)" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
@@ -105,6 +106,24 @@ installsquirrel() {
   logMessage "  > Symlinking libphp5.so... ";
   pushd /usr/lib64/apache2/modules;
   ln -s /usr/lib64/php*/apache2/libphp5.so . || die "Failed to set symlink"
+  logMessage "done\n";
+}
+
+installzabbix() {
+  logMessage "  > Setting up zabbix USE flags... ";
+  mkdir -p /etc/portage/package.use;
+  cat > /etc/portage/package.use/zabbix << EOF
+net-analyzer/zabbix -sqlite3 agent frontend
+EOF
+  logMessage "done\n";
+
+  logMessage "  > (Re)installing zabbix... ";
+  installSoftware -Nu zabbix |& die "Failed to (re)install zabbix";
+  logMessage "done\n";
+
+  logMessage "  > Adding zabbix to the localhost vhost... ";
+  typeset VERSION=$(portageq best_version / net-analyzer/zabbix | sed -e 's:net-analyzer/zabbix-::g');
+  webapp-config -I -h localhost -d /zabbix zabbix ${VERSION};
   logMessage "done\n";
 }
 
@@ -127,6 +146,12 @@ nextStep;
 stepOK "installsquirrel" && (
 logMessage ">>> Step \"installsquirrel\" starting...\n";
 runStep installsquirrel;
+);
+nextStep;
+
+stepOK "installzabbix" && (
+logMessage ">>> Step \"installzabbix\" starting...\n";
+runStep installzabbix;
 );
 nextStep;
 

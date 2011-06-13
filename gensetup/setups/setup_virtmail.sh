@@ -330,6 +330,21 @@ loadsql() {
   else
     logMessage "skipped\n";
   fi
+
+  logMessage "  > Creating zabbix database... ";
+  mysqladmin -u root --password=$(getValue mysql.root.password) create zabbix;
+  if [ $? -eq 0 ];
+  then
+    logMessage "done\n";
+
+    logMessage "  > Generating privileges for zabbix... ";
+    echo "GRANT ALL ON zabbix.* TO 'zabbix'@'zabbix.virtdomain.com' IDENTIFIED BY '$(getValue mysql.zabbix.password)'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.root.password);
+    echo "GRANT ALL ON zabbix.* TO 'zabbix'@'www1.virtdomain.com' IDENTIFIED BY '$(getValue mysql.zabbix.password)'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.root.password);
+    echo "GRANT ALL ON zabbix.* TO 'zabbix'@'www2.virtdomain.com' IDENTIFIED BY '$(getValue mysql.zabbix.password)'; FLUSH PRIVILEGES;" | mysql -u root --password=$(getValue mysql.root.password);
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
 }
 
 installapache() {

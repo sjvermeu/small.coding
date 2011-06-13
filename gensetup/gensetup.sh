@@ -253,7 +253,7 @@ mountDisks() {
   ROOT="${ROOT}$(awk -F'.' "/disk.lvm.*.purpose=root/ {print \$3/\$4}" ${DATA})";
   printf " - /dev/${ROOT} @ ${WORKDIR}\n";
   logPrint " - /dev/${ROOT} @ ${WORKDIR}" >> ${LOG};
-  mount /dev/${ROOT} ${WORKDIR};
+  mount /dev/${ROOT} ${WORKDIR} || die "Failed to mount /dev/${ROOT} on ${WORKDIR}";
 
   PURPOSES=$(awk -F'=' "/disk.*.purpose=\// {print \$2}" ${DATA});
   MAXNUMSLASH=$(echo ${PURPOSES} | sed -e 's: :\n:g' | sed -e 's:[^/]::g' | sort | tail -1 | wc -c);
@@ -443,6 +443,11 @@ configureSystem() {
   logPrint "  - Setup /etc/hosts" >> ${LOG};
   echo "127.0.0.1   ${HOSTNM}.${DOMNM} ${HOSTNM}" > ${WORKDIR}/etc/hosts;
 
+  printf "  - Setup /etc/timezone... ";
+  logPrint "  - Setup /etc/timezone" >> ${LOG};
+  getValue setup.etc.timezone > ${WORKDIR}/etc/timezone;
+  printf "done\n";
+
   FILES=$(listSectionOverview setup.conf);
   for FILE in ${FILES};
   do
@@ -568,15 +573,19 @@ installGrub() {
 
 installKernel() {
   KERNELINSTALL=$(getValue kernelsources.install);
+  KERNELPACKAGE=$(awk -F'=' '/kernel.package=/ {print $2}' ${DATA});
   if [ "${KERNELINSTALL}" = "provided" ];
   then
-    KERNELVERSION=$(runChrootCommand emerge --color n -p ${KERNELPACKAGE} | grep ${KERNELPACKAGE} | sed -e "s:.*/\(${KERNELPACKAGE}.*\):\1:g");
+    KERNELVERSION=$(runChrootCommand emerge --color n -p ${KERNELPACKAGE} | grep ${KERNELPACKAGE} | sed -e "s:.*/\(${KERNELPACKAGE}[^ ]*\).*:\1:g");
     printf "  - Marking kernel ${KERNELVERSION} as provided... ";
     mkdir -p ${WORKDIR}/etc/portage/make.profile;
     echo ${KERNELVERSION} >> ${WORKDIR}/etc/portage/make.profile/kernelsources;
     printf "done\n";
+
+    printf "  - Creating /usr/src/linux location... ";
+    runChrootCommand mkdir -p /usr/src/linux >> ${LOG} 2>&1;
+    printf "done\n";
   else
-    KERNELPACKAGE=$(awk -F'=' '/kernel.package=/ {print $2}' ${DATA});
     printf "  - Installing kernel ${KERNELPACKAGE} (source code)... ";
     logPrint "   - Installing kernel ${KERNELPACKAGE} (source code)" >> ${LOG};
     runChrootCommand emerge --binpkg-respect-use=y -g ${KERNELPACKAGE} >> ${LOG} 2>&1;
@@ -593,6 +602,7 @@ installKernel() {
 
     printf "  - Installing kernel binary... ";
     runChrootCommand "tar xjf /usr/src/linux/linux-binary.tar.bz2 -C /" >> ${LOG} 2>&1;
+    runChrootCommand rm /boot/kernel;
     runChrootCommand ln -s /boot/vmlinuz-* /boot/kernel;
     printf "done\n";
   elif [ "${INSTALLTYPE}" = "build" ];

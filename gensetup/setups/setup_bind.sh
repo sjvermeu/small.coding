@@ -184,7 +184,7 @@ EOF
     cat > /var/bind/pri/virtdomain.com.internal << EOF
 \$TTL 1200 
 @	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
-	2011042201	; serial
+	2011061001	; serial
 	3h		; refresh
 	1h		; retry
 	1w		; expiry
@@ -196,7 +196,7 @@ virtdomain.com.		IN NS	ns1.virtdomain.com.
 virtdomain.com.		IN NS	ns2.virtdomain.com.
 ns1.virtdomain.com.	IN A	192.168.100.71
 ns2.virtdomain.com.	IN A	192.168.100.72
-postgres.virtdomain.com	IN A	192.168.100.52
+postgres.virtdomain.com.	IN A	192.168.100.52
 www1.virtdomain.com.	IN A	192.168.100.61
 www2.virtdomain.com.	IN A	192.168.100.62
 ldap1.virtdomain.com.	IN A	192.168.100.55
@@ -207,6 +207,7 @@ mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
 rsync.virtdomain.com.	IN CNAME build.virtdomain.com.
 proxy.virtdomain.com.	IN A	192.168.100.63
+zabbix.virtdomain.com.	IN A	192.168.100.64
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -219,7 +220,7 @@ EOF
     cat > /var/bind/pri/192.168.100.internal << EOF
 \$TTL 1200
 @	IN SOA	ns.virtdomain.com.	admin.virtdomain.com. (
-	2011042201	; serial
+	2011061001	; serial
 	3h		; refresh
 	1h		; retry
 	1w		; expiry
@@ -237,6 +238,7 @@ EOF
 51.100.168.192.in-addr.arpa.	IN	PTR	mail1.virtdomain.com.
 50.100.168.192.in-addr.arpa.	IN	PTR	build.virtdomain.com.
 63.100.168.192.in-addr.arpa.	IN	PTR	proxy.virtdomain.com.
+64.100.168.192.in-addr.arpa.	IN	PTR	zabbix.virtdomain.com.
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};

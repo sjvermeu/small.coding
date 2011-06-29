@@ -164,27 +164,11 @@ EOF
 }
 
 set_profile() {
-  logMessage "   > Switching profile to 'selinux/v2refpolicy/amd64/hardened'... ";
-  eselect profile list | grep -q 'selinux/v2refpolicy/amd64/hardened \*$';
+  logMessage "   > Switching profile to 'hardened/linux/amd64/no-multilib/selinux'... ";
+  eselect profile list | grep -q 'hardened/linux/amd64/no-multilib/selinux \*$';
   if [ $? -ne 0 ];
   then
-    eselect profile set selinux/v2refpolicy/amd64/hardened || die "Failed to switch profiles";
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-
-  logMessage "   > Setting FEATURES=\"-loadpolicy\"... ";
-  grep -q '^FEATURES=.*-loadpolicy' /etc/make.conf;
-  if [ $? -ne 0 ];
-  then
-    typeset FILE=/etc/make.conf;
-    typeset META=$(initChangeFile ${FILE});
-    typeset CFEAT=$(awk '/^FEATURES=/' ${FILE} | sed -e 's:FEATURES="::g' -e 's:#.*::g' -e 's:"::g');
-    sed -i -e '/FEATURES=/d' ${FILE};
-    echo "FEATURES=\"${CFEAT} -loadpolicy\"" >> ${FILE};
-    applyMetaOnFile ${FILE} ${META};
-    commitChangeFile ${FILE} ${META};
+    eselect profile set hardened/linux/amd64/no-multilib/selinux || die "Failed to switch profiles";
     logMessage "done\n";
   else
     logMessage "skipped\n";

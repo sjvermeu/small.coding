@@ -178,6 +178,10 @@ setupDisks() {
     printf ${SFDISKOUT} | sfdisk --no-reread -uM /dev/${DISK} >> ${LOG} 2>&1;
     printf "done\n"; 
 
+    # Wait for partitions to settle
+    sync;
+    sleep 2;
+
     # Format partitions
     for PART in ${PARTS};
     do
@@ -448,6 +452,10 @@ configureSystem() {
   getValue setup.etc.timezone > ${WORKDIR}/etc/timezone;
   printf "done\n";
 
+  printf "  - Setup /etc/localtime... ";
+  cp /usr/share/zoneinfo/$(getValue setup.etc.timezone) > ${WORKDIR}/etc/localtime;
+  printf "done\n";
+
   FILES=$(listSectionOverview setup.conf);
   for FILE in ${FILES};
   do
@@ -465,6 +473,7 @@ configureSystem() {
 
   printf "  - Enabling eth0\n";
   logPrint "  - Enabling eth0" >> ${LOG};
+  runChrootCommand ln -sf /etc/init.d/net.lo /etc/init.d/net.eth0 >> ${LOG} 2>&1;
   runChrootCommand rc-update add net.eth0 default >> ${LOG} 2>&1;
 
   printf "  - Enabling sshd\n";
@@ -505,7 +514,8 @@ configureSystem() {
 
 installTools() {
   PACKAGES=$(awk -F'=' '/tools.install.packages=/ {print $2}' ${DATA});
-  RUNLEVEL=$(awk -F'=' '/tools.install.runlevel=/ {print $2}' ${DATA});
+  DRUNLEVEL=$(awk -F'=' '/tools.install.runlevel.default=/ {print $2}' ${DATA});
+  BRUNLEVEL=$(awk -F'=' '/tools.install.runlevel.boot=/ {print $2}' ${DATA});
   FAILEDPACKAGES="";
   HASFAILED=0;
   for PACKAGE in ${PACKAGES};
@@ -531,19 +541,27 @@ installTools() {
     if [ $RC -eq 0 ];
     then
       printf "done\n";
-      echo ${RUNLEVEL} | grep ${PACKAGE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        printf "    Adding ${PACKAGE} to default runlevel\n";
-	logPrint "    Adding ${PACKAGE} to default runlevel" >> ${LOG};
-	runChrootCommand rc-update add ${PACKAGE} default >> ${LOG} 2>&1;
-      fi
     else
       printf "failed!\n";
       FAILEDPACKAGES="${FAILEDPACKAGES} ${PACKAGE}";
       HASFAILED=$((${HASFAILED}+1));
     fi
   done
+
+  for DEFRUNLEVEL in ${DRUNLEVEL};
+  do
+    printf "    Adding ${DEFRUNLEVEL} to default runlevel\n";
+    logPrint "    Adding ${DEFRUNLEVEL} to default runlevel" >> ${LOG};
+    runChrootCommand rc-update add ${DEFRUNLEVEL} default >> ${LOG} 2>&1;
+  done 
+
+  for BOOTRUNLEVEL in ${BRUNLEVEL};
+  do
+    printf "    Adding ${PACKAGE} to boot runlevel\n";
+    logPrint "    Adding ${PACKAGE} to boot runlevel" >> ${LOG};
+    runChrootCommand rc-update add ${PACKAGE} boot >> ${LOG} 2>&1;
+  done
+
   if [ ${HASFAILED} -gt 0 ];
   then
     die "${HASFAILED} packages (${FAILEDPACKAGES}) failed to install properly. Manually fix this and start with the next step.";

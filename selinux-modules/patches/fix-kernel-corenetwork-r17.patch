@@ -1,225 +1,41 @@
 --- refpolicy.orig/policy/modules/kernel/corenetwork.te	2010-12-13 15:13:08.000000000 +0100
-+++ refpolicy/policy/modules/kernel/corenetwork.te	2011-06-13 08:52:26.886000046 +0200
-@@ -1449,6 +1449,12 @@
++++ refpolicy/policy/modules/kernel/corenetwork.te	2011-06-13 10:50:00.937000248 +0200
+@@ -1449,7 +1449,6 @@
  type xserver_server_packet_t, packet_type, server_packet_type;
  portcon tcp 6000-6020 gen_context(system_u:object_r:xserver_port_t,s0)
  
-+type zabbix_agent_port_t, port_type;
-+type zabbix_port_t, port_type;
-+type zabbix_agent_packet_t, packet_type, client_packet_type;
-+type zabbix_packet_t, packet_type, server_packet_type;
-+portcon tcp 10050 gen_context(system_u:object_r:zabbix_agent_port_t,s0)
-+portcon tcp 10051 gen_context(system_u:object_r:zabbix_port_t,s0)
- 
+-
  type zookeeper_client_port_t, port_type;
  type zookeeper_client_client_packet_t, packet_type, client_packet_type;
+ type zookeeper_client_server_packet_t, packet_type, server_packet_type;
 --- refpolicy.orig/policy/modules/kernel/corenetwork.if	2010-12-13 15:13:08.000000000 +0100
-+++ refpolicy/policy/modules/kernel/corenetwork.if	2011-06-13 08:52:57.216000046 +0200
-@@ -67355,11 +67355,87 @@
++++ refpolicy/policy/modules/kernel/corenetwork.if	2011-06-13 10:50:29.983000248 +0200
+@@ -67355,9 +67355,6 @@
  	allow $1 xserver_server_packet_t:packet relabelto;
  ')
  
-+########################################
-+## <summary>
-+##	Bind TCP sockets to the zabbix client port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="none"/>
-+#
-+interface(`corenet_tcp_bind_zabbix_agent_port',`
-+	gen_require(`
-+		type zabbix_agent_port_t;
-+	')
-+
-+	allow $1 zabbix_agent_port_t:tcp_socket name_bind;
-+	
-+')
-+
-+########################################
-+## <summary>
-+##	Bind TCP sockets to the zabbix server port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="none"/>
-+#
-+interface(`corenet_tcp_bind_zabbix_port',`
-+	gen_require(`
-+		type zabbix_port_t;
-+	')
-+
-+	allow $1 zabbix_port_t:tcp_socket name_bind;
-+	
-+')
-+
-+########################################
-+## <summary>
-+##	Send and receive TCP traffic on the zabbix client port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="both" weight="10"/>
-+#
-+interface(`corenet_tcp_sendrecv_zabbix_agent_port',`
-+	gen_require(`
-+		type zabbix_agent_port_t;
-+	')
- 
-+	allow $1 zabbix_agent_port_t:tcp_socket { send_msg recv_msg };
-+')
- 
- 
+-
+-
+-
  ########################################
  ## <summary>
-+##	Send and receive TCP traffic on the zabbix server port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="both" weight="10"/>
-+#
-+interface(`corenet_tcp_sendrecv_zabbix_port',`
-+	gen_require(`
-+		type zabbix_port_t;
-+	')
-+
-+	allow $1 zabbix_port_t:tcp_socket { send_msg recv_msg };
-+')
-+
-+########################################
-+## <summary>
  ##	Send and receive TCP traffic on the zookeeper_client port.
- ## </summary>
- ## <param name="domain">
-@@ -67528,6 +67604,43 @@
- 
- ########################################
- ## <summary>
-+##	Make a TCP connection to the zabbix client port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`corenet_tcp_connect_zabbix_agent_port',`
-+	gen_require(`
-+		type zabbix_agent_port_t;
-+	')
-+
-+	allow $1 zabbix_agent_port_t:tcp_socket name_connect;
-+')
-+
-+########################################
-+## <summary>
-+##	Make a TCP connection to the zabbix server port.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`corenet_tcp_connect_zabbix_port',`
-+	gen_require(`
-+		type zabbix_port_t;
-+	')
-+
-+	allow $1 zabbix_port_t:tcp_socket name_connect;
-+')
-+
-+
-+########################################
-+## <summary>
- ##	Make a TCP connection to the zookeeper_client port.
- ## </summary>
- ## <param name="domain">
-@@ -67544,6 +67657,26 @@
+@@ -67544,7 +67541,6 @@
  	allow $1 zookeeper_client_port_t:tcp_socket name_connect;
  ')
  
-+########################################
-+## <summary>
-+##	Send zabbix_agent packets.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="write" weight="10"/>
-+#
-+interface(`corenet_send_zabbix_agent_packets',`
-+	gen_require(`
-+		type zabbix_agent_packet_t;
-+	')
-+
-+	allow $1 zabbix_agent_packet_t:packet send;
-+')
-+
-+
- 
+-
  ########################################
  ## <summary>
-@@ -67585,6 +67718,25 @@
- 
- ########################################
- ## <summary>
-+##	Receive zabbix_agent packets.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="read" weight="10"/>
-+#
-+interface(`corenet_receive_zabbix_agent_packets',`
-+	gen_require(`
-+		type zabbix_agent_packet_t;
-+	')
-+
-+	allow $1 zabbix_agent_packet_t:packet recv;
-+')
-+
-+########################################
-+## <summary>
- ##	Receive zookeeper_client_client packets.
- ## </summary>
- ## <param name="domain">
-@@ -67622,6 +67774,22 @@
- ')
- 
- ########################################
-+## <summary>
-+##	Send and receive zabbix client packets.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <infoflow type="both" weight="10"/>
-+#
-+interface(`corenet_sendrecv_zabbix_agent_packets',`
-+	corenet_send_zabbix_agent_packets($1)
-+	corenet_receive_zabbix_agent_packets($1)
-+')
-+
-+########################################
- ## <summary>
- ##	Send and receive zookeeper_client_client packets.
- ## </summary>
+ ##	Send zookeeper_client_client packets.
+--- refpolicy.orig/policy/modules/kernel/corenetwork.te.in	2010-12-13 15:11:03.000000000 +0100
++++ refpolicy/policy/modules/kernel/corenetwork.te.in	2011-06-13 10:10:57.693000180 +0200
+@@ -213,6 +213,8 @@
+ network_port(xen, tcp,8002,s0)
+ network_port(xfs, tcp,7100,s0)
+ network_port(xserver, tcp,6000-6020,s0)
++network_port(zabbix_agent, tcp,10050,s0)
++network_port(zabbix, tcp,10051,s0)
+ network_port(zookeeper_client, tcp,2181,s0)
+ network_port(zookeeper_election, tcp,3888,s0)
+ network_port(zookeeper_leader, tcp,2888,s0)

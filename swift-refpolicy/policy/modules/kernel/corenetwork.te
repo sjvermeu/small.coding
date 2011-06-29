@@ -1449,7 +1449,6 @@ type xserver_client_packet_t, packet_type, client_packet_type;
 type xserver_server_packet_t, packet_type, server_packet_type;
 portcon tcp 6000-6020 gen_context(system_u:object_r:xserver_port_t,s0)
 
-
 type zookeeper_client_port_t, port_type;
 type zookeeper_client_client_packet_t, packet_type, client_packet_type;
 type zookeeper_client_server_packet_t, packet_type, server_packet_type;

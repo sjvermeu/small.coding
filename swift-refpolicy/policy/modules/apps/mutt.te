@@ -34,22 +34,23 @@ ubac_constrained(mutt_tmp_t)
 allow mutt_t self:process signal_perms;
 allow mutt_t self:fifo_file { getattr read write };
 
-
+## Locally owned types
+# Mutt-owned files like ~/.mutt/ 
 manage_dirs_pattern(mutt_t, mutt_home_t, mutt_home_t)
 manage_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
 userdom_user_home_dir_filetrans(mutt_t, mutt_home_t, dir)
-
+# Mutt temporary files
 manage_dirs_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
 manage_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
 manage_fifo_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
 files_tmp_filetrans(mutt_t, mutt_tmp_t, { file dir })
 files_search_tmp(mutt_t)
-
+# Mutt configuration files
 read_files_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
 read_files_pattern(mutt_t, mutt_conf_t, mutt_conf_t)
 search_dirs_pattern(mutt_t, mutt_sys_conf_t, mutt_sys_conf_t)
 
-
+## Kernel layer privileges
 corecmd_exec_bin(mutt_t)
 corecmd_exec_shell(mutt_t)
 corenet_tcp_connect_pop_port(mutt_t)
@@ -59,14 +60,14 @@ dev_read_urand(mutt_t)
 domain_use_interactive_fds(mutt_t)
 files_read_usr_files(mutt_t)
 
-
+## System layer privileges
 auth_use_nsswitch(mutt_t)
 miscfiles_read_localization(mutt_t)
+# Mutt is an end-user application
 userdom_manage_user_home_content_files(mutt_t)
 userdom_manage_user_home_content_dirs(mutt_t)
 userdom_search_user_home_content(mutt_t)
 userdom_use_user_terminals(mutt_t)
-
 
 optional_policy(`
 	gpg_domtrans(mutt_t)

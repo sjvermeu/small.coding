@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/services/zabbix.te	2010-12-13 15:11:02.000000000 +0100
-+++ refpolicy/policy/modules/services/zabbix.te	2011-06-13 08:50:17.607000042 +0200
++++ refpolicy/policy/modules/services/zabbix.te	2011-06-13 10:48:02.551000244 +0200
 @@ -9,9 +9,16 @@
  type zabbix_exec_t;
  init_daemon_domain(zabbix_t, zabbix_exec_t)
@@ -39,7 +39,7 @@
  
  # log files
  allow zabbix_t zabbix_log_t:dir setattr;
-@@ -39,14 +53,80 @@
+@@ -39,14 +53,81 @@
  manage_files_pattern(zabbix_t, zabbix_var_run_t, zabbix_var_run_t)
  files_pid_filetrans(zabbix_t, zabbix_var_run_t, { dir file })
  
@@ -55,7 +55,7 @@
 +corenet_tcp_bind_generic_node(zabbix_t)
 +corenet_tcp_bind_zabbix_port(zabbix_t)
 +
-+zabbix_agent_tcp_connect(zabbix_t)
++gentoo_zabbix_agent_tcp_connect(zabbix_t)
  
  optional_policy(`
 +	# Support MySQL connectivity both local (stream) and through network (tcp)
@@ -88,10 +88,10 @@
 +manage_files_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_var_run_t)
 +files_pid_filetrans(zabbix_agent_t, zabbix_var_run_t, file)
 +# Port access
-+zabbix_tcp_connect(zabbix_agent_t) 
-+zabbix_read_proc_files(zabbix_agent_t) 
++gentoo_zabbix_tcp_connect(zabbix_agent_t) 
 +# Shared memory
 +rw_files_pattern(zabbix_agent_t, zabbix_tmpfs_t, zabbix_tmpfs_t)
++fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, { dir file })
 +
 +## kernel layer module calls
 +kernel_read_all_sysctls(zabbix_agent_t)
@@ -101,18 +101,19 @@
 +corecmd_read_all_executables(zabbix_agent_t)
 +corenet_tcp_bind_generic_node(zabbix_agent_t)
 +corenet_tcp_bind_zabbix_agent_port(zabbix_agent_t)
-+corenet_tcp_connect_all_ports(zabbix_agent_t)
++corenet_tcp_connect_ssh_port(zabbix_agent_t) # Agent supports ssh connectivity tests
++corenet_tcp_connect_zabbix_port(zabbix_agent_t)
 +dev_getattr_all_blk_files(zabbix_agent_t)
 +dev_getattr_all_chr_files(zabbix_agent_t)
 +domain_search_all_domains_state(zabbix_agent_t)
++files_read_all_symlinks(zabbix_agent_t)
 +files_read_etc_files(zabbix_agent_t)
 +files_getattr_all_dirs(zabbix_agent_t)
 +files_getattr_all_files(zabbix_agent_t)
 +fs_getattr_all_fs(zabbix_agent_t)
-+fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, { dir file })
 +
 +## system layer module calls
-+hostname_exec(zabbix_agent_t)
++#hostname_exec(zabbix_agent_t)
 +init_read_utmp(zabbix_agent_t)
 +logging_search_logs(zabbix_agent_t)
 +miscfiles_read_localization(zabbix_agent_t) 
@@ -121,29 +122,11 @@
 +## other modules
 +#ssh_exec(zabbix_agent_t)
 --- refpolicy.orig/policy/modules/services/zabbix.if	2010-08-03 15:11:09.000000000 +0200
-+++ refpolicy/policy/modules/services/zabbix.if	2011-06-13 08:49:53.887000042 +0200
-@@ -79,6 +79,67 @@
++++ refpolicy/policy/modules/services/zabbix.if	2011-06-13 11:13:17.326000288 +0200
+@@ -79,6 +79,49 @@
  
  ########################################
  ## <summary>
-+##	Read zabbix /proc files.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`zabbix_read_proc_files',`
-+	gen_require(`
-+		type zabbix_t;
-+	')
-+
-+	read_files_pattern($1, zabbix_t, zabbix_t)
-+')
-+
-+########################################
-+## <summary>
 +## 	Allow connectivity to the zabbix server
 +## </summary>
 +## <param name="domain">
@@ -152,7 +135,7 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`zabbix_tcp_connect',`
++interface(`gentoo_zabbix_tcp_connect',`
 +	gen_require(`
 +		type zabbix_t;
 +	')
@@ -160,7 +143,7 @@
 +	corenet_tcp_recvfrom_labeled($1, zabbix_t)
 +	corenet_tcp_sendrecv_zabbix_port($1)
 +	corenet_tcp_connect_zabbix_port($1)
-+	corenet_sendrecv_zabbix_agent_packets($1)
++	corenet_sendrecv_zabbix_client_packets($1)
 +')
 +
 +########################################
@@ -173,7 +156,7 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`zabbix_agent_tcp_connect',`
++interface(`gentoo_zabbix_agent_tcp_connect',`
 +	gen_require(`
 +		type zabbix_agent_t;
 +	')
@@ -181,7 +164,7 @@
 +	corenet_tcp_recvfrom_labeled($1, zabbix_agent_t)
 +	corenet_tcp_sendrecv_zabbix_agent_port($1)
 +	corenet_tcp_connect_zabbix_agent_port($1)
-+	corenet_sendrecv_zabbix_agent_packets($1)
++	corenet_sendrecv_zabbix_agent_client_packets($1)
 +')
 +
 +

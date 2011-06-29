@@ -67355,9 +67355,6 @@ interface(`corenet_relabelto_xserver_server_packets',`
 	allow $1 xserver_server_packet_t:packet relabelto;
 ')
 
-
-
-
 ########################################
 ## <summary>
 ##	Send and receive TCP traffic on the zookeeper_client port.
@@ -67543,7 +67540,6 @@ interface(`corenet_tcp_connect_zookeeper_client_port',`
 
 	allow $1 zookeeper_client_port_t:tcp_socket name_connect;
 ')
-
 
 ########################################
 ## <summary>

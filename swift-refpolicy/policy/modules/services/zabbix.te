@@ -65,7 +65,7 @@ miscfiles_read_localization(zabbix_t)
 corenet_tcp_bind_generic_node(zabbix_t)
 corenet_tcp_bind_zabbix_port(zabbix_t)
 
-zabbix_agent_tcp_connect(zabbix_t)
+gentoo_zabbix_agent_tcp_connect(zabbix_t)
 
 optional_policy(`
 	# Support MySQL connectivity both local (stream) and through network (tcp)
@@ -98,10 +98,10 @@ manage_files_pattern(zabbix_agent_t, zabbix_log_t, zabbix_log_t)
 manage_files_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_var_run_t)
 files_pid_filetrans(zabbix_agent_t, zabbix_var_run_t, file)
 # Port access
-zabbix_tcp_connect(zabbix_agent_t) 
+gentoo_zabbix_tcp_connect(zabbix_agent_t) 
 # Shared memory
 rw_files_pattern(zabbix_agent_t, zabbix_tmpfs_t, zabbix_tmpfs_t)
-fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, { dir file })
+fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, file)
 
 ## kernel layer module calls
 kernel_read_all_sysctls(zabbix_agent_t)

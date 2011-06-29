@@ -40,6 +40,9 @@ allow staff_t node_t:tcp_socket { node_bind };
 
 allow gorg_t portage_ebuild_t:dir { search getattr };
 allow gorg_t portage_ebuild_t:file { getattr read };
+# Allow execmem for staff (libreoffice)
+allow staff_t self:process { execmem };
+
 
 ##
 ## These ones still need to be validated if we need them for 

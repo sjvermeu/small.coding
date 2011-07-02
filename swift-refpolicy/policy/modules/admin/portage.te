@@ -105,6 +105,8 @@ files_list_all(gcc_config_t)
 
 # seems to be ok without this
 init_dontaudit_read_script_status_files(gcc_config_t)
+# since openrc, gcc-config calls rc (but transitioning isn't needed) through the color eval stuff
+init_exec_script_files(gcc_config_t)
 
 libs_read_lib_files(gcc_config_t)
 libs_domtrans_ldconfig(gcc_config_t)

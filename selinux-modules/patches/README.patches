@@ -56,7 +56,7 @@ add-services-gorg-r4.patch
 add-services-vde-r5.patch
 	Add support for the vde (virtual distributed ethernet switch) service
 
-fix-admin-portage-r13.patch
+fix-admin-portage-r18.patch
 	Enable setfscreate, needed to deploy java-config
 	Generate the gentoo_try_dontaudit tunable boolean
 	Introduce the necessary dontaudit statements (covered by gentoo_try_dontaudit)
@@ -65,6 +65,7 @@ fix-admin-portage-r13.patch
 	Allow ptrace within sandbox (some system package builds require this)
 	Allow port 8080 for portage_fetch_t domain
 	Support portage_srcrepo_t domain for -9999 ebuilds
+	Allow gcc-config to call rc (since openrc)
 
 fix-apps-qemu-r4.patch
 	Disable an optional policy as it contains errors (build failure)
@@ -73,6 +74,7 @@ fix-kernel-corecommands-r11.patch
 	Add courier binary location
 	Add mkdir.sh mapping for apache installation
 	Correct labelling for glibc/getconf weirdness in /usr/lib(64)
+	Add labelling for mozilla-related binaries (esp. to get flash working properly)
 
 fix-kernel-corenetwork-r17.patch
 	Add zabbix_port_t type

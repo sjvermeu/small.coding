@@ -356,7 +356,7 @@ extractFiles() {
   logPrint "Prepare chroot." >> ${LOG};
   test -d ${WORKDIR}/etc || (mkdir ${WORKDIR}/etc && chmod 755 ${WORKDIR}/etc; )
   cp -L /etc/resolv.conf ${WORKDIR}/etc;
-  ZONE=$(awk -F'=' '/setup.conf.clock.TIMEZONE=/ {print $2}' ${DATA});
+  ZONE=$(awk -F'=' '/setup.etc.timezone=/ {print $2}' ${DATA});
   cp ${WORKDIR}/usr/share/zoneinfo/${ZONE} ${WORKDIR}/etc/localtime;
   printf "done\n";
 
@@ -450,10 +450,6 @@ configureSystem() {
   printf "  - Setup /etc/timezone... ";
   logPrint "  - Setup /etc/timezone" >> ${LOG};
   getValue setup.etc.timezone > ${WORKDIR}/etc/timezone;
-  printf "done\n";
-
-  printf "  - Setup /etc/localtime... ";
-  cp /usr/share/zoneinfo/$(getValue setup.etc.timezone) > ${WORKDIR}/etc/localtime;
   printf "done\n";
 
   FILES=$(listSectionOverview setup.conf);
@@ -557,9 +553,9 @@ installTools() {
 
   for BOOTRUNLEVEL in ${BRUNLEVEL};
   do
-    printf "    Adding ${PACKAGE} to boot runlevel\n";
-    logPrint "    Adding ${PACKAGE} to boot runlevel" >> ${LOG};
-    runChrootCommand rc-update add ${PACKAGE} boot >> ${LOG} 2>&1;
+    printf "    Adding ${BOOTRUNLEVEL} to boot runlevel\n";
+    logPrint "    Adding ${BOOTRUNLEVEL} to boot runlevel" >> ${LOG};
+    runChrootCommand rc-update add ${BOOTRUNLEVEL} boot >> ${LOG} 2>&1;
   done
 
   if [ ${HASFAILED} -gt 0 ];
@@ -620,7 +616,7 @@ installKernel() {
 
     printf "  - Installing kernel binary... ";
     runChrootCommand "tar xjf /usr/src/linux/linux-binary.tar.bz2 -C /" >> ${LOG} 2>&1;
-    runChrootCommand rm /boot/kernel;
+    runChrootCommand rm -f /boot/kernel;
     runChrootCommand ln -s /boot/vmlinuz-* /boot/kernel;
     printf "done\n";
   elif [ "${INSTALLTYPE}" = "build" ];

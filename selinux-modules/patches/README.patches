@@ -28,9 +28,11 @@ fix-system-raid-r12.patch
 fix-system-lvm-r7.patch
 	Allow ipc_info
 
-fix-system-mount-r12.patch
+fix-system-mount-r18.patch
 	Allow setsched
 	Add dontaudits (gentoo_try_dontaudit)
+	Allow mounts of NFS file systems (or others) with the context= option on a non-filesystem type
+	(used for instance for portage_ebuild_t)
 
 fix-system-sysnetwork-r9.patch
 	Allow dhcpcd to read/write /proc/sys/net files and allow communication
@@ -66,6 +68,7 @@ fix-admin-portage-r18.patch
 	Allow port 8080 for portage_fetch_t domain
 	Support portage_srcrepo_t domain for -9999 ebuilds
 	Allow gcc-config to call rc (since openrc)
+	Allow portage to optionally manage nfs_t (gentoo_portage_allow_nfs)
 
 fix-apps-qemu-r4.patch
 	Disable an optional policy as it contains errors (build failure)
@@ -90,10 +93,11 @@ fix-system-authlogin-r8.patch
 	Use pam_var_run_t for /var/db/sudo (was /var/run/sudo previously,
 	changed in sudo 1.7.4)
 
-fix-system-init-r10.patch
+fix-system-init-r18.patch
 	Allow the init domain to read ALSA related files (used in the alsasound
 	init script)
 	Allow the init domain to read Courier-related config files
+	Allow initrc_su_t to transition to postgresql_t
 
 fix-system-logging-r11.patch
 	Do not mark /var/spool/postfix/pid as var_run_t, master will fail to start then. 
@@ -124,3 +128,5 @@ fix-roles-sysadm-r12.patch
 	for this). Grant sysadm role admin rights for postgresql
 	Grant mdadm access rights
 
+fix-python-support-segenxml.py
+	Update segenxml.py for Python 3 support

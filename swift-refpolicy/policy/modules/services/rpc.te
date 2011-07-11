@@ -61,6 +61,7 @@ files_mountpoint(var_lib_nfs_t)
 allow rpcd_t self:capability { sys_admin chown dac_override setgid setuid };
 allow rpcd_t self:process { getcap setcap };
 allow rpcd_t self:fifo_file rw_fifo_file_perms;
+allow rpcd_t self:udp_socket { listen };
 
 allow rpcd_t rpcd_var_run_t:dir setattr;
 manage_files_pattern(rpcd_t, rpcd_var_run_t, rpcd_var_run_t)

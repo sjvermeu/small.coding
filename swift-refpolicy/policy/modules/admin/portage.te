@@ -13,6 +13,13 @@ policy_module(portage, 1.10.0.r1)
 ## </desc>
 gen_tunable(gentoo_try_dontaudit, false)
 
+## <desc>
+## <p>
+##   Allow the portage domains to use NFS mounts (regular nfs_t)
+## </p>
+## </desc>
+gen_tunable(gentoo_portage_allow_nfs, false)
+
 type gcc_config_t;
 type gcc_config_exec_t;
 application_domain(gcc_config_t, gcc_config_exec_t)
@@ -67,6 +74,13 @@ files_tmp_file(portage_tmp_t)
 
 type portage_tmpfs_t;
 files_tmpfs_file(portage_tmpfs_t)
+
+tunable_policy(`gentoo_portage_allow_nfs',`
+	fs_getattr_nfs(portage_fetch_t)
+	fs_manage_nfs_dirs(portage_fetch_t)
+	fs_manage_nfs_files(portage_fetch_t)
+	fs_manage_nfs_symlinks(portage_fetch_t)
+')
 
 ########################################
 #
@@ -193,6 +207,13 @@ tunable_policy(`gentoo_try_dontaudit',`
 	dontaudit portage_t self:capability { dac_read_search };
 ')
 
+tunable_policy(`gentoo_portage_allow_nfs',`
+	fs_getattr_nfs(portage_t)
+	fs_manage_nfs_dirs(portage_t)
+	fs_manage_nfs_files(portage_t)
+	fs_manage_nfs_symlinks(portage_t)
+')
+
 optional_policy(`
 	bootloader_domtrans(portage_t)
 ')
@@ -304,3 +325,9 @@ tunable_policy(`gentoo_try_dontaudit',`
 	kernel_dontaudit_request_load_module(portage_t)
 ')
 
+tunable_policy(`gentoo_portage_allow_nfs',`
+	fs_getattr_nfs(portage_sandbox_t)
+	fs_manage_nfs_dirs(portage_sandbox_t)
+	fs_manage_nfs_files(portage_sandbox_t)
+	fs_manage_nfs_symlinks(portage_sandbox_t)
+')

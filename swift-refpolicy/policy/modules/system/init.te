@@ -795,6 +795,10 @@ optional_policy(`
 optional_policy(`
 	# allow init scripts to su
 	su_restricted_domain_template(initrc, initrc_t, system_r)
+	# Allow initrc_su_t, now defined, to transition to postgresql_t
+	postgresql_domtrans(initrc_su_t)
+	# Allow initrc_su_t to use the initrc_devpts_t (needed for init script failure output)
+	allow initrc_su_t initrc_devpts_t:chr_file { read write };
 ')
 
 optional_policy(`

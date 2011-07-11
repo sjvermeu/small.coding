@@ -47,6 +47,48 @@ policy_module(nginx,1.0.10)
 # Declarations
 #
 
+## <desc>
+## <p>
+## Allow nginx to serve HTTP content (act as an http server)
+## </p>
+## </desc>
+gen_tunable(nginx_enable_http_server, false)
+
+## <desc>
+## <p>
+## Allow nginx to act as an imap proxy server)
+## </p>
+## </desc>
+gen_tunable(nginx_enable_imap_server, false)
+
+## <desc>
+## <p>
+## Allow nginx to act as a pop3 server)
+## </p>
+## </desc>
+gen_tunable(nginx_enable_pop3_server, false)
+
+## <desc>
+## <p>
+## Allow nginx to act as an smtp server)
+## </p>
+## </desc>
+gen_tunable(nginx_enable_smtp_server, false)
+
+## <desc>
+## <p>
+## Allow nginx to connect to remote HTTP servers
+## </p>
+## </desc>
+gen_tunable(nginx_can_network_connect_http, false)
+
+## <desc>
+## <p>
+## Allow nginx to connect to remote servers (regardless of protocol)
+## </p>
+## </desc>
+gen_tunable(nginx_can_network_connect, false)
+
 type nginx_t;
 type nginx_exec_t;
 init_daemon_domain(nginx_t, nginx_exec_t)
@@ -83,7 +125,7 @@ files_tmp_file(nginx_tmp_t)
 allow nginx_t self:fifo_file { read write };
 allow nginx_t self:unix_stream_socket create_stream_socket_perms;
 allow nginx_t self:tcp_socket { listen accept };
-allow nginx_t self:capability { setuid net_bind_service setgid };
+allow nginx_t self:capability { setuid net_bind_service setgid chown };
 
 ## Policy-owned type management rules
 # log files
@@ -116,26 +158,22 @@ files_var_lib_filetrans(nginx_t,nginx_var_lib_t, { file dir sock_file })
 ## Kernel layer modules
 kernel_read_kernel_sysctls(nginx_t)
 corenet_tcp_bind_generic_node(nginx_t)
-corenet_tcp_bind_http_port(nginx_t)
 corenet_tcp_sendrecv_generic_if(nginx_t)
 corenet_tcp_sendrecv_generic_node(nginx_t)
-corenet_tcp_sendrecv_all_ports(nginx_t)
+#corenet_tcp_sendrecv_all_ports(nginx_t)
 #corenet_non_ipsec_sendrecv(nginx_t)
-corenet_tcp_connect_http_port(nginx_t)
 domain_use_interactive_fds(nginx_t)
 files_read_etc_files(nginx_t)
 
 ## Perhaps as a policy tunable?
-corenet_tcp_connect_all_ports(nginx_t)
-corenet_tcp_bind_all_ports(nginx_t)
-corenet_tcp_bind_all_nodes(nginx_t)
+#corenet_tcp_bind_all_ports(nginx_t)
+#corenet_tcp_bind_all_nodes(nginx_t)
 
 ## System layer modules
 miscfiles_read_localization(nginx_t)
 sysnet_dns_name_resolve(nginx_t)
 
 ## Other modules
-apache_read_sys_content(nginx_t)
 
 #init_use_fds(nginx_t)
 #init_use_script_ptys(nginx_t)
@@ -146,4 +184,31 @@ apache_read_sys_content(nginx_t)
 #allow nginx_t home_root_t:dir search;
 #allow nginx_t user_home_dir_t:dir search;
 
+tunable_policy(`nginx_enable_http_server',`
+	corenet_tcp_bind_http_port(nginx_t)
+	apache_read_sys_content(nginx_t)
+')
 
+# We enable both binding and connecting, since nginx acts here as a reverse proxy
+tunable_policy(`nginx_enable_imap_server',`
+	corenet_tcp_bind_pop_port(nginx_t)
+	corenet_tcp_connect_pop_port(nginx_t)
+')
+
+tunable_policy(`nginx_enable_pop3_server',`
+	corenet_tcp_bind_pop_port(nginx_t)
+	corenet_tcp_connect_pop_port(nginx_t)
+')
+
+tunable_policy(`nginx_enable_smtp_server',`
+	corenet_tcp_bind_smtp_port(nginx_t)
+	corenet_tcp_connect_smtp_port(nginx_t)
+')
+
+tunable_policy(`nginx_can_network_connect_http',`
+	corenet_tcp_connect_http_port(nginx_t)
+')
+
+tunable_policy(`nginx_can_network_connect',`
+	corenet_tcp_connect_all_ports(nginx_t)
+')

@@ -76,7 +76,7 @@ files_etc_filetrans_etc_runtime(mount_t, file)
 files_mounton_all_mountpoints(mount_t)
 files_unmount_rootfs(mount_t)
 # These rules need to be generalized.  Only admin, initrc should have it:
-files_relabelto_all_file_type_fs(mount_t)
+files_relabel_all_file_type_fs(mount_t)
 files_mount_all_file_type_fs(mount_t)
 files_unmount_all_file_type_fs(mount_t)
 # for when /etc/mtab loses its type
@@ -191,6 +191,10 @@ optional_policy(`
 		rhgb_dontaudit_rw_stream_sockets(mount_t)
 		term_dontaudit_use_ptmx(mount_t)
 	')
+')
+
+optional_policy(`
+	puppet_rw_tmp(mount_t)
 ')
 
 # for kernel package installation

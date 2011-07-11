@@ -1515,6 +1515,45 @@ template(`gentoo_init_initrc_exec_notrans',`
 
 ########################################
 ## <summary>
+##   Do not perform a domain transition when calling initrc_exec_t. Use the 
+##   given $1 domain for this
+## </summary>
+## <param name="source_domain">
+##   <summary>
+##   Source domain
+##   </summary>
+## </param>
+## <param name="target_domain">
+##   <summary>
+##   Fall-back domain
+##   </summary>
+## </param>
+#
+template(`gentoo_init_initrc_notrans',`
+	gen_require(`
+		type initrc_exec_t;
+		type initrc_notrans_exec_t;
+	')
+
+	application_domain($1, initrc_notrans_exec_t)
+
+	###########################################
+	#
+	# Local policy
+	#
+	
+	domain_use_interactive_fds($1)
+	userdom_use_user_terminals($1)
+
+	domtrans_pattern($2, initrc_notrans_exec_t, $1)
+	domain_entry_file($2, initrc_exec_t)
+
+	domtrans_pattern($1, initrc_exec_t, $2)
+	corecmd_exec_shell($1)
+')
+
+########################################
+## <summary>
 ##	Do not audit attempts to read init script
 ##	status files.
 ## </summary>

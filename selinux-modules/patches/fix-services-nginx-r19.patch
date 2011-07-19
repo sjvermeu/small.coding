@@ -1,0 +1,374 @@
+--- refpolicy.orig/policy/modules/services/nginx.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/services/nginx.te	2011-07-11 15:27:31.443000535 +0200
+@@ -0,0 +1,214 @@
++###############################################################################
++# SELinux module for the NGINX Web Server
++#
++# Project Contact Information:
++#   Stuart Cianos
++#   Email: scianos@alphavida.com
++#
++###############################################################################
++# (C) Copyright 2009 by Stuart Cianos, d/b/a AlphaVida. All Rights Reserved.
++#
++#
++# Stuart Cianos licenses this file to You under the GNU General Public License,
++# Version 3.0 (the "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#     http://www.gnu.org/licenses/gpl.txt
++#
++# or in the COPYING file included in the original archive.
++#
++# Disclaimer of Warranty.
++#
++# THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
++# APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
++# HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
++# OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
++# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++# PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
++# IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
++# ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
++#
++# Limitation of Liability.
++#
++# IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
++# WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
++# THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
++# GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
++# USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
++# DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
++# PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
++# EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGES.
++###############################################################################
++policy_module(nginx,1.0.10)
++
++########################################
++#
++# Declarations
++#
++
++## <desc>
++## <p>
++## Allow nginx to serve HTTP content (act as an http server)
++## </p>
++## </desc>
++gen_tunable(nginx_enable_http_server, false)
++
++## <desc>
++## <p>
++## Allow nginx to act as an imap proxy server)
++## </p>
++## </desc>
++gen_tunable(nginx_enable_imap_server, false)
++
++## <desc>
++## <p>
++## Allow nginx to act as a pop3 server)
++## </p>
++## </desc>
++gen_tunable(nginx_enable_pop3_server, false)
++
++## <desc>
++## <p>
++## Allow nginx to act as an smtp server)
++## </p>
++## </desc>
++gen_tunable(nginx_enable_smtp_server, false)
++
++## <desc>
++## <p>
++## Allow nginx to connect to remote HTTP servers
++## </p>
++## </desc>
++gen_tunable(nginx_can_network_connect_http, false)
++
++## <desc>
++## <p>
++## Allow nginx to connect to remote servers (regardless of protocol)
++## </p>
++## </desc>
++gen_tunable(nginx_can_network_connect, false)
++
++type nginx_t;
++type nginx_exec_t;
++init_daemon_domain(nginx_t, nginx_exec_t)
++
++type nginx_initrc_exec_t;
++init_script_file(nginx_initrc_exec_t)
++
++# conf files
++type nginx_conf_t;
++files_type(nginx_conf_t)
++
++# var/lib files
++type nginx_var_lib_t;
++files_type(nginx_var_lib_t)
++
++# log files
++type nginx_log_t;
++logging_log_file(nginx_log_t)
++
++# pid files
++type nginx_var_run_t;
++files_pid_file(nginx_var_run_t)
++
++# tmp files
++type nginx_tmp_t;
++files_tmp_file(nginx_tmp_t)
++
++########################################
++#
++# nginx local policy
++#
++
++## Self rules
++allow nginx_t self:fifo_file { read write };
++allow nginx_t self:unix_stream_socket create_stream_socket_perms;
++allow nginx_t self:tcp_socket { listen accept };
++allow nginx_t self:capability { setuid net_bind_service setgid chown };
++
++## Policy-owned type management rules
++# log files
++manage_files_pattern(nginx_t, nginx_log_t, nginx_log_t)
++#manage_sock_files_pattern(nginx_t, nginx_log_t, nginx_log_t)
++logging_log_filetrans(nginx_t, nginx_log_t, { file dir })
++#logging_log_filetrans(nginx_t, nginx_log_t, { sock_file })
++
++# pid file
++#allow nginx_t nginx_var_run_t:sock_file manage_file_perms;
++manage_dirs_pattern(nginx_t, nginx_var_run_t, nginx_var_run_t)
++manage_files_pattern(nginx_t, nginx_var_run_t, nginx_var_run_t)
++files_pid_filetrans(nginx_t, nginx_var_run_t, file)
++#files_pid_filetrans(nginx_t, nginx_var_run_t, { file sock_file })
++
++# conf files
++read_files_pattern(nginx_t, nginx_conf_t, nginx_conf_t)
++
++# tmp files
++manage_files_pattern(nginx_t, nginx_tmp_t, nginx_tmp_t)
++manage_dirs_pattern(nginx_t, nginx_tmp_t, nginx_tmp_t)
++files_tmp_filetrans(nginx_t, nginx_tmp_t, dir)
++
++# various
++allow nginx_t nginx_var_lib_t:file create_file_perms;
++allow nginx_t nginx_var_lib_t:sock_file create_file_perms;
++allow nginx_t nginx_var_lib_t:dir create_dir_perms;
++files_var_lib_filetrans(nginx_t,nginx_var_lib_t, { file dir sock_file })
++
++## Kernel layer modules
++kernel_read_kernel_sysctls(nginx_t)
++corenet_tcp_bind_generic_node(nginx_t)
++corenet_tcp_sendrecv_generic_if(nginx_t)
++corenet_tcp_sendrecv_generic_node(nginx_t)
++#corenet_tcp_sendrecv_all_ports(nginx_t)
++#corenet_non_ipsec_sendrecv(nginx_t)
++domain_use_interactive_fds(nginx_t)
++files_read_etc_files(nginx_t)
++
++## Perhaps as a policy tunable?
++#corenet_tcp_bind_all_ports(nginx_t)
++#corenet_tcp_bind_all_nodes(nginx_t)
++
++## System layer modules
++miscfiles_read_localization(nginx_t)
++sysnet_dns_name_resolve(nginx_t)
++
++## Other modules
++
++#init_use_fds(nginx_t)
++#init_use_script_ptys(nginx_t)
++#libs_use_ld_so(nginx_t)
++#libs_use_shared_libs(nginx_t)
++
++#allow nginx_t fs_t:filesystem associate;
++#allow nginx_t home_root_t:dir search;
++#allow nginx_t user_home_dir_t:dir search;
++
++tunable_policy(`nginx_enable_http_server',`
++	corenet_tcp_bind_http_port(nginx_t)
++	apache_read_sys_content(nginx_t)
++')
++
++# We enable both binding and connecting, since nginx acts here as a reverse proxy
++tunable_policy(`nginx_enable_imap_server',`
++	corenet_tcp_bind_pop_port(nginx_t)
++	corenet_tcp_connect_pop_port(nginx_t)
++')
++
++tunable_policy(`nginx_enable_pop3_server',`
++	corenet_tcp_bind_pop_port(nginx_t)
++	corenet_tcp_connect_pop_port(nginx_t)
++')
++
++tunable_policy(`nginx_enable_smtp_server',`
++	corenet_tcp_bind_smtp_port(nginx_t)
++	corenet_tcp_connect_smtp_port(nginx_t)
++')
++
++tunable_policy(`nginx_can_network_connect_http',`
++	corenet_tcp_connect_http_port(nginx_t)
++')
++
++tunable_policy(`nginx_can_network_connect',`
++	corenet_tcp_connect_all_ports(nginx_t)
++')
+--- refpolicy.orig/policy/modules/services/nginx.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/services/nginx.if	2011-07-17 18:08:35.393000705 +0200
+@@ -0,0 +1,89 @@
++###############################################################################
++# SELinux module for the NGINX Web Server
++#
++# Project Contact Information:
++#   Stuart Cianos
++#   Email: scianos@alphavida.com
++#
++###############################################################################
++# (C) Copyright 2009 by Stuart Cianos, d/b/a AlphaVida. All Rights Reserved.
++#
++#
++# Stuart Cianos licenses this file to You under the GNU General Public License,
++# Version 3.0 (the "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#     http://www.gnu.org/licenses/gpl.txt
++#
++# or in the COPYING file included in the original archive.
++#
++# Disclaimer of Warranty.
++#
++# THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
++# APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
++# HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
++# OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
++# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++# PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
++# IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
++# ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
++#
++# Limitation of Liability.
++#
++# IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
++# WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
++# THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
++# GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
++# USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
++# DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
++# PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
++# EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGES.
++###############################################################################
++## <summary>policy for nginx</summary>
++
++########################################
++## <summary>
++##	Execute a domain transition to run nginx.
++## </summary>
++## <param name="domain">
++## <summary>
++##	Domain allowed to transition.
++## </summary>
++## </param>
++#
++interface(`nginx_domtrans',`
++	gen_require(`
++		type nginx_t, nginx_exec_t;
++	')
++	allow nginx_t $1:fd use;
++	allow nginx_t $1:fifo_file rw_file_perms;
++	allow nginx_t $1:process sigchld;
++
++	domain_auto_trans($1,nginx_exec_t,nginx_t)
++')
++
++########################################
++## <summary>
++##   Administer the nginx domain
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	The role to be allowed to manage the nginx domain.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`nginx_admin',`
++	gen_require(`
++		type nginx_t;
++	')
++
++	allow $1 nginx_t:process { ptrace signal_perms };
++	ps_process_pattern($1, nginx_t)
++')
+--- refpolicy.orig/policy/modules/services/nginx.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/services/nginx.fc	2011-06-13 22:16:54.428001426 +0200
+@@ -0,0 +1,62 @@
++###############################################################################
++# SELinux module for the NGINX Web Server
++#
++# Project Contact Information:
++#   Stuart Cianos
++#   Email: scianos@alphavida.com
++#
++###############################################################################
++# (C) Copyright 2009 by Stuart Cianos, d/b/a AlphaVida. All Rights Reserved.
++#
++#
++# Stuart Cianos licenses this file to You under the GNU General Public License,
++# Version 3.0 (the "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#     http://www.gnu.org/licenses/gpl.txt
++#
++# or in the COPYING file included in the original archive.
++#
++# Disclaimer of Warranty.
++#
++# THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
++# APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
++# HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
++# OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
++# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++# PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
++# IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
++# ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
++#
++# Limitation of Liability.
++#
++# IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
++# WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
++# THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
++# GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
++# USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
++# DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
++# PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
++# EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGES.
++###############################################################################
++# nginx executable will have:
++# label: system_u:object_r:nginx_exec_t
++# MLS sensitivity: s0
++# MCS categories: <none>
++
++/usr/sbin/nginx				--	gen_context(system_u:object_r:nginx_exec_t,s0)
++/etc/nginx(/.*)?				gen_context(system_u:object_r:nginx_conf_t,s0)
++/etc/ssl/nginx(/.*)?				gen_context(system_u:object_r:nginx_conf_t,s0)
++/etc/rc\.d/init\.d/nginx		--	gen_context(system_u:object_r:nginx_initrc_exec_t,s0)
++/var/tmp/nginx(/.*)?				gen_context(system_u:object_r:nginx_tmp_t,s0)
++
++
++#/usr/local/nginx/sbin/nginx		--	gen_context(system_u:object_r:nginx_exec_t,s0)
++#/usr/local/nginx/logs/nginx.pid			gen_context(system_u:object_r:nginx_var_run_t,s0)
++#/usr/local/nginx/logs(/.*)?			gen_context(system_u:object_r:nginx_var_log_t,s0)
++#/usr/local/nginx/proxy_temp(/.*)?			gen_context(system_u:object_r:nginx_var_lib_t,s0)
++#/usr/local/nginx/fastcgi_temp(/.*)?                   gen_context(system_u:object_r:nginx_var_lib_t,s0)
++#/usr/local/nginx/client_body_temp(/.*)?               gen_context(system_u:object_r:nginx_var_lib_t,s0)
++#/usr/local/nginx/html(/.*)?               gen_context(user_u:object_r:httpd_sys_content_t,s0)
++#/usr/local/nginx/conf(/.*)?		    gen_context(system_u:object_r:etc_t,s0)

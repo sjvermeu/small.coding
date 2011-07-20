@@ -118,7 +118,7 @@ EOF
   logMessage "done\n";
 
   logMessage "  > (Re)installing zabbix... ";
-  installSoftware -Nu zabbix |& die "Failed to (re)install zabbix";
+  installSoftware -Nu zabbix || die "Failed to (re)install zabbix";
   logMessage "done\n";
 
   logMessage "  > Adding zabbix to the localhost vhost... ";

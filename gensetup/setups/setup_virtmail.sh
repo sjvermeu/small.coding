@@ -314,6 +314,14 @@ startmysql() {
   logMessage "  > Running mysql_secure_installation... ";
   printf "N\n\n\n\n\n\n\n\n\n\n\n\n\n\n" | mysql_secure_installation;
   logMessage "done\n";
+
+  logMessage "  > Configuring mysql for network access... ";
+  typeset FILE=/etc/mysql/my.cnf;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile mysql.conf ${FILE};
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
 }
 
 loadsql() {

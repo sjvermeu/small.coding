@@ -204,8 +204,6 @@ setupldap() {
   logMessage "  ! remember, basedn is the dc=..,dc=.. part.\n";
   logMessage "  !           rootdn is the cn=..,dc=..,dc=.. part.\n";
   logMessage "  !\n";
-  logMessage "  ! Create ldif for ldapreader.\n";
-  logMessage "  ! Run ldapadd -x -D \"cn=...\" -W -f ./passwd.ldif\n";
   die "When finished, continue with step setupsync."
 }
 

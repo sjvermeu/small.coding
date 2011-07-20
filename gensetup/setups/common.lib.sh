@@ -10,7 +10,7 @@ _configsystem() {
   logMessage "  > Updating /etc/conf.d/hostname... ";
   typeset FILE=/etc/conf.d/hostname;
   typeset META=$(initChangeFile ${FILE});
-  updateEqualNoQuotConfFile conf.hostname ${FILE};
+  updateEqualConfFile conf.hostname ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -95,6 +95,7 @@ _configsystem() {
   logMessage "done\n";
 
   logMessage "  > Installing zabbix agent... ";
+  installSoftware -u selinux-zabbix || die "Failed to install selinux-zabbix policy";
   installSoftware -u zabbix || die "Failed to install zabbix agent";
   logMessage "done\n";
 

@@ -83,6 +83,9 @@ configzabbix() {
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
+
+  logMessage "  - Adding zabbix-server to default runlevel... ";
+  rc-update add zabbix-server default && logMessage "done\n" || die "failed\nCould not add zabbix-server to default runlevel";
 }
 
 setuppam() {

@@ -1,0 +1,1 @@
+/usr/sbin/haveged			--	gen_context(system_u:object_r:haveged_exec_t,s0)

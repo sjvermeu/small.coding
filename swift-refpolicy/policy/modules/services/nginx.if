@@ -62,3 +62,28 @@ interface(`nginx_domtrans',`
 
 	domain_auto_trans($1,nginx_exec_t,nginx_t)
 ')
+
+########################################
+## <summary>
+##   Administer the nginx domain
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed to manage the nginx domain.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`nginx_admin',`
+	gen_require(`
+		type nginx_t;
+	')
+
+	allow $1 nginx_t:process { ptrace signal_perms };
+	ps_process_pattern($1, nginx_t)
+')

@@ -422,6 +422,14 @@ ifdef(`distro_gentoo', `
 		postgresql_admin(sysadm_t, sysadm_r)
 		postgresql_domtrans(sysadm_t)
 	')
+
+	optional_policy(`
+		nginx_admin(sysadm_t, sysadm_r)
+	')
+
+	optional_policy(`
+		haveged_admin(sysadm_t)
+	')
 ')
 
 ifndef(`distro_redhat',`

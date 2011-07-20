@@ -18,6 +18,7 @@ type puppet_exec_t;
 init_daemon_domain(puppet_t, puppet_exec_t)
 
 type puppet_initrc_notrans_t;
+role system_r types puppet_initrc_notrans_t;
 
 type puppet_etc_t;
 files_config_file(puppet_etc_t)
@@ -147,7 +148,7 @@ usermanage_domtrans_passwd(puppet_t)
 
 tunable_policy(`gentoo_try_dontaudit',`
 	dontaudit puppet_t self:capability dac_read_search;
-
+	kernel_dontaudit_read_system_state(puppet_initrc_notrans_t)
 	userdom_dontaudit_use_user_terminals(puppet_t)
 ')
 

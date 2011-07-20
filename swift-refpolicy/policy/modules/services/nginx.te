@@ -52,42 +52,42 @@ policy_module(nginx,1.0.10)
 ## Allow nginx to serve HTTP content (act as an http server)
 ## </p>
 ## </desc>
-gen_tunable(nginx_enable_http_server, false)
+gen_tunable(gentoo_nginx_enable_http_server, false)
 
 ## <desc>
 ## <p>
 ## Allow nginx to act as an imap proxy server)
 ## </p>
 ## </desc>
-gen_tunable(nginx_enable_imap_server, false)
+gen_tunable(gentoo_nginx_enable_imap_server, false)
 
 ## <desc>
 ## <p>
 ## Allow nginx to act as a pop3 server)
 ## </p>
 ## </desc>
-gen_tunable(nginx_enable_pop3_server, false)
+gen_tunable(gentoo_nginx_enable_pop3_server, false)
 
 ## <desc>
 ## <p>
 ## Allow nginx to act as an smtp server)
 ## </p>
 ## </desc>
-gen_tunable(nginx_enable_smtp_server, false)
+gen_tunable(gentoo_nginx_enable_smtp_server, false)
 
 ## <desc>
 ## <p>
 ## Allow nginx to connect to remote HTTP servers
 ## </p>
 ## </desc>
-gen_tunable(nginx_can_network_connect_http, false)
+gen_tunable(gentoo_nginx_can_network_connect_http, false)
 
 ## <desc>
 ## <p>
 ## Allow nginx to connect to remote servers (regardless of protocol)
 ## </p>
 ## </desc>
-gen_tunable(nginx_can_network_connect, false)
+gen_tunable(gentoo_nginx_can_network_connect, false)
 
 type nginx_t;
 type nginx_exec_t;
@@ -184,31 +184,31 @@ sysnet_dns_name_resolve(nginx_t)
 #allow nginx_t home_root_t:dir search;
 #allow nginx_t user_home_dir_t:dir search;
 
-tunable_policy(`nginx_enable_http_server',`
+tunable_policy(`gentoo_nginx_enable_http_server',`
 	corenet_tcp_bind_http_port(nginx_t)
 	apache_read_sys_content(nginx_t)
 ')
 
 # We enable both binding and connecting, since nginx acts here as a reverse proxy
-tunable_policy(`nginx_enable_imap_server',`
+tunable_policy(`gentoo_nginx_enable_imap_server',`
 	corenet_tcp_bind_pop_port(nginx_t)
 	corenet_tcp_connect_pop_port(nginx_t)
 ')
 
-tunable_policy(`nginx_enable_pop3_server',`
+tunable_policy(`gentoo_nginx_enable_pop3_server',`
 	corenet_tcp_bind_pop_port(nginx_t)
 	corenet_tcp_connect_pop_port(nginx_t)
 ')
 
-tunable_policy(`nginx_enable_smtp_server',`
+tunable_policy(`gentoo_nginx_enable_smtp_server',`
 	corenet_tcp_bind_smtp_port(nginx_t)
 	corenet_tcp_connect_smtp_port(nginx_t)
 ')
 
-tunable_policy(`nginx_can_network_connect_http',`
+tunable_policy(`gentoo_nginx_can_network_connect_http',`
 	corenet_tcp_connect_http_port(nginx_t)
 ')
 
-tunable_policy(`nginx_can_network_connect',`
+tunable_policy(`gentoo_nginx_can_network_connect',`
 	corenet_tcp_connect_all_ports(nginx_t)
 ')

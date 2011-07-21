@@ -196,7 +196,7 @@
 +	corenet_tcp_connect_all_ports(nginx_t)
 +')
 --- refpolicy.orig/policy/modules/services/nginx.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/nginx.if	2011-07-21 14:09:25.232000669 +0200
++++ refpolicy/policy/modules/services/nginx.if	2011-07-21 14:22:08.271000691 +0200
 @@ -0,0 +1,101 @@
 +###############################################################################
 +# SELinux module for the NGINX Web Server
@@ -281,7 +281,7 @@
 +#
 +interface(`nginx_admin',`
 +	gen_require(`
-+		type nginx_t, nginx_conf_t;
++		type nginx_t, nginx_conf_t, nginx_log_t, nginx_var_lib_t, nginx_var_run_t;
 +	')
 +
 +	allow $1 nginx_t:process { ptrace signal_perms };
@@ -294,13 +294,13 @@
 +	admin_pattern($1, nginx_var_lib_t)
 +
 +	files_list_logs($1)
-+	admin_pattern($1, nginx_var_log_t)
++	admin_pattern($1, nginx_log_t)
 +
 +	files_list_pids($1)
 +	admin_pattern($1, nginx_var_run_t)
 +')
 --- refpolicy.orig/policy/modules/services/nginx.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/nginx.fc	2011-07-21 14:13:12.188000676 +0200
++++ refpolicy/policy/modules/services/nginx.fc	2011-07-21 14:21:43.956000690 +0200
 @@ -0,0 +1,63 @@
 +###############################################################################
 +# SELinux module for the NGINX Web Server
@@ -363,5 +363,5 @@
 +#
 +# /var
 +#
-+/var/log/nginx(/.*)?				gen_context(system_u:object_r:nginx_var_log_t,s0)
++/var/log/nginx(/.*)?				gen_context(system_u:object_r:nginx_log_t,s0)
 +/var/tmp/nginx(/.*)?				gen_context(system_u:object_r:nginx_tmp_t,s0)

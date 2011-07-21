@@ -1,0 +1,20 @@
+# Tools with execmem requirement
+allow mozilla_t self:process { execmem };
+
+# Allow ssh to more random port
+allow ssh_t port_t:tcp_socket { name_connect };
+
+# Allow lsof to function properly on skype process
+allow sysadm_t skype_t:fifo_file { getattr };
+
+# Allow vncviewer -listen mode (should be in its own domain)
+allow staff_t port_t:tcp_socket { name_bind };
+allow staff_t node_t:tcp_socket { node_bind };
+
+# Allow gorg to service distfiles (used for virtual systems)
+allow gorg_t portage_ebuild_t:dir { search getattr };
+allow gorg_t portage_ebuild_t:file { getattr read };
+
+# Allow execmem for staff (libreoffice)
+allow staff_t self:process { execmem };
+

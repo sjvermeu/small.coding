@@ -1,7 +1,4 @@
 selinux-local
 =============
 
-At the base directory, you will find fixlocal.te which makes some small
-system-level changes which I do not feel belong inside a (reusable) module (but
-I can be mistaken).
-
+Overview of my local rules (currently managed through selocal)

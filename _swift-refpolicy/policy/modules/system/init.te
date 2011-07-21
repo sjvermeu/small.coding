@@ -56,8 +56,10 @@ mls_trusted_object(initctl_t)
 
 type initrc_t, init_script_domain_type, init_run_all_scripts_domain;
 type initrc_exec_t, init_script_file_type;
+type rc_exec_t;
 domain_type(initrc_t)
 domain_entry_file(initrc_t, initrc_exec_t)
+domain_entry_file(initrc_t, rc_exec_t)
 role system_r types initrc_t;
 # should be part of the true block
 # of the below init_upstart tunable
@@ -68,13 +70,14 @@ type initrc_devpts_t;
 term_pty(initrc_devpts_t)
 files_type(initrc_devpts_t)
 
-## Specific to Gentoo
+## Specific to Gentoo - DELETE AFTER UPGRADE OF DEPENDING MODULES
+# $$$TODO
 # We create an initrc_notrans_exec_t which is used by the gentoo_init_initrc_exec_notrans template.
 # This allows a domain (sysadm_t) to transition temporarily to sysadm_initrc_notrans_t which, when
 # executing an initrc_exec_t file, transitions to sysadm_t again. This workaround is needed for things
 # like rc-update and rc-status which need to run in sysadm_t domain, but are nothing more but wrappers
 # on top of /sbin/rc (which is labelled initrc_exec_t).
-type initrc_notrans_exec_t, exec_type;
+#type initrc_notrans_exec_t, exec_type;
 
 type initrc_state_t;
 files_type(initrc_state_t)
@@ -245,6 +248,7 @@ init_telinit(initrc_t)
 can_exec(initrc_t, init_script_file_type)
 
 domtrans_pattern(init_run_all_scripts_domain, initrc_exec_t, initrc_t)
+init_rc_exec(initrc_t)
 
 manage_dirs_pattern(initrc_t, initrc_state_t, initrc_state_t)
 manage_files_pattern(initrc_t, initrc_state_t, initrc_state_t)

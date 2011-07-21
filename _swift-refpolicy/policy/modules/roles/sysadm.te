@@ -34,6 +34,7 @@ ubac_file_exempt(sysadm_t)
 ubac_fd_exempt(sysadm_t)
 
 init_exec(sysadm_t)
+init_rc_exec(sysadm_t)
 
 # Add/remove user home directories
 userdom_manage_user_home_dirs(sysadm_t)
@@ -49,9 +50,9 @@ ifdef(`direct_sysadm_daemon',`
 			seutil_init_script_run_runinit(sysadm_t, sysadm_r)
 		')
 
-		optional_policy(`
-			gentoo_init_initrc_exec_notrans(sysadm, sysadm_r, sysadm_t)
-		')
+		#optional_policy(`
+		#	gentoo_init_initrc_exec_notrans(sysadm, sysadm_r, sysadm_t)
+		#')
 	')
 ')
 

@@ -1,0 +1,241 @@
+--- refpolicy.orig/policy/modules/system/init.te	2010-12-13 15:11:02.000000000 +0100
++++ refpolicy/policy/modules/system/init.te	2011-07-20 22:05:27.030005204 +0200
+@@ -56,8 +56,10 @@
+ 
+ type initrc_t, init_script_domain_type, init_run_all_scripts_domain;
+ type initrc_exec_t, init_script_file_type;
++type rc_exec_t;
+ domain_type(initrc_t)
+ domain_entry_file(initrc_t, initrc_exec_t)
++domain_entry_file(initrc_t, rc_exec_t)
+ role system_r types initrc_t;
+ # should be part of the true block
+ # of the below init_upstart tunable
+@@ -68,8 +70,18 @@
+ term_pty(initrc_devpts_t)
+ files_type(initrc_devpts_t)
+ 
++## Specific to Gentoo - DELETE AFTER UPGRADE OF DEPENDING MODULES
++# $$$TODO
++# We create an initrc_notrans_exec_t which is used by the gentoo_init_initrc_exec_notrans template.
++# This allows a domain (sysadm_t) to transition temporarily to sysadm_initrc_notrans_t which, when
++# executing an initrc_exec_t file, transitions to sysadm_t again. This workaround is needed for things
++# like rc-update and rc-status which need to run in sysadm_t domain, but are nothing more but wrappers
++# on top of /sbin/rc (which is labelled initrc_exec_t).
++#type initrc_notrans_exec_t, exec_type;
++
+ type initrc_state_t;
+ files_type(initrc_state_t)
++files_mountpoint(initrc_state_t)
+ 
+ type initrc_tmp_t;
+ files_tmp_file(initrc_tmp_t)
+@@ -169,6 +181,9 @@
+ miscfiles_read_localization(init_t)
+ 
+ ifdef(`distro_gentoo',`
++	optional_policy(`
++		alsa_read_lib(initrc_t)
++	')
+ 	allow init_t self:process { getcap setcap };
+ ')
+ 
+@@ -233,6 +248,7 @@
+ can_exec(initrc_t, init_script_file_type)
+ 
+ domtrans_pattern(init_run_all_scripts_domain, initrc_exec_t, initrc_t)
++init_rc_exec(initrc_t)
+ 
+ manage_dirs_pattern(initrc_t, initrc_state_t, initrc_state_t)
+ manage_files_pattern(initrc_t, initrc_state_t, initrc_state_t)
+@@ -783,6 +799,10 @@
+ optional_policy(`
+ 	# allow init scripts to su
+ 	su_restricted_domain_template(initrc, initrc_t, system_r)
++	# Allow initrc_su_t, now defined, to transition to postgresql_t
++	postgresql_domtrans(initrc_su_t)
++	# Allow initrc_su_t to use the initrc_devpts_t (needed for init script failure output)
++	allow initrc_su_t initrc_devpts_t:chr_file { read write };
+ ')
+ 
+ optional_policy(`
+@@ -844,3 +864,7 @@
+ optional_policy(`
+ 	zebra_read_config(initrc_t)
+ ')
++
++optional_policy(`
++	courier_read_config(initrc_t)
++')
+--- refpolicy.orig/policy/modules/system/init.if	2010-10-11 15:32:08.000000000 +0200
++++ refpolicy/policy/modules/system/init.if	2011-07-20 22:27:33.873005242 +0200
+@@ -454,6 +454,27 @@
+ 
+ ########################################
+ ## <summary>
++##	Execute the rc program in the caller domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`init_rc_exec',`
++	gen_require(`
++		type rc_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	can_exec($1, rc_exec_t)
++')
++
++
++########################################
++## <summary>
+ ##	Get the process group of init.
+ ## </summary>
+ ## <param name="domain">
+@@ -756,6 +777,11 @@
+ 	gen_require(`
+ 		type initrc_exec_t;
+ 	')
++	
++	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
++	# wants to execute initrc_exec_t (no transition needed anymore) whereas
++	# runscript previously was a binary
++	allow $1 initrc_exec_t:file execute_no_trans;
+ 
+ 	domain_entry_file($1, initrc_exec_t)
+ ')
+@@ -799,11 +825,12 @@
+ #
+ interface(`init_domtrans_script',`
+ 	gen_require(`
+-		type initrc_t, initrc_exec_t;
++		type initrc_t, initrc_exec_t, rc_exec_t;
+ 	')
+ 
+ 	files_list_etc($1)
+ 	domtrans_pattern($1, initrc_exec_t, initrc_t)
++	domtrans_pattern($1, rc_exec_t, initrc_t)
+ 
+ 	ifdef(`enable_mcs',`
+ 		range_transition $1 initrc_exec_t:process s0;
+@@ -1458,6 +1485,95 @@
+ 	getattr_files_pattern($1, initrc_state_t, initrc_state_t)
+ ')
+ 
++#######################################
++# <summary>
++#   Do not perform a domain transition when calling initrc_exec_t. We use an
++#   intermediate domain $1_initrc_notrans_t for this.
++# </summary>
++# <param name="prefix">
++#   <summary>
++#   Prefix for the calling role/type
++#   </summary>
++# </param>
++# <param name="role">
++#   <summary>
++#   Source role
++#   </summary>
++# </param>
++# <param name="domain">
++#   <summary>
++#   Source domain
++#   </summary>
++# </param>
++#
++#template(`gentoo_init_initrc_exec_notrans',`
++#	gen_require(`
++#		type initrc_exec_t;
++#		type initrc_notrans_exec_t;
++#	')
++#
++#	type $1_initrc_notrans_t;
++#	application_domain($1_initrc_notrans_t, initrc_notrans_exec_t)
++#	role $2 types $1_initrc_notrans_t;
++#
++#	###########################################
++#	#
++#	# Local policy
++#	#
++#	
++#	#allow $1_initrc_notrans_t self:process signal_perms;
++#	#allow $1_initrc_notrans_t $3:process signal;
++#	#allow $3 $1_initrc_notrans_t:process signal;
++#
++#	domain_use_interactive_fds($1_initrc_notrans_t)
++#	userdom_use_user_terminals($1_initrc_notrans_t)
++#
++#	domtrans_pattern($3, initrc_notrans_exec_t, $1_initrc_notrans_t)
++#	domain_entry_file($3, initrc_exec_t)
++#
++#	domtrans_pattern($1_initrc_notrans_t, initrc_exec_t, $3)
++#	corecmd_exec_shell($1_initrc_notrans_t)
++#')
++
++########################################
++# <summary>
++#   Do not perform a domain transition when calling initrc_exec_t. Use the 
++#   given $1 domain for this
++# </summary>
++# <param name="source_domain">
++#   <summary>
++#   Source domain
++#   </summary>
++# </param>
++# <param name="target_domain">
++#   <summary>
++#   Fall-back domain
++#   </summary>
++# </param>
++#
++#template(`gentoo_init_initrc_notrans',`
++#	gen_require(`
++#		type initrc_exec_t;
++#		type initrc_notrans_exec_t;
++#	')
++#
++#	application_domain($1, initrc_notrans_exec_t)
++#
++#	###########################################
++#	#
++#	# Local policy
++#	#
++#	
++#	domain_use_interactive_fds($1)
++#	userdom_use_user_terminals($1)
++#
++#	domtrans_pattern($2, initrc_notrans_exec_t, $1)
++#	domain_entry_file($2, initrc_exec_t)
++#
++#	domtrans_pattern($1, initrc_exec_t, $2)
++#	corecmd_exec_shell($1)
++#')
++
+ ########################################
+ ## <summary>
+ ##	Do not audit attempts to read init script
+--- refpolicy.orig/policy/modules/system/init.fc	2010-08-03 15:11:04.000000000 +0200
++++ refpolicy/policy/modules/system/init.fc	2011-07-20 22:01:16.376005196 +0200
+@@ -27,7 +27,7 @@
+ /sbin/init(ng)?		--	gen_context(system_u:object_r:init_exec_t,s0)
+ 
+ ifdef(`distro_gentoo', `
+-/sbin/rc		--	gen_context(system_u:object_r:initrc_exec_t,s0)
++/sbin/rc		--	gen_context(system_u:object_r:rc_exec_t,s0)
+ /sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+@@ -51,6 +51,8 @@
+ ifdef(`distro_gentoo', `
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/lib64/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/lib/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ /var/run/utmp		--	gen_context(system_u:object_r:initrc_var_run_t,s0)

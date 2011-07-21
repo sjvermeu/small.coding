@@ -454,6 +454,27 @@ interface(`init_exec',`
 
 ########################################
 ## <summary>
+##	Execute the rc program in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`init_rc_exec',`
+	gen_require(`
+		type rc_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, rc_exec_t)
+')
+
+
+########################################
+## <summary>
 ##	Get the process group of init.
 ## </summary>
 ## <param name="domain">
@@ -804,11 +825,12 @@ interface(`init_spec_domtrans_script',`
 #
 interface(`init_domtrans_script',`
 	gen_require(`
-		type initrc_t, initrc_exec_t;
+		type initrc_t, initrc_exec_t, rc_exec_t;
 	')
 
 	files_list_etc($1)
 	domtrans_pattern($1, initrc_exec_t, initrc_t)
+	domtrans_pattern($1, rc_exec_t, initrc_t)
 
 	ifdef(`enable_mcs',`
 		range_transition $1 initrc_exec_t:process s0;
@@ -1463,94 +1485,94 @@ interface(`init_getattr_script_status_files',`
 	getattr_files_pattern($1, initrc_state_t, initrc_state_t)
 ')
 
-########################################
-## <summary>
-##   Do not perform a domain transition when calling initrc_exec_t. We use an
-##   intermediate domain $1_initrc_notrans_t for this.
-## </summary>
-## <param name="prefix">
-##   <summary>
-##   Prefix for the calling role/type
-##   </summary>
-## </param>
-## <param name="role">
-##   <summary>
-##   Source role
-##   </summary>
-## </param>
-## <param name="domain">
-##   <summary>
-##   Source domain
-##   </summary>
-## </param>
+#######################################
+# <summary>
+#   Do not perform a domain transition when calling initrc_exec_t. We use an
+#   intermediate domain $1_initrc_notrans_t for this.
+# </summary>
+# <param name="prefix">
+#   <summary>
+#   Prefix for the calling role/type
+#   </summary>
+# </param>
+# <param name="role">
+#   <summary>
+#   Source role
+#   </summary>
+# </param>
+# <param name="domain">
+#   <summary>
+#   Source domain
+#   </summary>
+# </param>
 #
-template(`gentoo_init_initrc_exec_notrans',`
-	gen_require(`
-		type initrc_exec_t;
-		type initrc_notrans_exec_t;
-	')
-
-	type $1_initrc_notrans_t;
-	application_domain($1_initrc_notrans_t, initrc_notrans_exec_t)
-	role $2 types $1_initrc_notrans_t;
-
-	###########################################
-	#
-	# Local policy
-	#
-	
-	#allow $1_initrc_notrans_t self:process signal_perms;
-	#allow $1_initrc_notrans_t $3:process signal;
-	#allow $3 $1_initrc_notrans_t:process signal;
-
-	domain_use_interactive_fds($1_initrc_notrans_t)
-	userdom_use_user_terminals($1_initrc_notrans_t)
-
-	domtrans_pattern($3, initrc_notrans_exec_t, $1_initrc_notrans_t)
-	domain_entry_file($3, initrc_exec_t)
-
-	domtrans_pattern($1_initrc_notrans_t, initrc_exec_t, $3)
-	corecmd_exec_shell($1_initrc_notrans_t)
-')
+#template(`gentoo_init_initrc_exec_notrans',`
+#	gen_require(`
+#		type initrc_exec_t;
+#		type initrc_notrans_exec_t;
+#	')
+#
+#	type $1_initrc_notrans_t;
+#	application_domain($1_initrc_notrans_t, initrc_notrans_exec_t)
+#	role $2 types $1_initrc_notrans_t;
+#
+#	###########################################
+#	#
+#	# Local policy
+#	#
+#	
+#	#allow $1_initrc_notrans_t self:process signal_perms;
+#	#allow $1_initrc_notrans_t $3:process signal;
+#	#allow $3 $1_initrc_notrans_t:process signal;
+#
+#	domain_use_interactive_fds($1_initrc_notrans_t)
+#	userdom_use_user_terminals($1_initrc_notrans_t)
+#
+#	domtrans_pattern($3, initrc_notrans_exec_t, $1_initrc_notrans_t)
+#	domain_entry_file($3, initrc_exec_t)
+#
+#	domtrans_pattern($1_initrc_notrans_t, initrc_exec_t, $3)
+#	corecmd_exec_shell($1_initrc_notrans_t)
+#')
 
 ########################################
-## <summary>
-##   Do not perform a domain transition when calling initrc_exec_t. Use the 
-##   given $1 domain for this
-## </summary>
-## <param name="source_domain">
-##   <summary>
-##   Source domain
-##   </summary>
-## </param>
-## <param name="target_domain">
-##   <summary>
-##   Fall-back domain
-##   </summary>
-## </param>
+# <summary>
+#   Do not perform a domain transition when calling initrc_exec_t. Use the 
+#   given $1 domain for this
+# </summary>
+# <param name="source_domain">
+#   <summary>
+#   Source domain
+#   </summary>
+# </param>
+# <param name="target_domain">
+#   <summary>
+#   Fall-back domain
+#   </summary>
+# </param>
 #
-template(`gentoo_init_initrc_notrans',`
-	gen_require(`
-		type initrc_exec_t;
-		type initrc_notrans_exec_t;
-	')
-
-	application_domain($1, initrc_notrans_exec_t)
-
-	###########################################
-	#
-	# Local policy
-	#
-	
-	domain_use_interactive_fds($1)
-	userdom_use_user_terminals($1)
-
-	domtrans_pattern($2, initrc_notrans_exec_t, $1)
-	domain_entry_file($2, initrc_exec_t)
-
-	domtrans_pattern($1, initrc_exec_t, $2)
-	corecmd_exec_shell($1)
-')
+#template(`gentoo_init_initrc_notrans',`
+#	gen_require(`
+#		type initrc_exec_t;
+#		type initrc_notrans_exec_t;
+#	')
+#
+#	application_domain($1, initrc_notrans_exec_t)
+#
+#	###########################################
+#	#
+#	# Local policy
+#	#
+#	
+#	domain_use_interactive_fds($1)
+#	userdom_use_user_terminals($1)
+#
+#	domtrans_pattern($2, initrc_notrans_exec_t, $1)
+#	domain_entry_file($2, initrc_exec_t)
+#
+#	domtrans_pattern($1, initrc_exec_t, $2)
+#	corecmd_exec_shell($1)
+#')
 
 ########################################
 ## <summary>

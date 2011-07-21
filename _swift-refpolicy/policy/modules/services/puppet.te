@@ -17,8 +17,8 @@ type puppet_t;
 type puppet_exec_t;
 init_daemon_domain(puppet_t, puppet_exec_t)
 
-type puppet_initrc_notrans_t;
-role system_r types puppet_initrc_notrans_t;
+#type puppet_initrc_notrans_t;
+#role system_r types puppet_initrc_notrans_t;
 
 type puppet_etc_t;
 files_config_file(puppet_etc_t)
@@ -53,7 +53,7 @@ files_tmp_file(puppetmaster_tmp_t)
 # Puppet personal policy
 #
 
-allow puppet_t self:capability { fowner fsetid setuid setgid dac_override sys_nice sys_ptrace sys_tty_config };
+allow puppet_t self:capability { fowner fsetid setuid setgid dac_override sys_nice sys_ptrace sys_tty_config chown };
 allow puppet_t self:process { signal signull getsched setsched };
 allow puppet_t self:fifo_file rw_fifo_file_perms;
 allow puppet_t self:netlink_route_socket create_netlink_socket_perms;
@@ -148,7 +148,7 @@ usermanage_domtrans_passwd(puppet_t)
 
 tunable_policy(`gentoo_try_dontaudit',`
 	dontaudit puppet_t self:capability dac_read_search;
-	kernel_dontaudit_read_system_state(puppet_initrc_notrans_t)
+	#kernel_dontaudit_read_system_state(puppet_initrc_notrans_t)
 	userdom_dontaudit_use_user_terminals(puppet_t)
 ')
 
@@ -170,9 +170,8 @@ optional_policy(`
 ')
 
 optional_policy(`
-	gentoo_init_initrc_notrans(puppet_initrc_notrans_t, puppet_t)
+	init_rc_exec(puppet_t)
 	portage_domtrans(puppet_t)
-	puppet_rw_tmp(puppet_initrc_notrans_t)
 ')
 
 optional_policy(`

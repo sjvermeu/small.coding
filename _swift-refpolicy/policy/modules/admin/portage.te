@@ -20,6 +20,14 @@ gen_tunable(gentoo_try_dontaudit, false)
 ## </desc>
 gen_tunable(gentoo_portage_allow_nfs, false)
 
+## <desc>
+## <p>
+##   Enables rules that should not be necessary anymore when upstream updates or
+##   enhances their application(s).
+## </p>
+## </desc>
+gen_tunable(gentoo_wait_requests, true)
+
 type gcc_config_t;
 type gcc_config_exec_t;
 application_domain(gcc_config_t, gcc_config_exec_t)
@@ -279,7 +287,9 @@ corenet_tcp_sendrecv_all_ports(portage_fetch_t)
 corenet_tcp_connect_all_reserved_ports(portage_fetch_t)
 corenet_tcp_connect_generic_port(portage_fetch_t)
 corenet_tcp_connect_http_cache_port(portage_fetch_t) # In case of cache server connections/proxy
+tunable_policy(`gentoo_wait_requests',`
 corenet_tcp_connect_http_cache_port(portage_t) # emerge fetches binpkgs from PORTAGE_BINHOST ?
+')
 
 dev_dontaudit_read_rand(portage_fetch_t)
 

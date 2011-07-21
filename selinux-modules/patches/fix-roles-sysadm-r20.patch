@@ -1,10 +1,10 @@
 --- refpolicy.orig/policy/modules/roles/sysadm.te	2010-12-13 15:11:01.000000000 +0100
-+++ refpolicy/policy/modules/roles/sysadm.te	2011-07-20 22:05:58.036005204 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2011-07-21 11:15:51.350000371 +0200
 @@ -34,6 +34,7 @@
  ubac_fd_exempt(sysadm_t)
  
  init_exec(sysadm_t)
-+init_rc_exec(sysadm_t)
++gentoo_init_rc_exec(sysadm_t)
  
  # Add/remove user home directories
  userdom_manage_user_home_dirs(sysadm_t)
@@ -39,7 +39,7 @@
  ')
  
  optional_policy(`
-@@ -400,6 +409,30 @@
+@@ -400,6 +409,26 @@
  	yam_run(sysadm_t, sysadm_r)
  ')
  
@@ -61,16 +61,12 @@
 +	optional_policy(`
 +		nginx_admin(sysadm_t, sysadm_r)
 +	')
-+
-+	optional_policy(`
-+		haveged_admin(sysadm_t)
-+	')
 +')
 +
  ifndef(`distro_redhat',`
  	optional_policy(`
  		auth_role(sysadm_r, sysadm_t)
-@@ -448,5 +481,34 @@
+@@ -448,5 +477,34 @@
  	optional_policy(`
  		java_role(sysadm_r, sysadm_t)
  	')

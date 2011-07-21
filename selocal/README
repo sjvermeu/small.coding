@@ -1,0 +1,25 @@
+selocal
+=======
+
+The selocal script allows administrators to quickly manage locally added
+SELinux policy rules.
+
+Adding an allow / dontaudit / auditallow rule
+---------------------------------------------
+
+Example:
+	selocal add allow mozilla_t self:process execmem
+
+Removing a privilege
+--------------------
+
+Remove the privilege. Use the exact output as shown in the "selocal list".
+
+Example:
+	selocal del allow mozilla_t self:process { execmem };
+
+Listing current privileges
+--------------------------
+
+Example:
+	selocal list

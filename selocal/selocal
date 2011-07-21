@@ -1,0 +1,169 @@
+#!/bin/bash
+
+# Initialize configuration
+if [ ! -d ~/.selocal ];
+then
+  echo "Creating ~/.selocal configuration directory.";
+  mkdir ~/.selocal
+fi
+
+if [ ! -f ~/.selocal/localmod.te ];
+then
+  echo "Creating ~/.selocal/localmod.te module definition.";
+  cat > ~/.selocal/localmod.te << EOF
+policy_module(localmod, 1.0)
+
+require {
+  # REQSTART
+
+  # REQSTOP
+}
+
+# ALLOW
+EOF
+fi
+
+# Load the module
+loadmodule() {
+  semodule -i ~/.selocal/localmod.pp > ~/.selocal/localmod.log 2>&1;
+  return $?;
+}
+
+# Build the module
+buildmodule() {
+  typeset POLICYTYPE=$(sestatus | awk '/Policy from config/ {print $5}');
+  typeset RC=0;
+
+  pushd ~/.selocal > /dev/null 2>&1;
+  make -f /usr/share/selinux/${POLICYTYPE}/include/Makefile localmod.pp > localmod.log 2>&1;
+  RC=$?;
+
+  popd > /dev/null 2>&1;
+  return ${RC};
+}
+
+# Add a rule to the local module
+addrule() {
+  typeset VERB=$1;
+
+  cp ~/.selocal/localmod.te ~/.selocal/localmod.te.orig;
+
+  if [[ "x${VERB}" == "xallow" ]] || [[ "x${VERB}" == "xdontaudit" ]] || [[ "x${VERB}" == "xauditallow" ]];
+  then
+    typeset SOURCE=$2;
+    typeset TARGET=${3%%:*};
+    typeset CLASS=${3##*:};
+    typeset PERM=${4};
+
+    awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "type ${SOURCE};";
+    if [ $? -ne 0 ];
+    then
+      # Source type is not known, adding
+      awk "/# REQSTOP/ {print \"type ${SOURCE};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
+      mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
+    fi
+
+    if [[ "x${TARGET}" != "xself" ]];
+    then
+      awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "type ${TARGET};";
+      if [ $? -ne 0 ];
+      then
+        # Source type is not known, adding
+        awk "/# REQSTOP/ {print \"type ${TARGET};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
+	mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
+      fi
+    fi 
+
+    awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "class ${CLASS} ${PERM};";
+    if [ $? -ne 0 ];
+    then
+      # Source class/permission is not known, adding
+      awk "/# REQSTOP/ {print \"class ${CLASS} ${PERM};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
+      mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
+    fi
+
+    grep -v "${VERB} ${SOURCE} ${TARGET}:${CLASS} { ${PERM} };" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
+    mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
+
+    echo "${VERB} ${SOURCE} ${TARGET}:${CLASS} { ${PERM} };" >> ~/.selocal/localmod.te;
+
+    buildmodule;
+    if [ $? -ne 0 ];
+    then
+      mv ~/.selocal/localmod.te.orig ~/.selocal/localmod.te;
+      echo "Build failed. Please check ~/.selocal/localmod.log for more information.";
+      return 1;
+    fi
+    loadmodule;
+    if [ $? -ne 0 ];
+    then
+      echo "Failed to load in new module. Please check ~/.selocal/localmod.log for more information.";
+      return 2;
+    fi
+  fi
+  return 0;
+}
+
+# Delete a rule from the local module
+delrule() {
+  cp ~/.selocal/localmod.te ~/.selocal/localmod.te.orig;
+  grep -v "$*" ~/.selocal/localmod.te.orig > ~/.selocal/localmod.te;
+
+  typeset OLINE=$(wc -l ~/.selocal/localmod.te.orig | awk '{print $1}');
+  typeset NLINE=$(wc -l ~/.selocal/localmod.te | awk '{print $1}');
+
+  if [[ ${OLINE} != $((${NLINE}+1)) ]];
+  then
+    echo "Removal of the given privilege failed";
+    echo "Source has ${OLINE} lines, new source ${NLINE}.";
+    return 1;
+  fi
+
+  buildmodule;
+  if [ $? -ne 0 ];
+  then
+    mv ~/.selocal/localmod.te.orig ~/.selocal/localmod.te;
+    echo "Build failed. Please check ~/.selocal/localmod.log for more information.";
+    return 1;
+  fi
+  loadmodule;
+  if [ $? -ne 0 ];
+  then
+    echo "Failed to load in new module. Please check ~/.selocal/localmod.log for more information.";
+    return 2;
+  fi
+
+  return 0;
+}
+
+# List rules
+listrules() {
+  awk '/# ALLOW/,0' ~/.selocal/localmod.te | grep -v '# ALLOW';
+  return 0;
+}
+
+if [ $# -lt 1 ] || ( [[ "x$1" != "xadd" ]] && [[ "x$1" != "xdel" ]] && [[ "x$1" != "xlist" ]] );
+then
+  echo "Usage: $0 <add | del | list> <rule>";
+  exit 1;
+fi
+
+typeset CMD=$1;
+shift;
+typeset RULE=$*;
+
+case ${CMD} in
+	"add")
+		addrule ${RULE};
+		exit $?;
+		;;
+	"del")
+		delrule ${RULE};
+		exit $?;
+		;;
+	"list")
+		listrules;
+		exit $?;
+		;;
+esac
+

@@ -14,6 +14,7 @@ gxml2docbook - XSL conversion script from Gentoo GuideXML Book format to DocBook
 hex2passwd - Tool to generate passwords based on SHA/MD5 checksum input
 selinux-local - Local patches and fixes to SELinux policy not ready for global publication
 selinux-modules - Modules I created 
+selocal - Script to manage local rules 
 mglverify - Test script allowing to validate settings and such
 mglshow - Script that easily displays (using scriptreplay) how to do stuff in the commandline
 fileproc - Set of scripts to process files in a controlled manner

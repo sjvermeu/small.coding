@@ -93,23 +93,6 @@ _configsystem() {
   logMessage "  > Restoring /etc/selinux context... ";
   restorecon -R /etc/selinux;
   logMessage "done\n";
-
-  logMessage "  > Installing zabbix agent... ";
-  installSoftware -u selinux-zabbix || die "Failed to install selinux-zabbix policy";
-  installSoftware -u zabbix || die "Failed to install zabbix agent";
-  logMessage "done\n";
-
-  logMessage "  > Setting up zabbix agent... ";
-  typeset FILE=/etc/zabbix/zabbix_agentd.conf;
-  typeset META=$(initChangeFile ${FILE});
-  updateEqualNoQuotConfFile etc.zabbix.agent ${FILE}
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Adding zabbix-agentd to default runlevel... ";
-  rc-update add zabbix-agentd default;
-  logMessage "done\n";
 }
 
 _setuppam() {
@@ -203,5 +186,25 @@ EOF
   sed -i -e "s|shadow:.*|shadow:	files ldap|g" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  # At the end of installations.
+  # I know this has impact on the zabbix server itself. Let's figure that out
+  # when we get there...
+  logMessage "  > Installing zabbix agent... ";
+  installSoftware -u selinux-zabbix || die "Failed to install selinux-zabbix policy";
+  installSoftware -u zabbix || die "Failed to install zabbix agent";
+  logMessage "done\n";
+
+  logMessage "  > Setting up zabbix agent... ";
+  typeset FILE=/etc/zabbix/zabbix_agentd.conf;
+  typeset META=$(initChangeFile ${FILE});
+  updateEqualNoQuotConfFile etc.zabbix.agent ${FILE}
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  logMessage "  > Adding zabbix-agentd to default runlevel... ";
+  rc-update add zabbix-agentd default;
   logMessage "done\n";
 }

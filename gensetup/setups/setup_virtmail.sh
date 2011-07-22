@@ -19,7 +19,8 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installpostfix installcourier installsasl certificates updatepostfix vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth mysqlpostfix setuppam";
+# certificates was between installsasl and updatepostfix
+typeset STEPS="configsystem installpostfix installcourier installsasl updatepostfix vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth mysqlpostfix setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -80,50 +81,50 @@ installcourier() {
   installSoftware -u courier-imap courier-authlib || die "Failed to install Courier software (emerge failed)";
   logMessage "done\n";
 
-  logMessage "  > Updating pop3.cnf... ";
-  typeset FILE=/etc/courier-imap/pop3d.cnf;
-  typeset META=$(initChangeFile ${FILE});
-  sed -i -e "s:^C ?=.*:C=$(getValue courier.ssl.C):g" ${FILE};
-  sed -i -e "s:^ST ?=.*:ST=$(getValue courier.ssl.ST):g" ${FILE};
-  sed -i -e "s:^L ?=.*:L=$(getValue courier.ssl.L):g" ${FILE};
-  sed -i -e "s:^O ?=.*:O=$(getValue courier.ssl.O):g" ${FILE};
-  sed -i -e "s:^OU ?=.*:OU=$(getValue courier.ssl.OU):g" ${FILE};
-  sed -i -e "s:^CN ?=.*:CN=$(getValue courier.ssl.CN):g" ${FILE};
-  sed -i -e "s:^emailAddress ?=.*:emailAddress=$(getValue courier.ssl.emailAddress):g" ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
+#  logMessage "  > Updating pop3.cnf... ";
+#  typeset FILE=/etc/courier-imap/pop3d.cnf;
+#  typeset META=$(initChangeFile ${FILE});
+#  sed -i -e "s:^C ?=.*:C=$(getValue courier.ssl.C):g" ${FILE};
+#  sed -i -e "s:^ST ?=.*:ST=$(getValue courier.ssl.ST):g" ${FILE};
+#  sed -i -e "s:^L ?=.*:L=$(getValue courier.ssl.L):g" ${FILE};
+#  sed -i -e "s:^O ?=.*:O=$(getValue courier.ssl.O):g" ${FILE};
+#  sed -i -e "s:^OU ?=.*:OU=$(getValue courier.ssl.OU):g" ${FILE};
+#  sed -i -e "s:^CN ?=.*:CN=$(getValue courier.ssl.CN):g" ${FILE};
+#  sed -i -e "s:^emailAddress ?=.*:emailAddress=$(getValue courier.ssl.emailAddress):g" ${FILE};
+#  applyMetaOnFile ${FILE} ${META};
+#  commitChangeFile ${FILE} ${META};
+#  logMessage "done\n";
 
-  logMessage "  > Updating imapd.cnf... ";
-  typeset FILE=/etc/courier-imap/imapd.cnf;
-  typeset META=$(initChangeFile ${FILE});
-  sed -i -e "s:^C ?=.*:C=$(getValue courier.ssl.C):g" ${FILE};
-  sed -i -e "s:^ST ?=.*:ST=$(getValue courier.ssl.ST):g" ${FILE};
-  sed -i -e "s:^L ?=.*:L=$(getValue courier.ssl.L):g" ${FILE};
-  sed -i -e "s:^O ?=.*:O=$(getValue courier.ssl.O):g" ${FILE};
-  sed -i -e "s:^OU ?=.*:OU=$(getValue courier.ssl.OU):g" ${FILE};
-  sed -i -e "s:^CN ?=.*:CN=$(getValue courier.ssl.CN):g" ${FILE};
-  sed -i -e "s:^emailAddress ?=.*:emailAddress=$(getValue courier.ssl.emailAddress):g" ${FILE};
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Running mkpop3dcert... ";
-  mkpop3dcert;
-  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/pop3d.pem ]; # file exists
-  then
-    die "Failed to run mkpop3dcert";
-  fi
-  logMessage "done\n";
-
-  logMessage "  > Running mkimapdcert... ";
-  mkimapdcert;
-  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/imapd.pem ];
-  then
-    die "Failed to run mkipapcert";
-  fi
-  logMessage "done\n";
-
+#  logMessage "  > Updating imapd.cnf... ";
+#  typeset FILE=/etc/courier-imap/imapd.cnf;
+#  typeset META=$(initChangeFile ${FILE});
+#  sed -i -e "s:^C ?=.*:C=$(getValue courier.ssl.C):g" ${FILE};
+#  sed -i -e "s:^ST ?=.*:ST=$(getValue courier.ssl.ST):g" ${FILE};
+#  sed -i -e "s:^L ?=.*:L=$(getValue courier.ssl.L):g" ${FILE};
+#  sed -i -e "s:^O ?=.*:O=$(getValue courier.ssl.O):g" ${FILE};
+#  sed -i -e "s:^OU ?=.*:OU=$(getValue courier.ssl.OU):g" ${FILE};
+#  sed -i -e "s:^CN ?=.*:CN=$(getValue courier.ssl.CN):g" ${FILE};
+#  sed -i -e "s:^emailAddress ?=.*:emailAddress=$(getValue courier.ssl.emailAddress):g" ${FILE};
+#  applyMetaOnFile ${FILE} ${META};
+#  commitChangeFile ${FILE} ${META};
+#  logMessage "done\n";
+#
+#  logMessage "  > Running mkpop3dcert... ";
+#  mkpop3dcert;
+#  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/pop3d.pem ]; # file exists
+#  then
+#    die "Failed to run mkpop3dcert";
+#  fi
+#  logMessage "done\n";
+#
+#  logMessage "  > Running mkimapdcert... ";
+#  mkimapdcert;
+#  if [ $? -ne 0 ] && [ ! -f /etc/courier-imap/imapd.pem ];
+#  then
+#    die "Failed to run mkipapcert";
+#  fi
+#  logMessage "done\n";
+#
   for FILENM in imapd pop3d;
   do
     logMessage "  > Updating /etc/courier-imap/${FILENM} file... ";
@@ -134,14 +135,14 @@ installcourier() {
     commitChangeFile ${FILE} ${META};
     logMessage "done\n";
 
-    logMessage "  > Updating /etc/courier-imap/${FILENM}-ssl file... ";
-    FILE=/etc/courier-imap/${FILENM}-ssl
-    META=$(initChangeFile ${FILE});
-    setOrUpdateUnquotedVariable SSLPIDFILE "=" /var/run/courier/${FILENM}-ssl.pid ${FILE}
-    setOrUpdateUnquotedVariable TLS_CACHEFILE "=" /var/run/courier-imap/couriersslcache ${FILE}
-    applyMetaOnFile ${FILE} ${META};
-    commitChangeFile ${FILE} ${META};
-    logMessage "done\n";
+#    logMessage "  > Updating /etc/courier-imap/${FILENM}-ssl file... ";
+#    FILE=/etc/courier-imap/${FILENM}-ssl
+#    META=$(initChangeFile ${FILE});
+#    setOrUpdateUnquotedVariable SSLPIDFILE "=" /var/run/courier/${FILENM}-ssl.pid ${FILE}
+#    setOrUpdateUnquotedVariable TLS_CACHEFILE "=" /var/run/courier-imap/couriersslcache ${FILE}
+#    applyMetaOnFile ${FILE} ${META};
+#    commitChangeFile ${FILE} ${META};
+#    logMessage "done\n";
   done
 
   logMessage "  > Creating /var/run/courier location... ";
@@ -374,15 +375,15 @@ installapache() {
   installSoftware -u phpmyadmin || die "Failed to install phpmyadmin... ";
   logMessage "done\n";
 
-  logMessage "  > Setting up SSL keys... ";
-  cp /etc/ssl/misc/new.cert.cert /etc/apache2/ssl || die "Copy failed of new.cert.cert";
-  cp /etc/ssl/misc/new.cert.key /etc/apache2/ssl || die "Copy failed of new.cert.key";
-  logMessage "done\n";
+#  logMessage "  > Setting up SSL keys... ";
+#  cp /etc/ssl/misc/new.cert.cert /etc/apache2/ssl || die "Copy failed of new.cert.cert";
+#  cp /etc/ssl/misc/new.cert.key /etc/apache2/ssl || die "Copy failed of new.cert.key";
+#  logMessage "done\n";
 
   logMessage "  > Updating /etc/conf.d/apache... ";
   typeset FILE=/etc/conf.d/apache2;
   typeset META=$(initChangeFile ${FILE});
-  setOrUpdateQuotedVariable APACHE2_OPTS "=" "-D DEFAULT_VHOST -D INFO -D SSL -D SSL_DEFAULT_VHOST -D LANGUAGE -D PHP5" ${FILE};
+  setOrUpdateQuotedVariable APACHE2_OPTS "=" "-D DEFAULT_VHOST -D INFO -D LANGUAGE -D PHP5" ${FILE};
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
@@ -566,11 +567,11 @@ runStep installsasl;
 );
 nextStep;
 
-stepOK "certificates" && (
-logMessage ">>> Step \"certificates\" starting...\n";
-runStep certificates;
-);
-nextStep;
+#stepOK "certificates" && (
+#logMessage ">>> Step \"certificates\" starting...\n";
+#runStep certificates;
+#);
+#nextStep;
 
 stepOK "updatepostfix" && (
 logMessage ">>> Step \"updatepostfix\" starting...\n";

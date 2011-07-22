@@ -129,7 +129,7 @@
 +')
 +
 --- refpolicy.orig/policy/modules/admin/portage.if	2010-08-05 14:46:44.000000000 +0200
-+++ refpolicy/policy/modules/admin/portage.if	2011-07-22 15:37:55.524000760 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-07-22 19:55:07.676001201 +0200
 @@ -71,14 +71,14 @@
  
  	gen_require(`
@@ -173,7 +173,7 @@
  	ifdef(`TODO',`
  	# some gui ebuilds want to interact with X server, like xawtv
  	optional_policy(`
-@@ -246,6 +258,25 @@
+@@ -246,6 +258,24 @@
  
  ########################################
  ## <summary>
@@ -193,13 +193,39 @@
 +	allow $1 portage_conf_t:dir search_dir_perms;
 +')
 +
-+
 +########################################
 +## <summary>
  ##	Do not audit attempts to search the
  ##	portage temporary directories.
  ## </summary>
-@@ -281,3 +312,23 @@
+@@ -265,6 +295,26 @@
+ 
+ ########################################
+ ## <summary>
++##   Allow a domain to read portage_tmp_t files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to allow search privileges
++##	</summary>
++## </param>
++#
++interface(`gentoo_portage_read_tmp_files',`
++	gen_require(`
++		type portage_tmp_t;
++	')
++
++	allow $1 portage_tmp_t:dir search_dir_perms;
++	allow $1 portage_tmp_t:file read_file_perms;
++')
++
++
++########################################
++## <summary>
+ ##	Do not audit attempts to read and write
+ ##	the portage temporary files.
+ ## </summary>
+@@ -281,3 +331,48 @@
  
  	dontaudit $1 portage_tmp_t:file rw_file_perms;
  ')
@@ -221,6 +247,31 @@
 +	')
 +
 +	dontaudit $1 portage_t:fd use;
++')
++
++########################################
++## <summary>
++##   Allow the domain to run within an eselect module script. 
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to allow within an eselect module
++##	</summary>
++## </param>
++#   Specific to Gentoo,
++#   eselect modules allow users to switch between different flavors or versions
++#   of underlying components. In return, eselect makes a wrapper binary which 
++#   makes the proper selections. If this binary is different from bin_t, it might
++#   not hold the necessary privileges for the wrapper to function. However, just
++#   marking the target binaries doesn't always work, since for python scripts the
++#   wrapper doesn't execute it, but treats the target as a library.
++#
++interface(`gentoo_portage_eselect_module',`
++	gen_require(`
++		type portage_t;
++	')
++	allow $1 self:fifo_file { read write };
++	corecmd_exec_shell($1)	
 +')
 +
 --- refpolicy.orig/policy/modules/admin/portage.fc	2010-08-03 15:11:03.000000000 +0200

@@ -1,5 +1,5 @@
 --- refpolicy.orig/policy/modules/kernel/corecommands.fc	2010-10-27 19:52:48.000000000 +0200
-+++ refpolicy/policy/modules/kernel/corecommands.fc	2011-07-22 13:32:56.026000545 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2011-07-22 19:55:07.676001201 +0200
 @@ -84,6 +84,8 @@
  /etc/pm/power\.d(/.*)?			gen_context(system_u:object_r:bin_t,s0)
  /etc/pm/sleep\.d(/.*)?			gen_context(system_u:object_r:bin_t,s0)
@@ -56,10 +56,12 @@
  /usr/lib(64)?/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/nagios/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/netsaint/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
-@@ -235,6 +253,12 @@
+@@ -235,6 +253,14 @@
  /usr/lib(64)?/[^/]*/run-mozilla\.sh --	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/[^/]*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/thunderbird.*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
++/usr/lib64/firefox/plugin-container		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/firefox/plugin-container		--	gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib64/nspluginwrapper/i386/linux/npviewer.bin	--	gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib/nspluginwrapper/i386/linux/npviewer.bin	--	gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib64/nspluginwrapper/i386/linux/npviewer	--	gen_context(system_u:object_r:shell_exec_t,s0)
@@ -69,7 +71,7 @@
  
  /usr/lib(64)?/xen/bin(/.*)?		gen_context(system_u:object_r:bin_t,s0)
  
-@@ -257,6 +281,9 @@
+@@ -257,6 +283,9 @@
  /usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
  /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
  /usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)

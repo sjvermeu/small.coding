@@ -304,7 +304,7 @@ installmysql() {
 
 startmysql() {
   logMessage "  > Running 'emerge --config myqsl'... ";
-  export MYSQL_ROOT_PASSWORD=$(mysql.root.password);
+  export MYSQL_ROOT_PASSWORD=$(getValue mysql.root.password);
   emerge --config mysql;
   logMessage "done\n";
 

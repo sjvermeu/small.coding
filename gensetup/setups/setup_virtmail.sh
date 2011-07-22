@@ -312,10 +312,6 @@ startmysql() {
   run_init /etc/init.d/mysql start;
   logMessage "done\n";
 
-  logMessage "  > Running mysql_secure_installation... ";
-  printf "N\n\n\n\n\n\n\n\n\n\n\n\n\n\n" | mysql_secure_installation;
-  logMessage "done\n";
-
   logMessage "  > Configuring mysql for network access... ";
   typeset FILE=/etc/mysql/my.cnf;
   typeset META=$(initChangeFile ${FILE});

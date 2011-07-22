@@ -196,7 +196,7 @@
 +	corenet_tcp_connect_all_ports(nginx_t)
 +')
 --- refpolicy.orig/policy/modules/services/nginx.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/nginx.if	2011-07-21 14:22:08.271000691 +0200
++++ refpolicy/policy/modules/services/nginx.if	2011-07-21 14:25:54.888000697 +0200
 @@ -0,0 +1,101 @@
 +###############################################################################
 +# SELinux module for the NGINX Web Server
@@ -293,7 +293,7 @@
 +	files_list_var_lib($1)
 +	admin_pattern($1, nginx_var_lib_t)
 +
-+	files_list_logs($1)
++	logging_list_logs($1)
 +	admin_pattern($1, nginx_log_t)
 +
 +	files_list_pids($1)

@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam setupzabbix finalize";
+typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy installcron configcron setuppam setupzabbix finalize";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -112,6 +112,40 @@ configprivoxy() {
   logMessage "done\n";
 }
 
+installcron() {
+  logMessage "  > Installing vixie-cron... ";
+  installSoftware -u vixie-cron || die "Failed to install cron";
+  logMessage "done\n";
+
+  logMessage "  > Installing selinux-sendmail... ";
+  installSoftware -u selinux-sendmail || die "Failed to install selinux-sendmail";
+  logMessage "done\n";
+
+  logMessage "  > Installing mailx... ";
+  installSoftware -u mailx || die "Failed to install mailx";
+  logMessage "done\n";
+}
+
+configcron() {
+  logMessage "  > Creating checklist.sh file... ";
+  cat > /etc/cron.hourly/checklist.sh << EOF
+#!/bin/sh
+
+typeset RESULTSFILE=$(mktemp);
+
+printf "Cron-generated report from `hostname`\n\n" >> ${RESULTSFILE} 2>&1;
+printf "SELinux context: " >> ${RESULTSFILE} 2>&1;
+id -Z >> ${RESULTSFILE} 2>&1;
+
+
+cat ${RESULTSFILE} | mailx -s "Hourly checklist (cron)" user1@virt-domain.com
+
+rm ${RESULTSFILE};
+EOF
+  restorecon /etc/cron.hourly/checklist.sh;
+  logMessage "done\n";
+}
+
 setuppam() {
   _setuppam;
 }
@@ -152,6 +186,18 @@ nextStep;
 stepOK "configprivoxy" && (
 logMessage ">>> Step \"configprivoxy\" starting...\n";
 runStep configprivoxy;
+);
+nextStep;
+
+stepOK "installcron" && (
+logMessage ">>> Step \"installcron\" starting...\n";
+runStep installcron;
+);
+nextStep;
+
+stepOK "configcron" && (
+logMessage ">>> Step \"configcron\" starting...\n";
+runStep configcron;
 );
 nextStep;
 

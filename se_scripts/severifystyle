@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# selist - List all templates/interfaces in the order allowed by refpolicy
+selist() {
+  typeset POLICY_LOCATION="/home/swift/Development/Centralized/hardened-refpolicy";
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  (
+  egrep '^(interface|template)' kernel/kernel.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, kernel):g" | sort;
+  egrep '^(interface|template)' kernel/*.if | grep -v 'kernel/kernel.if' | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, other):g" | sort;
+  egrep '^(interface|template)' system/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (system):g" | sort;
+  egrep '^(interface|template)' admin/*.if apps/*.if roles/*.if services/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sort;
+  ) | nl;
+  popd > /dev/null 2>&1;
+}
+
+
+typeset LIST=$(mktemp);
+typeset DOMAIN=$1;
+typeset FILE=$2;
+typeset PREV=0;
+typeset NUM=0;
+typeset PREVFUNC="";
+typeset FUNC="";
+
+selist > ${LIST};
+
+while read LINE;
+do
+  echo ${LINE} | grep -q ${DOMAIN} || continue;
+  echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
+  echo ${LINE} | grep -vq "^[ 	]*dontaudit " || continue;
+  echo ${LINE} | grep -vq "^type " || continue;
+
+  FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
+  NUM=$(grep ${FUNC} ${LIST} 2>/dev/null | awk '{print $1}');
+  if [[ ${NUM} -lt ${PREV} ]];
+  then
+    echo "Function ${FUNC} should be before ${PREVFUNC}";
+  fi
+  PREVFUNC="${FUNC}";
+  PREV=${NUM};
+done < ${FILE};
+
+rm ${LIST};

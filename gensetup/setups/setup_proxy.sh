@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam finalize";
+typeset STEPS="configsystem installsquid installprivoxy configsquid configprivoxy setuppam setupzabbix finalize";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -116,6 +116,10 @@ setuppam() {
   _setuppam;
 }
 
+setupzabbix() {
+  _setupzabbix;
+}
+
 finalize() {
   logMessage "  > Creating cache directory (by squid).\n";
   LogMessage "    Please run 'run_init squid -z'.\n"
@@ -154,6 +158,12 @@ nextStep;
 stepOK "setuppam" && (
 logMessage ">>> Step \"setuppam\" starting...\n";
 runStep setuppam;
+);
+nextStep;
+
+stepOK "setupzabbix" && (
+logMessage ">>> Step \"setupzabbix\" starting...\n";
+runStep setupzabbix;
 );
 nextStep;
 

@@ -187,10 +187,9 @@ EOF
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
+}
 
-  # At the end of installations.
-  # I know this has impact on the zabbix server itself. Let's figure that out
-  # when we get there...
+_setupzabbix() {
   logMessage "  > Installing zabbix agent... ";
   installSoftware -u selinux-zabbix || die "Failed to install selinux-zabbix policy";
   installSoftware -u zabbix || die "Failed to install zabbix agent";
@@ -207,4 +206,5 @@ EOF
   logMessage "  > Adding zabbix-agentd to default runlevel... ";
   rc-update add zabbix-agentd default;
   logMessage "done\n";
+
 }

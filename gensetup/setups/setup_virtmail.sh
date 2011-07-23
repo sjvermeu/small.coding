@@ -20,7 +20,7 @@ typeset CONFFILE=$1;
 export CONFFILE;
 
 # certificates was between installsasl and updatepostfix
-typeset STEPS="configsystem installpostfix installcourier installsasl updatepostfix vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth mysqlpostfix setuppam";
+typeset STEPS="configsystem installpostfix installcourier installsasl updatepostfix vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth mysqlpostfix setuppam setupzabbix";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -539,6 +539,10 @@ setuppam() {
   _setuppam;
 }
 
+setupzabbix() {
+  _setupzabbix;
+}
+
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -626,6 +630,12 @@ nextStep;
 stepOK "setuppam" && (
 logMessage ">>> Step \"setuppam\" starting...\n";
 runStep setuppam;
+);
+nextStep;
+
+stepOK "setupzabbix" && (
+logMessage ">>> Step \"setupzabbix\" starting...\n";
+runStep setupzabbix;
 );
 nextStep;
 

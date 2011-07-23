@@ -66,6 +66,17 @@ configureportage() {
 }
 
 installsoftware() {
+  for PACKAGE in $(getValue clearpackages);
+  do
+    logMessage "  > Installing '${PACKAGE}'... ";
+    installSoftware -u ${PACKAGE} || die "Failed to install ${PACKAGE} (emerge failed)";
+    logMessage "done\n";
+
+    logMessage "  > Removing '${PACKAGE}' again (conflict with future package)... ";
+    installSoftware -C ${PACKAGE} || die "Failed to remove ${PACKAGE} (emerge failed)";
+    logMessage "done\n";
+  done
+
   for PACKAGE in $(getValue packages);
   do
     logMessage "  > Installing '${PACKAGE}'... ";

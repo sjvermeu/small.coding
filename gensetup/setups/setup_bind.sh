@@ -142,6 +142,12 @@ view "internal" {
 		allow-transfer { xfer; };
 	};
 
+	zone "virt-domain.com" {
+		type master;
+		file "pri/virt-domain.com.internal";
+		allow-transfer { xfer; };
+	};
+
 	zone "100.168.192.in-addr.arpa" {
 		type master;
 		file "pri/192.168.100.internal";
@@ -159,6 +165,12 @@ view "internal" {
 	zone "virtdomain.com" {
 		type slave;
 		file "pri/virtdomain.com.internal";
+		masters {@MASTER@;};
+	};
+
+	zone "virt-domain.com" {
+		type slave;
+		file "pri/virt-domain.com.internal";
 		masters {@MASTER@;};
 	};
 
@@ -208,6 +220,30 @@ build.virtdomain.com.	IN A	192.168.100.50
 rsync.virtdomain.com.	IN CNAME build.virtdomain.com.
 proxy.virtdomain.com.	IN A	192.168.100.63
 zabbix.virtdomain.com.	IN A	192.168.100.64
+EOF
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+
+    logMessage "  > Configuring virt-domain.com.internal zone file... ";
+    FILE="/var/bind/pri/virt-domain.com.internal";
+    touch ${FILE};
+    META=$(initChangeFile ${FILE});
+    cat > /var/bind/pri/virt-domain.com.internal << EOF
+\$TTL 1200 
+@	IN SOA	ns.virt-domain.com.	admin.virt-domain.com. (
+	2011061001	; serial
+	3h		; refresh
+	1h		; retry
+	1w		; expiry
+	1d )		; minimum
+
+virt-domain.com.		IN MX	0	mail1.virtdomain.com.
+virt-domain.com.		IN TXT	"v=spf1 ip4:192.168.100.71/32 mx ptr mx:mail1.virtdomain.com ~all"
+virt-domain.com.		IN NS	ns1.virtdomain.com.
+virt-domain.com.		IN NS	ns2.virtdomain.com.
+ns1.virt-domain.com.	IN A	192.168.100.71
+ns2.virt-domain.com.	IN A	192.168.100.72
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};

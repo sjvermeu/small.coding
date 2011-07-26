@@ -1,8 +1,8 @@
 #!/bin/sh
 
-typeset BASEDIR=/home/swift/Development/build/tmp;
-typeset ORIGSRC=refpolicy.orig/policy/modules;
-typeset NEWDST=../../Centralized/hardened-refpolicy/policy/modules;
+typeset BASEDIR=/home/swift/Development/build
+typeset ORIGSRC=refpolicy-20110726/policy/modules;
+typeset NEWDST=../Centralized/hardened-refpolicy/policy/modules;
 
 typeset TARGET=$2;
 typeset TYPE=$1;
@@ -33,10 +33,10 @@ fi
 if [ "${TYPE}" = "fullpath" ] && [ "${SUBJECT}" != "modules" ];
 then
   cd ${BASEDIR};
-  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e 's:../../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../../Centralized/hardened-refpolicy:refpolicy:g';
-  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${ORIGSRC}/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e 's:../../Centralized/hardened-refpolicy:refpolicy:g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
+  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${ORIGSRC}/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
 elif [ "${TYPE}" = "fullpath" ] && [ "${SUBJECT}" = "modules" ];
 then
   cd ${BASEDIR};
@@ -44,9 +44,9 @@ then
 elif [ "${TYPE}" = "minimal" ];
 then
   cd ${BASEDIR};
-  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
 else
   cd ${BASEDIR};
-  diff -uN ${ORIGSRC}/../../${TARGET} ${NEWDST}/../../${TARGET} | sed -e 's:../../Centralized/hardened-refpolicy/:refpolicy:g';
+  diff -uN ${ORIGSRC}/../../${TARGET} ${NEWDST}/../../${TARGET} | sed -e 's:../Centralized/hardened-refpolicy/:refpolicy:g';
 fi

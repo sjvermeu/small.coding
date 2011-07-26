@@ -32,7 +32,8 @@ do
   echo ${LINE} | grep -vq "^type " || continue;
 
   FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
-  NUM=$(grep ${FUNC} ${LIST} 2>/dev/null | awk '{print $1}');
+  NUM=$(grep "${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
+  [[ -n "${NUM}" ]] && [[ ${NUM} -gt 0 ]] || continue;
   if [[ ${NUM} -lt ${PREV} ]];
   then
     echo "Function ${FUNC} should be before ${PREVFUNC}";

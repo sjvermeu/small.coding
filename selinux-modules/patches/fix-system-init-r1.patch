@@ -99,7 +99,7 @@
  	ifdef(`enable_mcs',`
  		range_transition $1 initrc_exec_t:process s0;
 --- refpolicy-20110726/policy/modules/system/init.fc	2011-03-28 17:05:16.000000000 +0200
-+++ refpolicy/policy/modules/system/init.fc	2011-07-27 08:07:46.950004819 +0200
++++ refpolicy/policy/modules/system/init.fc	2011-07-27 11:23:48.040005131 +0200
 @@ -38,7 +38,7 @@
  /sbin/upstart		--	gen_context(system_u:object_r:init_exec_t,s0)
  
@@ -109,14 +109,11 @@
  /sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
  /sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
  /sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
-@@ -66,7 +66,10 @@
+@@ -66,6 +66,7 @@
  
  ifdef(`distro_gentoo', `
  /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
 +/var/lib/iptables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
  /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
-+/lib64/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
-+/lib/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
  ')
  
- ifdef(`distro_suse', `

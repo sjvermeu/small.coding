@@ -1,0 +1,122 @@
+--- refpolicy-20110726/policy/modules/system/init.te	2011-07-26 14:10:41.000000000 +0200
++++ refpolicy/policy/modules/system/init.te	2011-07-27 08:04:19.042004793 +0200
+@@ -56,8 +56,10 @@
+ 
+ type initrc_t, init_script_domain_type, init_run_all_scripts_domain;
+ type initrc_exec_t, init_script_file_type;
++type rc_exec_t;
+ domain_type(initrc_t)
+ domain_entry_file(initrc_t, initrc_exec_t)
++domain_entry_file(initrc_t, rc_exec_t)
+ role system_r types initrc_t;
+ # should be part of the true block
+ # of the below init_upstart tunable
+@@ -233,6 +235,7 @@
+ can_exec(initrc_t, init_script_file_type)
+ 
+ domtrans_pattern(init_run_all_scripts_domain, initrc_exec_t, initrc_t)
++gentoo_init_rc_exec(initrc_t)
+ 
+ manage_dirs_pattern(initrc_t, initrc_state_t, initrc_state_t)
+ manage_files_pattern(initrc_t, initrc_state_t, initrc_state_t)
+@@ -584,6 +587,10 @@
+ ')
+ 
+ optional_policy(`
++	courier_read_config(initrc_t)
++')
++
++optional_policy(`
+ 	cpucontrol_stub(initrc_t)
+ 	dev_getattr_cpu_dev(initrc_t)
+ ')
+@@ -793,6 +800,10 @@
+ optional_policy(`
+ 	# allow init scripts to su
+ 	su_restricted_domain_template(initrc, initrc_t, system_r)
++	# Allow initrc_su_t, now defined, to transition to postgresql_t
++	postgresql_domtrans(initrc_su_t)
++	# Allow initrc_su_t to use the initrc_devpts_t (needed for init script failure output)
++	allow initrc_su_t initrc_devpts_t:chr_file { read write };
+ ')
+ 
+ optional_policy(`
+--- refpolicy-20110726/policy/modules/system/init.if	2011-04-27 16:41:49.000000000 +0200
++++ refpolicy/policy/modules/system/init.if	2011-07-27 08:06:08.437004759 +0200
+@@ -455,6 +455,28 @@
+ 
+ ########################################
+ ## <summary>
++## Execute the rc program in the caller domain. This is a fix for OpenRC,
++## used in distributions like Gentoo, where /sbin/rc is used for all kinds
++## of stuff and as such cannot be handled properly using initrc_exec_t
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain allowed access.
++##     </summary>
++## </param>
++## <rolecap/>
++#
++interface(`gentoo_init_rc_exec',`
++       gen_require(`
++               type rc_exec_t;
++       ')
++
++       corecmd_search_bin($1)
++       can_exec($1, rc_exec_t)
++')
++
++########################################
++## <summary>
+ ##	Get the process group of init.
+ ## </summary>
+ ## <param name="domain">
+@@ -758,6 +780,11 @@
+ 		type initrc_exec_t;
+ 	')
+ 
++	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
++	# wants to execute initrc_exec_t (no transition needed anymore) whereas
++	# runscript previously was a binary
++	allow $1 initrc_exec_t:file execute_no_trans;
++
+ 	domain_entry_file($1, initrc_exec_t)
+ ')
+ 
+@@ -800,11 +827,12 @@
+ #
+ interface(`init_domtrans_script',`
+ 	gen_require(`
+-		type initrc_t, initrc_exec_t;
++		type initrc_t, initrc_exec_t, rc_exec_t;
+ 	')
+ 
+ 	files_list_etc($1)
+ 	domtrans_pattern($1, initrc_exec_t, initrc_t)
++	domtrans_pattern($1, rc_exec_t, initrc_t)
+ 
+ 	ifdef(`enable_mcs',`
+ 		range_transition $1 initrc_exec_t:process s0;
+--- refpolicy-20110726/policy/modules/system/init.fc	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/init.fc	2011-07-27 08:07:46.950004819 +0200
+@@ -38,7 +38,7 @@
+ /sbin/upstart		--	gen_context(system_u:object_r:init_exec_t,s0)
+ 
+ ifdef(`distro_gentoo', `
+-/sbin/rc		--	gen_context(system_u:object_r:initrc_exec_t,s0)
++/sbin/rc		--	gen_context(system_u:object_r:rc_exec_t,s0)
+ /sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+@@ -66,7 +66,10 @@
+ 
+ ifdef(`distro_gentoo', `
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/var/lib/iptables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/lib64/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/lib/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ ifdef(`distro_suse', `

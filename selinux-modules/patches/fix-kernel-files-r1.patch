@@ -1,0 +1,27 @@
+--- refpolicy-20110726/policy/modules/kernel/files.if	2011-07-18 19:53:08.000000000 +0200
++++ refpolicy/policy/modules/kernel/files.if	2011-07-26 23:17:35.587003854 +0200
+@@ -1482,6 +1482,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit write attempts on mount points.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to ignore write attempts from
++##	</summary>
++## </param>
++#
++interface(`gentoo_files_dontaudit_write_all_mountpoints',`
++	gen_require(`
++		attribute mountpoint;
++	')
++
++	dontaudit $1 mountpoint:dir write;
++')
++
++########################################
++## <summary>
+ ##	List the contents of the root directory.
+ ## </summary>
+ ## <param name="domain">

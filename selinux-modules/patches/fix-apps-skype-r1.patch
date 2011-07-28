@@ -1,6 +1,6 @@
 --- refpolicy-20110726/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.te	2011-07-26 22:34:10.700003779 +0200
-@@ -0,0 +1,95 @@
++++ refpolicy/policy/modules/apps/skype.te	2011-07-27 17:47:36.723005790 +0200
+@@ -0,0 +1,97 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -81,8 +81,10 @@
 +tunable_policy(`gentoo_try_dontaudit',`
 +	dev_dontaudit_search_sysfs(skype_t)
 +	fs_dontaudit_getattr_xattr_fs(skype_t)
++')
 +
-+	optional_policy(`
++optional_policy(`
++	tunable_policy(`gentoo_try_dontaudit',`
 +		mozilla_dontaudit_manage_user_home_files(skype_t)
 +	')
 +')
@@ -97,7 +99,7 @@
 +')
 +
 --- refpolicy-20110726/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.if	2011-07-26 22:34:10.699003779 +0200
++++ refpolicy/policy/modules/apps/skype.if	2011-07-27 15:44:33.847005579 +0200
 @@ -0,0 +1,51 @@
 +## <summary>Skype softphone.</summary>
 +

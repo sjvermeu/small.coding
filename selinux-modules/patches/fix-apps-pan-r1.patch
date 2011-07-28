@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/apps/pan.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/pan.te	2011-07-26 23:05:27.351003833 +0200
++++ refpolicy/policy/modules/apps/pan.te	2011-07-27 15:44:33.843005579 +0200
 @@ -0,0 +1,86 @@
 +policy_module(pan, 1.0)
 +

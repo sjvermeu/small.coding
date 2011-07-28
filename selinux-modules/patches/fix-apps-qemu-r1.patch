@@ -1,0 +1,24 @@
+--- refpolicy-20110726/policy/modules/apps/qemu.te	2011-07-26 14:10:39.000000000 +0200
++++ refpolicy/policy/modules/apps/qemu.te	2011-07-27 18:29:10.347005861 +0200
+@@ -50,6 +50,10 @@
+ # qemu local policy
+ #
+ 
++allow qemu_t self:socket create_socket_perms;
++
++kernel_request_load_module(qemu_t)
++
+ storage_raw_write_removable_device(qemu_t)
+ storage_raw_read_removable_device(qemu_t)
+ 
+@@ -99,6 +103,10 @@
+ ')
+ 
+ optional_policy(`
++	vde_connect(qemu_t)
++')
++
++optional_policy(`
+ 	virt_manage_images(qemu_t)
+ 	virt_append_log(qemu_t)
+ ')

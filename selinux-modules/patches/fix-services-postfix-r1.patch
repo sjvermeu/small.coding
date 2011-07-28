@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/services/postfix.te	2011-07-26 14:10:40.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.te	2011-07-27 07:32:05.236004725 +0200
++++ refpolicy/policy/modules/services/postfix.te	2011-07-27 15:44:33.906005579 +0200
 @@ -93,7 +93,7 @@
  #
  
@@ -27,7 +27,7 @@
  optional_policy(`
  	dovecot_stream_connect_auth(postfix_smtpd_t)
 --- refpolicy-20110726/policy/modules/services/postfix.if	2011-03-28 17:05:15.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.if	2011-07-27 07:35:23.604004738 +0200
++++ refpolicy/policy/modules/services/postfix.if	2011-07-27 15:44:33.906005579 +0200
 @@ -57,6 +57,7 @@
  	allow postfix_$1_t postfix_spool_t:dir list_dir_perms;
  
@@ -110,7 +110,7 @@
  ## <summary>
  ##	Connect to postfix master process using a unix domain stream socket.
 --- refpolicy-20110726/policy/modules/services/postfix.fc	2011-03-28 17:05:15.000000000 +0200
-+++ refpolicy/policy/modules/services/postfix.fc	2011-07-27 07:36:10.932004736 +0200
++++ refpolicy/policy/modules/services/postfix.fc	2011-07-27 15:44:33.905005579 +0200
 @@ -46,7 +46,7 @@
  
  /var/spool/postfix(/.*)?		gen_context(system_u:object_r:postfix_spool_t,s0)

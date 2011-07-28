@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/services/courier.te	2011-07-26 14:10:40.000000000 +0200
-+++ refpolicy/policy/modules/services/courier.te	2011-07-26 23:36:49.220003887 +0200
++++ refpolicy/policy/modules/services/courier.te	2011-07-27 15:44:33.897005579 +0200
 @@ -52,6 +52,8 @@
  allow courier_authdaemon_t courier_tcpd_t:tcp_socket rw_stream_socket_perms;
  allow courier_authdaemon_t courier_tcpd_t:fifo_file rw_file_perms;
@@ -41,7 +41,7 @@
 +	mysql_stream_connect(courier_authdaemon_t)
 +')
 --- refpolicy-20110726/policy/modules/services/courier.if	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/courier.if	2011-07-26 23:38:41.329003890 +0200
++++ refpolicy/policy/modules/services/courier.if	2011-07-27 15:44:33.897005579 +0200
 @@ -49,6 +49,7 @@
  	kernel_read_kernel_sysctls(courier_$1_t)
  
@@ -96,7 +96,7 @@
  ##	Execute the courier POP3 and IMAP server with
  ##	a domain transition.
 --- refpolicy-20110726/policy/modules/services/courier.fc	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/courier.fc	2011-07-26 23:40:27.012003893 +0200
++++ refpolicy/policy/modules/services/courier.fc	2011-07-27 15:44:33.897005579 +0200
 @@ -2,9 +2,11 @@
  
  /usr/bin/imapd				--	gen_context(system_u:object_r:courier_pop_exec_t,s0)

@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/apps/mutt.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/mutt.te	2011-07-26 22:30:31.070003773 +0200
++++ refpolicy/policy/modules/apps/mutt.te	2011-07-27 15:44:33.843005579 +0200
 @@ -0,0 +1,77 @@
 +policy_module(mutt, 1.0.0)
 +

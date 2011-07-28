@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/services/networkmanager.te	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/networkmanager.te	2011-07-27 07:19:41.323004708 +0200
++++ refpolicy/policy/modules/services/networkmanager.te	2011-07-27 18:12:30.251005833 +0200
 @@ -28,6 +28,9 @@
  type wpa_cli_exec_t;
  init_system_domain(wpa_cli_t, wpa_cli_exec_t)
@@ -26,7 +26,7 @@
  init_read_utmp(NetworkManager_t)
  init_dontaudit_write_utmp(NetworkManager_t)
  init_domtrans_script(NetworkManager_t)
-+init_domtrans_script(wpa_cli)
++init_domtrans_script(wpa_cli_t)
  
  auth_use_nsswitch(NetworkManager_t)
  
@@ -66,7 +66,7 @@
 +       allow wpa_cli_t etc_t:file { getattr };
 +')
 --- refpolicy-20110726/policy/modules/services/networkmanager.if	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/networkmanager.if	2011-07-27 07:20:32.151004709 +0200
++++ refpolicy/policy/modules/services/networkmanager.if	2011-07-27 15:44:33.904005579 +0200
 @@ -191,3 +191,49 @@
  	files_search_pids($1)
  	allow $1 NetworkManager_var_run_t:file read_file_perms;
@@ -118,7 +118,7 @@
 +')
 +
 --- refpolicy-20110726/policy/modules/services/networkmanager.fc	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/networkmanager.fc	2011-07-27 07:22:12.147004718 +0200
++++ refpolicy/policy/modules/services/networkmanager.fc	2011-07-27 15:44:33.904005579 +0200
 @@ -24,3 +24,5 @@
  /var/run/nm-dhclient.*			gen_context(system_u:object_r:NetworkManager_var_run_t,s0)
  /var/run/wpa_supplicant(/.*)?		gen_context(system_u:object_r:NetworkManager_var_run_t,s0)

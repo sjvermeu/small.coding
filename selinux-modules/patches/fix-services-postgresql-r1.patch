@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/services/postgresql.if	2011-03-28 17:05:15.000000000 +0200
-+++ refpolicy/policy/modules/services/postgresql.if	2011-07-27 07:38:05.410004741 +0200
++++ refpolicy/policy/modules/services/postgresql.if	2011-07-27 15:44:33.906005579 +0200
 @@ -541,6 +541,7 @@
  	')
  
@@ -9,7 +9,7 @@
  	allow $1 postgresql_t:process { ptrace signal_perms };
  	ps_process_pattern($1, postgresql_t)
 --- refpolicy-20110726/policy/modules/services/postgresql.fc	2010-08-03 15:11:07.000000000 +0200
-+++ refpolicy/policy/modules/services/postgresql.fc	2011-07-27 07:39:56.504004743 +0200
++++ refpolicy/policy/modules/services/postgresql.fc	2011-07-27 15:44:33.906005579 +0200
 @@ -2,6 +2,9 @@
  # /etc
  #

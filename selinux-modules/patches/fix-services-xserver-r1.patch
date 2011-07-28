@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/services/xserver.te	2011-07-26 14:10:40.000000000 +0200
-+++ refpolicy/policy/modules/services/xserver.te	2011-07-27 07:47:26.897004755 +0200
++++ refpolicy/policy/modules/services/xserver.te	2011-07-27 15:44:33.915005579 +0200
 @@ -234,11 +234,14 @@
  
  allow xdm_t iceauth_home_t:file read_file_perms;
@@ -34,7 +34,7 @@
  # sys_rawio is for iopl access - should not be needed for frame-buffer
  # sys_admin, locking shared mem?  chowning IPC message queues or semaphores?
 --- refpolicy-20110726/policy/modules/services/xserver.fc	2011-03-28 17:05:16.000000000 +0200
-+++ refpolicy/policy/modules/services/xserver.fc	2011-07-27 07:45:37.155004789 +0200
++++ refpolicy/policy/modules/services/xserver.fc	2011-07-27 15:44:33.914005579 +0200
 @@ -5,6 +5,7 @@
  HOME_DIR/\.fonts(/.*)?		gen_context(system_u:object_r:user_fonts_t,s0)
  HOME_DIR/\.fonts/auto(/.*)?	gen_context(system_u:object_r:user_fonts_cache_t,s0)

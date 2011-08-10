@@ -1,0 +1,25 @@
+--- refpolicy-20110726/policy/modules/apps/gpg.te	2011-03-28 17:05:13.000000000 +0200
++++ refpolicy/policy/modules/apps/gpg.te	2011-07-27 15:01:08.692005504 +0200
+@@ -147,6 +147,11 @@
+ ')
+ 
+ optional_policy(`
++	gentoo_portage_search_conf(gpg_t)
++	gentoo_portage_read_tmp_files(gpg_t)
++')
++
++optional_policy(`
+ 	xserver_use_xdm_fds(gpg_t)
+ 	xserver_rw_xdm_pipes(gpg_t)
+ ')
+@@ -347,6 +352,10 @@
+ ')
+ 
+ optional_policy(`
++	mutt_manage_tmp_files(gpg_t)
++')
++
++optional_policy(`
+ 	pulseaudio_exec(gpg_pinentry_t)
+ 	pulseaudio_rw_home_files(gpg_pinentry_t)
+ 	pulseaudio_setattr_home_dir(gpg_pinentry_t)

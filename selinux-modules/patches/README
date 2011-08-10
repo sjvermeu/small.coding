@@ -1,0 +1,12 @@
+SELinux Policy Patches
+======================
+
+This directory contains the list of patches applied to the refpolicy.
+
+They are divided in "changesets", which are logically coherent patches.
+
+Change sets in this patch bundle
+--------------------------------
+
+0001 - Fix labeling for iptables
+

@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/system/iptables.if	2011-04-18 17:54:20.000000000 +0200
-+++ refpolicy/policy/modules/system/iptables.if	2011-07-27 08:09:12.720005145 +0200
++++ refpolicy/policy/modules/system/iptables.if	2011-08-07 21:59:42.571001217 +0200
 @@ -169,3 +169,22 @@
  	files_search_etc($1)
  	manage_files_pattern($1, iptables_conf_t, iptables_conf_t)
@@ -23,3 +23,13 @@
 +       dontaudit $1 iptables_t:rawip_socket { read write };
 +')
 +
+--- refpolicy-20110726/policy/modules/system/iptables.fc	2011-04-18 17:54:20.000000000 +0200
++++ refpolicy/policy/modules/system/iptables.fc	2011-08-08 19:52:13.126000070 +0200
+@@ -12,6 +12,7 @@
+ /sbin/ipvsadm			--	gen_context(system_u:object_r:iptables_exec_t,s0)
+ /sbin/ipvsadm-restore		--	gen_context(system_u:object_r:iptables_exec_t,s0)
+ /sbin/ipvsadm-save		--	gen_context(system_u:object_r:iptables_exec_t,s0)
++/sbin/xtables-multi		--	gen_context(system_u:object_r:iptables_exec_t,s0)
+ 
+ /usr/sbin/ipchains.*		--	gen_context(system_u:object_r:iptables_exec_t,s0)
+ /usr/sbin/iptables		--	gen_context(system_u:object_r:iptables_exec_t,s0)

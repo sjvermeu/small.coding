@@ -119,14 +119,3 @@
  	spamassassin_role(sysadm_r, sysadm_t)
  ')
  
-@@ -377,6 +429,10 @@
- ')
- 
- optional_policy(`
-+	vde_admin(sysadm_r, sysadm_t)
-+')
-+
-+optional_policy(`
- 	vmware_role(sysadm_r, sysadm_t)
- ')
- 

@@ -1,0 +1,21 @@
+--- refpolicy-20110726/policy/modules/services/zabbix.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/services/zabbix.te	2011-08-11 22:50:28.916000656 +0200
+@@ -71,6 +71,7 @@
+ 
+ optional_policy(`
+ 	mysql_stream_connect(zabbix_t)
++	mysql_tcp_connect(zabbix_t)
+ ')
+ 
+ optional_policy(`
+--- refpolicy-20110726/policy/modules/services/zabbix.fc	2011-06-15 19:43:35.000000000 +0200
++++ refpolicy/policy/modules/services/zabbix.fc	2011-08-14 13:42:24.438000476 +0200
+@@ -2,7 +2,7 @@
+ /etc/rc\.d/init\.d/zabbix-agentd --	gen_context(system_u:object_r:zabbix_agent_initrc_exec_t,s0)
+ 
+ /usr/(s)?bin/zabbix_server	--	gen_context(system_u:object_r:zabbix_exec_t,s0)
+-/usr/(s)?bin/zabbix_agentd	--	gen_context(system_u:object_r:zabbix_agent_t,s0)
++/usr/(s)?bin/zabbix_agentd	--	gen_context(system_u:object_r:zabbix_agent_exec_t,s0)
+ 
+ /var/log/zabbix(/.*)?			gen_context(system_u:object_r:zabbix_log_t,s0)
+ 

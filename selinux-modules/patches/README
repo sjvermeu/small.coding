@@ -1,12 +1,28 @@
 SELinux Policy Patches
 ======================
 
-This directory contains the list of patches applied to the refpolicy.
+This directory contains the list of patches applied to the refpolicy. The
+patches are either in the form of "fix-<category>-<module>-r<revision>.patch"
+or "<changeset>-<module>-<description>-r<revision>.patch"
 
-They are divided in "changesets", which are logically coherent patches.
+The used <revision> helps identify in which patchbundle a patch(set) is
+included.
 
 Change sets in this patch bundle
 --------------------------------
 
-0001 - Fix labeling for iptables
+The following is the list of changesets in the patch bundle. A "-" means that
+the patch is currently Gentoo-only. A "+" means that the patch is accepted
+upstream (refpolicy) and as such should not need to be re-applied if a new
+refpolicy release is made.
+
+0001 - fix labeling for iptables
+0002 - dontaudit iptables rawip_socket read/write attempts
+0003 - dontaudit mysqld dac_read_search
+0004 - allow udev to call init scripts (gentoo hotplugging)
+0005 - allow nagios nrpe to read its own config file
+0006 - allow rpcd_t to listen on udp_socket
+0007 - dontaudit load_module request for ssh
+0008 - qemu-kvm creates socket and requests module loading
+0009 - introduce support for vde
 

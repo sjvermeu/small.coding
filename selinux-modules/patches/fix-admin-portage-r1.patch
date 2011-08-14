@@ -1,5 +1,5 @@
 --- refpolicy-20110726/policy/modules/admin/portage.te	2011-07-26 14:10:39.000000000 +0200
-+++ refpolicy/policy/modules/admin/portage.te	2011-07-27 15:45:18.201005580 +0200
++++ refpolicy/policy/modules/admin/portage.te	2011-08-14 21:04:18.389001234 +0200
 @@ -1,4 +1,4 @@
 -policy_module(portage, 1.11.0)
 +policy_module(portage, 1.11.0.1)
@@ -164,7 +164,7 @@
  	fs_getattr_nfs(portage_fetch_t)
  	fs_manage_nfs_dirs(portage_fetch_t)
 --- refpolicy-20110726/policy/modules/admin/portage.if	2011-07-22 14:20:44.000000000 +0200
-+++ refpolicy/policy/modules/admin/portage.if	2011-07-27 15:44:46.303005579 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-08-14 21:41:40.127001300 +0200
 @@ -16,6 +16,7 @@
  interface(`portage_domtrans',`
  	gen_require(`
@@ -247,57 +247,8 @@
  ##	Do not audit attempts to read and write
  ##	the portage temporary files.
  ## </summary>
-@@ -293,3 +333,48 @@
- 
- 	dontaudit $1 portage_tmp_t:file rw_file_perms;
- ')
-+
-+########################################
-+## <summary>
-+##     Do not audit attempts to inherit a
-+##     portage file descriptor.
-+## </summary>
-+## <param name="domain">
-+##     <summary>
-+##     Domain to not audit.
-+##     </summary>
-+## </param>
-+#
-+interface(`gentoo_portage_dontaudit_use_fds',`
-+       gen_require(`
-+               type portage_t;
-+       ')
-+
-+       dontaudit $1 portage_t:fd use;
-+')
-+
-+########################################
-+## <summary>
-+##   Allow the domain to run within an eselect module script. 
-+## </summary>
-+## <param name="domain">
-+##     <summary>
-+##     Domain to allow within an eselect module
-+##     </summary>
-+## </param>
-+#   Specific to Gentoo,
-+#   eselect modules allow users to switch between different flavors or versions
-+#   of underlying components. In return, eselect makes a wrapper binary which 
-+#   makes the proper selections. If this binary is different from bin_t, it might
-+#   not hold the necessary privileges for the wrapper to function. However, just
-+#   marking the target binaries doesn't always work, since for python scripts the
-+#   wrapper doesn't execute it, but treats the target as a library.
-+#
-+interface(`gentoo_portage_eselect_module',`
-+       gen_require(`
-+               type portage_t;
-+       ')
-+       allow $1 self:fifo_file { read write };
-+       corecmd_exec_shell($1)  
-+')
-+
 --- refpolicy-20110726/policy/modules/admin/portage.fc	2011-07-22 14:22:55.000000000 +0200
-+++ refpolicy/policy/modules/admin/portage.fc	2011-07-27 15:44:33.836005579 +0200
++++ refpolicy/policy/modules/admin/portage.fc	2011-08-11 22:50:28.614000656 +0200
 @@ -3,10 +3,12 @@
  /etc/portage(/.*)?			gen_context(system_u:object_r:portage_conf_t,s0)
  

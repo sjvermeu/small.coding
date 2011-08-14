@@ -1,0 +1,13 @@
+--- refpolicy-20110726/policy/modules/system/selinuxutil.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2011-07-27 08:26:40.201004817 +0200
+@@ -199,6 +199,10 @@
+ 	')
+ ')
+ 
++tunable_policy(`gentoo_try_dontaudit',`
++	gentoo_portage_dontaudit_use_fds(load_policy_t)
++')
++
+ ########################################
+ #
+ # Newrole local policy

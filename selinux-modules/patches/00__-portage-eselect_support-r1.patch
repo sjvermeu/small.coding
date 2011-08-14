@@ -1,0 +1,32 @@
+--- refpolicy.orig/policy/modules/admin/portage.if	2011-08-14 21:42:40.548001300 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-08-14 21:42:17.948001300 +0200
+@@ -352,3 +352,29 @@
+ 
+        dontaudit $1 portage_t:fd use;
+ ')
++
++########################################
++## <summary>
++##   Allow the domain to run within an eselect module script. 
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain to allow within an eselect module
++##     </summary>
++## </param>
++#   Specific to Gentoo,
++#   eselect modules allow users to switch between different flavors or versions
++#   of underlying components. In return, eselect makes a wrapper binary which 
++#   makes the proper selections. If this binary is different from bin_t, it might
++#   not hold the necessary privileges for the wrapper to function. However, just
++#   marking the target binaries doesn't always work, since for python scripts the
++#   wrapper doesn't execute it, but treats the target as a library.
++#
++interface(`gentoo_portage_eselect_module',`
++       gen_require(`
++               type portage_t;
++       ')
++       allow $1 self:fifo_file { read write };
++       corecmd_exec_shell($1)  
++')
++

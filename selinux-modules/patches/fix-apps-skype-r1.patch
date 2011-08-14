@@ -1,6 +1,6 @@
 --- refpolicy-20110726/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.te	2011-08-04 11:03:48.178000199 +0200
-@@ -0,0 +1,105 @@
++++ refpolicy/policy/modules/apps/skype.te	2011-08-10 20:06:11.559000391 +0200
+@@ -0,0 +1,106 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -87,6 +87,7 @@
 +auth_use_nsswitch(skype_t)
 +miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
 +miscfiles_read_localization(skype_t)
++userdom_read_xdg_config_home(skype_t)
 +userdom_use_user_terminals(skype_t)
 +
 +
@@ -107,7 +108,7 @@
 +')
 +
 --- refpolicy-20110726/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.if	2011-08-04 10:51:32.909000173 +0200
++++ refpolicy/policy/modules/apps/skype.if	2011-08-07 21:59:41.973001218 +0200
 @@ -0,0 +1,51 @@
 +## <summary>Skype softphone.</summary>
 +

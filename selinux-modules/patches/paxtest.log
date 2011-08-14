@@ -1,0 +1,33 @@
+PaXtest - Copyright(c) 2003,2004 by Peter Busser <peter@adamantix.org>
+Released under the GNU Public Licence version 2 or later
+
+Mode: blackhat
+Linux hpl 2.6.38-hardened-r6 #1 SMP PREEMPT Fri Jul 22 20:20:34 CEST 2011 x86_64 Intel(R) Core(TM) i5 CPU M 430 @ 2.27GHz GenuineIntel GNU/Linux
+
+Executable anonymous mapping             : Killed
+Executable bss                           : Killed
+Executable data                          : Killed
+Executable heap                          : Killed
+Executable stack                         : Killed
+Executable shared library bss            : Killed
+Executable shared library data           : Killed
+Executable anonymous mapping (mprotect)  : Killed
+Executable bss (mprotect)                : Killed
+Executable data (mprotect)               : Killed
+Executable heap (mprotect)               : Killed
+Executable stack (mprotect)              : Killed
+Executable shared library bss (mprotect) : Killed
+Executable shared library data (mprotect): Killed
+Writable text segments                   : Killed
+Anonymous mapping randomisation test     : 33 bits (guessed)
+Heap randomisation test (ET_EXEC)        : 13 bits (guessed)
+Heap randomisation test (PIE)            : 40 bits (guessed)
+Main executable randomisation (ET_EXEC)  : No randomisation
+Main executable randomisation (PIE)      : 32 bits (guessed)
+Shared library randomisation test        : 33 bits (guessed)
+Stack randomisation test (SEGMEXEC)      : 40 bits (guessed)
+Stack randomisation test (PAGEEXEC)      : 40 bits (guessed)
+Return to function (strcpy)              : paxtest: return address contains a NULL byte.
+Return to function (memcpy)              : Vulnerable
+Return to function (strcpy, PIE)         : paxtest: return address contains a NULL byte.
+Return to function (memcpy, PIE)         : Vulnerable

@@ -1,5 +1,5 @@
 --- refpolicy-20101213/policy/modules/admin/portage.te	2010-08-03 15:11:03.000000000 +0200
-+++ ../Centralized/hardened-refpolicy/policy/modules/admin/portage.te	2011-07-27 15:42:24.538005575 +0200
++++ refpolicy/policy/modules/admin/portage.te	2011-08-03 09:54:26.192000291 +0200
 @@ -1,14 +1,47 @@
 -policy_module(portage, 1.10.0)
 +policy_module(portage, 1.10.0.r1)
@@ -219,7 +219,7 @@
 +')
 +
 --- refpolicy-20101213/policy/modules/admin/portage.if	2010-08-05 14:46:44.000000000 +0200
-+++ ../Centralized/hardened-refpolicy/policy/modules/admin/portage.if	2011-07-27 15:41:01.315005573 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-08-03 09:54:26.191000291 +0200
 @@ -16,6 +16,7 @@
  interface(`portage_domtrans',`
  	gen_require(`
@@ -395,7 +395,7 @@
 +')
 +
 --- refpolicy-20101213/policy/modules/admin/portage.fc	2010-08-03 15:11:03.000000000 +0200
-+++ ../Centralized/hardened-refpolicy/policy/modules/admin/portage.fc	2011-07-27 15:40:29.171005572 +0200
++++ refpolicy/policy/modules/admin/portage.fc	2011-08-03 09:54:26.183000291 +0200
 @@ -3,22 +3,30 @@
  /etc/portage(/.*)?			gen_context(system_u:object_r:portage_conf_t,s0)
  

@@ -1,13 +1,3 @@
---- refpolicy-20110726/policy/modules/services/zabbix.te	2011-07-26 14:10:40.000000000 +0200
-+++ refpolicy/policy/modules/services/zabbix.te	2011-08-11 22:50:28.916000656 +0200
-@@ -71,6 +71,7 @@
- 
- optional_policy(`
- 	mysql_stream_connect(zabbix_t)
-+	mysql_tcp_connect(zabbix_t)
- ')
- 
- optional_policy(`
 --- refpolicy-20110726/policy/modules/services/zabbix.fc	2011-06-15 19:43:35.000000000 +0200
 +++ refpolicy/policy/modules/services/zabbix.fc	2011-08-14 13:42:24.438000476 +0200
 @@ -2,7 +2,7 @@

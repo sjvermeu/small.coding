@@ -6,6 +6,37 @@
 
 <xsl:output encoding="UTF-8" method="xml" indent="yes" doctype-public="-//OASIS//DTD DocBook XML V4.1.2//EN" doctype-system="http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd"/>
 
+<xsl:template match="guide">
+<article>
+  <info>
+    <title><xsl:value-of select="title" /></title>
+  </info>
+
+<xsl:for-each select="chapter">
+  <xsl:call-template name="gchapter"/>
+</xsl:for-each>
+
+</article>
+</xsl:template>
+
+<xsl:template name="gchapter">
+<section>
+  <title><xsl:value-of select="title" /></title>
+  <xsl:for-each select="section">
+    <xsl:call-template name="gsection" />
+  </xsl:for-each>
+</section>
+</xsl:template>
+
+<xsl:template name="gsection">
+<section>
+  <title><xsl:value-of select="title" /></title>
+
+<xsl:apply-templates select="body"/>
+
+</section>
+</xsl:template>
+
 <xsl:template match="book">
 <book>
   <title><xsl:value-of select="title" /></title>

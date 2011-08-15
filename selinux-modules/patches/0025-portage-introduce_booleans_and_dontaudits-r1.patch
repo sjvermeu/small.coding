@@ -1,0 +1,51 @@
+--- refpolicy-20110726/policy/modules/admin/portage.te	2011-07-26 14:10:39.000000000 +0200
++++ refpolicy/policy/modules/admin/portage.te	2011-08-14 21:04:18.389001234 +0200
+@@ -12,6 +12,22 @@
+ ## </desc>
+ gen_tunable(portage_use_nfs, false)
+ 
++## <desc>
++## <p>
++##   Set dontaudit statements where Gentoo developers believe they are indeed
++##   cosmetic
++## </p>
++## </desc>
++gen_tunable(gentoo_try_dontaudit, true)
++
++## <desc>
++## <p>
++##   Enables rules that should not be necessary anymore when upstream updates
++##   or enhances their application(s).
++## </p>
++## </desc>
++gen_tunable(gentoo_wait_requests, true)
++
+ 
+ type gcc_config_t;
+ type gcc_config_exec_t;
+@@ -185,11 +263,25 @@
+ # if sesandbox is disabled, compiling is performed in this domain
+ portage_compile_domain(portage_t)
+ 
++tunable_policy(`gentoo_try_dontaudit',`
++	dontaudit portage_t self:capability { dac_read_search };
++	dontaudit portage_t self:netlink_route_socket { create };
++	dontaudit portage_fetch_t portage_devpts_t:chr_file { read write };
++
++	kernel_dontaudit_request_load_module(portage_t)
++
++	logging_dontaudit_search_logs(portage_fetch_t)
++')
++
+ optional_policy(`
+ 	bootloader_domtrans(portage_t)
+ ')
+ 
+ optional_policy(`
++	gpg_domtrans(portage_t)
++')
++
++optional_policy(`
+ 	modutils_domtrans_depmod(portage_t)
+ 	modutils_domtrans_update_mods(portage_t)
+ 	#dontaudit update_modules_t portage_tmp_t:dir search_dir_perms;

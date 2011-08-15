@@ -1,0 +1,12 @@
+--- refpolicy-20110726/policy/modules/system/raid.te	2011-07-26 14:10:41.000000000 +0200
++++ refpolicy/policy/modules/system/raid.te	2011-07-27 08:22:16.553004861 +0200
+@@ -25,6 +25,9 @@
+ dontaudit mdadm_t self:capability sys_tty_config;
+ allow mdadm_t self:process { sigchld sigkill sigstop signull signal };
+ allow mdadm_t self:fifo_file rw_fifo_file_perms;
++# TODO need to incorporate this more properly
++allow mdadm_t device_t:blk_file { read ioctl };
++allow mdadm_t device_t:dir { create };
+ 
+ # create .mdadm files in /dev
+ allow mdadm_t mdadm_map_t:file manage_file_perms;

@@ -30,3 +30,36 @@ refpolicy release is made.
 0012 - dontaudit write on all mountpoints
 0013 - use xdg locations in user home directories
 0014 - fix labeling for xfce4
+0015 - allow unconfined users to call portage
+0016 - introduce support for gentoo eselect modules
+0017 - user domains should be able to send log messages
+0018 - introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
+0019 - put layman in its own domain
+0020 - support emerge-webrsync and run portage through cron and other unattended manners
+0021 - introduce support for mutt_t
+0022 - introduce support for links_t
+0023 - allow puppet to mount file systems
+0024 - introduce support for pan_t
+0025 - introduce gentoo booleans and dontaudits
+0026 - introduce support for skype_t
+0027 - wireshark updates
+0028 - dhcp client updates
+0029 - allow software raid to boot up properly
+0030 - mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
+0031 - various puppet fixes
+0032 - various mozilla fixes
+0033 - allow mount to read/write puppet tmp files (used to gather output of mount)
+0034 - allow syslog to create /var/lib/syslog
+0035 - various init fixes
+0036 - correct zabbix_agentd context
+0037 - allow zabbix to call mysql over tcp/ip
+0038 - various corecommands (bin_t and such) updates
+0039 - various courier(-imap) updates
+0040 - introduce gorg domain
+0041 - various openldap updates
+0042 - various networkmanager updates to support wpa_cli
+0043 - introduce nginx domain
+0044 - various postfix updates
+0045 - various postgresql updates
+0046 - various xserver updates
+

@@ -1,0 +1,13 @@
+--- refpolicy-20110726/policy/modules/roles/staff.te	2011-03-28 17:05:13.000000000 +0200
++++ refpolicy/policy/modules/roles/staff.te	2011-07-26 23:21:26.306003860 +0200
+@@ -105,6 +109,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		links_role(staff_r, staff_t)
++	')
++
++	optional_policy(`
+ 		lockdev_role(staff_r, staff_t)
+ 	')
+ 

@@ -17,27 +17,3 @@
  files_mount_all_file_type_fs(mount_t)
  files_unmount_all_file_type_fs(mount_t)
  # for when /etc/mtab loses its type
-@@ -141,6 +142,12 @@
- 	')
- ')
- 
-+ifdef(`distro_gentoo',`
-+	tunable_policy(`gentoo_try_dontaudit',`
-+		term_dontaudit_manage_pty_dirs(mount_t)
-+	')
-+')
-+
- tunable_policy(`allow_mount_anyfile',`
- 	auth_read_all_dirs_except_auth_files(mount_t)
- 	auth_read_all_files_except_auth_files(mount_t)
-@@ -188,6 +195,10 @@
- 	')
- ')
- 
-+optional_policy(`
-+	puppet_rw_tmp(mount_t)
-+')
-+
- # for kernel package installation
- optional_policy(`
- 	rpm_rw_pipes(mount_t)

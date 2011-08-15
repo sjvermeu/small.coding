@@ -1,0 +1,35 @@
+#!/bin/sh
+
+if [ $# -ne 1 ] || [ $1 -lt 1 ] || [ $1 -gt 100 ];
+then
+  echo "Usage: $0 <revision>";
+  echo "";
+  echo "Example: $0 13";
+  exit 1;
+fi
+
+REV=$1;
+PATCH=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
+OVERLAY=/home/swift/Development/Centralized/gentoo.overlay/sec-policy/selinux-base-policy;
+
+cd ${PATCH};
+printf "Recreating patchbundle for revision ${REV}... ";
+rm ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2;
+tar cvjf ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;
+printf "done\n";
+
+cd ${OVERLAY};
+
+printf "Updating patchbundle references... ";
+cp files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 /usr/portage/distfiles;
+cd ..;
+for PKG in *; do sed -i -e "/patchbundle-selinux-base-policy-2.20110726-r${REV}/d" ${PKG}/Manifest; done
+repoman manifest;
+printf "done\n";
+
+printf "Adding to overlay:\n";
+git add -A;
+git commit -m 'Update on selinux-base-policy and patchbundle references';
+git push;
+
+printf "All set and done.\n";

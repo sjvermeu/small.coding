@@ -64,3 +64,4 @@ refpolicy release is made.
 0045 - various postgresql updates
 0046 - various xserver updates
 0047 - fixes for asterisk
+0048 - support LDAPS within nsswitch

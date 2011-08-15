@@ -21,7 +21,8 @@ refpolicy release is made.
 0003 - dontaudit mysqld dac_read_search
 0004 - allow udev to call init scripts (gentoo hotplugging)
 0005 - allow nagios nrpe to read its own config file
-0006 - allow rpcd_t to listen on udp_socket
+0006 - allow rpcd_t and nfsd_t to listen on udp_socket
+	> check and implement http://dpaste.com/594913/
 0007 - dontaudit load_module request for ssh
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde

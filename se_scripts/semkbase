@@ -9,8 +9,11 @@ then
 fi
 
 REV=$1;
-PATCH=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
-OVERLAY=/home/swift/Development/Centralized/gentoo.overlay/sec-policy/selinux-base-policy;
+[[ -n ${PATCH} ]] || PATCH=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
+[[ -n ${OVERLAY} ]] || OVERLAY=/home/swift/Development/Centralized/gentoo.overlay/sec-policy/selinux-base-policy;
+
+[ ! -d "${PATCH}" ] && echo "Directory PATCH = ${PATCH} does not exist!" && exit 1;
+[ ! -d "${OVERLAY}" ] && echo "Directory OVERLAY = ${OVERLAY} does not exist!" && exit 1;
 
 cd ${PATCH};
 printf "Recreating patchbundle for revision ${REV}... ";

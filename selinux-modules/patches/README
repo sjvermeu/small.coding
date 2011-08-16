@@ -20,7 +20,7 @@ refpolicy release is made.
 0002 - dontaudit iptables rawip_socket read/write attempts
 0003 - dontaudit mysqld dac_read_search
 0004 - allow udev to call init scripts (gentoo hotplugging)
-0005 - allow nagios nrpe to read its own config file
+0005 - nagios fixes
 0006 - allow rpcd_t and nfsd_t to listen on udp_socket
 	> check and implement http://dpaste.com/594913/
 0007 - dontaudit load_module request for ssh

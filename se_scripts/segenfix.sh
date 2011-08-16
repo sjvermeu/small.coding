@@ -7,6 +7,7 @@
 
 typeset TARGET=$2;
 typeset TYPE=$1;
+typeset TRANSLATE="s:.*/policy/modules:refpolicy/modules:g";
 
 typeset SUBJECT="";
 
@@ -46,10 +47,10 @@ fi
 
 if [ "${TYPE}" = "fullpath" ] && [ "${SUBJECT}" != "modules" ];
 then
-  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${ORIGSRC}/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
+  diff -uN ${ORIGSRC}/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
+  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
+  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${ORIGSRC}/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
 elif [ "${TYPE}" = "fullpath" ] && [ "${SUBJECT}" = "modules" ];
 then
   diff -uN ${ORIGSRC}/../modules.conf ${NEWDST}/../modules.conf;

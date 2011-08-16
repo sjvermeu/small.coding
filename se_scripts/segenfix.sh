@@ -1,9 +1,9 @@
 #!/bin/sh
 
-ORIGSRC=/home/swift/Development/build/refpolicy-20110726/policy/modules;
-NEWDST=/home/swift/Development/Centralized/hardened-refpolicy/policy/modules;
-PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
-TMPLOC=/home/swift/Development/build/tmp/segenfix_policy;
+[[ -n ${ORIGSRC} ]] && ORIGSRC=/home/swift/Development/build/refpolicy-20110726/policy/modules;
+[[ -n ${NEWDST} ]] && NEWDST=/home/swift/Development/Centralized/hardened-refpolicy/policy/modules;
+[[ -n ${PATCHES} ]] && PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
+[[ -n ${TMPLOC} ]] && TMPLOC=/home/swift/Development/build/tmp/segenfix_policy;
 
 typeset TARGET=$2;
 typeset TYPE=$1;

@@ -77,10 +77,10 @@ then
   done
   popd > /dev/null 2>&1;
   # Now take the diff of the requested target
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e "s:${TMPLOC}:refpolicy.orig:g" | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e "s:${TMPLOC}:refpolicy.orig:g" | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e "s:${TMPLOC}:refpolicy.orig:g" | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
-  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e "s:${TMPLOC}:refpolicy.orig:g" | sed -e 's:../Centralized/hardened-refpolicy:refpolicy:g';
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
+  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
   # Clear working dir
   rm -rf ${TMPLOC};
 else

@@ -7,7 +7,8 @@
 
 typeset TARGET=$2;
 typeset TYPE=$1;
-typeset TRANSLATE="s:.*/policy/modules:refpolicy/modules:g";
+typeset TRANSLATE="s:/.*/policy/modules:refpolicy/modules:g";
+typeset MODULETRANSLATE="s:/.*/policy/modules/::g";
 
 typeset SUBJECT="";
 
@@ -56,8 +57,8 @@ then
   diff -uN ${ORIGSRC}/../modules.conf ${NEWDST}/../modules.conf;
 elif [ "${TYPE}" = "minimal" ];
 then
-  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e 's:../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
-  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e 's:../Centralized/hardened-refpolicy/policy/modules/::g' -e 's:refpolicy.orig/policy/modules/::g';
+  diff -uN ${ORIGSRC}/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${MODULETRANSLATE};
+  diff -uN ${ORIGSRC}/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${MODULETRANSLATE};
 elif [ "${TYPE}" = "incremental" ];
 then
   if [ -d "${TMPLOC}" ];

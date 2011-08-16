@@ -10,6 +10,10 @@ typeset TYPE=$1;
 
 typeset SUBJECT="";
 
+##
+## Input validation
+##
+
 if [ $# -ne 2 ];
 then
   echo "Usage: $0 <type> <target>";
@@ -19,6 +23,15 @@ then
   echo "or the name of the file (from the refpolicy/ location upwards)";
   exit 1;
 fi
+
+[ ! -d "${ORIGSRC}" ] && echo "Directory ORIGSRC = ${ORIGSRC} does not exist!" && exit 1;
+[ ! -d "${NEWDST}" ] && echo "Directory NEWDST = ${NEWDST} does not exist!" && exit 1;
+[ ! -d "${PATCHES}" ] && echo "Directory PATCHES = ${PATCHES} does not exist!" && exit 1;
+[ -d "${TMPLOC}" ] || [ -f "${TMPLOC}" ] && echo "Directory TMPLOC = ${TMPLOC} may NOT exist!" && exit 1;
+
+##
+## Main
+##
 
 if [ -f "${ORIGSRC}/${TARGET}.te" ];
 then

@@ -21,12 +21,14 @@ refpolicy release is made.
 0003 - dontaudit mysqld dac_read_search
 0004 - allow udev to call init scripts (gentoo hotplugging)
 0005 - nagios fixes
+       + nrpe read config file
+       - diskcheck plugin needs getattr on mountpoint dirs
 0006 - allow rpcd_t and nfsd_t to listen on udp_socket
 	> check and implement http://dpaste.com/594913/
 0007 - dontaudit load_module request for ssh
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde
-0010 - hal is not a consolekit hard requirement
+0010 + hal is not a consolekit hard requirement
 0011 - dontaudit on portage leaked file descriptors
 0012 - dontaudit write on all mountpoints
 0013 - use xdg locations in user home directories

@@ -53,7 +53,7 @@ refpolicy release is made.
 0034 - allow syslog to create /var/lib/syslog
 0035 - various init fixes
 0036 - correct zabbix_agentd context
-0037 - allow zabbix to call mysql over tcp/ip
+0037 + allow zabbix to call mysql over tcp/ip
 0038 - various corecommands (bin_t and such) updates
 0039 - various courier(-imap) updates
 0040 - introduce gorg domain

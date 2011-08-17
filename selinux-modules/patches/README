@@ -8,6 +8,11 @@ or "<changeset>-<module>-<description>-r<revision>.patch"
 The used <revision> helps identify in which patchbundle a patch(set) is
 included.
 
+Outstanding Issues
+------------------
+
+Support for named initrc_t domains (cfr http://dpaste.com/594913/)
+
 Change sets in this patch bundle
 --------------------------------
 
@@ -23,8 +28,6 @@ refpolicy release is made.
 0005 - nagios fixes
        + nrpe read config file
        - diskcheck plugin needs getattr on mountpoint dirs
-0006 - allow rpcd_t and nfsd_t to listen on udp_socket
-	> check and implement http://dpaste.com/594913/
 0007 - dontaudit load_module request for ssh
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde

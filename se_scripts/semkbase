@@ -9,13 +9,13 @@ then
 fi
 
 REV=$1;
-[[ -n ${PATCH} ]] || PATCH=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
+[[ -n ${PATCHES} ]] || PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
 [[ -n ${OVERLAY} ]] || OVERLAY=/home/swift/Development/Centralized/gentoo.overlay/sec-policy/selinux-base-policy;
 
-[ ! -d "${PATCH}" ] && echo "Directory PATCH = ${PATCH} does not exist!" && exit 1;
+[ ! -d "${PATCHES}" ] && echo "Directory PATCHES = ${PATCHES} does not exist!" && exit 1;
 [ ! -d "${OVERLAY}" ] && echo "Directory OVERLAY = ${OVERLAY} does not exist!" && exit 1;
 
-cd ${PATCH};
+cd ${PATCHES};
 printf "Recreating patchbundle for revision ${REV}... ";
 rm ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2;
 tar cvjf ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;

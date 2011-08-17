@@ -10,18 +10,18 @@ fi
 
 REV=$1;
 [[ -n ${PATCHES} ]] || PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
-[[ -n ${OVERLAY} ]] || OVERLAY=/home/swift/Development/Centralized/gentoo.overlay/sec-policy/selinux-base-policy;
+[[ -n ${OVERLAY} ]] || OVERLAY=/home/swift/Development/Centralized/gentoo.overlay;
 
 [ ! -d "${PATCHES}" ] && echo "Directory PATCHES = ${PATCHES} does not exist!" && exit 1;
 [ ! -d "${OVERLAY}" ] && echo "Directory OVERLAY = ${OVERLAY} does not exist!" && exit 1;
 
 cd ${PATCHES};
 printf "Recreating patchbundle for revision ${REV}... ";
-rm ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2;
-tar cvjf ${OVERLAY}/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;
+rm ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2;
+tar cvjf ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;
 printf "done\n";
 
-cd ${OVERLAY};
+cd ${OVERLAY}/sec-policy/selinux-base-policy;
 
 printf "Updating patchbundle references... ";
 cp files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 /usr/portage/distfiles;
@@ -34,5 +34,9 @@ printf "Adding to overlay:\n";
 git add -A;
 git commit -m 'Update on selinux-base-policy and patchbundle references';
 git push;
+
+printf "Copying patchbundle to destination in dev.g.o...\n";
+scp ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 swift@dev.gentoo.org:public_html/patches/selinux-base-policy;
+printf "done\n";
 
 printf "All set and done.\n";

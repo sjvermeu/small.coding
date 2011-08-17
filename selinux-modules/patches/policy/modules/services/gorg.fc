@@ -1,0 +1,3 @@
+/etc/gorg(/.*)?				gen_context(system_u:object_r:gorg_config_t,s0)
+/var/cache/gorg(/.*)?			gen_context(system_u:object_r:gorg_cache_t,s0)
+/usr/bin/gorg			--	gen_context(system_u:object_r:gorg_exec_t,s0)

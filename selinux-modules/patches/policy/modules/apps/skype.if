@@ -1,0 +1,51 @@
+## <summary>Skype softphone.</summary>
+
+#######################################
+## <summary>
+##      Role access for the skype module.
+## </summary>
+## <param name="role">
+##      <summary>
+##      The role associated with the user domain.
+##      </summary>
+## </param>
+## <param name="user_domain">
+##      <summary>
+##      The type of the user domain.
+##      </summary>
+## </param>
+#
+interface(`skype_role',`
+	gen_require(`
+		type skype_t, skype_exec_t, skype_tmpfs_t, skype_home_t;
+	')
+
+	#######################################
+	#
+	# Declarations
+	#
+	
+	role $1 types skype_t;
+
+	############################
+	#
+	# Policy
+	#
+
+	manage_dirs_pattern($2, skype_home_t, skype_home_t)
+	manage_files_pattern($2, skype_home_t, skype_home_t)
+	manage_lnk_files_pattern($2, skype_home_t, skype_home_t)
+
+	relabel_dirs_pattern($2, skype_home_t, skype_home_t)
+	relabel_files_pattern($2, skype_home_t, skype_home_t)
+	relabel_lnk_files_pattern($2, skype_home_t, skype_home_t)
+
+	domtrans_pattern($2, skype_exec_t, skype_t)
+
+	ps_process_pattern($2, skype_t)
+	allow $2 skype_t:process { ptrace signal_perms };
+
+	tunable_policy(`gentoo_try_dontaudit',`
+		dontaudit skype_t $2:unix_stream_socket { connectto };
+	')
+')	

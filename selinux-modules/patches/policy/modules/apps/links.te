@@ -1,0 +1,60 @@
+policy_module(links, 1.0.0)
+
+############################
+# 
+# Declarations
+#
+
+type links_t;
+type links_exec_t;
+application_domain(links_t, links_exec_t)
+
+type links_home_t;
+typealias links_home_t alias { user_links_home_t staff_links_home_t sysadm_links_home_t };
+userdom_user_home_content(links_home_t)
+
+type links_tmpfs_t;
+typealias links_tmpfs_t alias { user_links_tmpfs_t staff_links_tmpfs_t sysadm_links_tmpfs_t };
+files_tmpfs_file(links_tmpfs_t)
+ubac_constrained(links_tmpfs_t)
+
+############################
+#
+# Policy
+#
+
+allow links_t self:process signal_perms;
+allow links_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(links_t, links_home_t, links_home_t)
+manage_files_pattern(links_t, links_home_t, links_home_t)
+manage_lnk_files_pattern(links_t, links_home_t, links_home_t)
+manage_sock_files_pattern(links_t, links_home_t, links_home_t)
+manage_fifo_files_pattern(links_t, links_home_t, links_home_t)
+userdom_user_home_dir_filetrans(links_t, links_home_t, dir)
+
+manage_fifo_files_pattern(links_t, links_t, links_t)
+
+manage_files_pattern(links_t, links_tmpfs_t, links_tmpfs_t)
+manage_lnk_files_pattern(links_t, links_tmpfs_t, links_tmpfs_t)
+manage_fifo_files_pattern(links_t, links_tmpfs_t, links_tmpfs_t)
+manage_sock_files_pattern(links_t, links_tmpfs_t, links_tmpfs_t)
+fs_tmpfs_filetrans(links_t, links_tmpfs_t, { file lnk_file sock_file fifo_file })
+
+
+domain_use_interactive_fds(links_t)
+
+userdom_manage_user_home_content_dirs(links_t)
+userdom_manage_user_home_content_files(links_t)
+
+auth_use_nsswitch(links_t)
+
+userdom_use_user_terminals(links_t)
+
+corenet_tcp_connect_http_port(links_t)
+
+miscfiles_read_localization(links_t)
+
+optional_policy(`
+	xserver_user_x_domain_template(links, links_t, links_tmpfs_t)
+')

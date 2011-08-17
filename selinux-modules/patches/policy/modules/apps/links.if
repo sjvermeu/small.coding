@@ -1,0 +1,46 @@
+## <summary>Links web browser</summary>
+
+#######################################
+## <summary>
+##      The role interface for the links module.
+## </summary>
+## <param name="user_role">
+##      <summary>
+##      The role associated with the user domain.
+##      </summary>
+## </param>
+## <param name="user_domain">
+##      <summary>
+##      The type of the user domain.
+##      </summary>
+## </param>
+#
+interface(`links_role',`
+	gen_require(`
+		type links_t, links_exec_t, links_tmpfs_t, links_home_t;
+	')
+
+	#######################################
+	#
+	# Declarations
+	#
+	
+	role $1 types links_t;
+
+	############################
+	#
+	# Policy
+	#
+
+	manage_dirs_pattern($2, links_home_t, links_home_t)
+	manage_files_pattern($2, links_home_t, links_home_t)
+	manage_lnk_files_pattern($2, links_home_t, links_home_t)
+
+	relabel_dirs_pattern($2, links_home_t, links_home_t)
+	relabel_files_pattern($2, links_home_t, links_home_t)
+	relabel_lnk_files_pattern($2, links_home_t, links_home_t)
+
+	domtrans_pattern($2, links_exec_t, links_t)
+
+	ps_process_pattern($2, links_t)
+')	

@@ -23,12 +23,11 @@ printf "done\n";
 
 cd ${OVERLAY}/sec-policy/selinux-base-policy;
 
-printf "Updating patchbundle references... ";
+printf "Updating patchbundle references:\n";
 cp files/patchbundle-selinux-base-policy-2.20110726-r${REV}.tar.bz2 /usr/portage/distfiles;
 cd ..;
 for PKG in *; do sed -i -e "/patchbundle-selinux-base-policy-2.20110726-r${REV}/d" ${PKG}/Manifest; done
 repoman manifest;
-printf "done\n";
 
 printf "Adding to overlay:\n";
 git add -A;

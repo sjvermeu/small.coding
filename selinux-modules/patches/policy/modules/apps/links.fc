@@ -1,2 +1,0 @@
-/usr/bin/links         -- gen_context(system_u:object_r:links_exec_t,s0)
-HOME_DIR/\.links(/.*)?    gen_context(system_u:object_r:links_home_t,s0)

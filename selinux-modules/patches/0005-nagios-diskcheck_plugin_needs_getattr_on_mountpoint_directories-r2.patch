@@ -1,5 +1,5 @@
---- refpolicy/modules/services/nagios.te	2011-08-16 23:29:40.342473953 +0000
-+++ refpolicy/modules/services/nagios.te	2011-08-16 23:27:13.000000000 +0000
+--- refpolicy/policy/modules/services/nagios.te	2011-08-16 23:29:40.342473953 +0000
++++ refpolicy/policy/modules/services/nagios.te	2011-08-16 23:27:13.000000000 +0000
 @@ -310,6 +310,7 @@
  # needed by ioctl()
  allow nagios_checkdisk_plugin_t self:capability { sys_admin sys_rawio };

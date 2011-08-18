@@ -1,5 +1,5 @@
---- refpolicy/modules/apps/skype.te	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/modules/apps/skype.te	2011-08-17 07:52:31.000000000 +0000
+--- refpolicy/policy/modules/apps/skype.te	1970-01-01 00:00:00.000000000 +0000
++++ refpolicy/policy/modules/apps/skype.te	2011-08-17 07:52:31.000000000 +0000
 @@ -0,0 +1,108 @@
 +policy_module(skype, 0.0.2)
 +

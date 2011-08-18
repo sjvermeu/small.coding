@@ -1,5 +1,5 @@
---- refpolicy/modules/admin/portage.te	2011-08-17 07:46:40.115350545 +0000
-+++ refpolicy/modules/admin/portage.te	2011-08-17 07:42:13.000000000 +0000
+--- refpolicy/policy/modules/admin/portage.te	2011-08-17 07:46:40.115350545 +0000
++++ refpolicy/policy/modules/admin/portage.te	2011-08-17 07:42:13.000000000 +0000
 @@ -50,7 +50,8 @@
  
  # portage package fetching domain

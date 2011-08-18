@@ -1,5 +1,5 @@
---- refpolicy/modules/kernel/domain.te	2011-07-26 12:10:40.000000000 +0000
-+++ refpolicy/modules/kernel/domain.te	2011-08-17 20:57:35.000000000 +0000
+--- refpolicy/policy/modules/kernel/domain.te	2011-07-26 12:10:40.000000000 +0000
++++ refpolicy/policy/modules/kernel/domain.te	2011-08-17 20:57:35.000000000 +0000
 @@ -86,6 +86,7 @@
  allow domain self:dir list_dir_perms;
  allow domain self:lnk_file { read_lnk_file_perms lock ioctl };

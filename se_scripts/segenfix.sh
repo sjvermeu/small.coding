@@ -7,7 +7,7 @@
 
 typeset TARGET=$2;
 typeset TYPE=$1;
-typeset TRANSLATE="s:/.*/policy/modules:refpolicy/modules:g";
+typeset TRANSLATE="s:/.*/policy/modules:refpolicy/policy/modules:g";
 typeset MODULETRANSLATE="s:/.*/policy/modules/::g";
 
 typeset SUBJECT="";

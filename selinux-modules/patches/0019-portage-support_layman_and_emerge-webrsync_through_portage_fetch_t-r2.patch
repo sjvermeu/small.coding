@@ -100,8 +100,8 @@
  tunable_policy(`portage_use_nfs',`
  	fs_getattr_nfs(portage_fetch_t)
  	fs_manage_nfs_dirs(portage_fetch_t)
---- refpolicy/modules/admin/portage.if	2011-08-17 07:46:40.090354370 +0000
-+++ refpolicy/modules/admin/portage.if	2011-08-17 07:42:30.000000000 +0000
+--- refpolicy/policy/modules/admin/portage.if	2011-08-17 07:46:40.090354370 +0000
++++ refpolicy/policy/modules/admin/portage.if	2011-08-17 07:42:30.000000000 +0000
 @@ -258,6 +258,24 @@
  
  ########################################
@@ -154,8 +154,8 @@
  ##	Do not audit attempts to read and write
  ##	the portage temporary files.
  ## </summary>
---- refpolicy/modules/admin/portage.fc	2011-07-22 12:22:55.000000000 +0000
-+++ refpolicy/modules/admin/portage.fc	2011-08-17 07:27:02.000000000 +0000
+--- refpolicy/policy/modules/admin/portage.fc	2011-07-22 12:22:55.000000000 +0000
++++ refpolicy/policy/modules/admin/portage.fc	2011-08-17 07:27:02.000000000 +0000
 @@ -3,10 +3,12 @@
  /etc/portage(/.*)?			gen_context(system_u:object_r:portage_conf_t,s0)
  

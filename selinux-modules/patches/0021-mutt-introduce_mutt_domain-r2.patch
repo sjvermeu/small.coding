@@ -104,8 +104,8 @@
 +tunable_policy(`gentoo_try_dontaudit',`
 +	kernel_dontaudit_search_sysctl(mutt_t)
 +')
---- refpolicy/modules/apps/mutt.if	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/modules/apps/mutt.if	2011-08-17 06:58:16.000000000 +0000
+--- refpolicy/policy/modules/apps/mutt.if	1970-01-01 00:00:00.000000000 +0000
++++ refpolicy/policy/modules/apps/mutt.if	2011-08-17 06:58:16.000000000 +0000
 @@ -0,0 +1,67 @@
 +## <summary>Mutt e-mail client</summary>
 +
@@ -174,8 +174,8 @@
 +	rw_files_pattern($1, mutt_tmp_t, mutt_tmp_t)
 +	files_search_tmp($1)
 +')
---- refpolicy/modules/apps/mutt.fc	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/modules/apps/mutt.fc	2011-08-17 06:38:12.000000000 +0000
+--- refpolicy/policy/modules/apps/mutt.fc	1970-01-01 00:00:00.000000000 +0000
++++ refpolicy/policy/modules/apps/mutt.fc	2011-08-17 06:38:12.000000000 +0000
 @@ -0,0 +1,10 @@
 +HOME_DIR/\.mutt(/.*)?     gen_context(system_u:object_r:mutt_home_t,s0)
 +HOME_DIR/\.muttrc      -- gen_context(system_u:object_r:mutt_conf_t,s0)

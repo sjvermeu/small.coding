@@ -1,14 +1,12 @@
---- refpolicy-20110726/policy/modules/services/nginx.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/nginx.te	2011-08-10 19:28:24.860000319 +0200
-@@ -0,0 +1,199 @@
-+###############################################################################
+--- refpolicy/policy/modules/services/nginx.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/services/nginx.te	2011-08-19 17:23:39.269999987 +0200
+@@ -0,0 +1,192 @@
 +# SELinux module for the NGINX Web Server
 +#
 +# Project Contact Information:
 +#   Stuart Cianos
 +#   Email: scianos@alphavida.com
 +#
-+###############################################################################
 +# (C) Copyright 2009 by Stuart Cianos, d/b/a AlphaVida. All Rights Reserved.
 +#
 +#
@@ -121,13 +119,10 @@
 +# nginx local policy
 +#
 +
-+## Self rules
 +allow nginx_t self:fifo_file { read write };
 +allow nginx_t self:unix_stream_socket create_stream_socket_perms;
 +allow nginx_t self:tcp_socket { listen accept };
 +allow nginx_t self:capability { setuid net_bind_service setgid chown };
-+
-+## Policy-owned type management rules
 +
 +# conf files
 +read_files_pattern(nginx_t, nginx_conf_t, nginx_conf_t)
@@ -152,8 +147,7 @@
 +create_sock_files_pattern(nginx_t, nginx_var_lib_t, nginx_var_lib_t)
 +files_var_lib_filetrans(nginx_t,nginx_var_lib_t, { file dir sock_file })
 +
-+## Kernel layer modules
-+#
++
 +kernel_read_kernel_sysctls(nginx_t)
 +corenet_tcp_bind_generic_node(nginx_t)
 +corenet_tcp_sendrecv_generic_if(nginx_t)
@@ -166,11 +160,10 @@
 +
 +files_read_etc_files(nginx_t)
 +
-+## System layer modules
++
 +miscfiles_read_localization(nginx_t)
 +sysnet_dns_name_resolve(nginx_t)
 +
-+## Other modules
 +
 +tunable_policy(`gentoo_nginx_enable_http_server',`
 +	corenet_tcp_bind_http_port(nginx_t)
@@ -200,7 +193,7 @@
 +tunable_policy(`gentoo_nginx_can_network_connect',`
 +	corenet_tcp_connect_all_ports(nginx_t)
 +')
---- refpolicy-20110726/policy/modules/services/nginx.if	1970-01-01 01:00:00.000000000 +0100
+--- refpolicy/policy/modules/services/nginx.if	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/services/nginx.if	2011-07-27 07:23:44.812004720 +0200
 @@ -0,0 +1,101 @@
 +###############################################################################
@@ -304,7 +297,7 @@
 +	files_list_pids($1)
 +	admin_pattern($1, nginx_var_run_t)
 +')
---- refpolicy-20110726/policy/modules/services/nginx.fc	1970-01-01 01:00:00.000000000 +0100
+--- refpolicy/policy/modules/services/nginx.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/services/nginx.fc	2011-07-27 07:23:44.812004720 +0200
 @@ -0,0 +1,63 @@
 +###############################################################################

@@ -1,6 +1,6 @@
---- refpolicy-20110726/policy/modules/apps/pan.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/pan.te	2011-08-10 19:11:17.676996684 +0200
-@@ -0,0 +1,99 @@
+--- refpolicy/policy/modules/apps/pan.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/pan.te	2011-08-19 17:21:26.369999986 +0200
+@@ -0,0 +1,96 @@
 +policy_module(pan, 1.0)
 +
 +########################################
@@ -36,8 +36,7 @@
 +# Support for shared memory
 +fs_tmpfs_filetrans(pan_t, pan_tmpfs_t, file)
 +
-+## Kernel layer calls
-+#
++
 +kernel_dontaudit_read_system_state(pan_t)
 +files_read_etc_files(pan_t)
 +files_read_usr_files(pan_t)
@@ -49,16 +48,14 @@
 +corenet_tcp_sendrecv_innd_port(pan_t)
 +corenet_sendrecv_innd_client_packets(pan_t)
 +
-+## System layer calls
-+#
++
 +miscfiles_read_localization(pan_t)
 +sysnet_dns_name_resolve(pan_t)
 +userdom_read_xdg_data_home(pan_t)
 +userdom_manage_user_home_content_dirs(pan_t)
 +userdom_manage_user_home_content_files(pan_t)
 +
-+## Other yayer calls
-+#
++
 +xserver_user_x_domain_template(pan, pan_t, pan_tmpfs_t)
 +
 +tunable_policy(`use_nfs_home_dirs',`
@@ -100,7 +97,7 @@
 +	mozilla_domtrans(pan_t)
 +')
 +
---- refpolicy-20110726/policy/modules/apps/pan.if	1970-01-01 01:00:00.000000000 +0100
+--- refpolicy/policy/modules/apps/pan.if	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/apps/pan.if	2011-08-04 18:20:55.748000939 +0200
 @@ -0,0 +1,38 @@
 +## <summary>Pan news reader client</summary>
@@ -141,7 +138,7 @@
 +        relabel_lnk_files_pattern($2, pan_home_t, pan_home_t)
 +')
 +
---- refpolicy-20110726/policy/modules/apps/pan.fc	1970-01-01 01:00:00.000000000 +0100
+--- refpolicy/policy/modules/apps/pan.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/apps/pan.fc	2011-08-04 18:20:55.748000939 +0200
 @@ -0,0 +1,2 @@
 +/usr/bin/pan		--	gen_context(system_u:object_r:pan_exec_t,s0)

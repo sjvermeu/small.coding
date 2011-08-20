@@ -20,7 +20,7 @@ if [ $# -ne 2 ];
 then
   echo "Usage: $0 <type> <target>";
   echo "";
-  echo "<type> can be 'fullpath', 'minimal', 'incremental' or 'clean'";
+  echo "<type> can be 'fullpath', 'minimal', 'incremental', 'incremental-r#' or 'clean'";
   echo "<target> is the name of the module (which can be <category>/<module> as well)";
   echo "or the name of the file (from the refpolicy/ location upwards)";
   exit 1;
@@ -73,6 +73,33 @@ then
   pushd ${TMPLOC} > /dev/null 2>&1;
   for PATCH in ${PATCHES}/*.patch;
   do
+    patch -p1 < ${PATCH} > /dev/null 2>&1;
+  done
+  popd > /dev/null 2>&1;
+  # Now take the diff of the requested target
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
+  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
+  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
+  # Clear working dir
+  rm -rf ${TMPLOC};
+elif [ "${TYPE%%-r*}" = "incremental" ];
+then
+  REV="${TYPE##incremental-r}";
+  if [ -d "${TMPLOC}" ];
+  then
+    echo "Failed - ${TMPLOC} exists!";
+    exit 1;
+  fi
+  # Create a blank location
+  mkdir ${TMPLOC};
+  rsync -aug ${ORIGSRC}/../../ ${TMPLOC};
+  # Patch the current location
+  pushd ${TMPLOC} > /dev/null 2>&1;
+  for PATCH in ${PATCHES}/*.patch;
+  do
+    PREV=$(echo ${PATCH} | sed -e "s:.*-r\([0-9]*\).patch:\1:g");
+    [ ${PREV} -gt ${REV} ] && continue;
     patch -p1 < ${PATCH} > /dev/null 2>&1;
   done
   popd > /dev/null 2>&1;

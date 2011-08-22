@@ -72,3 +72,5 @@ refpolicy release is made.
 0048 - support LDAPS within nsswitch
 0049 - dontaudit on udp_socket listen - udp does not support listen() anyhow
 0050 - update courier file contexts for courier-imap installations
+0051 - allow asterisk administrators to connect to asterisk through asterisk -r
+0052 - allow initrc to manage asterisk log and pid file attributes (setattr)

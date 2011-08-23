@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/services/puppet.te	2011-08-23 13:13:25.771999977 +0200
++++ refpolicy/policy/modules/services/puppet.te	2011-08-23 13:12:56.575999971 +0200
+@@ -126,6 +126,8 @@
+ miscfiles_read_hwdata(puppet_t)
+ miscfiles_read_localization(puppet_t)
+ 
++mount_run(puppet_t, system_r)
++
+ seutil_domtrans_setfiles(puppet_t)
+ seutil_domtrans_semanage(puppet_t)
+ 

@@ -22,27 +22,26 @@ upstream (refpolicy) and as such should not need to be re-applied if a new
 refpolicy release is made. A "." means that the patch is pending (submitted but
 not yet approved).
 
-0001 . fix labeling for iptables
+0001 + fix labeling for iptables
 0002 - dontaudit iptables rawip_socket read/write attempts
 0003 - dontaudit mysqld dac_read_search
 0004 - allow udev to call init scripts (gentoo hotplugging)
 0005 - nagios fixes
-       . nrpe read config file
-       p diskcheck plugin needs getattr on mountpoint dirs
+       + nrpe read config file
+       + diskcheck plugin needs getattr on mountpoint dirs
 0007 - dontaudit load_module request for ssh
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde
 0010 + hal is not a consolekit hard requirement
-0011 - dontaudit on portage leaked file descriptors
 0012 - dontaudit write on all mountpoints
 0013 - use xdg locations in user home directories
-0014 . fix labeling for xfce4
+0014 + fix labeling for xfce4
 0015 - allow unconfined users to call portage
 0016 - introduce support for gentoo eselect modules
 0017 . user domains should be able to send log messages
-0018 - introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
-0019 - put layman in its own domain
-0020 - support emerge-webrsync and run portage through cron and other unattended manners
+0018 . introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
+0019 . put layman in its own domain
+0020 . support emerge-webrsync and run portage through cron and other unattended manners
 0021 - introduce support for mutt_t
 0022 - introduce support for links_t
 0023 . allow puppet to mount file systems
@@ -50,7 +49,7 @@ not yet approved).
 0025 - introduce gentoo booleans and dontaudits
 0026 - introduce support for skype_t
 0027 - wireshark updates
-0028 . dhcp client updates
+0028 + dhcp client updates
 0029 - allow software raid to boot up properly
 0030 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
 0031 - various puppet fixes
@@ -58,7 +57,7 @@ not yet approved).
 0033 - allow mount to read/write puppet tmp files (used to gather output of mount)
 0034 - allow syslog to create /var/lib/syslog
 0035 - various init fixes
-0036 . correct zabbix_agentd context
+0036 + correct zabbix_agentd context
 0037 + allow zabbix to call mysql over tcp/ip
 0038 - various corecommands (bin_t and such) updates
 0039 - various courier(-imap) updates
@@ -70,8 +69,10 @@ not yet approved).
 0045 - various postgresql updates
 0046 - various xserver updates
 0047 - fixes for asterisk
-0048 . support LDAPS within nsswitch
+0048 + support LDAPS within nsswitch
 0049 - dontaudit on udp_socket listen - udp does not support listen() anyhow
-0050 . update courier file contexts for courier-imap installations
+0050 + update courier file contexts for courier-imap installations
 0051 - allow asterisk administrators to connect to asterisk through asterisk -r
 0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
+0053 - make cron domains use interactive file descriptors (?)
+0054 . dontaudit on portage leaked file descriptors

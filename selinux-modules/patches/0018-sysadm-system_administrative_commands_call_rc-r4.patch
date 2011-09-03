@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2011-09-03 12:46:11.991002153 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2011-09-03 12:44:35.560002135 +0200
+@@ -34,6 +34,7 @@
+ ubac_fd_exempt(sysadm_t)
+ 
+ init_exec(sysadm_t)
++init_rc_exec(sysadm_t)
+ 
+ # Add/remove user home directories
+ userdom_manage_user_home_dirs(sysadm_t)

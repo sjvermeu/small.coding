@@ -26,7 +26,7 @@ not yet approved).
 0002 - dontaudit iptables rawip_socket read/write attempts
 0003 - dontaudit mysqld dac_read_search
 0004 - allow udev to call init scripts (gentoo hotplugging)
-0005 - nagios fixes
+0005 + nagios fixes
        + nrpe read config file
        + diskcheck plugin needs getattr on mountpoint dirs
 0007 - dontaudit load_module request for ssh
@@ -44,7 +44,7 @@ not yet approved).
 0020 . support emerge-webrsync and run portage through cron and other unattended manners
 0021 - introduce support for mutt_t
 0022 - introduce support for links_t
-0023 . allow puppet to mount file systems
+0023 + allow puppet to mount file systems
 0024 - introduce support for pan_t
 0025 - introduce gentoo booleans and dontaudits
 0026 - introduce support for skype_t
@@ -75,4 +75,4 @@ not yet approved).
 0051 - allow asterisk administrators to connect to asterisk through asterisk -r
 0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
 0053 - make cron domains use interactive file descriptors (?)
-0054 . dontaudit on portage leaked file descriptors
+0054 + dontaudit on portage leaked file descriptors

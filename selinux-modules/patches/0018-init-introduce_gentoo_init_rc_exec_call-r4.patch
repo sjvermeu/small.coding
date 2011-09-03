@@ -1,0 +1,79 @@
+--- refpolicy/policy/modules/system/init.te	2011-09-03 12:40:46.263002144 +0200
++++ refpolicy/policy/modules/system/init.te	2011-09-03 12:40:30.281002144 +0200
+@@ -81,6 +81,11 @@
+ 	kernel_ranged_domtrans_to(init_t, init_exec_t, s0 - mls_systemhigh)
+ ')
+ 
++ifdef(`distro_gentoo',`
++	type rc_exec_t;
++	domain_entry_file(initrc_t, rc_exec_t)
++')
++
+ ########################################
+ #
+ # Init local policy
+@@ -446,6 +451,8 @@
+ 	# init scripts touch this
+ 	clock_dontaudit_write_adjtime(initrc_t)
+ 
++	init_rc_exec(initrc_t)
++
+ 	logging_send_audit_msgs(initrc_t)
+ 
+ 	# for integrated run_init to read run_init_type.
+--- refpolicy/policy/modules/system/init.if	2011-09-03 12:40:46.236002144 +0200
++++ refpolicy/policy/modules/system/init.if	2011-09-03 12:36:50.645002138 +0200
+@@ -455,6 +455,28 @@
+ 
+ ########################################
+ ## <summary>
++## Execute the rc program in the caller domain. This is a fix for OpenRC,
++## used in distributions like Gentoo, where /sbin/rc is used for all kinds
++## of stuff and as such cannot be handled properly using initrc_exec_t
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain allowed access.
++##     </summary>
++## </param>
++## <rolecap/>
++#
++interface(`init_rc_exec',`
++       gen_require(`
++               type rc_exec_t;
++       ')
++
++       corecmd_search_bin($1)
++       can_exec($1, rc_exec_t)
++')
++
++########################################
++## <summary>
+ ##	Get the process group of init.
+ ## </summary>
+ ## <param name="domain">
+@@ -818,6 +840,13 @@
+ 	ifdef(`enable_mls',`
+ 		range_transition $1 initrc_exec_t:process s0 - mls_systemhigh;
+ 	')
++
++	ifdef(`distro_gentoo',`
++		gen_require(`
++			type rc_exec_t;
++		')
++		domtrans_pattern($1, rc_exec_t, initrc_t)
++	')
+ ')
+ 
+ ########################################
+--- refpolicy/policy/modules/system/init.fc	2011-09-03 12:40:46.236002144 +0200
++++ refpolicy/policy/modules/system/init.fc	2011-08-11 22:50:28.927000656 +0200
+@@ -38,7 +38,7 @@
+ /sbin/upstart		--	gen_context(system_u:object_r:init_exec_t,s0)
+ 
+ ifdef(`distro_gentoo', `
+-/sbin/rc		--	gen_context(system_u:object_r:initrc_exec_t,s0)
++/sbin/rc		--	gen_context(system_u:object_r:rc_exec_t,s0)
+ /sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)

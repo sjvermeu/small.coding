@@ -38,7 +38,6 @@ not yet approved).
 0014 + fix labeling for xfce4
 0015 - allow unconfined users to call portage
 0016 - introduce support for gentoo eselect modules
-0017 . user domains should be able to send log messages
 0018 . introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
 0019 . put layman in its own domain
 0020 . support emerge-webrsync and run portage through cron and other unattended manners

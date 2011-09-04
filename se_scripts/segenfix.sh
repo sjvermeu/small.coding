@@ -74,6 +74,7 @@ then
   for PATCH in ${PATCHES}/*.patch;
   do
     patch -p1 < ${PATCH} > /dev/null 2>&1;
+    [[ $? -ne 0 ]] && echo "Patch ${PATCH} failed to apply!" && return 1;
   done
   popd > /dev/null 2>&1;
   # Now take the diff of the requested target

@@ -23,23 +23,19 @@ refpolicy release is made. A "." means that the patch is pending (submitted but
 not yet approved).
 
 0001 + fix labeling for iptables
-0002 - dontaudit iptables rawip_socket read/write attempts
-0003 - dontaudit mysqld dac_read_search
-0004 - allow udev to call init scripts (gentoo hotplugging)
+0004 - allow udev to call init scripts (gentoo hotplugging) [1]
 0005 + nagios fixes
        + nrpe read config file
        + diskcheck plugin needs getattr on mountpoint dirs
-0007 - dontaudit load_module request for ssh
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde
 0010 + hal is not a consolekit hard requirement
-0012 - dontaudit write on all mountpoints
-0013 - use xdg locations in user home directories
+0013 . use xdg locations in user home directories
 0014 + fix labeling for xfce4
 0015 - allow unconfined users to call portage
 0016 - introduce support for gentoo eselect modules
 0018 . introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
-0019 . put layman in its own domain
+0019 . put layman in the portage_fetch_t domain
 0020 . support emerge-webrsync and run portage through cron and other unattended manners
 0021 - introduce support for mutt_t
 0022 - introduce support for links_t
@@ -47,7 +43,7 @@ not yet approved).
 0024 - introduce support for pan_t
 0025 - introduce gentoo booleans and dontaudits
 0026 - introduce support for skype_t
-0027 - wireshark updates
+0027 . wireshark updates
 0028 + dhcp client updates
 0029 - allow software raid to boot up properly
 0030 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
@@ -75,3 +71,9 @@ not yet approved).
 0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
 0053 - make cron domains use interactive file descriptors (?)
 0054 + dontaudit on portage leaked file descriptors
+0055 . support semanage permissive feature
+
+
+[1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
+    has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.
+    However, the patch is, imo (SwifT) fairly simple as-is so I suggest to keep it this way.

@@ -59,12 +59,10 @@
  /usr/lib(64)?/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/nagios/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/netsaint/plugins(/.*)?	gen_context(system_u:object_r:bin_t,s0)
-@@ -238,6 +262,14 @@
+@@ -238,6 +262,12 @@
  /usr/lib(64)?/[^/]*/run-mozilla\.sh --	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/[^/]*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
  /usr/lib(64)?/thunderbird.*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
-+/usr/lib64/firefox/plugin-container            --      gen_context(system_u:object_r:bin_t,s0)
-+/usr/lib/firefox/plugin-container              --      gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib64/nspluginwrapper/i386/linux/npviewer.bin     --      gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib/nspluginwrapper/i386/linux/npviewer.bin       --      gen_context(system_u:object_r:bin_t,s0)
 +/usr/lib64/nspluginwrapper/i386/linux/npviewer --      gen_context(system_u:object_r:shell_exec_t,s0)

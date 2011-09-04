@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/apps/wireshark.te	2011-09-03 19:38:21.081002860 +0200
++++ refpolicy/policy/modules/apps/wireshark.te	2011-09-03 19:38:00.233002859 +0200
+@@ -75,6 +75,7 @@
+ corenet_tcp_connect_generic_port(wireshark_t)
+ corenet_tcp_sendrecv_generic_if(wireshark_t)
+ 
++dev_read_rand(wireshark_t)
+ dev_read_urand(wireshark_t)
+ 
+ files_read_etc_files(wireshark_t)

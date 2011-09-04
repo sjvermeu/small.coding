@@ -1,8 +1,9 @@
---- refpolicy.orig/policy/modules/admin/portage.if	2011-08-14 21:42:40.548001300 +0200
-+++ refpolicy/policy/modules/admin/portage.if	2011-08-14 21:42:17.948001300 +0200
-@@ -352,3 +352,29 @@
+Patch /home/swift/Development/Centralized/small.coding/selinux-modules/patches/0054-portage-introduce_dontaudit_on_leaked_file_descriptors-r3.patch failed to apply!
+--- refpolicy/policy/modules/admin/portage.if	2011-09-04 11:59:02.661000497 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-09-04 11:56:02.359000433 +0200
+@@ -333,3 +333,29 @@
  
-        dontaudit $1 portage_t:fd use;
+ 	dontaudit $1 portage_tmp_t:file rw_file_perms;
  ')
 +
 +########################################

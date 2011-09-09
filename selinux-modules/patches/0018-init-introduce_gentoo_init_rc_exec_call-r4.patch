@@ -16,7 +16,7 @@
  	# init scripts touch this
  	clock_dontaudit_write_adjtime(initrc_t)
  
-+	init_rc_exec(initrc_t)
++	init_exec_rc(initrc_t)
 +
  	logging_send_audit_msgs(initrc_t)
  
@@ -38,7 +38,7 @@
 +## </param>
 +## <rolecap/>
 +#
-+interface(`init_rc_exec',`
++interface(`init_exec_rc',`
 +       gen_require(`
 +               type rc_exec_t;
 +       ')

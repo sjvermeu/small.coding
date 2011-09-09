@@ -72,6 +72,7 @@ not yet approved).
 0053 - make cron domains use interactive file descriptors (?)
 0054 + dontaudit on portage leaked file descriptors
 0055 . support semanage permissive feature
+0056 - 0020 - Split up interfaces for portage domain and fetch domains
 
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which

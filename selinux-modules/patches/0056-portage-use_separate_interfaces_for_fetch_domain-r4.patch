@@ -1,0 +1,71 @@
+--- refpolicy/policy/modules/admin/portage.if	2011-09-09 21:10:31.333007864 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-09-09 21:00:49.604007846 +0200
+@@ -16,7 +16,6 @@
+ interface(`portage_domtrans',`
+ 	gen_require(`
+ 		type portage_t, portage_exec_t;
+-		type portage_fetch_t, portage_fetch_exec_t;
+ 	')
+ 
+ 	files_search_usr($1)
+@@ -24,6 +23,27 @@
+ 
+ 	# transition to portage
+ 	domtrans_pattern($1, portage_exec_t, portage_t)
++')
++
++########################################
++## <summary>
++##	Execute fetch tools (like layman) in the portage fetch domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++interface(`portage_domtrans_fetch',`
++	gen_require(`
++		type portage_fetch_t, portage_fetch_exec_t;
++	')
++
++	files_search_usr($1)
++	corecmd_search_bin($1)
++
++	# transition to portage
+ 	domtrans_pattern($1, portage_fetch_exec_t, portage_fetch_t)
+ ')
+ 
+@@ -54,6 +74,32 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Execute fetch tools (and tree managers) in the portage fetch
++##      domain, and allow the specified role the portage fetch domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	The role to allow the portage fetch domain.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`portage_run_fetch',`
++	gen_require(`
++		type portage_fetch_t;
++	')
++
++	portage_domtrans_fetch($1)
++	role $2 types portage_fetch_t;
++')
++
++########################################
+ ## <summary>
+ ##	Template for portage sandbox.
+ ## </summary>

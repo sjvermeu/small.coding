@@ -68,7 +68,7 @@
 +')
 +
 +optional_policy(`
-+	init_rc_exec(puppet_t)
++	init_exec_rc(puppet_t)
 +	portage_run(puppet_t, system_r)
 +')
 +

@@ -5,7 +5,7 @@
  # seems to be ok without this
  init_dontaudit_read_script_status_files(gcc_config_t)
 +# Allow gcc-config to call rc (without transitioning)
-+init_rc_exec(gcc_config_t)
++init_exec_rc(gcc_config_t)
  
  libs_read_lib_files(gcc_config_t)
  libs_domtrans_ldconfig(gcc_config_t)

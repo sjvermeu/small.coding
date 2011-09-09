@@ -34,9 +34,9 @@ not yet approved).
 0014 + fix labeling for xfce4
 0015 - allow unconfined users to call portage
 0016 - introduce support for gentoo eselect modules
-0018 . introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
-0019 . put layman in the portage_fetch_t domain
-0020 . support emerge-webrsync and run portage through cron and other unattended manners
+0018 + introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
+0019 + put layman in the portage_fetch_t domain
+0020 + support emerge-webrsync and run portage through cron and other unattended manners
 0021 - introduce support for mutt_t
 0022 - introduce support for links_t
 0023 + allow puppet to mount file systems

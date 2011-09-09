@@ -1,16 +1,26 @@
---- refpolicy/policy/modules/system/selinuxutil.te	2011-09-04 12:24:10.204000497 +0200
-+++ refpolicy/policy/modules/system/selinuxutil.te	2011-09-04 12:23:56.188000496 +0200
-@@ -22,6 +22,9 @@
- type selinux_config_t;
- files_type(selinux_config_t)
+--- refpolicy/policy/modules/system/selinuxutil.te	2011-09-09 21:30:28.818007896 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2011-09-09 21:29:05.060007892 +0200
+@@ -103,6 +103,10 @@
+ type semanage_trans_lock_t; 
+ files_type(semanage_trans_lock_t)
  
-+type selinux_var_lib_t;
-+files_type(selinux_var_lib_t)
++type semanage_var_lib_t;
++files_type(semanage_var_lib_t)
 +
- type checkpolicy_t, can_write_binary_policy;
- type checkpolicy_exec_t;
- application_domain(checkpolicy_t, checkpolicy_exec_t)
-@@ -429,6 +432,7 @@
++
+ type setfiles_t alias restorecon_t, can_relabelto_binary_policy;
+ type setfiles_exec_t alias restorecon_exec_t;
+ init_system_domain(setfiles_t, setfiles_exec_t)
+@@ -406,7 +410,7 @@
+ 	ifdef(`distro_gentoo',`
+ 		# Gentoo integrated run_init:
+ 		init_script_file_entry_type(run_init_t)
+-		init_rc_exec(run_init_t)
++		init_exec_rc(run_init_t)
+ 	')
+ ')
+ 
+@@ -429,6 +433,7 @@
  allow semanage_t self:unix_stream_socket create_stream_socket_perms;
  allow semanage_t self:unix_dgram_socket create_socket_perms;
  allow semanage_t self:netlink_audit_socket { create_netlink_socket_perms nlmsg_relay };
@@ -18,26 +28,25 @@
  
  allow semanage_t policy_config_t:file rw_file_perms;
  
-@@ -436,6 +440,10 @@
+@@ -436,6 +441,9 @@
  allow semanage_t semanage_tmp_t:file manage_file_perms;
  files_tmp_filetrans(semanage_t, semanage_tmp_t, { file dir })
  
-+manage_dirs_pattern(semanage_t, selinux_var_lib_t, selinux_var_lib_t)
-+manage_files_pattern(semanage_t, selinux_var_lib_t, selinux_var_lib_t)
-+
++manage_dirs_pattern(semanage_t, semanage_var_lib_t, semanage_var_lib_t)
++manage_files_pattern(semanage_t, semanage_var_lib_t, semanage_var_lib_t)
 +
  kernel_read_system_state(semanage_t)
  kernel_read_kernel_sysctls(semanage_t)
  
 --- refpolicy/policy/modules/system/selinuxutil.fc	2011-03-28 17:05:16.000000000 +0200
-+++ refpolicy/policy/modules/system/selinuxutil.fc	2011-09-04 12:14:45.550000495 +0200
++++ refpolicy/policy/modules/system/selinuxutil.fc	2011-09-09 21:29:39.696007896 +0200
 @@ -43,6 +43,11 @@
  /usr/sbin/semodule		--	gen_context(system_u:object_r:semanage_exec_t,s0)
  
  #
 +# /var/lib
 +#
-+/var/lib/selinux(/.*)?			gen_context(system_u:object_r:selinux_var_lib_t,s0)
++/var/lib/selinux(/.*)?			gen_context(system_u:object_r:semanage_var_lib_t,s0)
 +
 +#
  # /var/run

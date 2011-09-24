@@ -335,7 +335,13 @@ extractFiles() {
   logPrint "Downloading portage snapshot." >> ${LOG};
   cd ${WORKDIR}/usr;
   wget ${MIRROR}/${SNAP} >> ${LOG} 2>&1;
-  printf "done\n";
+  if [ $? -ne 0 ];
+  then
+    printf "failed!\n";
+    die "Failed to fetch snapshot from the given location." 
+  else
+    printf "done\n";
+  fi
 
   printf "Extracting portage snapshot... ";
   logPrint "Extracting portage snapshot." >> ${LOG};

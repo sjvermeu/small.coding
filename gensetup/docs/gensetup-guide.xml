@@ -251,7 +251,7 @@ later, but for now this seems to work just fine.
 </chapter>
 
 <chapter>
-<title>Invocing gensetup</title>
+<title>Invoking gensetup</title>
 <section>
 <title>Downloading</title>
 <body>
@@ -260,7 +260,7 @@ later, but for now this seems to work just fine.
 I keep my sources in a <uri
 link="https://github.com/sjvermeu/small.coding/tree/HEAD/gensetup">GitHub
 repository</uri>. They are not tagged for releases of any kind, so to make sure
-you have the "latest" revision, it is adviseable to <c>git pull</c> from the
+you have the "latest" revision, it is advisable to <c>git pull</c> from the
 repository.
 </p>
 
@@ -387,7 +387,7 @@ Umounting all mounted filesystems at /mnt/gentoo... done
 
 <p>
 The <e>steps</e> seen in the output is a feature in the <c>gensetup</c> script
-that categorises activities. These steps allow me to repeat a particular part of
+that categorizes activities. These steps allow me to repeat a particular part of
 the installation (or continue after manually fixing an earlier failure).
 </p>
 
@@ -463,7 +463,7 @@ workdir=/mnt/gentoo
 <p>
 The <c>logfile</c> parameter defines where the command output is stored. The
 <c>workdir</c> parameter is to tell the script where the installation should
-take place (mountpoint).
+take place (mount point).
 </p>
 
 </body>
@@ -613,7 +613,7 @@ makeconf.FEATURES=buildpkg stricter
 <p>
 This should be fairly obvious - all <path>make.conf</path> settings are defined
 here. You can use other variables too, everything after <c>makeconf.</c> is
-verbatimly copied to the <path>make.conf</path> file during installation.
+verbatim copied to the <path>make.conf</path> file during installation.
 </p>
 
 </body>

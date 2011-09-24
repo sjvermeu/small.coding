@@ -1,0 +1,766 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE guide SYSTEM "/dtd/guide.dtd">
+<!-- $Header: /var/cvsroot/gentoo/xml/htdocs/doc/en/xen-guide.xml,v 1.10 2011/08/29 10:09:42 nightmorph Exp $ -->
+
+<guide>
+<title>gensetup - A Gentoo Setup Script</title>
+
+<author title="Author">
+  <mail link="swift@gentoo.org">Sven Vermeulen</mail>
+</author>
+
+<abstract>
+To automate the installation of Gentoo on KVM guests for testing and development
+purposes, a script called "gensetup" is created which mimics the installation
+instructions as documented in the Gentoo Handbook
+</abstract>
+
+<!-- The content of this document is licensed under the CC-BY-SA license -->
+<!-- See http://creativecommons.org/licenses/by-sa/2.5 -->
+<license/>
+
+<version>1</version>
+<date>2011-09-24</date>
+
+<chapter>
+<title>Introduction</title>
+<section>
+<title>About gensetup</title>
+<body>
+
+<p>
+Allow me to be very clear on this - <b>gensetup is not an official
+installer</b>. More, it is not scheduled to be extended feature-wise to provide
+features that I don't need for "seeding" my virtual images. Finally, <b>it will
+definitely have bugs</b> which I will resolve when I encounter them. However,
+the script is made flexible enough to have different deployment scenario's even
+though I constantly use a single scenario, so chances are low that I hit the
+same bugs that you would if you would choose to use this (hackish, ugly) script.
+</p>
+
+<p>
+The purpose of the script is to setup and configure a base Gentoo Linux system
+without much user intervention, but still according to the documentation in the
+<uri link="http://www.gentoo.org/doc/en/handbook/index.xml">Gentoo
+Handbook</uri>. By following the instructions rather than creating binary
+packages or even stage4 builds, I can validate if installations are still valid
+according to the documentation.
+</p>
+
+<p>
+Of course, the script still needs to execute all tasks automatically, so some
+aspects of the installation are done "blindly" (providing the keys and
+feedback a user would give) without capturing and interacting with the
+application. An example is <c>fdisk</c> usage. As such, it is not an exact
+validation of the installation instructions.
+</p>
+
+<p>
+Another aspect is that the instructions often give the users many choices. Since
+I will not check for every choice a user could give, it will only run an
+installation for a given set of choices. However, to make sure it is flexible
+enough, the choices and feedback are all part of a configuration file.
+</p>
+
+</body>
+</section>
+<section>
+<title>Setup of Virtual Environment</title>
+<body>
+
+<p>
+Before starting the virtual images, I prepare my environment by loading the
+correct modules, setup a <path>tap0</path> device and a virtual ethernet switch
+(through <c>vde_switch</c>).
+</p>
+
+<pre caption="Loading the virtual environment prerequisites">
+# <comment># Load the modules</comment>
+# <i>modprobe tun</i>
+# <i>modprobe kvm-intel</i>
+# <comment># Setup the virtual network infrastructure</comment>
+# <i>tunctl -b -u swift -t tap0</i>
+# <i>ifconfig tap0 10.12.38.100 up</i>
+# <i>vde_switch --numports 16 --hub --mod 777 --group users --tap tap0 -d</i>
+# <comment># Enable Internet access from the guests</comment>
+# <i>share_internet_kvm.sh</i>
+# <comment># Allow kernel samepage merging</comment>
+# <i>echo 1 &gt; /sys/kernel/mm/ksm/run</i>
+</pre>
+
+<p>
+The <path>tap0</path> device will be the link between the host operating system
+and the guests. The <c>share_internet_kvm.sh</c> script uses a few
+<c>iptables</c> commands to forward packages between the guest operating systems
+and the host' gateway so that the guests can access Internet.
+</p>
+
+</body>
+</section>
+<section>
+<title>Creating and Booting Images</title>
+<body>
+
+<p>
+The first step is of course to create and boot a virtual image. My virtual
+guests all use a 20Gbyte disk, but once I have a base Gentoo system, that disk
+is frozen and all images are copy-on-write images of this base environment. This
+keeps the storage use sufficiently manageable and allows me to quickly setup
+additional guests (since the base is already done).
+</p>
+
+<p>
+First, create a 20Gbyte disk:
+</p>
+
+<pre caption="Creating a 20Gbyte Qemu disk">
+$ <i>qemu-img create -f qcow2 base.img 20G</i>
+</pre>
+
+<p>
+Next, I boot this <path>base.img</path> with a systemrescuecd ISO:
+</p>
+
+<pre caption="Booting the sysresccd">
+$ <i>qemu-system-x86_64 --enable-kvm -gdb tcp::1236 -vnc 127.0.0.1:2 \
+  -net nic,model=virtio,macaddr=00:11:22:33:44:b1,vlan=0 -net vde,vlan=0 \
+  -drive file=/srv/virt/gentoo/selinux-amd64-1-base.img,if=virtio,boot=on \
+  -usb -usbdevice tablet -smp 4 -k nl-be -m 1536 -boot d -cdrom \
+  /srv/virt/media/systemrescuecd-x86-2.2.0.iso</i>
+</pre>
+
+<p>
+I can already hear you say <e>ebbeh?</e> here, so a quick explanation of the
+parameters used:
+</p>
+
+<table>
+<tr>
+  <th>Parameter</th>
+  <th>Description</th>
+  <th>Remark</th>
+</tr>
+<tr>
+  <ti>--enable-kvm</ti>
+  <ti>
+    Use KVM to accelerate the virtualization (this uses the virtualization
+    options of the Linux kernel KVM module as well as my processor's
+    virtualization features)
+  </ti>
+  <ti />
+</tr>
+<tr>
+  <ti>-gdb tcp::1236</ti>
+  <ti>
+    Enable remote debugging in case of issues. With this in place, I can run
+    <c>gdb</c> to connect to the qemu instance, through <c>set architecture
+    i386:x86-64</c> and then <c>target remote ip-address:port</c>.
+  </ti>
+  <ti>
+    Use a different port (1236 here) for every invocation!
+  </ti>
+</tr>
+<tr>
+  <ti>-vnc 127.0.0.1:2</ti>
+  <ti>
+    Use a VNC session as the guest console (on the given address).
+  </ti>
+  <ti>
+    Use a different DISPLAY (:2 here) for every invocation!
+  </ti>
+</tr>
+<tr>
+  <ti>-net nic,model=virtio,macaddr=00:12:34:56:78:9a,vlan=0</ti>
+  <ti>
+    Enable networking on the virtual guest, through the virtio interface (which
+    increases performance by using specific drivers available through the host
+    kernel) and using the given MAC address.
+  </ti>
+  <ti>
+    Use a different MAC address for every invocation!
+  </ti>
+</tr>
+<tr>
+  <ti>-net vde,vlan=0</ti>
+  <ti>
+    Have the previously defined network interface use the VDE switch that was
+    started earlier
+  </ti>
+</tr>
+<tr>
+  <ti>-drive file=/srv/virt/gentoo/base.img,if=virtio,boot=on</ti>
+  <ti>
+    Boot from the given image and use the virtio driver infrastructure to
+    optimize performance of the virtual disks
+  </ti>
+  <ti>
+    Drop the <c>boot=on</c> if you want KVM to boot from a CD (see later) while
+    the disk too holds a boot record
+  </ti>
+</tr>
+<tr>
+  <ti>-usb -usbdevice tablet</ti>
+  <ti>
+    Hack to allow for the mouse pointer to work properly on the VNC session
+  </ti>
+  <ti />
+</tr>
+<tr>
+  <ti>-smp 4</ti>
+  <ti>
+    Enable SMP (multiple processors) and boot the guest with 4 (virtual) CPUs.
+    Coincidentally, this is the number of processors I have on my workstation
+    (well, cores actually)
+  </ti>
+  <ti />
+</tr>
+<tr>
+  <ti>-k nl-be</ti>
+  <ti>
+    Use the dutch keyboard settings for the VNC console
+  </ti>
+  <ti />
+</tr>
+<tr>
+  <ti>-m 1536</ti>
+  <ti>
+    Boot the guest with 1.5 Gbyte of memory
+  </ti>
+  <ti>
+    Use at least 256mbyte, otherwise the system might not boot up properly
+  </ti>
+</tr>
+<tr>
+  <ti>-boot d -cdrom /srv/virt/media/systemrescuecd-x86-2.2.0.iso</ti>
+  <ti>
+    Add a CD-rom device with the selected ISO image as CD and allow for booting
+    from this device.
+  </ti>
+</tr>
+</table>
+
+<p>
+Of course, this is all scriptable. I use a few scripts that fire up the
+necessary guests with or without CD, with or without many CPUs / memory, etc.
+and all in <c>screen</c> sessions. I might eventually switch to <c>sVirt</c>
+later, but for now this seems to work just fine.
+</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter>
+<title>Invocing gensetup</title>
+<section>
+<title>Downloading</title>
+<body>
+
+<p>
+I keep my sources in a <uri
+link="https://github.com/sjvermeu/small.coding/tree/HEAD/gensetup">GitHub
+repository</uri>. They are not tagged for releases of any kind, so to make sure
+you have the "latest" revision, it is adviseable to <c>git pull</c> from the
+repository.
+</p>
+
+<pre caption="Downloading the gensetup code">
+livecd # <i>git clone git@github.com:sjvermeu/small.coding.git</i>
+</pre>
+
+<p>
+After this command, you will have a directory <path>small.coding</path> in which
+you'll find the <path>gensetup</path> directory. This is the directory you'll
+need.
+</p>
+
+<p>
+Of course, you might not have <c>git</c> available on the live environment. What
+I do is manage a cloned repository on my workstation, and use <c>rsync</c> from
+the live environment to get the necessary files:
+</p>
+
+<pre caption="Using rsync to download gensetup">
+livecd # <i>rsync -avug swift@10.12.38.2:dev/small.coding/gensetup .</i>
+</pre>
+
+</body>
+</section>
+<section>
+<title>Configuring</title>
+<body>
+
+<p>
+The <c>gensetup</c> configuration is done in a simple key/value set. An example
+configuration, which I use to create new images, is available as
+<path>simple.conf</path>. An elaborate explanation of the configuration settings
+is available in the next chapter.
+</p>
+
+</body>
+</section>
+<section>
+<title>Running</title>
+<body>
+
+<p>
+Once the configuration file is edited, you can run <c>gensetup</c> with this
+configuration file as a parameter.
+</p>
+
+<pre caption="Running gensetup">
+# <i>./gensetup.sh simple.conf</i>
+>>> Step "disk" starting...
+Creating partitions for device /dev/vda... done
+  - Formatting partition /dev/vda1 with mkfs.ext4... done
+  - Formatting partition /dev/vda2 with mkswap... done
+  - Formatting partition /dev/vda3 with pvcreate... done
+Creating volume group vg... done
+  - Creating logical volume home in volume group vg... done
+  - Formatting logical volume home in volume group vg with mkfs.ext4... done
+  - Creating logical volume opt in volume group vg... done
+  - Formatting logical volume opt in volume group vg with mkfs.ext4... done
+  - Creating logical volume usr in volume group vg... done
+  - Formatting logical volume usr in volume group vg with mkfs.ext4... done
+  - Creating logical volume var in volume group vg... done
+  - Formatting logical volume var in volume group vg with mkfs.ext4 -i 8192... done
+>>> Step "mount" starting...
+Enabling swap space (vda2 )... done
+Mounting partitions:
+ - /dev/vda1 @ /mnt/gentoo
+ - /dev/vg/usr @ /mnt/gentoo/usr
+ - /dev/vg/home @ /mnt/gentoo/home
+ - /dev/vg/opt @ /mnt/gentoo/opt
+ - /dev/vg/var @ /mnt/gentoo/var
+Performing other mounts (proc/dev/tmp/...)... done
+>>> Step "extract" starting...
+Setting time correct (using ntpdate)... done
+Downloading stage stage3-amd64-hardened+nomultilib-20110912.tar.bz2... done
+Extracting stage stage3-amd64-hardened+nomultilib-20110912.tar.bz2... done
+Extracting /dev files to root filesystem... done
+Removing stage stage3-amd64-hardened+nomultilib-20110912.tar.bz2 from system... done
+Creating /selinux mountpoint... done
+Downloading portage snapshot... done
+Extracting portage snapshot... done
+Removing snapshot portage-20110923.tar.bz2... done
+Setup make.conf... done
+Prepare chroot... done
+Selecting profile (hardened/linux/amd64/no-multilib)... done
+>>> Step "configure" starting...
+Setting system specific configuration items:
+  - Setup /etc/hosts
+  - Setup /etc/timezone... done
+  - Setup /etc/conf.d/hostname
+  - Setup /etc/conf.d/keymaps
+  - Setup /etc/conf.d/net
+  - Setup /etc/fstab
+  - Preparing chroot environment
+  - Enabling eth0
+  - Enabling sshd
+  - Setup root password
+  - Setup /etc/portage/* directories and files
+  - Setup /etc/locale.gen
+>>> Step "tools" starting...
+  - Installing mdadm... done
+  - Installing lvm2... done
+  - Installing syslog-ng... done         
+  - Installing dhcpcd... done
+  - Installing layman... done
+  - Installing vim... done
+  - Installing git... done
+  - Installing eix... done
+  - Installing portage-utils... done
+    Adding syslog-ng to default runlevel
+    Adding lvm to boot runlevel
+>>> Step "bootloader" starting...
+  - Installing GRUB... done
+  - Configuring GRUB... done
+  - Installing into MBR... done
+>>> Step "kernel" starting...
+  - Marking kernel hardened-sources-2.6.39-r8 as provided... done
+  - Creating /usr/src/linux location... done
+  - Fetching kernel binary (linux-2.6.38-hardened-r6.tar.bz2)... done
+  - Installing kernel binary... done
+>>> Step "umount" starting...
+Umounting all mounted filesystems at /mnt/gentoo... done
+</pre>
+
+<p>
+The <e>steps</e> seen in the output is a feature in the <c>gensetup</c> script
+that categorises activities. These steps allow me to repeat a particular part of
+the installation (or continue after manually fixing an earlier failure).
+</p>
+
+<p>
+To get an overview of the available steps, just run <c>gensetup</c> without a
+configuration file.
+</p>
+
+<pre caption="Getting an overview of the available steps">
+# <i>./gensetup.sh</i>
+Usage: ./gensetup.sh &lt;datafile&gt; [&lt;stepfrom&gt; [&lt;stepto&gt;]]
+
+If &lt;stepto&gt; is given, the step itself is also executed.
+Supported steps:  disk mount extract configure tools bootloader kernel umount
+</pre>
+
+<p>
+The steps shown are about the same set of steps available in the Gentoo
+Handbook. You can ask <c>gensetup</c> to start from a particular step, and even
+stop after another step. For instance, to run the <e>configure</e> and
+<e>tools</e> steps, but not those before or after:
+</p>
+
+<pre caption="Running a part of the installation">
+# <i>./gensetup.sh simple.conf configure tools</i>
+</pre>
+
+<p>
+BTW, with a binhost available and the kernel distributed as a binary, deployment
+of Gentoo Linux this way takes a few minutes.
+</p>
+
+</body>
+</section>
+<section>
+<title>Debugging / Troubleshooting</title>
+<body>
+
+<p>
+In case of failures, check the logfile (cfr the <c>logfile</c> configuration
+item) for the output of the command. In the <path>simple.conf</path> file, this
+logfile is stored in <path>/tmp/build.log</path>.
+</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter>
+<title>Configuring gensetup</title>
+<section>
+<title>The configuration file</title>
+<body>
+
+<p>
+All configuration entries are made in a key/value filled configuration file. As
+said earlier, an example <path>simple.conf</path> is available too. In the rest
+of this section, we'll go through the various settings in the configuration
+file.
+</p>
+
+</body>
+</section>
+<section>
+<title>Generic Settings</title>
+<body>
+
+<pre caption="Generic gensetup settings">
+logfile=/tmp/build.log
+workdir=/mnt/gentoo
+</pre>
+
+<p>
+The <c>logfile</c> parameter defines where the command output is stored. The
+<c>workdir</c> parameter is to tell the script where the installation should
+take place (mountpoint).
+</p>
+
+</body>
+</section>
+<section>
+<title>Disk Settings</title>
+<body>
+
+<pre caption="Disk settings">
+disk.vda.1.size=2048
+disk.vda.1.type=83
+disk.vda.1.purpose=root
+disk.vda.1.format=mkfs.ext4
+disk.vda.1.filesystem=ext4
+disk.vda.2.size=1024
+disk.vda.2.type=82
+disk.vda.2.purpose=swap
+disk.vda.2.format=mkswap
+disk.vda.2.filesystem=swap
+disk.vda.3.size=
+disk.vda.3.type=8e
+disk.vda.3.purpose=lvm:vg
+disk.vda.3.format=pvcreate
+</pre>
+
+<p>
+This set defines the <path>/dev/vda</path> settings (<path>vda</path> is the
+device name for a virtio-driven virtual image, so the substitute of
+<path>sda</path> for non-virtual or non-virtio devices). These settings are:
+</p>
+
+<ul>
+  <li>
+    <c>size</c> of the partition, in megabytes, or empty to use the remainder of
+    the disk
+  </li>
+  <li>
+    <c>type</c> of the partition, using the hexadecimal notation. 83 is a
+    standard Linux partition, 82 a Linux swap partition and 8e a partition to be
+    used as a physical volume in an LVM2 setup
+  </li>
+  <li>
+    <c>purpose</c> of the partition, with <e>root</e> being the root partition,
+    <e>swap</e> the swap partition, and <e>lvm:vg</e> the LVM volume group
+    called "<e>vg</e>". You can also use the mount location (like
+    <path>/home</path>) as purpose for all locations (except for the root
+    partition).
+  </li>
+  <li>
+    <c>format</c> command to be used. The command will be executed with the
+    partition name as last argument (so a <c>format</c> of <c>mkfs.ext4</c> for
+    <path>/dev/vda1</path> will result in <c>mkfs.ext4 /dev/vda1</c>)
+  </li>
+  <li>
+    <c>filesystem</c> to be used (used by <path>fstab</path> creation)
+  </li>
+</ul>
+
+</body>
+</section>
+<section>
+<title>Logical Volume Settings</title>
+<body>
+
+<pre caption="Logical volume settings">
+disk.lvm.creategroup=vg
+disk.lvm.vg.usr.size=10240
+disk.lvm.vg.usr.format=mkfs.ext4
+disk.lvm.vg.usr.purpose=/usr
+disk.lvm.vg.usr.filesystem=ext4
+disk.lvm.vg.home.size=2048
+disk.lvm.vg.home.format=mkfs.ext4
+disk.lvm.vg.home.purpose=/home
+disk.lvm.vg.home.filesystem=ext4
+disk.lvm.vg.opt.size=2560
+disk.lvm.vg.opt.format=mkfs.ext4
+disk.lvm.vg.opt.purpose=/opt
+disk.lvm.vg.opt.filesystem=ext4
+disk.lvm.vg.var.size=2560
+disk.lvm.vg.var.format=mkfs.ext4 -i 8192
+disk.lvm.vg.var.purpose=/var
+disk.lvm.vg.var.filesystem=ext4
+</pre>
+
+<p>
+In this section, the volume group <e>vg</e> (cfr the <e>lvm:vg</e> definition
+earlier) is defined. In the volume group, logical volumes are defined (the part
+after <c>disk.lvm.vg.</c>) and each of these volumes gets the same definition
+settings again like defined earlier for the disks.
+</p>
+
+<p>
+So, a <c>disk.lvm.vg.opt</c> definition will create a <path>/dev/vg/opt</path>
+logical volume, and due to its <c>purpose=/opt</c> this logical volume will be
+mounted on <path>/opt</path>.
+</p>
+
+</body>
+</section>
+<section>
+<title>Gentoo Profile Settings</title>
+<body>
+
+<pre caption="Profile settings">
+<comment>## Definitions for when using the official mirrors</comment>
+<comment>#stage=releases/amd64/current-stage3/hardened/stage3-amd64-hardened-20100902.tar.bz2</comment>
+<comment>#snapshot=snapshots/portage-latest.tar.bz2</comment>
+
+<comment>## Definitions for using a local web server</comment>
+stage=stage3-amd64-hardened+nomultilib-20110912.tar.bz2
+snapshot=portage-20110923.tar.bz2
+
+<comment>## Web location (use mirror URL if you want an official mirror</comment>
+weblocation=http://192.168.100.1:8080/gensetup/gentoo
+
+<comment>## Profile definition</comment>
+profile=hardened/linux/amd64/no-multilib
+</pre>
+
+<p>
+In this section, the files to use for the installation (stage3 file and portage
+snapshot) are defined. In the listing above, you'll find an example for when you
+use the official Gentoo mirror system. However, I keep the files local (so I can
+run some tests during flights).
+</p>
+
+<p>
+The last setting (<c>profile</c>) defines the Gentoo profile (to be used with
+<c>eselect profile set</c>).
+</p>
+
+</body>
+</section>
+<section>
+<title>make.conf</title>
+<body>
+
+<pre caption="make.conf settings">
+makeconf.USE=-ldap -gtk -xorg -ipv6 -pppd mysql imap libwww maildir sasl ssl \
+  unicode xml apache2 -gpm ubac bcmath gd sockets truetype agent png -sqlite3
+makeconf.GENTOO_MIRRORS=http://192.168.100.1:8080/gensetup/gentoo ${GENTOO_MIRRORS}
+makeconf.MAKEOPTS=-j4
+makeconf.PORTAGE_BINHOST=http://192.168.100.1:8080/gensetup/gentoo/binhost/hardened
+makeconf.FEATURES=buildpkg stricter
+</pre>
+
+<p>
+This should be fairly obvious - all <path>make.conf</path> settings are defined
+here. You can use other variables too, everything after <c>makeconf.</c> is
+verbatimly copied to the <path>make.conf</path> file during installation.
+</p>
+
+</body>
+</section>
+<section>
+<title>Portage Directory Settings</title>
+<body>
+
+<pre caption="Portage directory settings">
+portage.package.accept_keywords.selinux=sec-policy/* sys-libs/libselinux \
+  sys-apps/policycoreutils sys-libs/libsemanage sys-libs/libsepol
+  app-admin/setools dev-python/sepolgen sys-apps/checkpolicy
+portage.package.use.openldap=net-nds/openldap\ -sasl\ syslog\ debug
+</pre>
+
+<p>
+The portage directory settings will be used to generate the right
+<path>/etc/portage</path> subdirectories and files. Each line creates a file in
+the correct subdirectory with the filename being the last identifier. So
+<c>portage.package.use.openldap</c> creates
+<path>/etc/portage/package.use/openldap</path> with the given content.
+</p>
+
+<p>
+For the <path>package.accept_keywords</path> file, each entry on the line is
+given on a new line. For <path>package.use</path>, a file will only get a single
+line.
+</p>
+
+</body>
+</section>
+<section>
+<title>System Configuration</title>
+<body>
+
+<pre caption="System configuration settings">
+<comment># Create localtime / timezone info</comment>
+setup.etc.timezone=Europe/Brussels
+
+<comment># conf.d settings</comment>
+setup.conf.hostname.hostname=testsys
+setup.conf.keymaps.keymap=be-latin1
+setup.conf.net.config_eth0="dhcp"
+
+<comment># Various</comment>
+setup.domainname=virtdomain
+setup.rootpassword=rootpass
+setup.localegen.numentries=2
+setup.localegen.1=en_US ISO-8859-15
+setup.localegen.2=en_US.UTF-8 UTF-8
+</pre>
+
+<p>
+The <c>timezone</c> information is used to create the
+<path>/etc/localtime</path> file and is reused later when setting the timezone
+in the configuration file(s).
+</p>
+
+<p>
+The <c>setup.conf</c> sets the right variable(s) in the file given as third
+identifier. So, <c>setup.conf.net.config_eth0="dhcp"</c> sets
+<c>config_eth0="dhcp"</c> in <path>/etc/conf.d/net</path>.
+</p>
+
+<p>
+The other settings map on the Gentoo Handbook installation instructions. The
+<c>localegen</c> setting creates the <path>/etc/locale.gen</path> file. The
+<c>numentries</c> setting is to tell <c>gensetup</c> how many lines you have
+defined - I'm too lazy to code a way to find that out automatically.
+</p>
+
+</body>
+</section>
+<section>
+<title>Package installation</title>
+<body>
+
+<pre caption="Package installation settings">
+tools.install.packages=mdadm lvm2 syslog-ng dhcpcd layman vim git eix portage-utils
+tools.install.runlevel.default=syslog-ng
+tools.install.runlevel.boot=lvm
+tools.install.package.syslog-ng.preinstall=unset path
+</pre>
+
+<p>
+The <c>tools.install.packages</c> enumerates which packages to install.
+</p>
+
+<p>
+With <c>tools.install.runlevel.*</c> you define which services to add to which
+runlevel.
+</p>
+
+<p>
+Finally, <c>tools.install.package.*.preinstall</c> and <c>postinstall</c> allow
+you to run commands before and after the installation. You can also use
+<c>prepend</c> to have certain settings used in the same command:
+</p>
+
+<pre caption="Example prepend usage">
+<comment># Configuration setting</comment>
+tools.install.packages=vim
+tools.install.package.vim.prepend=USE="-gtk"
+
+<comment># Resulting command</comment>
+USE="-gtk" emerge vim
+</pre>
+
+</body>
+</section>
+<section>
+<title>Kernel configuration</title>
+<body>
+
+<pre caption="Kernel configuration settings">
+kernel.package=hardened-sources
+<comment># provided = do not install sources, but mention it in package.provided</comment>
+kernelsources.install=provided
+<comment>#kernel.install={build,binary}</comment>
+kernel.install=binary
+kernel.config=http://192.168.100.1:8080/gensetup/gentoo/config-2.6.38-hardened-r6
+kernel.binary=http://192.168.100.1:8080/gensetup/gentoo/linux-2.6.38-hardened-r6.tar.bz2
+</pre>
+
+<p>
+The kernel configuration section defines how the Linux kernel configuration is
+done on the installation. The <c>kernel.package</c> gives the package to install
+(unless <c>kernelsources.install=provided</c> is given, in which case we tell
+Gentoo Portage not to install the package but assume that it is installed to
+allow for dependencies to be matched properly).
+</p>
+
+<p>
+Next, we can either have the Kernel configuration built
+(<c>kernel.install=build</c>) or installed as a binary
+(<c>kernel.install=binary</c>). The <c>config</c> and <c>binary</c> define where
+to fetch the configuration/binary package from.
+</p>
+
+<p>
+To generate a binary package, I use the <c>make tarbz2-pkg</c> in the
+<path>/usr/src/linux</path> location. This results in a tarball that can be
+distributed and deployed on all virtual guests.
+</p>
+
+</body>
+</section>
+</chapter>
+
+</guide>

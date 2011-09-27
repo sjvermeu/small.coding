@@ -1,0 +1,402 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE guide SYSTEM "/dtd/guide.dtd">
+<!-- $Header: /var/cvsroot/gentoo/xml/htdocs/doc/en/xen-guide.xml,v 1.10 2011/08/29 10:09:42 nightmorph Exp $ -->
+
+<guide>
+<title>Setup Script Guide</title>
+
+<author title="Author">
+  <mail link="swift@gentoo.org">Sven Vermeulen</mail>
+</author>
+
+<abstract>
+Configuring a system to become a mail server, database server, multi-master
+OpenLDAP server or master/slave name server, if you want this to be done
+automatically, you either need a configuration management environment like
+puppet or cfengine, or you script all steps. This guide explains how the
+scripted approach is done for my personal virtual images
+</abstract>
+
+<!-- The content of this document is licensed under the CC-BY-SA license -->
+<!-- See http://creativecommons.org/licenses/by-sa/2.5 -->
+<license/>
+
+<version>1</version>
+<date>2011-09-27</date>
+
+<chapter>
+<title>Introduction</title>
+<section>
+<title>About setup scripts</title>
+<body>
+
+<p>
+Like the <uri link="http://dev.gentoo.org/~swift/docs/gensetup-guide.xml">Gensetup
+script</uri>, the main purpose of the <b>setup scripts</b> is to automatically
+follow a documented (or will-be-documented) approach on the setup and configuration
+of particular services. It is not meant for true unattended installation and
+configuration of services; for that you have tools like <uri
+link="http://puppetlabs.com/">Puppet</uri> or <uri
+link="http://cfengine.com/">CFEngine</uri>.
+</p>
+
+</body>
+</section>
+<section>
+<title>About this document</title>
+<body>
+
+<p>
+In this document, I explain the structure of the setup scripts I use as well as
+the functions available inside. It is more of a development reference rather
+than an end-user document.
+</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter>
+<title>Skeleton of the Setup Script</title>
+<section>
+<title>Introduction</title>
+<body>
+
+<p>
+The script itself uses two libraries, offered through <path>master.lib.sh</path>
+and <path>common.lib.sh</path>. The difference between the two is arguably based
+on personal preference, but in general I wanted to make sure that
+<path>master.lib.sh</path> is needed for the script functioning itself, whereas
+<path>common.lib.sh</path> are more helper functions for the content of the
+script.
+</p>
+
+<p>
+A rough skeleton for a script can be found next, and uses two steps: stepone and
+steptwo.
+</p>
+
+<pre caption="Skeleton for a setup script">
+#!/bin/sh
+
+typeset CONFFILE=$1;
+export CONFFILE;
+
+typeset STEPS="<i>stepone steptwo</i>"
+export STEPS;
+
+typeset STEPFROM=$2;
+export STEPFROM;
+
+typeset STEPTO=$3;
+export STEPTO;
+
+typeset LOG=/tmp/build.log;
+export LOG;
+
+typeset FAILED=$(mktemp);
+export FAILED;
+
+[ -f master.lib.sh ] &amp;&amp; source ./master.lib.sh || exit 1;
+[ -f common.lib.sh ] &amp;&amp; source ./common.lib.sh || exit 1;
+
+initTools;
+
+##
+## Step functions
+##
+
+<i>stepone() {
+  logMessage "This is the first step";
+}
+
+steptwo() {
+  logMessage "This is the second step";
+}</i>
+
+stepOK "<i>stepone</i>" &amp;&amp; (
+logMessage ">>> Step \"stepone\" starting...\n";
+runStep <i>stepone</i>;
+);
+nextStep;
+
+stepOK "<i>steptwo</i>" &amp;&amp; (
+logMessage ">>> Step \"steptwo\" starting...\n";
+runStep <i>steptwo</i>;
+);
+nextStep;
+
+cleanupTools;
+rm ${FAILED};
+</pre>
+
+<p>
+So, what is this about steps? Well, a <e>step</e> is a logically coherent set of
+commands or directives. The setup scripts allow to (re)start from a particular
+step, but not from a particular position within a step. So you might want to
+make the installation of software one step, the configuration of a service a
+step, adding users a step, etc.
+</p>
+
+</body>
+</section>
+<section>
+<title>Functionality</title>
+<body>
+
+<p>
+The advantage of this scripted approach is that it will offer some "manageable"
+functionality that is reusable across configuration steps. The functions that
+allow this are described later in this document, but here are the high-level
+advantages that I needed to support in my scripts:
+</p>
+
+<ul>
+  <li>
+    Rerunning scripts from a particular point or even until a particular point
+    (step)
+  </li>
+  <li>
+    Logging the output of the commands in a logfile while keeping the output on
+    the screen more manageable and userfriendly
+  </li>
+  <li>
+    Use configurable settings in a key-value paired configuration file, which
+    can include references towards other values
+  </li>
+  <li>
+    Update (configuration) files while retaining its ownership, permissions,
+    SELinux type, even if these values were not what are "default"
+  </li>
+  <li>
+    Use a transactional approach on updating configuration files, so you can
+    revert a change if some magic you run on the file fails (like <c>sed -i</c>
+    statements)
+  </li>
+  <li>
+    Iterate changes in configuration files based on categories within the script
+    configuration file. So you can apply all configuration settings defined in
+    <c>etc.makeconf</c> which can include a whole slew of parameters
+  </li>
+</ul>    
+
+</body>
+</section>
+<section>
+<title>Usage</title>
+<body>
+
+<p>
+Similar to the <c>gensetup</c> script, the setup scripts use the following command syntax:
+</p>
+
+<pre caption="Syntax for setup scripts">
+Usage: ./setup_virtmail.sh &lt;conffile&gt; [&lt;stepfrom&gt; [&lt;stepto&gt;]]
+
+If &lt;stepto&gt; is given, the step itself is also executed.
+Supported steps: configsystem installpostfix installcourier installsasl updatepostfix
+  vmail installmysql startmysql loadsql installapache phpmyadmin mysqlauth 
+  mysqlpostfix setuppam setupzabbix
+</pre>
+
+<p>
+The first and only mandatory argument is the configuration file, as that
+contains the parameters that the script needs to work with.
+</p>
+
+<p>
+The second parameter gives an optional starting point (step) while the third
+parameter gives an operational end point (step), which is <e>inclusive</e>.
+In other words, the <c>&lt;stepto&gt;</c> step is still executed!
+</p>
+
+</body>
+</section>
+</chapter>
+
+<chapter>
+<title>Function Reference</title>
+<section>
+<title>die</title>
+<body>
+
+<pre caption="Example usage">
+installbind() {
+  logMessage "  > Installing 'bind'... ";
+  <i>installSoftware -u bind || die "Failed to install Bind (emerge failed)";</i>
+  logMessage "done\n";
+}
+</pre>
+
+<p>
+To fail the installation (or activity), use the <b>die</b> function. Using
+<c>return 1</c> or <c>exit</c> will not work properly since the script uses
+subshells.
+</p>
+
+</body>
+</section>
+<section>
+<title>getValue</title>
+<body>
+
+<pre caption="Example usage">
+typeset DNSTYPE="$(<i>getValue dns.type</i>)"
+</pre>
+
+<p>
+The <b>getValue</b> function returns the value of the given key from the
+configuration file.
+</p>
+
+</body>
+</section>
+<section>
+<title>initChangeFile, applyMetaOnFile and commitChangeFile</title>
+<body>
+
+<pre caption="Example usage">
+typeset FILE=/etc/conf.d/apache2;
+typeset META=$(<i>initChangeFile ${FILE}</i>);
+<comment># Update the file</comment>
+<i>applyMetaOnFile ${FILE} ${META};
+commitChangeFile ${FILE} ${META};</i>
+</pre>
+
+<p>
+The three functions - <b>initChangeFile, applyMetaOnFile</b> and
+<b>commitChangeFile</b> should be used as described in the example. The first
+function captures the meta information of the existing file and creates a
+backup. The second function applies the owner, group-owner, privileges and SELinux
+label to the (modified) file and the last function removes the meta data and
+backup file from the system.
+</p>
+
+<p>
+If a change failed, you can use the <c>revertChangeFile ${FILE} ${META}</c>
+command to revert the changes back to their original.
+</p>
+
+</body>
+</section>
+<section>
+<title>logMessage</title>
+<body>
+
+<pre caption="Example usage">
+servicebind() {
+  <i>logMessage "  > Adding bind to default runlevel... ";</i>
+  rc-update add named default
+  <i>logMessage "done\n";</i>
+}
+</pre>
+
+<p>
+The <b>logMessage</b> function will display something on the users' screen.
+Make sure that the output is ended with <c>\n</c> if you want a newline!
+</p>
+
+</body>
+</section>
+<section>
+<title>installSoftware</title>
+<body>
+
+<pre caption="Example usage">
+installbind() {
+  logMessage "  > Installing 'bind'... ";
+  <i>installSoftware -u bind || die "Failed to install Bind (emerge failed)";</i>
+  logMessage "done\n";
+}
+</pre>
+
+<p>
+Using <b>installSoftware</b> will build software on Gentoo as follows:
+</p>
+
+<pre caption="installSoftware implementation">
+emerge --binpkg-respect-use=y -g $*;
+</pre>
+
+<p>
+When binary packages are available, and they are built using the correct USE
+flags, then the installation will use the binary packages.
+</p>
+
+</body>
+</section>
+<section>
+<title>setOrUpdate(Un)QuotedVariable</title>
+<body>
+
+<pre caption="Example usage">
+setOrUpdateQuotedVariable date.timezone "=" "$(getValue php.date_timezone)" ${FILE};
+</pre>
+
+<p>
+The <c>setOrUpdateQuotedVariable</c> updates the variable (first argument) to
+the value (third argument) in the file (fourth argument) using quotes ("...").
+The separator between the key and value in the file is given as the second
+argument.
+</p>
+
+<p>
+Using <c>setOrUpdateUnquotedVariable</c> does the same, but without quotes.
+</p>
+
+</body>
+</section>
+<section>
+<title>update*ConfFile</title>
+<body>
+
+<pre caption="Example usage">
+updateEqualNoQuotConfFile postfix.1.main /etc/postfix/main.cf;
+
+<comment>## Below example configuration file snippet</comment>
+postfix.1.main.myhostname=mail1.virtdomain.com
+postfix.1.main.mydomain=virtdomain.com
+postfix.1.main.inet_interfaces=all
+postfix.1.main.mydestination=mail1, localhost.virtdomain.com virtdomain.com
+postfix.1.main.mynetworks=192.168.100.0/24, 127.0.0.0/8
+postfix.1.main.home_mailbox=.maildir/
+postfix.1.main.local_destination_concurrency_limit=2
+postfix.1.main.default_destination_concurrency_limit=10
+</pre>
+
+<p>
+The set of <c>update*ConfFile</c> functions updates the settings in a
+configuration file based on the parameters in the script configuration file.
+These parameters should be seen as a "grouping". 
+</p>
+
+<p>
+The scripts support the following <c>update*ConfFile</c> functions:
+</p>
+
+<ul>
+  <li>
+    <c>updateEqualConfFile</c> updates the configuration file, using quoted
+    variables and the '=' sign as the separator.
+  </li>
+  <li>
+    <c>updateEqualNoQuotConfFile</c> updates the configuration file using the
+    '=' sign as the separator between key and value. However, values are not
+    quoted.
+  </li>
+  <li>
+    <c>updateWhitespaceNoQuotConfFile</c> updates the configuration file using
+    whitespace as the separator between key and value. However, values are not
+    quoted.
+  </li>
+  <li>
+    <c>updateWhitespaceConfFile</c> updates the configuration file, using quoted
+    variables and whitespace as the separator between key and value.
+  </li>
+</ul>
+
+</body>
+</section>
+</chapter>
+
+</guide>

@@ -186,6 +186,7 @@ parameters used:
     Have the previously defined network interface use the VDE switch that was
     started earlier
   </ti>
+  <ti />
 </tr>
 <tr>
   <ti>-drive file=/srv/virt/gentoo/base.img,if=virtio,boot=on</ti>
@@ -236,6 +237,7 @@ parameters used:
     Add a CD-rom device with the selected ISO image as CD and allow for booting
     from this device.
   </ti>
+  <ti />
 </tr>
 </table>
 

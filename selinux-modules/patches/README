@@ -67,13 +67,14 @@ not yet approved).
 0048 + support LDAPS within nsswitch
 0049 - dontaudit on udp_socket listen - udp does not support listen() anyhow
 0050 + update courier file contexts for courier-imap installations
-0051 . allow asterisk administrators to connect to asterisk through asterisk -r
 0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
 0053 - make cron domains use interactive file descriptors (?)
 0054 + dontaudit on portage leaked file descriptors
 0055 + support semanage permissive feature
 0056 + 0020 - Split up interfaces for portage domain and fetch domains
 0057 - mark glsa-check as portage entry file
+0058 - mark asterisk exec as an application exec type
+0059 - give sysadm connect access to the asterisk runtime
 
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which

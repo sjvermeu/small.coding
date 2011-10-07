@@ -1,0 +1,523 @@
+--- refpolicy/policy/modules/system/xdg.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.te	2011-10-07 20:14:07.506000443 +0200
+@@ -0,0 +1,30 @@
++policy_module(xdg, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++attribute xdg_data_home_type;
++
++attribute xdg_config_home_type;
++
++attribute xdg_cache_home_type;
++
++attribute xdg_runtime_home_type;
++
++type xdg_data_home_t;
++xdg_data_home_content(xdg_data_home_t)
++userdom_user_home_content(xdg_data_home_t)
++
++type xdg_config_home_t;
++xdg_config_home_content(xdg_config_home_t)
++userdom_user_home_content(xdg_config_home_t)
++
++type xdg_cache_home_t;
++xdg_cache_home_content(xdg_cache_home_t)
++userdom_user_home_content(xdg_cache_home_t)
++
++type xdg_runtime_home_t;
++xdg_runtime_home_content(xdg_runtime_home_t)
++userdom_user_home_content(xdg_runtime_home_t)
+--- refpolicy/policy/modules/system/xdg.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.if	2011-10-07 20:14:07.506000443 +0200
+@@ -0,0 +1,476 @@
++## <summary>Policy for xdg desktop standard</summary>
++
++########################################
++## <summary>
++##	Mark the selected type as an xdg_data_home_type
++## </summary>
++## <param name="type">
++##	<summary>
++##	Type to give the xdg_data_home_type attribute to
++##	</summary>
++## </param>
++#
++interface(`xdg_data_home_content',`
++	gen_require(`
++		attribute xdg_data_home_type;
++	')
++
++	typeattribute $1 xdg_data_home_type;
++
++	userdom_user_home_content($1)
++')
++
++########################################
++## <summary>
++##	Create objects in an xdg_data_home directory
++##	with an automatic type transition to
++##	a specified private type.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="private_type">
++##	<summary>
++##	The type of the object to create.
++##	</summary>
++## </param>
++## <param name="object_class">
++##	<summary>
++##	The class of the object to be created.
++##	</summary>
++## </param>
++#
++interface(`xdg_data_home_filetrans',`
++	gen_require(`
++		type xdg_data_home_t;
++	')
++
++	filetrans_pattern($1, xdg_data_home_t, $2, $3)
++')
++
++
++########################################
++## <summary>
++##	Mark the selected type as an xdg_cache_home_type
++## </summary>
++## <param name="type">
++##	<summary>
++##	Type to give the xdg_cache_home_type attribute to
++##	</summary>
++## </param>
++#
++interface(`xdg_cache_home_content',`
++	gen_require(`
++		attribute xdg_cache_home_type;
++	')
++
++	typeattribute $1 xdg_cache_home_type;
++
++	userdom_user_home_content($1)
++')
++
++########################################
++## <summary>
++##	Create objects in an xdg_cache_home directory
++##	with an automatic type transition to
++##	a specified private type.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="private_type">
++##	<summary>
++##	The type of the object to create.
++##	</summary>
++## </param>
++## <param name="object_class">
++##	<summary>
++##	The class of the object to be created.
++##	</summary>
++## </param>
++#
++interface(`xdg_cache_home_filetrans',`
++	gen_require(`
++		type xdg_cache_home_t;
++	')
++
++	filetrans_pattern($1, xdg_cache_home_t, $2, $3)
++')
++
++
++########################################
++## <summary>
++##	Mark the selected type as an xdg_config_home_type
++## </summary>
++## <param name="type">
++##	<summary>
++##	Type to give the xdg_config_home_type attribute to
++##	</summary>
++## </param>
++#
++interface(`xdg_config_home_content',`
++	gen_require(`
++		attribute xdg_config_home_type;
++	')
++
++	typeattribute $1 xdg_config_home_type;
++
++	userdom_user_home_content($1)
++')
++
++########################################
++## <summary>
++##	Create objects in an xdg_config_home directory
++##	with an automatic type transition to
++##	a specified private type.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="private_type">
++##	<summary>
++##	The type of the object to create.
++##	</summary>
++## </param>
++## <param name="object_class">
++##	<summary>
++##	The class of the object to be created.
++##	</summary>
++## </param>
++#
++interface(`xdg_config_home_filetrans',`
++	gen_require(`
++		type xdg_config_home_t;
++	')
++
++	filetrans_pattern($1, xdg_config_home_t, $2, $3)
++')
++
++########################################
++## <summary>
++##	Mark the selected type as an xdg_runtime_home_type
++## </summary>
++## <param name="type">
++##	<summary>
++##	Type to give the xdg_runtime_home_type attribute to
++##	</summary>
++## </param>
++#
++interface(`xdg_runtime_home_content',`
++	gen_require(`
++		attribute xdg_runtime_home_type;
++	')
++
++	typeattribute $1 xdg_runtime_home_type;
++
++	userdom_user_home_content($1)
++')
++
++########################################
++## <summary>
++##	Create objects in an xdg_runtime_home directory
++##	with an automatic type transition to
++##	a specified private type.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="private_type">
++##	<summary>
++##	The type of the object to create.
++##	</summary>
++## </param>
++## <param name="object_class">
++##	<summary>
++##	The class of the object to be created.
++##	</summary>
++## </param>
++#
++interface(`xdg_runtime_home_filetrans',`
++	gen_require(`
++		type xdg_runtime_home_t;
++	')
++
++	filetrans_pattern($1, xdg_runtime_home_t, $2, $3)
++')
++
++
++########################################
++## <summary>
++##	Read the xdg cache home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_cache_home',`
++	gen_require(`
++		type xdg_cache_home_t;	
++	')
++
++	read_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read all xdg_cache_home_type files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_all_cache_home',`
++	gen_require(`
++		attribute xdg_cache_home_type;
++		type xdg_cache_home_t;	
++	')
++
++	read_files_pattern($1, xdg_cache_home_type, xdg_cache_home_type)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Manage the xdg cache home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_cache_home',`
++	gen_require(`
++		type xdg_cache_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read the xdg config home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_config_home',`
++	gen_require(`
++		type xdg_config_home_t;	
++	')
++
++	read_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read all xdg_config_home_type files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_all_config_home',`
++	gen_require(`
++		attribute xdg_config_home_type;
++		type xdg_config_home_t;	
++	')
++
++	read_files_pattern($1, xdg_config_home_type, xdg_config_home_type)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++
++########################################
++## <summary>
++##	Manage the xdg config home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_config_home',`
++	gen_require(`
++		type xdg_config_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read the xdg data home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_data_home',`
++	gen_require(`
++		type xdg_data_home_t;	
++	')
++
++	read_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read all xdg_data_home_type files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_all_data_home',`
++	gen_require(`
++		attribute xdg_data_home_type;
++		type xdg_data_home_t;	
++	')
++
++	read_files_pattern($1, xdg_data_home_type, xdg_data_home_type)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Manage the xdg data home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_data_home',`
++	gen_require(`
++		type xdg_data_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read the xdg runtime home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_runtime_home',`
++	gen_require(`
++		type xdg_runtime_home_t;	
++	')
++
++	read_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Read all xdg_runtime_home_type files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_all_runtime_home',`
++	gen_require(`
++		attribute xdg_runtime_home_type;
++		type xdg_runtime_home_t;	
++	')
++
++	read_files_pattern($1, xdg_runtime_home_type, xdg_runtime_home_type)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Manage the xdg runtime home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_runtime_home',`
++	gen_require(`
++		type xdg_runtime_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	manage_dirs_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	
++	userdom_list_user_home_dirs($1)
++')
++
++#######################################
++## <summary>
++##   Allow the userdomain full administrative rights on the xdg_* locations
++## </summary>
++## <param name="userdomain">
++##	<summary>
++##	The user domain
++##	</summary>
++## </param>
++## <rolebase/>
++#
++interface(`xdg_admin',`
++	gen_require(`
++		attribute xdg_cache_home_type, xdg_config_home_type, xdg_data_home_type;
++	')
++
++	# full control over the xdg_* directories
++	admin_pattern($1, xdg_cache_home_type)
++	admin_pattern($1, xdg_config_home_type)
++	admin_pattern($1, xdg_data_home_type)
++')
++
+--- refpolicy/policy/modules/system/xdg.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.fc	2011-10-07 20:14:07.506000443 +0200
+@@ -0,0 +1,8 @@
++HOME_DIR/\.cache(/.*)?		gen_context(system_u:object_r:xdg_cache_home_t,s0)
++HOME_DIR/\.config(/.*)?		gen_context(system_u:object_r:xdg_config_home_t,s0)
++HOME_DIR/\.local/share(/.*)?	gen_context(system_u:object_r:xdg_data_home_t,s0)
++
++#
++# /run
++#
++/run/user/USER(/.*)?			gen_context(system_u:object_r:xdg_runtime_home_t,s0)

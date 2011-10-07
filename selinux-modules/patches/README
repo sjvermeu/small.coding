@@ -30,14 +30,13 @@ not yet approved).
 0008 - qemu-kvm creates socket and requests module loading
 0009 - introduce support for vde
 0010 + hal is not a consolekit hard requirement
-0013 . use xdg locations in user home directories
 0014 + fix labeling for xfce4
 0015 + allow unconfined users to call portage
 0016 - introduce support for gentoo eselect modules
 0018 + introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
 0019 + put layman in the portage_fetch_t domain
 0020 + support emerge-webrsync and run portage through cron and other unattended manners
-0021 - introduce support for mutt_t
+0021 . introduce support for mutt_t
 0022 - introduce support for links_t
 0023 + allow puppet to mount file systems
 0024 - introduce support for pan_t
@@ -73,8 +72,9 @@ not yet approved).
 0055 + support semanage permissive feature
 0056 + 0020 - Split up interfaces for portage domain and fetch domains
 0057 - mark glsa-check as portage entry file
-0058 - mark asterisk exec as an application exec type
-0059 - give sysadm connect access to the asterisk runtime
+0058 . mark asterisk exec as an application exec type
+0059 . give sysadm connect access to the asterisk runtime
+0060 - use xdg locations in user home directories
 
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which

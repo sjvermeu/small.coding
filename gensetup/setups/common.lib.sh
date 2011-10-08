@@ -63,33 +63,6 @@ _configsystem() {
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
-  logMessage "  > Setting up swapspace (128M)... ";
-  if [ ! -f /swapfile ];
-  then
-    dd if=/dev/zero of=/swapfile bs=1024k count=128;
-    chcon -t swapfile_t /swapfile;
-    semanage fcontext -a -t swapfile_t "/swapfile";
-    mkswap /swapfile;
-    swapon /swapfile;
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-
-  logMessage "  > Configuring fstab... ";
-  grep -q '/swapfile' /etc/fstab;
-  if [ $? -ne 0 ];
-  then
-    typeset FILE=/etc/fstab;
-    typeset META=$(initChangeFile ${FILE});
-    echo "/swapfile	none	swap	sw	0 0" >> /etc/fstab
-    applyMetaOnFile ${FILE} ${META};
-    commitChangeFile ${FILE} ${META};
-    logMessage "done\n";
-  else
-    logMessage "skipped\n";
-  fi
-
   logMessage "  > Restoring /etc/selinux context... ";
   restorecon -R /etc/selinux;
   logMessage "done\n";

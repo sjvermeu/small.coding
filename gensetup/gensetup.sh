@@ -417,6 +417,11 @@ generateFstab() {
   ROOTFS=$(awk -F'=' "/${ROOTLABEL}.filesystem/ {print \$2}" ${DATA});
   echo "/dev/${ROOT}	/		${ROOTFS}	noatime		1 2"
 
+  SWAP=$(awk -F'.' "/disk.*.purpose=swap/ {print \$2\$3}" ${DATA});
+  SWAPLABEL=$(grep '.purpose=swap' ${DATA} | sed -e 's:.purpose=swap.*::g');
+  SWAPFS=$(awk -F'=' "/${SWAPLABEL}.filesystem/ {print \$2}" ${DATA});
+  echo "/dev/${SWAP}    none            ${SWAPFS}       sw,pri=1               0 0"
+
   PURPOSES=$(awk -F'=' "/disk.*.purpose=\// {print \$2}" ${DATA});
   MAXNUMSLASH=$(echo ${PURPOSES} | sed -e 's: :\n:g' | sed -e 's:[^/]::g' | sort | tail -1 | wc -c);
   NUMSLASH=1;

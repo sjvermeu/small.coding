@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem users installldap setupldap setupsync setuppam setupzabbix";
+typeset STEPS="configsystem users installldap setupldap setupsync setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -225,10 +225,6 @@ setuppam() {
   _setuppam;
 }
 
-setupzabbix() {
-  _setupzabbix;
-}
-
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -262,12 +258,6 @@ nextStep;
 stepOK "setuppam" && (
 logMessage ">>> Step \"setuppam\" starting...\n";
 runStep setuppam;
-);
-nextStep;
-
-stepOK "setupzabbix" && (
-logMessage ">>> Step \"setupzabbix\" starting...\n";
-runStep setupzabbix;
 );
 nextStep;
 

@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuprsync setupzabbix";
+typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuprsync";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -151,10 +151,6 @@ EOF
   logMessage "done\n";
 }
 
-setupzabbix() {
-  _setupzabbix;
-}
-
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -182,12 +178,6 @@ nextStep;
 stepOK "setuprsync" && (
 logMessage ">>> Step \"setuprsync\" starting...\n";
 runStep setuprsync;
-);
-nextStep;
-
-stepOK "setupzabbix" && (
-logMessage ">>> Step \"setupzabbix\" starting...\n";
-runStep setupzabbix;
 );
 nextStep;
 

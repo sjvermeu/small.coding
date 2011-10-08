@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem installbind configbind setuppam setupzabbix";
+typeset STEPS="configsystem installbind configbind setuppam";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -219,7 +219,6 @@ mail1.virtdomain.com.	IN A	192.168.100.51
 build.virtdomain.com.	IN A	192.168.100.50
 rsync.virtdomain.com.	IN CNAME build.virtdomain.com.
 proxy.virtdomain.com.	IN A	192.168.100.63
-zabbix.virtdomain.com.	IN A	192.168.100.64
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -274,7 +273,6 @@ EOF
 51.100.168.192.in-addr.arpa.	IN	PTR	mail1.virtdomain.com.
 50.100.168.192.in-addr.arpa.	IN	PTR	build.virtdomain.com.
 63.100.168.192.in-addr.arpa.	IN	PTR	proxy.virtdomain.com.
-64.100.168.192.in-addr.arpa.	IN	PTR	zabbix.virtdomain.com.
 EOF
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -292,10 +290,6 @@ EOF
 
 setuppam() {
   _setuppam;
-}
-
-setupzabbix() {
-  _setupzabbix;
 }
 
 stepOK "configsystem" && (
@@ -319,12 +313,6 @@ nextStep;
 stepOK "setuppam" && (
 logMessage ">>> Step \"setuppam\" starting...\n";
 runStep setuppam;
-);
-nextStep;
-
-stepOK "setupzabbix" && (
-logMessage ">>> Step \"setupzabbix\" starting...\n";
-runStep setupzabbix;
 );
 nextStep;
 

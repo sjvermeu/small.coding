@@ -188,23 +188,3 @@ EOF
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 }
-
-_setupzabbix() {
-  logMessage "  > Installing zabbix agent... ";
-  installSoftware -u selinux-zabbix || die "Failed to install selinux-zabbix policy";
-  installSoftware -u zabbix || die "Failed to install zabbix agent";
-  logMessage "done\n";
-
-  logMessage "  > Setting up zabbix agent... ";
-  typeset FILE=/etc/zabbix/zabbix_agentd.conf;
-  typeset META=$(initChangeFile ${FILE});
-  updateEqualNoQuotConfFile etc.zabbix.agent ${FILE}
-  applyMetaOnFile ${FILE} ${META};
-  commitChangeFile ${FILE} ${META};
-  logMessage "done\n";
-
-  logMessage "  > Adding zabbix-agentd to default runlevel... ";
-  rc-update add zabbix-agentd default;
-  logMessage "done\n";
-
-}

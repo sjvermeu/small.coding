@@ -326,11 +326,6 @@ extractFiles() {
   rm -f ${FETCH##*/};
   printf "done\n";
 
-  printf "Creating /selinux mountpoint... ";
-  logPrint "Creating /selinux mountpoint" >> ${LOG};
-  test -d ${WORKDIR}/selinux || mkdir ${WORKDIR}/selinux
-  printf "done\n";
-
   printf "Downloading portage snapshot... ";
   logPrint "Downloading portage snapshot." >> ${LOG};
   cd ${WORKDIR}/usr;

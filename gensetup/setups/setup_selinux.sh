@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
+typeset STEPS="overlay reboot_0 arch mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -136,6 +136,15 @@ set_mount_context() {
     mv ${FILE}.new ${FILE};
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Creating /selinux mountpoint... ";
+  if [ ! -d /selinux ];
+  then
+    mkdir /selinux;
     logMessage "done\n";
   else
     logMessage "skipped\n";
@@ -298,6 +307,12 @@ nextStep;
 stepOK "arch" && (
 logMessage ">>> Step \"arch\" starting...\n";
 runStep set_arch_packages;
+);
+nextStep;
+
+stepOK "reboot_0" && (
+logMessage ">>> Step \"reboot_0\" starting...\n";
+runStep fail_reboot;
 );
 nextStep;
 

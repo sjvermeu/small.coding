@@ -1,6 +1,6 @@
---- refpolicy/policy/modules/apps/skype.te	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/policy/modules/apps/skype.te	2011-08-17 07:52:31.000000000 +0000
-@@ -0,0 +1,108 @@
+--- refpolicy/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.te	2011-10-09 12:57:38.820000481 +0200
+@@ -0,0 +1,104 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -10,7 +10,9 @@
 +
 +## <desc>
 +## <p>
-+##   Be able to manage user files (needed to support sending and receiving files)
++##   Be able to manage user files (needed to support sending and receiving files).
++##   Without this boolean set, only files marked as skype_home_t can be used for
++##   sending and receiving.
 +## </p>
 +## </desc>
 +gen_tunable(skype_manage_user_content, false)
@@ -50,7 +52,6 @@
 +manage_sock_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
 +fs_tmpfs_filetrans(skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
 +
-+
 +kernel_dontaudit_search_sysctl(skype_t)
 +kernel_read_system_state(skype_t)
 +
@@ -75,23 +76,15 @@
 +dev_write_sound(skype_t)
 +dev_write_video_dev(skype_t)
 +
-+# Needed to debug skype (start through commandline)
-+domain_use_interactive_fds(skype_t)
-+
 +files_read_etc_files(skype_t)
 +files_read_usr_files(skype_t)
 +
 +fs_dontaudit_getattr_xattr_fs(skype_t)
 +
-+
 +auth_use_nsswitch(skype_t)
 +
 +miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
 +miscfiles_read_localization(skype_t)
-+
-+userdom_read_xdg_config_home(skype_t)
-+userdom_use_user_terminals(skype_t)
-+
 +
 +xserver_user_x_domain_template(skype, skype_t, skype_tmpfs_t)
 +
@@ -109,9 +102,12 @@
 +	dbus_session_bus_client(skype_t)
 +')
 +
---- refpolicy/policy/modules/apps/skype.if	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/policy/modules/apps/skype.if	2011-08-16 22:36:47.000000000 +0000
-@@ -0,0 +1,51 @@
++optional_policy(`
++	xdg_read_all_config_home(skype_t)
++')
+--- refpolicy/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.if	2011-10-09 12:46:57.603000482 +0200
+@@ -0,0 +1,42 @@
 +## <summary>Skype softphone.</summary>
 +
 +#######################################
@@ -133,18 +129,12 @@
 +	gen_require(`
 +		type skype_t, skype_exec_t, skype_tmpfs_t, skype_home_t;
 +	')
-+
-+	#######################################
-+	#
-+	# Declarations
-+	#
 +	
 +	role $1 types skype_t;
++	
++	domtrans_pattern($2, skype_exec_t, skype_t)
 +
-+	############################
-+	#
-+	# Policy
-+	#
++	allow $2 skype_t:process { ptrace signal_perms };
 +
 +	manage_dirs_pattern($2, skype_home_t, skype_home_t)
 +	manage_files_pattern($2, skype_home_t, skype_home_t)
@@ -154,18 +144,23 @@
 +	relabel_files_pattern($2, skype_home_t, skype_home_t)
 +	relabel_lnk_files_pattern($2, skype_home_t, skype_home_t)
 +
-+	domtrans_pattern($2, skype_exec_t, skype_t)
-+
 +	ps_process_pattern($2, skype_t)
-+	allow $2 skype_t:process { ptrace signal_perms };
 +
 +	tunable_policy(`gentoo_try_dontaudit',`
 +		dontaudit skype_t $2:unix_stream_socket { connectto };
 +	')
 +')	
---- refpolicy/policy/modules/apps/skype.fc	1970-01-01 00:00:00.000000000 +0000
-+++ refpolicy/policy/modules/apps/skype.fc	2011-08-16 22:36:47.000000000 +0000
-@@ -0,0 +1,3 @@
-+/usr/bin/skype         -- gen_context(system_u:object_r:skype_exec_t,s0)
-+/opt/skype/skype       -- gen_context(system_u:object_r:skype_exec_t,s0)
+--- refpolicy/policy/modules/apps/skype.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/apps/skype.fc	2011-10-09 12:44:44.214000481 +0200
+@@ -0,0 +1,11 @@
 +HOME_DIR/\.Skype(/.*)?    gen_context(system_u:object_r:skype_home_t,s0)
++
++#
++# /opt
++#
++/opt/skype/skype       -- gen_context(system_u:object_r:skype_exec_t,s0)
++
++#
++# /usr
++#
++/usr/bin/skype         -- gen_context(system_u:object_r:skype_exec_t,s0)

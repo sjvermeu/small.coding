@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/system/xdg.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/system/xdg.te	2011-10-07 20:14:07.506000443 +0200
-@@ -0,0 +1,30 @@
++++ refpolicy/policy/modules/system/xdg.te	2011-10-09 14:56:19.041569997 +0200
+@@ -0,0 +1,26 @@
 +policy_module(xdg, 1.0.0)
 +
 +########################################
@@ -18,22 +18,18 @@
 +
 +type xdg_data_home_t;
 +xdg_data_home_content(xdg_data_home_t)
-+userdom_user_home_content(xdg_data_home_t)
 +
 +type xdg_config_home_t;
 +xdg_config_home_content(xdg_config_home_t)
-+userdom_user_home_content(xdg_config_home_t)
 +
 +type xdg_cache_home_t;
 +xdg_cache_home_content(xdg_cache_home_t)
-+userdom_user_home_content(xdg_cache_home_t)
 +
 +type xdg_runtime_home_t;
 +xdg_runtime_home_content(xdg_runtime_home_t)
-+userdom_user_home_content(xdg_runtime_home_t)
 --- refpolicy/policy/modules/system/xdg.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/system/xdg.if	2011-10-07 21:08:53.320000438 +0200
-@@ -0,0 +1,472 @@
++++ refpolicy/policy/modules/system/xdg.if	2011-10-09 15:23:02.171569994 +0200
+@@ -0,0 +1,567 @@
 +## <summary>Policy for xdg desktop standard</summary>
 +
 +########################################
@@ -84,6 +80,8 @@
 +	')
 +
 +	filetrans_pattern($1, xdg_data_home_t, $2, $3)
++
++	userdom_search_user_home_dirs($1)
 +')
 +
 +
@@ -135,6 +133,8 @@
 +	')
 +
 +	filetrans_pattern($1, xdg_cache_home_t, $2, $3)
++	
++	userdom_search_user_home_dirs($1)
 +')
 +
 +
@@ -186,6 +186,8 @@
 +	')
 +
 +	filetrans_pattern($1, xdg_config_home_t, $2, $3)
++	
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -236,6 +238,8 @@
 +	')
 +
 +	filetrans_pattern($1, xdg_runtime_home_t, $2, $3)
++
++	files_search_pids($1)
 +')
 +
 +
@@ -249,14 +253,14 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_cache_home',`
++interface(`xdg_read_generic_cache_home_files',`
 +	gen_require(`
 +		type xdg_cache_home_t;	
 +	')
 +
 +	read_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
 +
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -269,15 +273,40 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_all_cache_home',`
++interface(`xdg_read_all_cache_home_files',`
 +	gen_require(`
 +		attribute xdg_cache_home_type;
 +	')
 +
 +	read_files_pattern($1, xdg_cache_home_type, xdg_cache_home_type)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
++
++########################################
++## <summary>
++##	Allow relabeling the xdg cache home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_relabel_generic_cache_home_content',`
++	gen_require(`
++		type xdg_cache_home_t;	
++	')
++
++	relabel_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_lnk_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_fifo_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_sock_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	
++	userdom_search_user_home_dirs($1)
++')
++
 +
 +########################################
 +## <summary>
@@ -289,15 +318,18 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_manage_cache_home',`
++interface(`xdg_manage_generic_cache_home_content',`
 +	gen_require(`
 +		type xdg_cache_home_t;	
 +	')
 +
-+	manage_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
 +	manage_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_lnk_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_fifo_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_sock_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -310,14 +342,14 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_config_home',`
++interface(`xdg_read_generic_config_home_files',`
 +	gen_require(`
 +		type xdg_config_home_t;	
 +	')
 +
 +	read_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -330,14 +362,38 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_all_config_home',`
++interface(`xdg_read_all_config_home_files',`
 +	gen_require(`
 +		attribute xdg_config_home_type;
 +	')
 +
 +	read_files_pattern($1, xdg_config_home_type, xdg_config_home_type)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Allow relabeling the xdg config home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_relabel_generic_config_home_content',`
++	gen_require(`
++		type xdg_config_home_t;	
++	')
++
++	relabel_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_lnk_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_fifo_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_sock_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	
++	userdom_search_user_home_dirs($1)
 +')
 +
 +
@@ -351,15 +407,18 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_manage_config_home',`
++interface(`xdg_manage_generic_config_home_content',`
 +	gen_require(`
 +		type xdg_config_home_t;	
 +	')
 +
-+	manage_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
 +	manage_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_lnk_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_fifo_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_sock_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -372,14 +431,14 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_data_home',`
++interface(`xdg_read_generic_data_home_files',`
 +	gen_require(`
 +		type xdg_data_home_t;	
 +	')
 +
 +	read_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -392,14 +451,38 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_all_data_home',`
++interface(`xdg_read_all_data_home_files',`
 +	gen_require(`
 +		attribute xdg_data_home_type;
 +	')
 +
 +	read_files_pattern($1, xdg_data_home_type, xdg_data_home_type)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Allow relabeling the xdg data home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_relabel_generic_data_home_content',`
++	gen_require(`
++		type xdg_data_home_t;	
++	')
++
++	relabel_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_lnk_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_fifo_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_sock_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -412,15 +495,18 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_manage_data_home',`
++interface(`xdg_manage_generic_data_home_content',`
 +	gen_require(`
 +		type xdg_data_home_t;	
 +	')
 +
-+	manage_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
 +	manage_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_lnk_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_fifo_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_sock_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
 +	
-+	userdom_list_user_home_dirs($1)
++	userdom_search_user_home_dirs($1)
 +')
 +
 +########################################
@@ -433,14 +519,14 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_runtime_home',`
++interface(`xdg_read_generic_runtime_home_files',`
 +	gen_require(`
 +		type xdg_runtime_home_t;	
 +	')
 +
 +	read_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
-+	
-+	userdom_list_user_home_dirs($1)
++
++	files_search_pids($1)
 +')
 +
 +########################################
@@ -453,14 +539,38 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_read_all_runtime_home',`
++interface(`xdg_read_all_runtime_home_files',`
 +	gen_require(`
 +		attribute xdg_runtime_home_type;
 +	')
 +
 +	read_files_pattern($1, xdg_runtime_home_type, xdg_runtime_home_type)
-+	
-+	userdom_list_user_home_dirs($1)
++
++	files_search_pids($1)
++')
++
++########################################
++## <summary>
++##	Allow relabeling the xdg runtime home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_relabel_generic_runtime_home_content',`
++	gen_require(`
++		type xdg_runtime_home_t;	
++	')
++
++	relabel_dirs_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	relabel_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	relabel_lnk_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	relabel_fifo_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	relabel_sock_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++
++	files_search_pids($1)
 +')
 +
 +########################################
@@ -473,45 +583,26 @@
 +##	</summary>
 +## </param>
 +#
-+interface(`xdg_manage_runtime_home',`
++interface(`xdg_manage_generic_runtime_home_content',`
 +	gen_require(`
 +		type xdg_runtime_home_t;	
 +	')
 +
-+	manage_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
 +	manage_dirs_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
-+	
-+	userdom_list_user_home_dirs($1)
-+')
++	manage_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	manage_lnk_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	manage_fifo_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
++	manage_sock_files_pattern($1, xdg_runtime_home_t, xdg_runtime_home_t)
 +
-+#######################################
-+## <summary>
-+##   Allow the userdomain full administrative rights on the xdg_* locations
-+## </summary>
-+## <param name="userdomain">
-+##	<summary>
-+##	The user domain
-+##	</summary>
-+## </param>
-+## <rolebase/>
-+#
-+interface(`xdg_admin',`
-+	gen_require(`
-+		attribute xdg_cache_home_type, xdg_config_home_type, xdg_data_home_type;
-+	')
-+
-+	# full control over the xdg_* directories
-+	admin_pattern($1, xdg_cache_home_type)
-+	admin_pattern($1, xdg_config_home_type)
-+	admin_pattern($1, xdg_data_home_type)
++	files_search_pids($1)
 +')
 +
 --- refpolicy/policy/modules/system/xdg.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/system/xdg.fc	2011-10-07 20:14:07.506000443 +0200
++++ refpolicy/policy/modules/system/xdg.fc	2011-10-09 14:32:14.591569999 +0200
 @@ -0,0 +1,8 @@
 +HOME_DIR/\.cache(/.*)?		gen_context(system_u:object_r:xdg_cache_home_t,s0)
 +HOME_DIR/\.config(/.*)?		gen_context(system_u:object_r:xdg_config_home_t,s0)
-+HOME_DIR/\.local/share(/.*)?	gen_context(system_u:object_r:xdg_data_home_t,s0)
++HOME_DIR/\.local(/.*)?		gen_context(system_u:object_r:xdg_data_home_t,s0)
 +
 +#
 +# /run

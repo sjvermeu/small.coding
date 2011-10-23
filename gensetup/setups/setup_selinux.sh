@@ -156,12 +156,12 @@ set_arch_packages() {
   mkdir -p /etc/portage/package.accept_keywords > /dev/null 2>&1;
   cat > /etc/portage/package.accept_keywords/selinux-auto << EOF
 sys-libs/libselinux
-sys-apps/policycoreutils
 sys-libs/libsemanage
 sys-libs/libsepol
+sys-apps/policycoreutils
+sys-apps/checkpolicy
 app-admin/setools
 dev-python/sepolgen
-sys-apps/checkpolicy
 # build issue with audit-1.7.3, python3 related?
 =sys-process/audit-1.7.4
 sec-policy/*

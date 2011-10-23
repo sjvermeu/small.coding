@@ -1,12 +1,22 @@
 --- refpolicy/policy/modules/apps/pan.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/pan.te	2011-10-09 13:44:02.732000476 +0200
-@@ -0,0 +1,97 @@
++++ refpolicy/policy/modules/apps/pan.te	2011-10-09 16:10:47.242569989 +0200
+@@ -0,0 +1,116 @@
 +policy_module(pan, 1.0)
 +
 +########################################
 +#
 +# Declarations
 +#
++
++## <desc>
++## <p>
++##   Be able to manage user files (needed to support sending and downloading
++##   attachments). Without this boolean set, only files marked as pan_home_t
++##   can be used for sending and receiving.
++## </p>
++## </desc>
++gen_tunable(pan_manage_user_content, false)
++
 +
 +type pan_t;
 +type pan_exec_t;
@@ -46,6 +56,8 @@
 +corenet_tcp_sendrecv_generic_node(pan_t)
 +corenet_tcp_sendrecv_innd_port(pan_t)
 +
++domain_dontaudit_use_interactive_fds(pan_t)
++
 +files_read_etc_files(pan_t)
 +files_read_usr_files(pan_t)
 +
@@ -53,11 +65,15 @@
 +
 +sysnet_dns_name_resolve(pan_t)
 +
-+userdom_read_xdg_data_home(pan_t)
-+userdom_manage_user_home_content_dirs(pan_t)
-+userdom_manage_user_home_content_files(pan_t)
++userdom_dontaudit_use_user_ttys(pan_t)
++userdom_use_user_ptys(pan_t)
 +
 +xserver_user_x_domain_template(pan, pan_t, pan_tmpfs_t)
++
++tunable_policy(`pan_manage_user_content',`
++	userdom_manage_user_home_content_dirs(pan_t)
++	userdom_manage_user_home_content_files(pan_t)
++')
 +
 +tunable_policy(`use_nfs_home_dirs',`
 +	fs_manage_nfs_dirs(pan_t)
@@ -98,6 +114,9 @@
 +	mozilla_domtrans(pan_t)
 +')
 +
++optional_policy(`
++	xdg_read_generic_data_home_files(pan_t)
++')
 --- refpolicy/policy/modules/apps/pan.if	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/apps/pan.if	2011-08-04 18:20:55.748000939 +0200
 @@ -0,0 +1,38 @@

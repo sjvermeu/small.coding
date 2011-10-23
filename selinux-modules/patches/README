@@ -75,6 +75,8 @@ not yet approved).
 0058 . mark asterisk exec as an application exec type
 0059 . give sysadm connect access to the asterisk runtime
 0060 - use xdg locations in user home directories
+0061 - Allow gcc_config_t to work with nfs-mounted portage tree
+0062 - gcc-config needs to unlink files in etc/env.d which are marked as etc_runtime_t files
 
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which

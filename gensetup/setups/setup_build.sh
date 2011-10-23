@@ -60,6 +60,8 @@ configureportage() {
 
   logMessage "  > Migrating packages... ";
   mkdir -p /var/www/localhost/htdocs/packages;
+  semanage fcontext -a -t portage_ebuild_t "/var/www/localhost/htdocs/packages(/.*)?"
+  restorecon -R /var/www/localhost/htdocs/packages;
   mv /usr/portage/packages/* /var/www/localhost/htdocs/packages;
   restorecon -R -r /var/www;
   logMessage "done\n";

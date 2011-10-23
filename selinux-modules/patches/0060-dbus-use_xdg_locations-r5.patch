@@ -1,5 +1,5 @@
 --- refpolicy/policy/modules/services/dbus.if	2011-03-28 17:05:14.000000000 +0200
-+++ refpolicy/policy/modules/services/dbus.if	2011-10-07 20:17:31.171000443 +0200
++++ refpolicy/policy/modules/services/dbus.if	2011-10-09 15:28:39.477569993 +0200
 @@ -151,6 +151,7 @@
  
  	userdom_read_user_home_content_files($1_dbusd_t)
@@ -12,7 +12,7 @@
  	')
  
  	optional_policy(`
-+		xdg_read_all_data_home($1_dbusd_t)
++		xdg_read_generic_data_home_files($1_dbusd_t)
 +	')
 +
 +	optional_policy(`

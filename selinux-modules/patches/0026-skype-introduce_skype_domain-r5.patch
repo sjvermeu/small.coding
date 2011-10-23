@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.te	2011-10-09 12:57:38.820000481 +0200
-@@ -0,0 +1,104 @@
++++ refpolicy/policy/modules/apps/skype.te	2011-10-09 15:52:23.574569991 +0200
+@@ -0,0 +1,110 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -59,14 +59,15 @@
 +corecmd_exec_shell(skype_t)
 +
 +can_exec(skype_t, skype_exec_t)
++
 +corenet_all_recvfrom_netlabel(skype_t)
 +corenet_all_recvfrom_unlabeled(skype_t)
 +corenet_sendrecv_http_client_packets(skype_t)
-+corenet_tcp_sendrecv_http_port(skype_t)
 +corenet_tcp_bind_generic_node(skype_t)
 +corenet_tcp_bind_generic_port(skype_t) 
 +corenet_tcp_connect_generic_port(skype_t)
 +corenet_tcp_connect_http_port(skype_t)
++corenet_tcp_sendrecv_http_port(skype_t)
 +corenet_udp_bind_generic_node(skype_t)
 +corenet_udp_bind_generic_port(skype_t) 
 +
@@ -75,6 +76,8 @@
 +dev_read_video_dev(skype_t)
 +dev_write_sound(skype_t)
 +dev_write_video_dev(skype_t)
++
++domain_dontaudit_use_interactive_fds(skype_t)
 +
 +files_read_etc_files(skype_t)
 +files_read_usr_files(skype_t)
@@ -85,6 +88,9 @@
 +
 +miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
 +miscfiles_read_localization(skype_t)
++
++userdom_dontaudit_use_user_ttys(skype_t)
++userdom_use_user_ptys(skype_t)
 +
 +xserver_user_x_domain_template(skype, skype_t, skype_tmpfs_t)
 +
@@ -103,7 +109,7 @@
 +')
 +
 +optional_policy(`
-+	xdg_read_all_config_home(skype_t)
++	xdg_read_generic_config_home_files(skype_t)
 +')
 --- refpolicy/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/apps/skype.if	2011-10-09 12:46:57.603000482 +0200

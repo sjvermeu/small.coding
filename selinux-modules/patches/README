@@ -28,7 +28,6 @@ not yet approved).
        + nrpe read config file
        + diskcheck plugin needs getattr on mountpoint dirs
 0008 - qemu-kvm creates socket and requests module loading
-0009 - introduce support for vde
 0010 + hal is not a consolekit hard requirement
 0014 + fix labeling for xfce4
 0015 + allow unconfined users to call portage
@@ -77,7 +76,7 @@ not yet approved).
 0060 - use xdg locations in user home directories
 0061 - Allow gcc_config_t to work with nfs-mounted portage tree
 0062 - gcc-config needs to unlink files in etc/env.d which are marked as etc_runtime_t files
-
+0063 . introduce support for vde
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

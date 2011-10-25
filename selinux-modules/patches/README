@@ -36,7 +36,7 @@ not yet approved).
 0019 + put layman in the portage_fetch_t domain
 0020 + support emerge-webrsync and run portage through cron and other unattended manners
 0021 . introduce support for mutt_t
-0022 - introduce support for links_t
+0022 . introduce support for links_t
 0023 + allow puppet to mount file systems
 0024 - introduce support for pan_t
 0025 - introduce gentoo booleans and dontaudits
@@ -71,8 +71,8 @@ not yet approved).
 0055 + support semanage permissive feature
 0056 + 0020 - Split up interfaces for portage domain and fetch domains
 0057 - mark glsa-check as portage entry file
-0058 . mark asterisk exec as an application exec type
-0059 . give sysadm connect access to the asterisk runtime
+0058 + mark asterisk exec as an application exec type
+0059 + give sysadm connect access to the asterisk runtime
 0060 - use xdg locations in user home directories
 0061 - Allow gcc_config_t to work with nfs-mounted portage tree
 0062 - gcc-config needs to unlink files in etc/env.d which are marked as etc_runtime_t files

@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/services/uwimap.te	2010-08-03 15:11:09.000000000 +0200
++++ refpolicy/policy/modules/services/uwimap.te	2011-11-12 22:00:57.591777756 +0100
+@@ -8,7 +8,6 @@
+ type imapd_t;
+ type imapd_exec_t;
+ init_daemon_domain(imapd_t, imapd_exec_t)
+-inetd_tcp_service_domain(imapd_t, imapd_exec_t)
+ 
+ type imapd_tmp_t;
+ files_tmp_file(imapd_tmp_t)
+@@ -83,6 +82,10 @@
+ mta_rw_spool(imapd_t)
+ 
+ optional_policy(`
++	inetd_tcp_service_domain(imapd_t, imapd_exec_t)
++')
++
++optional_policy(`
+ 	seutil_sigchld_newrole(imapd_t)
+ ')
+ 

@@ -80,6 +80,10 @@ not yet approved).
 0064 - bootmisc wants to write (temporarily) to /var/log. Support logging_manage_generic_log_dirs
 0065 - fix amavisd.conf context
 0066 - allow nrpe (nagios) read access to /proc/mdstat
+0067 - inetd support for pam_limits needs cap_sys_resource and setrlimit
+0068 - make call to inetd_tcp_service_domain optional (otherwise we would need to depend on inetd)
+0069 . drop vde_conf_t from patches as etc_t is sufficient
+0070 . corrections on links policy with refpolicy feedback
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

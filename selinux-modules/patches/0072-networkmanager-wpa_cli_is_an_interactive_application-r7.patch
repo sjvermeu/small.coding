@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/services/networkmanager.te	2011-11-21 21:39:01.135006989 +0100
++++ refpolicy/policy/modules/services/networkmanager.te	2011-11-21 21:36:41.859006692 +0100
+@@ -311,6 +311,7 @@
+ files_search_pids(wpa_cli_t)
+ corecmd_exec_shell(wpa_cli_t)
+ corecmd_exec_bin(wpa_cli_t)
++domain_use_interactive_fds(wpa_cli_t)
+ 
+ ifdef(`distro_gentoo',`
+        sysnet_domtrans_dhcpc(wpa_cli_t)

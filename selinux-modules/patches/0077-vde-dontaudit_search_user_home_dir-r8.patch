@@ -1,0 +1,15 @@
+--- refpolicy/policy/modules/services/vde.te	2011-12-06 10:20:21.720020188 +0100
++++ refpolicy/policy/modules/services/vde.te	2011-12-06 10:20:05.702020154 +0100
+@@ -42,8 +42,12 @@
+ files_read_etc_files(vde_t)
+ 
+ domain_use_interactive_fds(vde_t)
++
++userdom_dontaudit_search_user_home_dirs(vde_t)
+ userdom_use_user_terminals(vde_t)
++
+ miscfiles_read_localization(vde_t)
++
+ corenet_rw_tun_tap_dev(vde_t)
+ 
+ logging_send_syslog_msg(vde_t)

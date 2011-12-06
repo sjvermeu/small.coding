@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/apps/qemu.te	2011-12-06 10:21:20.398020313 +0100
++++ refpolicy/policy/modules/apps/qemu.te	2011-12-06 10:21:06.296020283 +0100
+@@ -49,6 +49,7 @@
+ #
+ # qemu local policy
+ #
++dontaudit qemu_t self:socket create;
+ 
+ storage_raw_write_removable_device(qemu_t)
+ storage_raw_read_removable_device(qemu_t)

@@ -10,6 +10,7 @@ The following directories are available:
 
 genmodoverview - Script to inform you which sec-policy/* packages you might need
 gensetup - Script to automatically install a Gentoo Linux system
+genoval - Script to automatically generate OVAL files for XCCDF
 gxml2docbook - XSL conversion script from Gentoo GuideXML Book format to DocBook
 hex2passwd - Tool to generate passwords based on SHA/MD5 checksum input
 selinux-local - Local patches and fixes to SELinux policy not ready for global publication

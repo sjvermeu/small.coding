@@ -1,6 +1,14 @@
---- refpolicy/policy/modules/apps/mozilla.te	2011-12-04 20:58:19.522393825 +0100
-+++ refpolicy/policy/modules/apps/mozilla.te	2011-12-04 20:57:41.065393743 +0100
-@@ -468,6 +468,10 @@
+--- refpolicy/policy/modules/apps/mozilla.te	2011-12-10 14:08:53.076035608 +0100
++++ refpolicy/policy/modules/apps/mozilla.te	2011-12-10 14:08:20.634035540 +0100
+@@ -300,6 +300,7 @@
+ ')
+ 
+ optional_policy(`
++	xdg_read_generic_config_home_files(mozilla_t)
+ 	xdg_read_generic_data_home_files(mozilla_t)
+ ')
+ 
+@@ -468,6 +469,10 @@
  ')
  
  optional_policy(`

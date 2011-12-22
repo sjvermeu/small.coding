@@ -1,10 +1,10 @@
---- refpolicy/policy/modules/services/xserver.fc	2011-12-06 10:04:51.794018203 +0100
-+++ refpolicy/policy/modules/services/xserver.fc	2011-12-06 10:04:12.975018120 +0100
+--- refpolicy/policy/modules/services/xserver.fc	2011-12-06 11:26:03.418028601 +0100
++++ refpolicy/policy/modules/services/xserver.fc	2011-12-06 11:25:34.849028540 +0100
 @@ -60,9 +60,11 @@
  #
  
  /usr/(s)?bin/gdm-binary	--	gen_context(system_u:object_r:xdm_exec_t,s0)
-+/usr/(s)?bin/lxdm(-binary)?	--	gen_context(system_u:object_r:xdg_exec_t,s0)
++/usr/(s)?bin/lxdm(-binary)?	--	gen_context(system_u:object_r:xdm_exec_t,s0)
  /usr/(s)?bin/[xgkw]dm	--	gen_context(system_u:object_r:xdm_exec_t,s0)
  /usr/bin/gpe-dm		--	gen_context(system_u:object_r:xdm_exec_t,s0)
  /usr/bin/iceauth	--	gen_context(system_u:object_r:iceauth_exec_t,s0)

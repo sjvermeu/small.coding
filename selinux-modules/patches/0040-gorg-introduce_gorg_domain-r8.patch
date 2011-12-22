@@ -1,14 +1,11 @@
 --- refpolicy/policy/modules/services/gorg.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/gorg.te	2011-12-06 10:22:57.352020520 +0100
-@@ -0,0 +1,65 @@
++++ refpolicy/policy/modules/services/gorg.te	2011-12-06 11:27:02.279028727 +0100
+@@ -0,0 +1,62 @@
 +policy_module(gorg, 1.0.0)
 +
 +type gorg_t;
 +type gorg_exec_t;
-+typealias gorg_t alias { staff_gorg_t user_gorg_t };
 +application_domain(gorg_t, gorg_exec_t)
-+role staff_r types gorg_t;
-+role user_r types gorg_t;
 +
 +type gorg_cache_t;
 +files_type(gorg_cache_t);

@@ -1,0 +1,1348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
+  <status date="2011-11-22">draft</status>
+  <title>Gentoo Security Benchmark</title>
+  <description>
+    This benchmarks helps people in improving their system configuration to be
+    more resilient against attacks and vulnerabilities with little to no impact
+    on the system functionality.
+  </description>
+  <platform idref="cpe:/o:gentoo:linux"/>
+  <version>1</version>
+  <model system="urn:xccdf:scoring:default"/>
+  <model system="urn:xccdf:scoring:flat"/>
+  <Profile id="Gentoo-Default">
+    <title>Default server setup settings</title>
+    <description>
+      In this profile, we verify common settings for server configurations,
+      using Gentoo Hardened profiles
+    </description>
+    <select idref="rule-partition-home" selected="true" />
+    <select idref="rule-home-mount-nosuid" selected="true" />
+    <select idref="rule-home-mount-nodev" selected="true" />
+    <select idref="rule-home-mount-usrquota" selected="true" />
+    <select idref="rule-home-mount-grpquota" selected="true" />
+    <select idref="rule-partition-tmp" selected="true" />
+    <select idref="rule-tmp-mount-nosuid" selected="true" />
+    <select idref="rule-tmp-mount-nodev" selected="true" />
+    <select idref="rule-tmp-mount-noexec" selected="true" />
+    <select idref="rule-sshd-norootlogin" selected="true" />
+    <select idref="rule-sshd-pubkeyauth" selected="true" />
+    <select idref="rule-sshd-nousepam" selected="true" />
+    <select idref="rule-sshd-proto2" selected="true" />
+    <select idref="rule-sshd-allowusergroup" selected="true" />
+    <select idref="rule-sshd-usepriv" selected="true" />
+    <select idref="rule-sshd-tcpforward" selected="true" />
+    <select idref="rule-sshd-x11forward" selected="true" />
+    <select idref="rule-sshd-strictmodes" selected="true" />
+    <select idref="rule-cron-allow" selected="true" />
+    <select idref="rule-at-allow" selected="true" />
+    <select idref="rule-sysctl-ipv4-forward" selected="true" />
+    <select idref="rule-sysctl-ipv4-all-rp_filter" selected="true" />
+    <select idref="rule-sysctl-ipv4-default-rp_filter" selected="true" />
+    <select idref="rule-sysctl-ipv4-all-asr" selected="true" />
+    <select idref="rule-sysctl-ipv4-default-asr" selected="true" />
+    <select idref="rule-sysctl-ipv4-all-aredirect" selected="true" />
+    <select idref="rule-sysctl-ipv4-default-aredirect" selected="true" />
+    <select idref="rule-sysctl-ipv4-echobroadcast" selected="true" />
+    <select idref="rule-sysctl-icmpboguserror" selected="true" />
+    <select idref="rule-sysctl-ipv4-all-logmartians" selected="true" />
+    <select idref="rule-sysctl-ipv4-default-logmartians" selected="true" />
+    <select idref="rule-grub-password" selected="true" />
+    <select idref="rule-securetty" selected="true" />
+    <select idref="rule-pam-cracklib" selected="true" />
+  </Profile>
+  <Group id="gr-intro">
+    <title>Introduction</title>
+    <description>
+      Since years, Gentoo Linux has a Gentoo Security Handbook
+      which provides a good insight in secure system
+      configuration for a Gentoo systems. Although this is important, an
+      improved method for describing and tuning a systems' security state has
+      emerged: SCAP, or the <h:em>Security Content Automation Protocol</h:em>.
+      <h:br />
+      <h:br />
+      Within SCAP, NIST has defined some new standards of which XCCDF and OVAL
+      are notably important in light of the guide you are currently using.
+      <h:ul>
+        <h:li>
+          XCCDF (Extensible Configuration Checklist Description Format) is
+          a specification language for writing security checklists and benchmarks
+          (such as the one you are reading now)
+        </h:li>
+        <h:li>
+          OVAL (Open Vulnerability and Assessment Language) is a standard to describe
+          and validate system settings
+        </h:li>
+      </h:ul>
+      <h:br />
+      Thanks to the OVAL and XCCDF standards, a security engineer can now describe
+      how the state of a system should be configured, how this can be checked
+      automatically and even report on these settings. Furthermore, within the
+      description, the engineer can make "profiles" of different states (such as
+      a profile for a workstation, server (generic), webserver, LDAP server,
+      ...) and reusing the states (rules) identified in a more global scope.
+      <h:br />
+      <h:br />
+      The guide you are currently reading is the guide generated from this SCAP
+      content (more specifically, the XCCDF document) using <h:b>openscap</h:b>,
+      a free software implementation for handling SCAP content. Within Gentoo,
+      the package <h:code>app-forensics/openscap</h:code> provides the tools, and
+      the following command is used to generate the HTML output:
+      <h:br />
+      <h:pre>### Command to generate this guide ###
+# <h:b>oscap xccdf generate guide scap-gentoo-xccdf.xml &gt; output.html</h:b>
+      </h:pre>
+      <h:br />
+      Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
+      The two files combined allow you to automatically validate various settings as
+      documented in the benchmark. To validate the tests, you can use the following
+      command:
+      <h:pre>### Testing the rules mentioned in the XCCDF document ###
+# <h:b>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</h:b></h:pre>
+      <h:br />
+      To generate a full report in HTML as well, you can use the next command:
+      <h:pre>### Testing the rules and generating an HTML report ###
+# <h:b>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</h:b></h:pre>
+      <h:br />
+      <h:br />
+      Finally, this benchmark will suggest some settings which you do not want
+      to enable. That is perfectly fine - even more, some settings might even
+      raise eyebrows left and right. I'll try to document the reasoning behind
+      the settings but you are free to deviate from them. If that is the case,
+      you might want to disable the rules in the XCCDF document so that they are
+      not checked on your system.
+      <h:br />
+      <h:br />
+      Also, the tests in the OVAL are <h:em>not</h:em> written with the intelligence that
+      the tool is or is not installed. So a test that checks the content of <h:code>sshd_config</h:code>
+      will fail (error actually) if the file doesn't exist. Although this can be made much more
+      intelligent, this is not the scope of this document (yet).
+    </description>
+  </Group>
+  <Group id="gt-preinstallation">
+    <title>Before You Start</title>
+    <description>
+      Before you start deploying Gentoo Linux and start hardening it, it is wise
+      to take a step back and think about what you want to accomplish. Setting
+      up a more secured Gentoo Linux isn't a goal, but a means to reach
+      something. Most likely, you are considering setting up a Gentoo Linux
+      powered server. What is this server for? Where will you put it? What other
+      services will you want to run on the same OS? Etc.
+    </description>
+    <Group id="gt-preinstallation-architecturing">
+      <title>Infrastructure Architecturing</title>
+      <description>
+        When considering your entire IT architecture, many architecturing
+        frameworks exist to write down and further design your infrastructure.
+        There are very elaborate ones, like TOGAF (The Open Group Architecture
+        Framework), but smaller ones exist as well.
+        <h:br />
+        <h:br />
+        A well written and maintained infrastructure architecture helps you
+        position new services or consider the impact of changes on existing
+        components. And the reason for mentioning such a well designed architecture
+        in a hardening guide is not weird.
+        <h:br />
+        <h:br />
+        Security is about reducing risks, not about harassing people or making
+        work for a system administrator harder. And reducing risks also means
+        that you need to keep a clear eye out on your architecture and all its
+        components. If you do not know what you are integrating, where you are
+        putting it or why, then you have more issues to consider than hardening
+        a system.
+      </description>
+    </Group>
+    <Group id="gt-preinstallation-requirements">
+      <title>Mapping Requirements</title>
+      <description>
+        When you design a service, you need to take both functional and
+        non-functional requirements into account. That does sound like
+        overshooting for a simple server installation, but it is not. Have you
+        considered auditing? Where do the audit logs need to be sent to? What
+        about authentication? Centrally managed, or manually set? And the server
+        you are installing, will it only host a particular service, or will it
+        provide several services?
+        <h:br />
+        <h:br />
+        When hosting multiple services on the same server, make sure that the
+        server is positioned within your network on an acceptable segment. It is
+        not safe to host your central LDAP infrastructure on the same system as
+        your web server that is facing the Internet.
+      </description>
+      <reference href="https://www.ibm.com/developerworks/rational/library/4706.html">IBM DeveloperWorks article on "Capturing Architectural Requirements"</reference>
+    </Group>
+    <Group id="gt-preinstallation-nonsoftware">
+      <title>Non-Software Security Concerns</title>
+      <description>
+        From the next chapter onwards, we will only focus on the software side
+        hardening. There are of course also non-software concerns that you
+        should investigate.
+      </description>
+      <reference href="https://www.rfc-editor.org/info/rfc2196">Site Security
+      Handbook (RFC2196)</reference>
+      <Group id="gt-preinstallation-nonsoftware-physical">
+        <title>Physical Security</title>
+        <description>
+          Make sure that your system is only accessible (physically) by trusted
+          people. Fully hardening your system, only to have a malicious person
+          take out the harddisk and run away with your confidential data is not
+          something you want to experience.
+          <h:br />
+          <h:br />
+          When physical security cannot be guaranteed (like with laptops), make
+          sure that theft of the device only results in the loss of the hardware
+          and not of the data and software on it (backups), and also that the
+          data on it cannot be read by unauthorized people. We will come back on
+          disk encryption later.
+        </description>
+        <reference
+        href="http://www.sans.org/reading_room/whitepapers/awareness/data-center-physical-security-checklist_416">Data
+        Center Physical Security Checklist (SANS, PDF)</reference>
+      </Group>
+      <Group id="gt-preinstallation-nonsoftware-policies">
+        <title>Policies and Contractual Agreements</title>
+        <description>
+          Create or validate the security policies in your organization. This is
+          not only as a stick (against internal people who might want to abuse
+          their powers) but also to document and describe why certain decisions
+          are made (both architecturally as otherwise).
+        </description>
+        <reference
+        href="http://www.sans.org/reading_room/whitepapers/policyissues/technical-writing-security-policies-easy-steps_492">Technical
+        Writing for IT Security Policies in Five Easy Steps (SANS,
+        PDF)</reference>
+        <reference
+        href="https://www.sans.org/security-resources/policies/">Information
+        Security Policy Templates (SANS)</reference>
+      </Group>
+    </Group>
+  </Group>
+  <Group id="gt-installation">
+    <title>Installation Configuration</title>
+    <description>
+      Let's focus now on the OS hardening. Gentoo Linux allows you to update the
+      system as you want after installation, but it might be interesting to
+      consider the following aspects during installation if you do not want a
+      huge migration project later.
+    </description>
+    <Group id="gt-installation-storage">
+      <title>Storage Configuration</title>
+      <description>
+        Your storage is of utmost importance in any environment. It needs to be
+        sufficiently fast, not to jeopardize performance, but also secure and
+        manageable yet still remain flexible to handle future changes.
+      </description>
+      <Group id="gt-installation-storage-partitioning">
+        <title>Partitioning</title>
+        <description>
+          Know which locations in your file system structure you want on a
+          different partition or logical volume. Separate locations allow for a
+          more distinct segregation (for instance, hard links between different
+          file systems) and low-level protection (file system corruption impact,
+          but also putting the right data on the right storage media).
+        </description>
+        <reference href="http://www.pathname.com/fhs/">Filesystem Hierarchy
+        Standard</reference>
+        <Group id="gt-installation-storage-partitioning-home">
+          <title>/home Location</title>
+          <description>
+            The <h:code>/home</h:code> location should be on its own partition,
+            allowing the administrator to mount this location with specific
+            options targetting the file systems' security settings or quota.
+          </description>
+	  <!-- @@GEN START rule-partition-home -->
+	  <Rule id="rule-partition-home">
+            <status date="2011-11-03">draft</status>
+	    <title>/home should be a separate partition</title>
+	    <description>
+	      Ensure that /home is a separate partition.
+	    </description>
+	    <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+              <check-content-ref name="oval:org.gentoo.dev.swift:def:4" href="scap-gentoo-oval.xml" />
+	    </check>
+	  </Rule>
+	  <!-- @@GEN END rule-partition-home -->
+        </Group>
+      </Group>
+    </Group>
+    <Group id="gt-installation-toolchain">
+      <title>Use a Hardened Toolchain</title>
+      <description>
+        When you install Gentoo, use the hardened stages and hardened toolchain.
+        The hardened toolchain includes additional security patches, such as
+        support for non-executable program stacks and buffer overflow detection.
+        <h:br />
+        <h:br />
+        During installation, make sure that the <h:em>default</h:em> hardened
+        toolchain is selected, not one of the <h:code>-hardenedno*</h:code> as
+        those are toolchains where specific settings are disabled. The
+        <h:code>-vanilla</h:code> one is a toolchain with no hardened patches.
+        <h:pre>### Using the appropriate hardened toolchain ###
+# <h:b>gcc-config -l</h:b>
+ [1] x86_64-pc-linux-gnu-4.4.5 *
+ [2] x86_64-pc-linux-gnu-4.4.5-hardenednopie
+ [3] x86_64-pc-linux-gnu-4.4.5-hardenednopie.gcc-config-ref
+ [4] x86_64-pc-linux-gnu-4.4.5-hardenednopiessp
+ [5] x86_64-pc-linux-gnu-4.4.5-hardenednossp
+ [6] x86_64-pc-linux-gnu-4.4.5-vanilla</h:pre>
+      </description>
+    </Group>
+  </Group>
+  <Group id="gt-system">
+    <title>System Settings</title>
+    <description>
+      Within this chapter, we describe the (recommended) settings that can be
+      adjusted relatively easily, even when a Gentoo installation has already
+      been performed.
+    </description>
+    <Group id="gt-system-mounts">
+      <title>Mounts and Mount Points</title>
+      <description>
+        When mounting file systems, options can be presented that add or remove
+        features from the mount point. Some of these options can be used to
+        restrict actions taken or originating from the file system.
+        <h:br />
+        <h:br />
+        Mount options can be set in <h:code>/etc/fstab</h:code> in the fourth column.
+        <h:pre>### Setting mount options###
+# <h:b>vim /etc/fstab</h:b>
+[...]
+tmpfs      /tmp      tmpfs      defaults<h:b>,nosuid,noexec,nodev</h:b>   0 0</h:pre>
+        <h:br />
+        Important mount options that are used later are:
+        <h:ul>
+          <h:li>
+            <h:code>nosuid</h:code> will ignore SUID bits on binaries. If such
+            a binary is encountered, it is executed as if it did not have the SUID
+            bit set.
+          </h:li>
+          <h:li>
+            <h:code>noexec</h:code> will prevent direct execution of files or
+            binaries from this partition.
+          </h:li>
+          <h:li>
+            <h:code>nodev</h:code> will ignore device files in this partition.
+          </h:li>
+        </h:ul>
+        <h:br />
+        Even though these mount options can be worked around, it is a first line
+        of defence against popular exploits and worms.
+      </description>
+      <Group id="gt-system-mounts-tmp">
+        <title>Temporary Files</title>
+        <description>
+          The <h:code>/tmp</h:code> location is world writable, allowing for
+          any service to put temporary files in it that are required during
+          service operation.
+          <h:br />
+          <h:br />
+          This location should be a tmpfs file system (so that its content is
+          cleared during shut down or reboot) and mounted with nosuid,noexec and
+          nodev mount options (to reduce the impact when an exploit is attempted from
+          within this location).
+          <h:pre>### Sample /etc/fstab line for /tmp ###
+tmpfs   /tmp   tmpfs       defaults,nosuid,noexec,nodev     0 0</h:pre>
+        </description>
+	<!-- @@GEN START rule-partition-tmp -->
+	<!-- @@GEN END rule-partition-tmp -->
+	<!-- @@GEN START rule-tmp-mount-nosuid -->
+	<!-- @@GEN END rule-tmp-mount-nosuid -->
+	<!-- @@GEN START rule-tmp-mount-nodev -->
+	<!-- @@GEN END rule-tmp-mount-nodev -->
+	<!-- @@GEN START rule-tmp-mount-noexec -->
+	<!-- @@GEN END rule-tmp-mount-noexec -->
+      </Group>
+      <Group id="gt-system-mounts-home">
+        <title>Home Directories</title>
+        <description>
+          The <h:code>/home</h:code> location is used to host end user files.
+          To reduce the risk of an exploit being launched, it is adviseable to
+          mount this partition with the <h:code>nosuid,nodev</h:code> mount options.
+          <h:br />
+          <h:pre>### Sample /etc/fstab line for /home ###
+/dev/mapper/volgrp-home   /home   ext4     noatime,nosuid,nodev,data=journal   0 2</h:pre>
+        </description>
+	<!-- @@GEN START rule-home-mount-nosuid -->
+	<!-- @@GEN END rule-home-mount-nosuid -->
+	<!-- @@GEN START rule-home-mount-nodev -->
+	<!-- @@GEN END rule-home-mount-nodev -->
+      </Group>
+      <Group id="gt-system-mounts-quotas">
+        <title>Quota's</title>
+        <description>
+          Most file systems support the notion of <h:em>quotas</h:em> - limits
+          on the amount of data / files you are allowed to have on that
+          particular file system.
+          <h:br />
+          <h:br />
+          To enable quotas, first configure your Linux kernel to include
+          <h:code>CONFIG_QUOTA</h:code>.
+          <h:br />
+          <h:br />
+          Next, install the <h:code>sys-fs/quota</h:code> package.
+          <h:pre>### Installing quota ###
+# <h:b>emerge quota</h:b></h:pre>
+          Then add <h:code>usrquota</h:code> and <h:code>grpquota</h:code> to
+          the partitions (in <h:code>/etc/fstab</h:code>) where you want to
+          enable quotas on. For instance, the following snippet from
+          <h:code>/etc/fstab</h:code> enables quotas on <h:code>/var</h:code>
+          and <h:code>/home</h:code>.
+          <h:pre>### Example quota definition in /etc/fstab ###
+/dev/mapper/volgrp-home  /home  ext4  noatime,nodev,nosuid,<h:b>usrquota,grpquota</h:b>  0 0
+/dev/mapper/volgrp-var   /var   ext4  noatime,<h:b>usrquota,grpquota</h:b>               0 0
+</h:pre>
+          Finally, add the <h:code>quota</h:code> service to the boot runlevel.
+          <h:pre>### Adding quota to the boot runlevel ###
+# <h:b>rc-update add quota boot</h:b></h:pre>
+          Reboot the system so that the partitions are mounted with the correct
+          mount options and that the quota service is running. Then you can
+          setup quotas for users and groups. 
+        </description>
+        <reference
+        href="http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch28_:_Managing_Disk_Usage_with_Quotas">Managing
+        Disk Usage with Quotas (LinuxHomeNetworking)</reference>
+	<!-- @@GEN START rule-home-mount-usrquota -->
+	<!-- @@GEN END rule-home-mount-usrquota -->
+	<!-- @@GEN START rule-home-mount-grpquota -->
+	<!-- @@GEN END rule-home-mount-grpquota -->
+      </Group>
+    </Group>
+    <Group id="gt-system-services">
+      <title>Services</title>
+      <description>
+        Services (daemons) are the primary reason for a server to exist.
+        They represent the function of the server. For instance, a web server
+        will run the apache2 or lighttpd service. A name server will run the
+        named service.
+        <h:br />
+        <h:br />
+        In this benchmark, we will only focus on those services that are either
+        default available on a Gentoo installation (like SSHd) or that are 
+        commonly used in Gentoo server architectures (like rsync). For the other
+        services, I refer to other benchmarks.
+      </description>
+      <reference href="http://www.cisecurity.org">Center for Internet Security,
+      host of many service benchmarks</reference>
+      <Group id="gt-system-services-disable">
+        <title>Disable Unsafe Services</title>
+        <description>
+          We recommend not to enable the following services unless absolutely
+          necessary. These services use plain-text protocols and as thus unsafe
+          to use on untrusted networks (like the Internet, but also internal
+          networks).
+          <h:ul>
+            <h:li>Telnet service</h:li>
+            <h:li>FTP Service</h:li>
+          </h:ul>
+          <h:br />
+          It is recommended to substitute these services with their more secure
+          counterparts (like sFTP, SSH, ...).
+        </description>
+      </Group>
+      <Group id="gt-system-services-sulogin">
+        <title>Require Single-User Boot to Give Root Password</title>
+        <description>
+          When a system is booted in single user mode, some users might find it
+          handy to immediately get a root prompt; others even have a specific
+          bootloader entry to boot in single user mode.
+          <h:br />
+          <h:br />
+          It is important that, for a more secure server environment, even
+          booting in single user mode requires the user to enter the root
+          password. This is already done by default in Gentoo and is part of
+          <h:code>/etc/inittab</h:code>'s definition:
+          <h:pre>### Ensure sulogin is available for single user mode ###
+su0:S:wait:/sbin/rc single
+<h:b>su1:S:wait:/sbin/sulogin</h:b></h:pre>
+        </description>
+      </Group>
+      <Group id="gt-system-services-tcpwrappers">
+        <title>Properly Configure TCP Wrappers</title>
+        <description>
+          With TCP wrappers, services that support TCP wrappers (or those
+          started through <h:b>xinetd</h:b>) should be configured to only accept
+          communication with trusted hosts. With the use of
+          <h:code>/etc/hosts.allo</h:code> and <h:code>/etc/hosts.deny</h:code>,
+          proper access control lists can be created.
+          <h:br />
+          <h:br />
+          More information on the format of these files can be obtained through
+          <h:b>man 5 hosts_access</h:b>.
+        </description>
+      </Group>
+      <Group id="gt-system-services-ssh">
+        <title>SSH Service</title>
+        <description>
+          The SSH service is used for secure remote access towards a system, but
+          also to provide secure file transfers.
+        </description>
+        <Group id="gt-system-services-ssh-noroot">
+          <title>Root Logon Through SSH Is Not Allowed</title>
+          <description>
+            SSH should be configured so that the root user is not allowed to log
+            on remotely. This can be accomplished by editing
+            <h:code>/etc/ssh/sshd_config</h:code> and setting
+            <h:code>PermitRootLogin no</h:code> as the default is "yes".
+            <h:br />
+            <h:pre>### Setting PermitRootLogin in /etc/ssh/sshd_config ###
+PermitRootLogin no</h:pre>
+          </description>
+          <!-- @@GEN START rule-sshd-norootlogin -->
+	  <!-- @@GEN END rule-sshd-norootlogin -->
+        </Group>
+        <Group id="gt-system-services-ssh-pubkey">
+          <title>Public Key Authentication Only</title>
+          <description>
+            SSH should be configured to only allow authentication based on
+            public/private keys. Password-based authentication is too weak;
+            since SSH is used in 99% of the cases for administrative purposes, a
+            leaked password can have major consequences.
+            <h:br />
+            <h:br />
+            Instead, public/private key authentication would require the
+            adversary to have access to the private key <h:em>and</h:em> the
+            passphraze with which the private key is protected.
+            <h:br />
+            <h:br />
+            Now, even leaked private keys have occurred (and will occur again),
+            so it is important that the users know that the private key is not
+            to be copied, and regular reviews of your audit logs is still
+            mandatory.
+            <h:pre>### Using public key authentication ###
+PubkeyAuthentication yes</h:pre>
+          </description>
+	  <!-- @@GEN START rule-sshd-pubkeyauth -->
+	  <!-- @@GEN END rule-sshd-pubkeyauth -->
+        </Group>
+        <Group id="gt-system-services-ssh-usepam">
+          <title>Disable UsePAM for SSH</title>
+          <description>
+            Although this is the default setting, I still find it important to
+            mention it as many users tend to enable it. <h:code>UsePAM</h:code>
+            should remain disabled, and this for the following reasons:
+            <h:ul>
+              <h:li>
+                When enabled, the <h:b>sshd</h:b> daemon must run as root user.
+                Without, <h:b>sshd</h:b> can leverage the capabilities offered
+                through the kernel without requiring root privileges.
+              </h:li>
+              <h:li>
+                When enabled, public key authentication can be worked around,
+                accepting regular password authentication again.
+              </h:li>
+            </h:ul>
+          </description>
+          <!-- @@GEN START rule-sshd-nousepam -->
+	  <!-- @@GEN END rule-sshd-nousepam -->
+        </Group>
+        <Group id="gt-system-services-ssh-version2">
+          <title>Only Allow Version 2</title>
+          <description>
+            The SSH daemon should only allow version 2 connections. Although
+            this is default for recent OpenSSH implementations, some users might
+            still support version 1 in their configuration file.
+            <h:br />
+            <h:br />
+            The <h:code>Protocol</h:code> directive is used to specify which
+            protocol versions are supported. If defined, it should only contain
+            <h:code>Protocol 2</h:code>.
+          </description>
+	  <!-- @@GEN START rule-sshd-proto2 -->
+	  <!-- @@GEN END rule-sshd-proto2 -->
+        </Group>
+        <Group id="gt-system-services-ssh-groups">
+          <title>Only Allow Specific Groups to Log On</title>
+          <description>
+            With the <h:code>AllowUsers</h:code> and
+            <h:code>AllowGroups</h:code> you can fine-tune which accounts are
+            allowed to log on through SSH.
+          </description>
+	  <!-- @@GEN START rule-sshd-allowusergroup -->
+	  <!-- @@GEN END rule-sshd-allowusergroup -->
+        </Group>
+        <Group id="gt-system-services-ssh-listen">
+          <title>Listen on Management Interface</title>
+          <description>
+            If you have a multi-homed system (i.e. the system has multiple
+            interfaces), only have SSHd running on those interfaces that you use
+            for management tasks. This can be accomplished with the
+            <h:code>ListenAddress</h:code> directive.
+          </description>
+        </Group>
+	<Group id="gt-system-services-ssh-privseparation">
+          <title>Use Privilege Separation</title>
+	  <description>
+            With privilege separation enabled, the SSH daemon has a tiny footprint running
+	    as root, whereas the rest of the application runs as an unprivileged process to
+	    deal with the incoming network traffic. This can be tuned with 
+	    <h:code>UsePrivilegeSeparation yes</h:code>.
+	    <h:br />
+	    <h:br />
+	    This is the default for OpenSSH.
+	  </description>
+	  <!-- @@GEN START rule-sshd-usepriv -->
+	  <!-- @@GEN END rule-sshd-usepriv -->
+	</Group>
+	<Group id="gt-system-services-ssh-tcpforward">
+          <title>Disable TCP Forwarding</title>
+	  <description>
+            SSH supports "tunneling", where packets are forwarded over a (partially) 
+	    secure channel towards another location. If you do not need this, disable
+	    TCP forwarding through <h:code>AllowTcpForwarding no</h:code>.
+	  </description>
+	  <!-- @@GEN START rule-sshd-tcpforward -->
+	  <!-- @@GEN END rule-sshd-tcpforward -->
+	</Group>
+	<Group id="gt-system-services-ssh-x11forward">
+          <title>Disable X11 Forwarding</title>
+	  <description>
+            SSH supports forwarding X11 packets, so X11 applications started on the remote
+	    system have their display shown on the client. If you do not need this, disable
+	    X11 forwarding through <h:code>X11Forwarding no</h:code>.
+	    <h:br />
+	    <h:br />
+	    This is the default for OpenSSH.
+	  </description>
+	  <!-- @@GEN START rule-sshd-x11forward -->
+	  <!-- @@GEN END rule-sshd-x11forward -->
+	</Group>
+	<Group id="gt-system-services-ssh-strictmode">
+          <title>Enable Strict Mode</title>
+	  <description>
+	    When <h:code>StrictModes yes</h:code> is enabled, the SSH daemon will only allow
+	    a remote user to log on when some of the important files in that users' home directory
+	    have the proper privileges and ownership.
+	    <h:br />
+	    <h:br />
+	    This is the default for OpenSSH.
+	  </description>
+	  <!-- @@GEN START rule-sshd-strictmodes -->
+	  <!-- @@GEN END rule-sshd-strictmodes -->
+	</Group>
+      </Group>
+      <Group id="gt-system-services-cron">
+        <title>Cron Service</title>
+        <description>
+          A cron service is used to schedule tasks and processes on predefined
+          times. Cron is most often used for regular maintenance tasks.
+        </description>
+        <Group id="gt-system-services-cron-acl">
+          <title>Only Allow Trusted Accounts Cron Access</title>
+          <description>
+            Only allow trusted accounts to use cron. You should list trusted
+            accounts in <h:code>/etc/cron.allow</h:code>. 
+          </description>
+	  <!-- @@GEN START rule-cron-allow -->
+	  <!-- @@GEN END rule-cron-allow -->
+        </Group>
+      </Group>
+      <Group id="gt-system-services-at">
+        <title>At Service</title>
+        <description>
+          The at service allows users to execute a task once on a given time.
+          Unlike cron, this is not scheduled repeatedly - once executed, the
+          task is considered completed and at will not invoke it again.
+        </description>
+        <Group id="gt-system-services-at-acl">
+          <title>Only Allow Trusted Accounts At Access</title>
+          <description>
+            Only allow trusted accounts to use at. You should list trusted
+            accounts in <h:code>/etc/at.allow</h:code>.
+          </description>
+	  <!-- @@GEN START rule-at-allow -->
+	  <!-- @@GEN END rule-at-allow -->
+        </Group>
+      </Group>
+      <Group id="gt-system-services-ntp">
+        <title>NTP Service</title>
+        <description>
+          With NTP, systems can synchronise their clocks, ensuring correct date
+          and time information. This is important as huge clock drift could
+          cause misinterpretation of log files or even unwanted execution of
+          commands.
+        </description>
+        <Group id="gt-system-services-ntp-sync">
+          <title>Synchronise The System Clock</title>
+          <description>
+            Synchronise your systems' clock with an authorative NTP server, and
+            use the same NTP service for all your systems.
+            <h:br />
+            <h:br />
+            You can accomplish this by regularly executing <h:b>ntpdate</h:b>,
+            but you can also use a service like <h:code>net-misc/ntp</h:code>'s
+            <h:b>ntpd</h:b>.
+          </description>
+        </Group>
+      </Group>
+    </Group>
+    <Group id="gt-system-portage">
+      <title>Portage Settings</title>
+      <description>
+        The package manager of any system is a very important tool. It is
+        responsible for handling proper software deployments, but also offers
+        features that should not be neglected, like security patch roll-out.
+        <h:br />
+        <h:br />
+        For Gentoo, the package manager offers a great deal of flexibility (as
+        that is the goal of Gentoo anyhow). As such, good settings for a more
+        secure environment within Portage (assuming that you use Portage as
+        package manager) are important.
+      </description>
+      <Group id="gt-system-portage-use">
+        <title>USE Flags</title>
+        <description>
+          USE flags in Gentoo are used to tune the functionality of many
+          components and enable or disable features.
+          <h:br />
+          <h:br />
+          For a well secured environment, there are a couple of USE flags that
+          should be set in a global manner. These USE flags are
+          <h:ul>
+            <h:li>
+              <h:code>pam</h:code> to enable Pluggable Authentication
+              Modules support
+            </h:li>
+            <h:li>
+              <h:code>tcpd</h:code> for TCP wrappers support
+            </h:li>
+            <h:li>
+              <h:code>ssl</h:code> for SSL/TLS support
+            </h:li>
+          </h:ul>
+          <h:b>Pluggable Authentication Modules</h:b> are a powerful mechanism
+          to manage authentication, authorization and user sessions.
+          Applications that support PAM can be tuned to the liking of the
+          organization, leveraging central authentication, password policies,
+          auditing and more.
+          <h:br />
+          <h:br />
+          With <h:b>TCP wrappers</h:b>, services can be shielded from
+          unauthorized access on host level. It is an access control level
+          mechanism which allows you to identify allowed (and denied) hosts or
+          network segments on application level.
+          <h:br />
+          <h:br />
+          Finally, leveraging <h:b>Secure Sockets Layer</h:b> (or the
+          standardized <h:b>Transport Layer Security</h:b>) allows applications
+          to encrypt network communication or even implement a
+          client-certificate based authentication mechanism.
+          <h:br />
+          <h:br />
+          You should set the USE flags globally in
+          <h:code>/etc/make.conf</h:code>.
+          <h:br />
+          <h:pre>### Setting the USE flag in /etc/make.conf ###
+USE="... pam tcpd ssl"</h:pre>
+        </description>
+      </Group>
+      <Group id="gt-system-portage-webrsync">
+        <title>Fetching Signed Portage Tree</title>
+        <description>
+          Gentoo Portage supports fetching signed tree snapshots using
+          <h:b>emerge-webrsync</h:b>. This is documented in the Gentoo Handbook,
+	  but as it is quite easy, here you can find the instructions again:
+	  <h:pre>### Using emerge-webrsync with GPG signatures ###
+# <h:b>mkdir -p /etc/portage/gpg</h:b>
+# <h:b>chmod 0700 /etc/portage/gpg</h:b>
+# <h:b>gpg --homedir /etc/portage/gpg --keyserver subkeys.pgp.net --recv-keys 0x239C75C4</h:b>
+# <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x239C75C4 trust</h:b></h:pre>
+          After this, you can edit <h:code>/etc/make.conf</h:code>:
+	  <h:pre>### Editing make.conf for signed portage trees ###
+FEATURES="webrsync-gpg"
+PORTAGE_GPG_DIR="/etc/portage/gpg"
+SYNC=""</h:pre>
+        </description>
+      </Group>
+    </Group>
+    <Group id="gt-system-kernel">
+      <title>Kernel Configuration</title>
+      <description>
+        The Linux kernel should be configured using a sane security standard in
+        mind. When using grSecurity, additional security-enhancing settings can
+        be enabled.
+      </description>
+      <Group id="gt-system-kernel-tpe">
+        <title>Enable Trusted Path Execution</title>
+        <description>
+          When using <h:code>sys-kernel/hardened-sources</h:code>, enable
+          <h:code>CONFIG_GRKERNSEC_TPE</h:code>, which enabled <h:em>Trusted
+          Path Execution</h:em>, a safety measure that ensures that, for a set
+          of users, these users can only execute binaries and scripts from
+          root-owned directories.
+        </description>
+        <reference
+        href="http://www.gentoo.org/proj/en/hardened/grsec-tpe.xml">Gentoo
+        Hardened grSecurity TPE Guide</reference>
+      </Group>
+      <Group id="gt-system-kernel-sysctl">
+        <title>Kernel Tunables (Sysctl)</title>
+        <description>
+          The Linux kernel offers an interface, called <h:b>sysctl</h:b>,
+          allowing to fine-tune kernel parameters (and even changing its
+          behavior). Many parameters offered through sysctl allow an
+          administrator to further strengthen his systems' security.
+          <h:br />
+          <h:br />
+          To read and change sysctl parameters, you can use the
+          <h:b>sysctl</h:b> command or the <h:code>/etc/sysctl.conf</h:code>
+          file (which is used by the <h:code>sysctl</h:code> service (init
+          script), part of the default boot process.
+          <h:pre>### Using sysctl command to read and set variables ###
+# <h:b>sysctl net.ipv4.ip_forward</h:b>
+net.ipv4.ip_forward = 1
+# <h:b>sysctl -w net.ipv4.ip_forward=0</h:b></h:pre>
+          The sysctl values can also be read through the
+          <h:code>/proc/sys</h:code> file system.
+        </description>
+        <Group id="gt-system-kernel-sysctl-ipv4forward">
+          <title>Disable IPv4 Forwarding</title>
+          <description>
+            The <h:code>net.ipv4.ip_forward</h:code> sysctl setting controls if
+            IP forwarding is allowed or not on the system.
+            <h:br />
+            <h:br />
+            Unless the system is used as a router or gateway, IPv4 forwarding
+            should be disabled.
+          </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-forward -->
+	  <!-- @@GEN END rule-sysctl-ipv4-forward -->
+        </Group>
+        <Group id="gt-system-kernel-sysctl-sourceroute">
+          <title>Enable Source Route Verification</title>
+          <description>
+            To offer additional protection against IP spoofing, enable source
+            route verification on all interfaces. This is governed through the
+            <h:code>net.ipv4.conf.*.rp_filter=1</h:code> setting.
+	    <h:br />
+	    <h:br />
+	    With source route verification, the Linux kernel validates that an IP
+	    package comes from the right interface. In other words, on a multi-homed
+	    system, packets that claim to be from your internal network on your external
+	    interface are dropped (and vice versa).
+          </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-all-rp_filter -->
+	  <!-- @@GEN END rule-sysctl-ipv4-all-rp_filter -->
+	  <!-- @@GEN START rule-sysctl-ipv4-default-rp_filter -->
+	  <!-- @@GEN END rule-sysctl-ipv4-default-rp_filter -->
+        </Group>
+        <Group id="gt-system-kernel-sysctl-ipsrcroute">
+          <title>Disable IP Source Routing</title>
+          <description>
+            Disable IP source routing on all interfaces through the
+            <h:code>net.ipv4.conf.*.accept_source_route=0</h:code> setting.
+            <h:br />
+            <h:br />
+            IP source routing would allow a remote user (the sender) to specify
+            the route that the package should take, rather than use the
+            (default) routing tables used by the routers between the sender and
+            the destination. This could be (ab)used to spoof IP addresses and still
+	    get the replies (rather than sending the replies to the real owner
+	    of the IP address).
+          </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-all-asr -->
+	  <!-- @@GEN END rule-sysctl-ipv4-all-asr -->
+	  <!-- @@GEN START rule-sysctl-ipv4-default-asr -->
+	  <!-- @@GEN END rule-sysctl-ipv4-default-asr -->
+        </Group>
+        <Group id="gt-system-kernel-sysctl-redirect">
+          <title>Disable ICMP Redirects</title>
+          <description>
+            Set <h:code>net.ipv4.conf.*.accept_redirects=0</h:code> to disable
+            ICMP redirect support on the interfaces.
+            <h:br />
+            <h:br />
+            ICMP redirect messages are used by routers to inform hosts to use a
+            different gateway than the one used. These packages should only be
+            sent by the gateway of the system, but since you control that
+            gateway and know when this gateway is changed, there is no point in
+            allowing ICMP redirect messages on your system. After all, this would
+	    allow for "remote" updating of your routing table, which could allow
+	    an attacker to get all packets you want to send to the outside first
+	    (rather than the packets immediately going to the real gateway).
+          </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-all-aredirect -->
+	  <!-- @@GEN END rule-sysctl-ipv4-all-aredirect -->
+	  <!-- @@GEN START rule-sysctl-ipv4-default-aredirect -->
+	  <!-- @@GEN END rule-sysctl-ipv4-default-aredirect -->
+        </Group>
+        <Group id="gt-system-kernel-sysctl-echobroadcast">
+          <title>Ignore ICMP Echo Broadcasts</title>
+          <description>
+            When <h:code>net.ipv4.icmp_echo_ignore_broadcasts=1</h:code> is set,
+            then your system will not reply to broadcast 'ping' requests (a ping
+            is an ICMP Echo request). Similar to hiding a WIFI SSID, this makes
+            your system just a tiny bit more hidden from scanners.
+          </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-echobroadcast -->
+	  <!-- @@GEN END rule-sysctl-ipv4-echobroadcast -->
+        </Group>
+	<Group id="gt-system-kernel-sysctl-icmpboguserror">
+          <title>Ignore ICMP Bogus Error Responses</title>
+	  <description>
+	    When an invalid response is given to broadcast frames (which occurs
+	    sometimes in erronous routers), the Linux kernel will by default log this
+	    event. To ensure that these (harmless) reports do not clutter your logs,
+	    you can disable this through <h:code>net.ipv4.icmp_ignore_bogus_error_responses</h:code>
+	    by setting it to 1.
+	  </description>
+	  <!-- @@GEN START rule-sysctl-icmpboguserror -->
+	  <!-- @@GEN END rule-sysctl-icmpboguserror -->
+	</Group>
+	<Group id="gt-system-kernel-sysctl-martians">
+          <title>Enable Logging of Martians</title>
+	  <description>
+	    When you receive a packet that seemingly originates from a location where
+	    you have no route for, this package is dropped silently. You can enable logging
+	    of these packets (which are called <h:em>martians</h:em>) so that you at least
+	    are aware of them.
+	    <h:br />
+	    <h:br />
+	    Note that martians can only exist if you do not use a "default gateway", since
+	    a default gateway always matches (if no other route does) for any IP address.
+	  </description>
+	  <!-- @@GEN START rule-sysctl-ipv4-all-logmartians -->
+	  <!-- @@GEN END rule-sysctl-ipv4-all-logmartians -->
+	  <!-- @@GEN START rule-sysctl-ipv4-default-logmartians -->
+	  <!-- @@GEN END rule-sysctl-ipv4-default-logmartians -->
+	</Group>
+      </Group>
+    </Group>
+    <Group id="gt-system-bootloader">
+      <title>Bootloader Configuration</title>
+      <description>
+        The bootloader (be it GRUB or another tool) is responsible for loading
+        the Linux kernel and handing over system control to the kernel. But boot
+        loaders also allow for a flexible approach on kernel loading, which can
+        be (ab)used to work around security mechanisms.
+      </description>
+      <Group id="gt-system-bootloader-grubpass">
+        <title>Password Protect GRUB</title>
+        <description>
+          It is recommended to password-protect the GRUB configuration so that
+          you cannot modify boot options during a boot without providing the
+          valid password.
+          <h:br />
+          <h:br />
+          You can accomplish this by inserting <h:code>password abc123</h:code>
+          in <h:code>/boot/grub/grub.conf</h:code> (which will set the password
+          to "abc123"). But if you do not like having a clear-text password in
+          the configuration file, you can hash it. Just start <h:b>grub</h:b>
+          and, in the grub-shell, type <h:b>md5crypt</h:b>.
+          <h:br />
+          <h:pre>### Getting a hashed password for GRUB ###
+# <h:b>grub</h:b>
+
+GRUB version 0.92 (640K lower / 3072K upper memory)
+
+[ Minimal BASH-like line editing is supported. ... ]
+
+grub&gt; <h:b>md5crypt</h:b>
+
+Password: <h:em>abc123</h:em>
+Encrypted: $1$18u.M0$J8VbOsGXuoG9Fh3n7ZkqY.
+
+grub&gt; <h:b>quit</h:b></h:pre>
+          <h:br />
+          You can then use this hashed password in <h:code>grub.conf</h:code>
+          using <h:code>password --md5
+          $1$18u.M0$J8VbOsGXuoG9Fh3n7ZkqY.</h:code>.
+        </description>
+	<!-- @@GEN START rule-grub-password -->
+	<!-- @@GEN END rule-grub-password -->
+      </Group>
+      <Group id="gt-system-bootloader-lilopass">
+        <title>Password Protect LILO</title>
+        <description>
+          It is recommended to password-protect the LILO configuration so that
+          you cannot modify boot options during a boot without providing the
+          valid password.
+          <h:br />
+          <h:br />
+          You can accomplish this by inserting <h:code>password=abc123</h:code>
+          followed by <h:code>restricted</h:code> in the
+          <h:code>/etc/lilo.conf</h:code> file. It is also possible to do this
+          on a per-image level.
+          <h:br />
+          <h:pre>### Setting a password for LILO in /etc/lilo.conf ###
+password=abc123
+restricted
+delay=3
+
+image=/boot/bzImage
+        read-only
+        password=def456
+        restricted</h:pre>
+           <h:br />
+           The <h:code>restricted</h:code> keyword is needed to have LILO only
+           ask for the password if a modification is given. If the defaults are
+           used, then no password needs to be provided.
+           <h:br />
+           <h:br />
+           Rerun <h:code>lilo</h:code> after updating the configuration file.
+        </description>
+      </Group>
+    </Group>
+    <Group id="gt-system-auth">
+      <title>Authentication and Authorization Settings</title>
+      <description>
+        An important part in a servers' security is its authentication and
+        authorization support. We have already described how to build in PAM
+        support (through the Portage USE flags), but proper authentication and
+        authorization settings are mode than just compiling in the necessary
+        functionality.
+      </description>
+      <Group id="gt-system-auth-securetty">
+        <title>Restrict root System Logon</title>
+        <description>
+          To restrict where the root user can directly log on, edit
+          <h:code>/etc/securetty</h:code> and specify the supported terminals
+          for the root user.
+          <h:br />
+          <h:br />
+          When properly configured, any attempt to log on as the root user from
+          a non-defined terminal will result in logon failure.
+          <h:br />
+          <h:br />
+          A recommended setting is to only allow root user login through the
+          console and the physical terminals (<h:code>tty0-tty12</h:code>).
+          <h:pre>### /etc/securetty ###
+console
+tty0
+tty1
+...
+tty12</h:pre>
+        </description>
+	<!-- @@GEN START rule-securetty -->
+	<!-- @@GEN END rule-securetty -->
+      </Group>
+      <Group id="gt-system-auth-userlogin">
+        <title>Allow Only Known Users to Login</title>
+        <description>
+          When PAM is enabled, the <h:code>/etc/security/access.conf</h:code>
+          file is used to check which users are allowed to log on and not
+          (through the <h:b>login</h:b> application). These limits are based on
+          username, group and host, network or tty that the user is trying to
+          log on from.
+          <h:br />
+          <h:br />
+          By enabling these settings, you reduce the risk that a functional
+          account (say <h:code>apache</h:code>) is abused to log on with, or
+          that a new account is created as part of an exploit.
+        </description>
+      </Group>
+      <Group id="gt-system-auth-resources">
+        <title>Restrict User Resources</title>
+        <description>
+          When facing a DoS (Denial-of-Service) attack, reducing the impact of
+          the attack can be done by limited resource consumption. Although the
+          component that is under attack will even more quickly fail, the impact
+          towards the other services on the system (including remote logon to
+          fix things) is more limited.
+          <h:br />
+          <h:br />
+          In Gentoo Linux, the following methods are available to limit
+          resources.
+          <h:ul>
+            <h:li>
+              <h:code>/etc/security/limits.conf</h:code> defines the
+              resource limits for logins that are done through a PAM-aware
+              component (default in our setup)
+            </h:li>
+            <h:li>
+              <h:code>/etc/limits</h:code> defines the resource limits for
+              logins that are done through login programs that are not
+              PAM-aware.
+            </h:li>
+          </h:ul>
+          Generally, you should suffice with setting
+          <h:code>/etc/security/limits.conf</h:code>, which is the configuration
+          file used by the <h:code>pam_limits.so</h:code> module.
+          <h:br />
+          <h:br />
+          Note that the settings are applicable on a <h:em>per login
+          session</h:em> basis.
+          <h:br />
+          <h:br />
+          More information on these files and their syntax can be obtained
+          through their manual pages.
+          <h:pre>### Reading the limits manual pages ###
+# <h:b>man limits.conf</h:b>
+# <h:b>man limits</h:b></h:pre>
+        </description>
+      </Group>
+      <Group id="gt-system-auth-password">
+        <title>Enforce Password Policy</title>
+        <description>
+          Usually most organizations have a password policy, telling their users
+          how long their passwords should be and how often the passwords should
+          be changed. Most users see this as an annoying aspect, so it might be
+          best to enforce this policy.
+          <h:br />
+          <h:br />
+          Enforcing password policies is (partially) part of the
+          <h:code>sys-apps/shadow</h:code> package (which is installed by
+          default) and can be configured through the
+          <h:code>/etc/login.defs</h:code> file. This file is well documented
+          (using comments) and it has a full manual page as well to help you en
+          route.
+          <h:br />
+          <h:br />
+          A second important player when dealing with password policies is the
+          <h:code>pam_cracklib.so</h:code> library. You can then use this in the
+          appropriate <h:code>/etc/pam.d/*</h:code> files. For instance, for the
+          <h:code>/etc/pam.d/passwd</h:code> definition:
+          <h:pre>### Sample /etc/pam.d/passwd setting with cracklib ###
+auth      required pam_unix.so shadow nullok
+account   required pam_unix.so
+<h:b>password  required pam_cracklib.so difok=3 retry=3 minlen=8 dcredit=-2 ocredit=-2</h:b>
+password  required pam_unix.so md5 use_authok
+session   required pam_unix.so</h:pre>
+          In the above example, the password is required to be at least 8
+          characters long, differ more than 3 characters from the previous
+          password, contain 2 digits and 2 non-alphanumeric characters.
+        </description>
+	<!-- @@GEN START rule-pam-cracklib -->
+	<!-- @@GEN END rule-pam-cracklib -->
+      </Group>
+      <Group id="gt-system-auth-ripper">
+        <title>Review Password Strength Regularly</title>
+        <description>
+          Regularly check the strength of your users' passwords. There are tools
+          out there, like <h:code>app-crypt/johntheripper</h:code> which, given
+          a <h:code>/etc/shadow</h:code> file (or sometimes even LDAP dump) try
+          to find the passwords for the users.
+          <h:br />
+          <h:br />
+          When such a tool can guess a users' password, that users' password
+          should be expired and the user should be notified and asked to change
+          his password.
+        </description>
+      </Group>
+    </Group>
+    <Group id="gt-system-session">
+      <title>Session Settings</title>
+      <description>
+        Unlike authentication and authorization settings, a <h:em>session</h:em>
+        setting is one that is applicable to an authenticated and authorized
+        user when he is logged on to the system.
+      </description>
+      <Group id="gt-system-session-mesg">
+        <title>Disable Access to User Terminals</title>
+        <description>
+          By default, user terminals are accessible by others to write messages
+          to (using <h:b>write</h:b>, <h:b>wall</h:b> or <h:b>talk</h:b>). It is
+          adviseable to disable this unless explicitly necessary.
+          <h:br />
+          <h:br />
+          Messages can confuse users and trick them into performing malicious
+          actions. 
+          <h:br />
+          <h:br />
+          You can disable this by setting <h:code>mesg n</h:code> in
+          <h:code>/etc/profile</h:code>. A user-friendly method for doing so in
+          Gentoo is to create a file <h:code>/etc/profile.d/disable_mesg</h:code> which
+          contains this command.
+        </description>
+      </Group>
+    </Group>
+    <Group id="gt-system-fileprivileges">
+      <title>File and Directory Privileges and Integrity</title>
+      <description>
+        Proper privileges on files makes it far more difficult to malicious
+        users to obtain sensitive information or write/update files they should
+        not have access to.
+      </description>
+      <Group id="gt-system-fileprivileges-worldrw">
+        <title>Limit World Writable Files and Locations</title>
+        <description>
+          Limit (or even remove) the use of world writable files and locations.
+          If a directory is world writable, you probably want to have the
+          sticky bit set on it as well (like with <h:code>/tmp</h:code>).
+          <h:br />
+          <h:br />
+          You can use <h:code>find</h:code> to locate such files or directories.
+          <h:pre>### Using find to find world writable files and directories ###
+# <h:b>find / -perm +o=w ! \( -type d -perm +o=t \) ! -type l -print</h:b></h:pre>
+          The above command shows world writable files and locations, unless it
+          is a directory with the sticky bit set, or a symbolic link (whose
+          world writable privilege is not accessible anyhow).
+        </description>
+      </Group>
+      <Group id="gt-system-fileprivileges-suidsgid">
+        <title>Limit Setuid and Setgid File and Directory Usage</title>
+        <description>
+          The <h:em>setuid</h:em> and <h:em>setgid</h:em> flags for files and
+          directories can be used to work around authentication and
+          authorization measures taken on the system. So their use should be
+          carefully guarded.
+          <h:br />
+          <h:br />
+          In case of files, the setuid or setgid bit causes the application (if
+          the file is marked as executable) to run with the privileges of the
+          file owner (setuid) or group owner (setgid). It is necessary for
+          applications that need elevated privileges, like <h:b>su</h:b> or
+          <h:b>sudo</h:b>.
+          <h:br />
+          <h:br />
+          In case of directories, the setgit bit causes newly created
+          files in that directory to automatically be owned by the same group as
+          the mentioned (parent) directory.
+        </description>
+      </Group>
+      <Group id="gt-system-fileprivileges-logs">
+        <title>Logs Only Readable By Proper Group</title>
+        <description>
+          No log file in <h:code>/var/log</h:code> should be world readable. Log
+          files should be limited by particular groups (either the group
+          representing the service, like <h:code>apache</h:code> or
+          <h:code>portage</h:code>, or a specific administrative group like
+          <h:code>wheel</h:code>).
+        </description>
+      </Group>
+      <Group id="gt-system-fileprivileges-rootonly">
+        <title>Files Only Used By Root Should be Root-Only</title>
+        <description>
+          Some files, like <h:code>/etc/shadow</h:code>, are meant to be read
+          (and perhaps modified) by root only. These files should never have
+          privileges for group- or others.
+          <h:br />
+          <h:br />
+          A nonexhaustive list of such files is:
+          <h:ul>
+            <h:li>
+              <h:code>/etc/shadow</h:code> which contains account password
+              information (including password hashes)
+            </h:li>
+            <h:li>
+              <h:code>/etc/securetty</h:code> which contains the list of
+              terminals where root is allowed to log on from
+            </h:li>
+          </h:ul>
+        </description>
+      </Group>
+      <Group id="gt-system-fileprivileges-hids">
+        <title>Review File Integrity Regularly</title>
+        <description>
+          Deploy intrusion detection tool(s) to validate the integrity and
+          privileges on important files. <h:code>app-forensics/aide</h:code> is
+          an example of such a tool.
+        </description>
+      </Group>
+    </Group>
+  </Group>
+  <Group id="gt-data">
+    <title>Data Flows</title>
+    <description>
+      Clearly map out how data flows in and out of your server (and which data
+      this is). You will need this anyhow when you want to add firewalls, but it
+      also improves integration of the server in a larger infrastructure.
+    </description>
+    <Group id="gt-data-backup">
+      <title>Backup Your Data</title>
+      <description>
+        Make sure that your data is backed up. This is not only in case of
+        server loss, but also when you accidentally remove files or have an
+        awkward bug in a service that deleted important information.
+      </description>
+      <Group id="gt-data-backup-automate">
+        <title>Automated Backups</title>
+        <description>
+          Automate backups on the system. If you need to perform a backup
+          manually, then you are doing it wrong and will start forgetting it.
+          <h:br />
+          <h:br />
+          You can use scheduling software like <h:code>cron</h:code> to
+          automatically take backups on regular intervals, or use a central
+          backup solution like <h:code>bacula</h:code>.
+        </description>
+      </Group>
+      <Group id="gt-data-backups-coverage">
+        <title>Full Data Coverage</title>
+        <description>
+          Many users that do take backups only do this on what they seem as
+          important files. However, it is wise to make full system backups too
+          as recreating an entire system from scratch could otherwise take days
+          or even weeks.
+        </description>
+      </Group>
+      <Group id="gt-data-backups-history">
+        <title>Retention</title>
+        <description>
+          Ensure that your backups use a long enough retention. It is not wise
+          to take a single backup and overwrite this one over and over again, as
+          you might want to recover a file that was corrupted long before you
+          took your last backup.
+          <h:br />
+          <h:br />
+          There is no perfect retention period however, as the more backups you
+          keep, the more storage you require and the more you need to invest in
+          managing your backups.
+          <h:br />
+          <h:br />
+          In most cases, you will want to introduce a "layered" approach on
+          retention. For instance, you can
+          <h:ul>
+            <h:li>keep daily backups for a week</h:li>
+            <h:li>
+              keep weekly backups (say each monday backup) for a month
+            </h:li>
+            <h:li>
+              keep monthly backups (say each first monday) for a year
+            </h:li>
+            <h:li>
+              keep yearly backups for 30 years
+            </h:li>
+          </h:ul>
+        </description>
+      </Group>
+      <Group id="gt-data-backups-location">
+        <title>Off-site Backups</title>
+        <description>
+          Keep your backups off-site in case of disaster. But consider this
+          location carefully. Investigate how fast you can put the backup there,
+          but also retrieve it in case you need it. Also investigate if this
+          location is juridically sane (are you allowed to put your location
+          there, and do you trust this off-site location).
+          <h:br />
+          <h:br />
+          Also ensure that the backups are stored securely. If necessary,
+          encrypt your backups.
+        </description>
+      </Group>
+      <Group id="gt-data-backups-validate">
+        <title>Validate and Test</title>
+        <description>
+          Validate that your backup system works. Try recovering files (for
+          instance on a second server or different location) or even entire
+          systems (virtualization is a great help here) and do this regularly.
+        </description>
+      </Group>
+    </Group>
+  </Group>
+  <Group id="gt-removal">
+    <title>Decommissioning Servers</title>
+    <description>
+      When you want to decommission a server, you should take care that its data
+      is safeguarded from future extraction.
+    </description>
+    <Group id="gt-removal-wipedisk">
+      <title>Wipe Disks</title>
+      <description>
+        Clear all data from the disks on the server in a secure manner.
+        Applications like <h:b>shred</h:b> (part of
+        <h:code>sys-apps/coreutils</h:code>) can be used to security wipe data
+        or even entire partitions or disks.
+        <h:br />
+        <h:br />
+        It is recommended to perform full disk wipes rather than file wipes.
+        If you need to do this on file level, see if you can disable file system
+        journaling during the wipe session as journaling might "buffer" the
+        secure writes and only write the end result to the disk.
+      </description>
+      <reference
+      href="http://csrc.nist.gov/publications/nistpubs/800-88/NISTSP800-88_rev1.pdf">NIST
+      Publication "Guidelines for Media Sanitization" (PDF)</reference>
+    </Group>
+  </Group>
+</Benchmark>

@@ -60,65 +60,88 @@
       configuration for a Gentoo systems. Although this is important, an
       improved method for describing and tuning a systems' security state has
       emerged: SCAP, or the <h:em>Security Content Automation Protocol</h:em>.
-      <h:br />
-      <h:br />
-      Within SCAP, NIST has defined some new standards of which XCCDF and OVAL
-      are notably important in light of the guide you are currently using.
-      <h:ul>
-        <h:li>
-          XCCDF (Extensible Configuration Checklist Description Format) is
-          a specification language for writing security checklists and benchmarks
-          (such as the one you are reading now)
-        </h:li>
-        <h:li>
-          OVAL (Open Vulnerability and Assessment Language) is a standard to describe
-          and validate system settings
-        </h:li>
-      </h:ul>
-      <h:br />
-      Thanks to the OVAL and XCCDF standards, a security engineer can now describe
-      how the state of a system should be configured, how this can be checked
-      automatically and even report on these settings. Furthermore, within the
-      description, the engineer can make "profiles" of different states (such as
-      a profile for a workstation, server (generic), webserver, LDAP server,
-      ...) and reusing the states (rules) identified in a more global scope.
-      <h:br />
-      <h:br />
-      The guide you are currently reading is the guide generated from this SCAP
-      content (more specifically, the XCCDF document) using <h:b>openscap</h:b>,
-      a free software implementation for handling SCAP content. Within Gentoo,
-      the package <h:code>app-forensics/openscap</h:code> provides the tools, and
-      the following command is used to generate the HTML output:
-      <h:br />
-      <h:pre>### Command to generate this guide ###
-# <h:b>oscap xccdf generate guide scap-gentoo-xccdf.xml &gt; output.html</h:b>
-      </h:pre>
-      <h:br />
-      Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
-      The two files combined allow you to automatically validate various settings as
-      documented in the benchmark. To validate the tests, you can use the following
-      command:
-      <h:pre>### Testing the rules mentioned in the XCCDF document ###
-# <h:b>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</h:b></h:pre>
-      <h:br />
-      To generate a full report in HTML as well, you can use the next command:
-      <h:pre>### Testing the rules and generating an HTML report ###
-# <h:b>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</h:b></h:pre>
-      <h:br />
-      <h:br />
-      Finally, this benchmark will suggest some settings which you do not want
-      to enable. That is perfectly fine - even more, some settings might even
-      raise eyebrows left and right. I'll try to document the reasoning behind
-      the settings but you are free to deviate from them. If that is the case,
-      you might want to disable the rules in the XCCDF document so that they are
-      not checked on your system.
-      <h:br />
-      <h:br />
-      Also, the tests in the OVAL are <h:em>not</h:em> written with the intelligence that
-      the tool is or is not installed. So a test that checks the content of <h:code>sshd_config</h:code>
-      will fail (error actually) if the file doesn't exist. Although this can be made much more
-      intelligent, this is not the scope of this document (yet).
     </description>
+    <Group id="gr-intro-scap">
+      <title>A little more about SCAP and OVAL</title>
+      <description>
+        Within SCAP, NIST has defined some new standards of which XCCDF and OVAL
+        are notably important in light of the guide you are currently using.
+        <h:ul>
+          <h:li>
+            XCCDF (Extensible Configuration Checklist Description Format) is
+            a specification language for writing security checklists and benchmarks
+            (such as the one you are reading now)
+          </h:li>
+          <h:li>
+            OVAL (Open Vulnerability and Assessment Language) is a standard to describe
+            and validate system settings
+          </h:li>
+        </h:ul>
+        <h:br />
+        Thanks to the OVAL and XCCDF standards, a security engineer can now describe
+        how the state of a system should be configured, how this can be checked
+        automatically and even report on these settings. Furthermore, within the
+        description, the engineer can make "profiles" of different states (such as
+        a profile for a workstation, server (generic), webserver, LDAP server,
+        ...) and reusing the states (rules) identified in a more global scope.
+      </description>
+    </Group>
+    <Group id="gr-intro-using">
+      <title>Using this guide</title>
+      <description>
+        The guide you are currently reading is the guide generated from this SCAP
+        content (more specifically, the XCCDF document) using <h:b>openscap</h:b>,
+        a free software implementation for handling SCAP content. Within Gentoo,
+        the package <h:code>app-forensics/openscap</h:code> provides the tools, and
+        the following command is used to generate the HTML output:
+        <h:br />
+        <h:pre>### Command to generate this guide ###
+# <h:b>oscap xccdf generate guide scap-gentoo-xccdf.xml &gt; output.html</h:b>
+        </h:pre>
+        <h:br />
+        Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
+        The two files combined allow you to automatically validate various settings as
+        documented in the benchmark. To validate the tests, you can use the following
+        command:
+        <h:pre>### Testing the rules mentioned in the XCCDF document ###
+# <h:b>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</h:b></h:pre>
+        <h:br />
+        To generate a full report in HTML as well, you can use the next command:
+        <h:pre>### Testing the rules and generating an HTML report ###
+# <h:b>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</h:b></h:pre>
+        <h:br />
+        <h:br />
+	During the development of these security rules, we will try to include fix
+	commands as well. These can be used by <h:b>oscap</h:b> to generate a script
+	that automatically fixes the settings that have failed in the report (as long
+	as this is possible in an unattended manner). However, be advised that this is
+	experimental and you should definitely validate the fix script before you run
+	it.
+	<h:br />
+	<h:br />
+	The following command can be used to generate the fix script:
+	<h:pre>### Generating a fix script ###
+# <h:b>scap xccdf generate fix --profile Gentoo-Default --result-id OSCAP-Test-Gentoo-Default xccdf-results.xml &gt; fix.sh</h:b></h:pre>
+        <h:br />
+	The <h:code>xccdf-results.xml</h:code> file is generated from the previous
+	command and the <h:em>OSCAP-Test-</h:em> prefix is mandatory (the rest is the name
+	of the XCCDF profile).
+	<h:br />
+	<h:br />
+        Finally, this benchmark will suggest some settings which you do not want
+        to enable. That is perfectly fine - even more, some settings might even
+        raise eyebrows left and right. I'll try to document the reasoning behind
+        the settings but you are free to deviate from them. If that is the case,
+        you might want to disable the rules in the XCCDF document so that they are
+        not checked on your system.
+        <h:br />
+        <h:br />
+        Also, the tests in the OVAL are <h:em>not</h:em> written with the intelligence that
+        the tool is or is not installed. So a test that checks the content of <h:code>sshd_config</h:code>
+        will fail (error actually) if the file doesn't exist. Although this can be made much more
+        intelligent, this is not the scope of this document (yet).
+      </description>
+    </Group>
   </Group>
   <Group id="gt-preinstallation">
     <title>Before You Start</title>

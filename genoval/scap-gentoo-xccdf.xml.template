@@ -101,15 +101,25 @@
         <h:br />
         Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
         The two files combined allow you to automatically validate various settings as
-        documented in the benchmark. To validate the tests, you can use the following
-        command:
+        documented in the benchmark. Now, for Gentoo, no specific tests exist yet so 
+	we need to work around this a small bit.
+	<h:br />
+	<h:br />
+	Create a file called <h:code>emerge-info-verbose</h:code> in a working directory
+	somewhere (say <h:code>/var/tmp/genoval_output</h:code>) and export the environment
+	variable <h:em>GENOVAL_SCRIPTOUTPUTDIR</h:em> to this directory:
+	<h:pre>### Generate output for the tests ###
+# <h:b>mkdir /var/tmp/genoval_output</h:b>
+# <h:b>export GENOVAL_SCRIPTOUTPUTDIR=/var/tmp/genoval_output</h:b>
+# <h:b>emerge --info --verbose &gt; /var/tmp/genoval_output/emerge-info-verbose</h:b></h:pre>
+	<h:br />
+	Now, to validate the tests, you can use the following commands:
         <h:pre>### Testing the rules mentioned in the XCCDF document ###
 # <h:b>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</h:b></h:pre>
         <h:br />
         To generate a full report in HTML as well, you can use the next command:
         <h:pre>### Testing the rules and generating an HTML report ###
 # <h:b>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</h:b></h:pre>
-        <h:br />
         <h:br />
 	During the development of these security rules, we will try to include fix
 	commands as well. These can be used by <h:b>oscap</h:b> to generate a script
@@ -758,6 +768,12 @@ PubkeyAuthentication yes</h:pre>
           <h:pre>### Setting the USE flag in /etc/make.conf ###
 USE="... pam tcpd ssl"</h:pre>
         </description>
+	<!-- @@GEN START rule-gentoo-use-pam -->
+	<!-- @@GEN END rule-gentoo-use-pam -->
+	<!-- @@GEN START rule-gentoo-use-tcpd -->
+	<!-- @@GEN END rule-gentoo-use-tcpd -->
+	<!-- @@GEN START rule-gentoo-use-ssl -->
+	<!-- @@GEN END rule-gentoo-use-ssl -->
       </Group>
       <Group id="gt-system-portage-webrsync">
         <title>Fetching Signed Portage Tree</title>

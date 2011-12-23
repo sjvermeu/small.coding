@@ -193,6 +193,16 @@ do
     genTextfileMatch "at least one" >> ${OVAL};
   fi
 
+  ## Test for gentoo variables
+  if `gentooVariableMatches`;
+  then
+    FILE=$(gentooVariableFile);
+    REGEXP=$(gentooVariableRegexp);
+    export OBJNUM=$(getObjnum "scriptoutput" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+
+    genTextfileMatch "at least one" >> ${OVAL};
+  fi
 done
 
 echo "</tests>" >> ${OVAL};
@@ -226,7 +236,23 @@ do
     echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
   fi
+
+  ## Non-commented script output
+  if [ "${OBJTYPE}" == "scriptoutput" ];
+  then
+    echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Non-comment lines in ${OBJVALUE}\">" >> ${OVAL};
+    echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}.genoval:var:1\"/>" >> ${OVAL};
+    echo "  <ind-def:filename>${OBJVALUE}</ind-def:filename>" >> ${OVAL};
+    echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
+    echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
+    echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+  fi
 done
+
+# Specific GENOVAL objects
+echo "<ind-def:environmentvariable_object id=\"oval:${OVALNS}.genoval:obj:1\" version=\"1\">" >> ${OVAL};
+echo "  <ind-def:name>GENOVAL_SCRIPTOUTPUTDIR</ind-def:name>" >> ${OVAL};
+echo "</ind-def:environmentvariable_object>" >> ${OVAL};
 
 echo "</objects>" >> ${OVAL};
 echo "" >> ${OVAL};
@@ -239,7 +265,8 @@ while read STATE;
 do
   STENUM=$(echo ${STATE} | awk -F':' '{print $1}');
   STETYPE=$(echo ${STATE} | awk -F':' '{print $2}' | awk -F'=' '{print $1}');
-  STEVALUE=$(echo "${STATE}" | awk -F':' '{print $2}' | awk -F'=' '{print $2}');
+  STEVALUE=$(echo "${STATE}" | awk -F':' '{print $2}' | sed -e 's:^[^=]*=::g');
+  STEVALUECOMMENT=$(echo ${STEVALUE} | tr -d '["]');
 
   # filesystemtype
   if [ "${STETYPE}" == "filesystemtype" ];
@@ -270,13 +297,23 @@ do
   # regular expressions
   if [ "${STETYPE}" == "regexp" ];
   then
-    echo "<ind-def:textfilecontent54_state id=\"oval:${OVALNS}:ste:${STENUM}\" version=\"1\" comment=\"The match of ${STEVALUE}\">" >> ${OVAL};
+    echo "<ind-def:textfilecontent54_state id=\"oval:${OVALNS}:ste:${STENUM}\" version=\"1\" comment=\"The match of ${STEVALUECOMMENT}\">" >> ${OVAL};
     echo "  <ind-def:subexpression operation=\"pattern match\">${STEVALUE}</ind-def:subexpression>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_state>" >> ${OVAL};
   fi
 done < states.conf;
 
 echo "</states>" >> ${OVAL};
+
+## Specific variables used by genoval
+echo "" >> ${OVAL};
+echo "<variables>" >> ${OVAL};
+# Location of GENOVAL_SCRIPTOUTPUTDIR
+echo "<local_variable id=\"oval:${OVALNS}.genoval:var:1\" version=\"1\" datatype=\"string\" comment=\"Location where the helper scripts output is stored\">" >> ${OVAL};
+echo "  <object_component item_field=\"value\" object_ref=\"oval:${OVALNS}.genoval:obj:1\"/>" >> ${OVAL};
+echo "</local_variable>" >> ${OVAL};
+echo "</variables>" >> ${OVAL};
+
 echo "</oval_definitions>" >> ${OVAL};
 
 popd > /dev/null 2>&1;

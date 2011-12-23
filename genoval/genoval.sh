@@ -14,6 +14,7 @@ fi
 
 typeset XCCDF=$1;
 typeset OVALNS=$2;
+export OVALNS;
 typeset OVAL=$(echo ${XCCDF} | sed -e 's:.template::g' | sed -e 's:[Xx][Cc][Cc][Dd][Ff]:oval:g');
 typeset WORKDIR=$3;
 
@@ -79,7 +80,7 @@ EOF
 ##
 for RULE in $(sed -e 's:.*\[\([^[]*\)\]$:\1:g' definitions.conf);
 do
-  LINE=$(grep ${RULE} definitions.conf | sed -e 's: \[[^[]*\]$::g');
+  export LINE=$(grep ${RULE} definitions.conf | sed -e 's: \[[^[]*\]$::g');
   LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
   grep -q "@@GEN START ${RULE} " ${XCCDF} || continue;
 
@@ -120,8 +121,8 @@ echo "<tests>" >> ${OVAL};
 ##
 for RULE in $(sed -e 's:.*\[\([^[]*\)\]$:\1:g' definitions.conf);
 do
-  LINE=$(grep ${RULE} definitions.conf | sed -e "s: \[${RULE}\]$::g");
-  LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
+  export LINE=$(grep ${RULE} definitions.conf | sed -e "s: \[${RULE}\]$::g");
+  export LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
 
   ## Test for separate file system
   echo ${LINE} | egrep -q '^/[^ ]* is (a )?(separate )?file[ ]?system( of type [^ ]+)?$';
@@ -129,22 +130,9 @@ do
   then
     PARTITION=$(echo ${LINE} | sed -e 's:^/\([^ ]*\).*:\1:g');
     TYPE=$(echo ${LINE} | sed -e 's:.*type \([^ ]*\).*:\1:g' -e 's:.* .*::g');
-    OBJNUM=$(grep ":partition=${PARTITION}:" objects.conf | awk -F':' '{print $1}');
-    STENUM=$(grep ":filesystemtype=${TYPE}:" states.conf | awk -F':' '{print $1}');
-    if [ "${OBJNUM}" == "" ];
-    then
-      # Definition doesn't exist yet
-      NEWOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
-      echo "${NEWOBJNUM}:partition=${PARTITION}:" >> objects.conf;
-      OBJNUM=${NEWOBJNUM};
-    fi
-    if [ "${STENUM}" == "" ] && [ "${TYPE}" != "" ];
-    then
-      # State doesn't exist yet
-      NEWSTENUM=$(wc -l states.conf | awk '{print $1+1}');
-      echo "${NEWSTENUM}:filesystemtype=${TYPE}:" >> states.conf;
-      STENUM=${NEWSTENUM};
-    fi
+    export OBJNUM=$(getObjnum "partition" "${PARTITION}");
+    export STENUM=$([[ ${TYPE} == "" ]] && echo "" || getStenum "filesystemtype" "${TYPE}");
+
     echo "<lin-def:partition_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"all\" comment=\"${LINE}\" check_existence=\"at_least_one_exists\">" >> ${OVAL};
     echo "  <lin-def:object object_ref=\"oval:${OVALNS}:obj:${OBJNUM}\" />" >> ${OVAL};
     if [ "${TYPE}" != "" ];
@@ -161,22 +149,9 @@ do
   then
     PARTITION=$(echo ${LINE} | sed -e 's:^mount point /::g' -e 's: .*::g');
     OPTION=$(echo ${LINE} | sed -e 's:.*option \([a-zA-Z0-9]*\):\1:g' -e 's:.* \([a-zA-Z0-9]*\) option:\1:g');
-    OBJNUM=$(grep ":partition=${PARTITION}:" objects.conf | awk -F':' '{print $1}');
-    STENUM=$(grep ":mountoption=${OPTION}:" states.conf | awk -F':' '{print $1}');
-    if [ "${OBJNUM}" == "" ];
-    then
-      # Definition doesn't exist yet
-      NEWOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
-      echo "${NEWOBJNUM}:partition=${PARTITION}:" >> objects.conf;
-      OBJNUM=${NEWOBJNUM};
-    fi
-    if [ "${STENUM}" == "" ];
-    then
-      # State doesn't exist yet
-      NEWSTENUM=$(wc -l states.conf | awk '{print $1+1}');
-      echo "${NEWSTENUM}:mountoption=${OPTION}:" >> states.conf;
-      STENUM=${NEWSTENUM};
-    fi
+    export OBJNUM=$(getObjnum "partition" "${PARTITION}");
+    export STENUM=$(getStenum "mountoption" "${OPTION}");
+
     echo "<lin-def:partition_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"all\" comment=\"${LINE}\" check_existence=\"at_least_one_exists\">" >> ${OVAL};
     echo "  <lin-def:object object_ref=\"oval:${OVALNS}:obj:${OBJNUM}\" />" >> ${OVAL};
     echo "  <lin-def:state state_ref=\"oval:${OVALNS}:ste:${STENUM}\" />" >> ${OVAL};
@@ -189,26 +164,10 @@ do
   then
     FILE=$(echo ${LINE} | sed -e 's:file \(.*\) must have a line.*:\1:g');
     REGEXP=$(echo "${LINE}" | sed -e 's:.*must have a line that matches ::g');
-    OBJNUM=$(grep ":file=${FILE}:" objects.conf | awk -F':' '{print $1}');
-    STENUM=$(grep -F ":regexp=${REGEXP}:" states.conf | awk -F':' '{print $1}');
-    if [ "${OBJNUM}" == "" ];
-    then
-      # Definition doesn't exist yet
-      NEWOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
-      echo "${NEWOBJNUM}:file=${FILE}:" >> objects.conf;
-      OBJNUM=${NEWOBJNUM};
-    fi
-    if [ "${STENUM}" == "" ];
-    then
-      # State doesn't exist yet
-      NEWSTENUM=$(wc -l states.conf | awk '{print $1+1}');
-      echo "${NEWSTENUM}:regexp=${REGEXP}:" >> states.conf;
-      STENUM=${NEWSTENUM};
-    fi
-    echo "<ind-def:textfilecontent54_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"at least one\" comment=\"${LINE}\" check_existence=\"at_least_one_exists\">" >> ${OVAL};
-    echo "  <ind-def:object object_ref=\"oval:${OVALNS}:obj:${OBJNUM}\" />" >> ${OVAL};
-    echo "  <ind-def:state state_ref=\"oval:${OVALNS}:ste:${STENUM}\" />" >> ${OVAL};
-    echo "</ind-def:textfilecontent54_test>" >> ${OVAL};
+    export OBJNUM=$(getObjnum "file" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+
+    genTextfileMatch "at least one" >> ${OVAL};
   fi
 
   ## Test for NO file regular expression
@@ -217,26 +176,10 @@ do
   then
     FILE=$(echo ${LINE} | sed -e 's:file \(.*\) may not have a line.*:\1:g');
     REGEXP=$(echo ${LINE} | sed -e 's:.*may not have a line that matches ::g' -e 's: \[[^[]*\]$::g');
-    OBJNUM=$(grep ":file=${FILE}:" objects.conf | awk -F':' '{print $1}');
-    STENUM=$(grep ":regexp=${REGEXP}:" states.conf | awk -F':' '{print $1}');
-    if [ "${OBJNUM}" == "" ];
-    then
-      # Definition doesn't exist yet
-      NEWOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
-      echo "${NEWOBJNUM}:file=${FILE}:" >> objects.conf;
-      OBJNUM=${NEWOBJNUM};
-    fi
-    if [ "${STENUM}" == "" ];
-    then
-      # State doesn't exist yet
-      NEWSTENUM=$(wc -l states.conf | awk '{print $1+1}');
-      echo "${NEWSTENUM}:regexp=${REGEXP}:" >> states.conf;
-      STENUM=${NEWSTENUM};
-    fi
-    echo "<ind-def:textfilecontent54_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"none satisfy\" comment=\"${LINE}\" check_existence=\"at_least_one_exists\">" >> ${OVAL};
-    echo "  <ind-def:object object_ref=\"oval:${OVALNS}:obj:${OBJNUM}\" />" >> ${OVAL};
-    echo "  <ind-def:state state_ref=\"oval:${OVALNS}:ste:${STENUM}\" />" >> ${OVAL};
-    echo "</ind-def:textfilecontent54_test>" >> ${OVAL};
+    export OBJNUM=$(getObjnum "file" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+    
+    genTextfileMatch "none satisfy" >> ${OVAL};
   fi
 
   ## Test for sysctl
@@ -244,8 +187,8 @@ do
   then
     FILE=$(sysctlFile);
     REGEXP=$(sysctlRegexp);
-    OBJNUM=$(getObjnum "file" "${FILE}");
-    STENUM=$(getStenum "regexp" "${REGEXP}");
+    export OBJNUM=$(getObjnum "file" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
 
     genTextfileMatch "at least one" >> ${OVAL};
   fi

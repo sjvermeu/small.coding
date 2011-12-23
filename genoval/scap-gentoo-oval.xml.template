@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<oval_definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+ xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5"
+ xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+ xmlns:ind-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent"
+ xmlns:lin-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux"
+ xmlns:unix-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+  <generator>
+    <oval:product_name>vim</oval:product_name>
+    <oval:schema_version>5.9</oval:schema_version>
+    <oval:timestamp>2011-10-31T12:00:00-04:00</oval:timestamp>
+  </generator>
+
+<definitions>
+<!-- @@GENOVAL START DEFINITIONS -->
+<!-- @@GENOVAL END DEFINITIONS -->
+<definition class="compliance" id="oval:@@OVALNS@@.static:def:1" version="1">
+  <metadata>
+    <title>All world-writeable directories must have the sticky bit set</title>
+    <description>All world-writeable directories must have the sticky bit set</description>
+  </metadata>
+  <criteria>
+    <criterion comment="All world-writeable directories must have the sticky bit set" test_ref="oval:@@OVALNS@@.static:tst:1" />
+  </criteria>
+</definition>
+</definitions>
+
+<tests>
+<!-- @@GENOVAL START TESTS -->
+<!-- @@GENOVAL END TESTS -->
+<unix-def:file_test check_existence="all_exist" id="oval:@@OVALNS@@.static:tst:1" version="1" check="all" comment="Alll world-writeable directories must have the sticky bit set">
+  <unix-def:object object_ref="oval:@@OVALNS@@.static:obj:1"/>
+  <unix-def:state state_ref="oval:@@OVALNS@@.static:ste:1"/>
+</unix-def:file_test>
+</tests>
+
+<objects>
+<!-- @@GENOVAL START OBJECTS -->
+<!-- @@GENOVAL END OBJECTS -->
+<unix-def:file_object id="oval:@@OVALNS@@.static:obj:1" version="1" comment="All local directories">
+  <unix-def:behaviors recurse_direction="down" recurse_file_system="local" recurse="directories" />
+  <unix-def:path>/</unix-def:path>
+  <unix-def:filename xsi:nil="true" />
+</unix-def:file_object>
+<ind-def:environmentvariable_object id="oval:@@OVALNS@@.genoval:obj:1" version="1">
+  <ind-def:name>GENOVAL_SCRIPTOUTPUTDIR</ind-def:name>
+</ind-def:environmentvariable_object>
+</objects>
+
+<states>
+<!-- @@GENOVAL START STATES -->
+<!-- @@GENOVAL END STATES -->
+<unix-def:file_state id="oval:@@OVALNS@@.static:ste:1" version="1" comment="Sticky bit is set">
+  <unix-def:sticky datatype="boolean">1</unix-def:sticky>
+</unix-def:file_state>
+</states>
+
+<variables>
+<local_variable id="oval:@@OVALNS@@.genoval:var:1" version="1" datatype="string" comment="Location where the helper scripts output is stored">
+  <object_component item_field="value" object_ref="oval:@@OVALNS@@.genoval:obj:1"/>
+</local_variable>
+</variables>
+
+</oval_definitions>

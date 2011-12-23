@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
-  <status date="2011-11-22">draft</status>
+  <status date="2011-11-23">draft</status>
   <title>Gentoo Security Benchmark</title>
   <description>
     This benchmarks helps people in improving their system configuration to be
@@ -11,6 +11,13 @@
   <version>1</version>
   <model system="urn:xccdf:scoring:default"/>
   <model system="urn:xccdf:scoring:flat"/>
+  <Profile id="Gentoo-Default-Full" extends="Gentoo-Default">
+    <title>Full server setup settings</title>
+    <description>
+      This profile extends Gentoo-Default and includes tests that take a while to process.
+    </description>
+    <select idref="rule-world-writeable-sticky" selected="true" />
+  </Profile>
   <Profile id="Gentoo-Default">
     <title>Default server setup settings</title>
     <description>
@@ -51,6 +58,41 @@
     <select idref="rule-grub-password" selected="true" />
     <select idref="rule-securetty" selected="true" />
     <select idref="rule-pam-cracklib" selected="true" />
+    <select idref="rule-gentoo-use-pam" selected="true" />
+    <select idref="rule-gentoo-use-tcpd" selected="true" />
+    <select idref="rule-gentoo-use-ssl" selected="true" />
+    <select idref="rule-gentoo-profile-hardened" selected="true" />
+    <select idref="rule-gentoo-gccspecs-empty" selected="true" />
+    <select idref="rule-kernel-tpe" selected="true" />
+    <select idref="rule-kernel-grsec" selected="true" />
+    <select idref="rule-kernel-grsec-pax" selected="true" />
+    <select idref="rule-kernel-grsec-pax-noexec" selected="true" />
+    <select idref="rule-kernel-grsec-pax-anyexec" selected="true" />
+    <select idref="rule-kernel-grsec-pax-mprotect" selected="true" />
+    <select idref="rule-kernel-grsec-pax-aslr" selected="true" />
+    <select idref="rule-kernel-grsec-pax-randkstack" selected="true" />
+    <select idref="rule-kernel-grsec-pax-randustack" selected="true" />
+    <select idref="rule-kernel-grsec-pax-randmmap" selected="true" />
+    <select idref="rule-kernel-grsec-proc" selected="true" />
+    <select idref="rule-kernel-grsec-proc-user" selected="true" />
+    <select idref="rule-kernel-grsec-proc-usergroup" selected="true" />
+    <select idref="rule-kernel-grsec-proc-add" selected="true" />
+    <select idref="rule-kernel-grsec-link" selected="true" />
+    <select idref="rule-kernel-grsec-fifo" selected="true" />
+    <select idref="rule-kernel-grsec-chroot" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-mount" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-double" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-pivot" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-chdir" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-chmod" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-fchdir" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-mknod" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-shmat" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-unix" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-findtask" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-nice" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-sysctl" selected="true" />
+    <select idref="rule-kernel-grsec-chroot-caps" selected="true" />
   </Profile>
   <Group id="gr-intro">
     <title>Introduction</title>
@@ -106,12 +148,14 @@
 	<h:br />
 	<h:br />
 	Create a file called <h:code>emerge-info-verbose</h:code> in a working directory
-	somewhere (say <h:code>/var/tmp/genoval_output</h:code>) and export the environment
-	variable <h:em>GENOVAL_SCRIPTOUTPUTDIR</h:em> to this directory:
+	somewhere (say <h:code>/var/tmp/genoval_output</h:code>), do the same for the
+	kernel configuration (but call the file <h:code>kernel-config</h:code>) and
+	export the environment variable <h:em>GENOVAL_SCRIPTOUTPUTDIR</h:em> to this directory:
 	<h:pre>### Generate output for the tests ###
 # <h:b>mkdir /var/tmp/genoval_output</h:b>
 # <h:b>export GENOVAL_SCRIPTOUTPUTDIR=/var/tmp/genoval_output</h:b>
-# <h:b>emerge --info --verbose &gt; /var/tmp/genoval_output/emerge-info-verbose</h:b></h:pre>
+# <h:b>emerge --info --verbose &gt; /var/tmp/genoval_output/emerge-info-verbose</h:b>
+# <h:b>zcat /proc/config.gz &gt; /var/tmp/genoval_output/kernel-config</h:b></h:pre>
 	<h:br />
 	Now, to validate the tests, you can use the following commands:
         <h:pre>### Testing the rules mentioned in the XCCDF document ###
@@ -150,6 +194,20 @@
         the tool is or is not installed. So a test that checks the content of <h:code>sshd_config</h:code>
         will fail (error actually) if the file doesn't exist. Although this can be made much more
         intelligent, this is not the scope of this document (yet).
+      </description>
+    </Group>
+    <Group id="gr-intro-profiles">
+      <title>Available XCCDF Profiles</title>
+      <description>
+        As mentioned earlier, the XCCDF document supports multiple profiles. For the time
+	being, two profiles are defined:
+	<h:br />
+	<h:ul>
+	  <h:li>Gentoo-Default contains tests that are quick to validate</h:li>
+	  <h:li>Gentoo-Default-Full contains all tests, including those that take a while
+	  (for instance because they perform full file system scans)</h:li>
+	</h:ul>
+	Substitute the profile information in the commands above with the profile you want to test on.
       </description>
     </Group>
   </Group>
@@ -285,7 +343,7 @@
             options targetting the file systems' security settings or quota.
           </description>
 	  <!-- @@GEN START rule-partition-home -->
-	  <Rule id="rule-partition-home">
+	  <Rule id="rule-partition-home" selected="false">
             <status date="2011-11-03">draft</status>
 	    <title>/home should be a separate partition</title>
 	    <description>
@@ -320,6 +378,10 @@
  [5] x86_64-pc-linux-gnu-4.4.5-hardenednossp
  [6] x86_64-pc-linux-gnu-4.4.5-vanilla</h:pre>
       </description>
+      <!-- @@GEN START rule-gentoo-profile-hardened -->
+      <!-- @@GEN END rule-gentoo-profile-hardened -->
+      <!-- @@GEN START rule-gentoo-gccspecs-empty -->
+      <!-- @@GEN END rule-gentoo-gccspecs-empty -->
     </Group>
   </Group>
   <Group id="gt-system">
@@ -801,18 +863,184 @@ SYNC=""</h:pre>
         mind. When using grSecurity, additional security-enhancing settings can
         be enabled.
       </description>
-      <Group id="gt-system-kernel-tpe">
-        <title>Enable Trusted Path Execution</title>
-        <description>
-          When using <h:code>sys-kernel/hardened-sources</h:code>, enable
-          <h:code>CONFIG_GRKERNSEC_TPE</h:code>, which enabled <h:em>Trusted
-          Path Execution</h:em>, a safety measure that ensures that, for a set
-          of users, these users can only execute binaries and scripts from
-          root-owned directories.
-        </description>
-        <reference
-        href="http://www.gentoo.org/proj/en/hardened/grsec-tpe.xml">Gentoo
-        Hardened grSecurity TPE Guide</reference>
+      <Group id="gt-system-kernel-grsec">
+        <title>Use grSecurity</title>
+	<description>
+          grSecurity is a set of kernel patches that provides additional countermeasures
+	  against popular exploit methods and common vulnerabilities. Although the patchset
+	  is not part of the mainstream Linux kernel sources, Gentoo offers grSecurity through
+	  the <h:code>hardened-sources</h:code> kernel package.
+	</description>
+	<reference href="https://grsecurity.net">grSecurity Homepage</reference>
+	<reference href="http://www.gentoo.org/proj/en/hardened/grsecurity.xml">Gentoo grSecurity v2 Guide</reference>
+	<!-- @@GEN START rule-kernel-grsec -->
+	<!-- @@GEN END rule-kernel-grsec -->
+	<Group id="gt-system-kernel-grsec-pax">
+          <title>Use PaX</title>
+	  <description>
+	    With PaX, additional protection against memory corruption bugs and exploits
+	    is enabled. We recommend to enable the following settings:
+	    <h:ul>
+	    <h:li>
+	      <h:em>Use legacy ELF header marking</h:em> (CONFIG_PAX_EI_PAX) and
+	      <h:em>Use ELF program header marking</h:em> (CONFIG_PAX_PT_PAX_FLAGS) so that you can enable/disable
+	      PaX settings on a per-binary basis. 
+	    </h:li>
+	    <h:li>
+	      <h:em>Enforce non-executable pages</h:em> (CONFIG_PAX_NOEXEC) to disable allocation of
+	      memory that is both executable (contains runnable code) and writeable. Write- and executable
+	      pages are risky as it allows attackers to introduce code (through overflows or other methods) 
+	      in memory and then execute that code. However, the downside is that there are still applications
+	      (or drivers) that depend on RWX memory.
+	    </h:li>
+	    <h:li>
+	      <h:em>Segmentation based non-executable pages</h:em> (CONFIG_PAX_SEGMEXEC) or
+	      <h:em>Paging based non-executable pages</h:em> (CONFIG_PAX_PAGEEXEC) will support the
+	      non-executable pages through memory segmentation or paging rules. 
+	    </h:li>
+	    <h:li>
+	      <h:em>Emulate trampolines</h:em> (CONFIG_PAX_EMUTRAMP) if you are on x86_32 architecture (the option
+	      is not available for x86_64). This will enable emulation of trampolines (small bits of code in 
+	      non-executable memory pages) for those applications that you enable this on (which can be triggered
+	      through <h:b>chpax</h:b> or <h:b>paxctl</h:b>).
+	    </h:li>
+	    <h:li>
+	      <h:em>Restrict mprotect()</h:em> (CONFIG_PAX_MPROTECT) will restrict the use of <h:em>mprotect()</h:em>
+	      so that applications cannot switch the purpose of pages (executable vs non-executable and such) after
+	      creating them.
+	    </h:li>
+	    <h:li>
+	      <h:em>Address Space Layout Randomization</h:em> (CONFIG_PAX_ASLR) to introduce some randomization
+	      in the memory allocation so that attackers will find it much more difficult to guess the address
+	      of specific pages correctly.
+	    </h:li>
+	    <h:li>
+	      <h:em>Randomize kernel stack base</h:em> (CONFIG_PAX_RANDKSTACK) to randomize every task's kernel
+	      stack on each system call, making it more difficult to both guess locations as well as use leaked
+	      information from previous calls.
+	    </h:li>
+	    <h:li>
+	      <h:em>Randomize user stack base</h:em> (CONFIG_PAX_RANDUSTACK) to randomize every task's userland
+	      stack, providing similar protection as mentioned earlier but for user applications.
+	    </h:li>
+	    <h:li>
+	      <h:em>Randomize mmap() base</h:em> (CONFIG_PAX_RANDMMAP) to randomize the base address of
+	      mmap() requests (unless the requests specify an address themselves). This will cause dynamically
+	      loaded libraries to appear at random addresses.
+	    </h:li>
+	  </h:ul>
+	  </description>
+	  <!-- @@GEN START rule-kernel-grsec-pax -->
+	  <!-- @@GEN END rule-kernel-grsec-pax -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-noexec -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-noexec -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-anyexec -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-anyexec -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-mprotect -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-mprotect -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-aslr -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-aslr -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-randkstack -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-randkstack -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-randustack -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-randustack -->
+	  <!-- @@GEN START rule-kernel-grsec-pax-randmmap -->
+	  <!-- @@GEN END rule-kernel-grsec-pax-randmmap -->
+	</Group>
+	<Group id="gt-system-kernel-grsec-filesystem">
+          <title>Enable file system protection measures</title>
+	  <description>
+	    In the grSecurity patches, a set of additional protections are included to thwart information
+	    leakage as well as further limit chroot environments. We recommend to enable the following settings:
+	    <h:ul>
+	    <h:li>
+	      <h:em>Proc restrictions</h:em> (CONFIG_GRKERNSEC_PROC) so that the <h:code>/proc</h:code> file system
+	      will be altered to enhance privacy (prevent information leakage).
+	    </h:li>
+	    <h:li>
+	      <h:em>Restrict /proc to user only</h:em> (CONFIG_GRKERNSEC_PROC_USER) so that non-root users cannot 
+	      see processes of other users.
+	    </h:li>
+	    <h:li>
+	      <h:em>Allow special group</h:em> (CONFIG_GRKERNSEC_PROC_USERGROUP) so that the members of a specific
+	      group can see other users' processes and network-related information.
+	    </h:li>
+	    <h:li>
+	      <h:em>Additional restrictions</h:em> (CONFIG_GRKERNSEC_PROC_ADD) will prevent non-root users to
+	      see device information and memory information which can be (ab)used for exploit purposes.
+	    </h:li>
+	    <h:li>
+	      <h:em>Linking restrictions</h:em> (CONFIG_GRKERNSEC_LINK) will prevent users to follow
+	      symlinks that are owned by other users in world-writeable sticky directories such as <h:code>/tmp</h:code>
+	      (unless that user is the owner of that directory). This prevents a certain kind of race conditions.
+	    </h:li>
+	    <h:li>
+	      <h:em>FIFO restrictions</h:em> (CONFIG_GRKERNSEC_FIFO) will prevent users to write into 
+	      FIFOs in world-writeable sticky directories (like <h:code>/tmp</h:code> if they do not own
+	      these FIFOs themselves.
+	    </h:li>
+	    <h:li>
+	      <h:em>Chroot jail restrictions</h:em> (CONFIG_GRKERNSEC_CHROOT and all chroot-related options) to
+	      make the chroot jails more strict and less easy to break out from. 
+	    </h:li>
+	  </h:ul>
+	  </description>
+	  <!-- @@GEN START rule-kernel-grsec-proc -->
+	  <!-- @@GEN END rule-kernel-grsec-proc -->
+	  <!-- @@GEN START rule-kernel-grsec-proc-user -->
+	  <!-- @@GEN END rule-kernel-grsec-proc-user -->
+	  <!-- @@GEN START rule-kernel-grsec-proc-usergroup -->
+	  <!-- @@GEN END rule-kernel-grsec-proc-usergroup -->
+	  <!-- @@GEN START rule-kernel-grsec-proc-add -->
+	  <!-- @@GEN END rule-kernel-grsec-proc-add -->
+	  <!-- @@GEN START rule-kernel-grsec-link -->
+	  <!-- @@GEN END rule-kernel-grsec-link -->
+	  <!-- @@GEN START rule-kernel-grsec-fifo -->
+	  <!-- @@GEN END rule-kernel-grsec-fifo -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-mount -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-mount -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-double -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-double -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-pivot -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-pivot -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-chdir -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-chdir -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-chmod -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-chmod -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-fchdir -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-fchdir -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-mknod -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-mknod -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-shmat -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-shmat -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-unix -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-unix -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-findtask -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-findtask -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-nice -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-nice -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-sysctl -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-sysctl -->
+	  <!-- @@GEN START rule-kernel-grsec-chroot-caps -->
+	  <!-- @@GEN END rule-kernel-grsec-chroot-caps -->
+	</Group>
+        <Group id="gt-system-kernel-grsec-tpe">
+          <title>Enable Trusted Path Execution</title>
+          <description>
+            When using <h:code>sys-kernel/hardened-sources</h:code>, enable
+            <h:code>CONFIG_GRKERNSEC_TPE</h:code>, which enabled <h:em>Trusted
+            Path Execution</h:em>, a safety measure that ensures that, for a set
+            of users, these users can only execute binaries and scripts from
+            root-owned directories.
+          </description>
+  	<reference
+          href="http://www.gentoo.org/proj/en/hardened/grsec-tpe.xml">Gentoo
+          Hardened grSecurity TPE Guide</reference>
+          <!-- @@GEN START rule-kernel-tpe -->
+  	<!-- @@GEN END rule-kernel-tpe -->
+        </Group>
       </Group>
       <Group id="gt-system-kernel-sysctl">
         <title>Kernel Tunables (Sysctl)</title>
@@ -1207,6 +1435,13 @@ session   required pam_unix.so</h:pre>
           is a directory with the sticky bit set, or a symbolic link (whose
           world writable privilege is not accessible anyhow).
         </description>
+	<Rule id="rule-world-writeable-sticky" selected="false">
+          <title>World writeable directories must have sticky bit set</title>
+	  <description>World writeable directories must have sticky bit set</description>
+	  <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+	    <check-content-ref href="scap-gentoo-oval.xml" name="oval:@@OVALNS@@.static:def:1" />
+	  </check>
+	</Rule>
       </Group>
       <Group id="gt-system-fileprivileges-suidsgid">
         <title>Limit Setuid and Setgid File and Directory Usage</title>

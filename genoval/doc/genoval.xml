@@ -1,0 +1,293 @@
+<?xml version='1.0' encoding="utf-8"?>
+<!DOCTYPE guide SYSTEM "/dtd/guide.dtd">
+<guide>
+<title>Generating OVAL documents with genoval.sh</title>
+<author title="Author">
+  <mail>swift</mail>
+</author>
+<abstract>
+To help maintain XCCDF documents as well as allow fast additions of generic
+topics in the documents, the genoval.sh script uses a templating-mechanism and
+more readable definitions (instead of XML). This document describes genoval.sh
+and how to use it.
+</abstract>
+
+<version>1</version>
+<date>2011-12-23</date>
+
+<chapter>
+<title>OVAL and genoval.sh</title>
+<section>
+<title>Introduction</title>
+<body>
+
+<p>
+While developing a security guide for Gentoo (Hardened), I chose to use the OVAL
+and XCCDF formats as defined by NIST. These formats, although not GuideXML,
+allow for integration with other security-related tools.
+</p>
+
+<p>
+One huge advantage of XCCDF and OVAL, compared to regular documents, is that
+they allow for the definitions to be executed by tools that are compatible with
+the SCAP language. In other words, you can have your system checked (as far as
+possible) against the content of the document. The disadvantage however is that
+this requires <e>a lot</e> of XML code which makes it quite difficult to read
+and maintain.
+</p>
+
+<p>
+The <b>genoval.sh</b> script, documented here, helps a bit in the maintenance of
+such documents. It translates more readable lines into OVAL XML code.
+</p>
+
+<pre caption="Example translation result">
+<comment>(The line that genoval.sh captures)</comment>
+sysctl net.ipv4.ip_forward must be 0 [rule-sysctl-ipv4-forward]
+
+<comment>(The result of the translation, in XCCDF document)</comment>
+<![CDATA[
+<Rule id="rule-sysctl-ipv4-forward">
+  <title>sysctl net.ipv4.ip_forward must be 0</title>
+  <description>sysctl net.ipv4.ip_forward must be 0</description>
+  <fix>echo 0 &gt; /proc/sys/net/ipv4/ip_forward</fix>
+  <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+    <check-content-ref name="oval:org.gentoo.dev.swift:def:21" href="scap-gentoo-oval.xml" />
+  </check>
+</Rule>
+]]>
+
+<comment>(The result of the translation, in OVAL document)</comment>
+<![CDATA[
+<definition class="compliance" id="oval:org.gentoo.dev.swift:def:21" version="1">
+  <metadata>
+    <title>sysctl net.ipv4.ip_forward must be 0</title>
+    <description>sysctl net.ipv4.ip_forward must be 0</description>
+  </metadata>
+  <criteria>
+    <criterion test_ref="oval:org.gentoo.dev.swift:tst:21" comment="sysctl net.ipv4.ip_forward must be 0" />
+  </criteria>
+</definition>
+...
+<ind-def:textfilecontent54_test id="oval:org.gentoo.dev.swift:tst:21" version="1" check="at least one" comment="sysctl net.ipv4.ip_forward must be 0" check_existence="at_least_one_exists">
+  <ind-def:object object_ref="oval:org.gentoo.dev.swift:obj:6" />
+  <ind-def:state state_ref="oval:org.gentoo.dev.swift:ste:18" />
+</ind-def:textfilecontent54_test>
+...
+<ind-def:textfilecontent54_object id="oval:org.gentoo.dev.swift:obj:6" version="1" comment="Non-comment lines in /proc/sys/net/ipv4/ip_forward">
+  <ind-def:filepath>/proc/sys/net/ipv4/ip_forward</ind-def:filepath>
+  <ind-def:pattern operation="pattern match">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>
+  <ind-def:instance datatype="int" operation="greater than or equal">1</ind-def:instance>
+</ind-def:textfilecontent54_object>
+...
+<ind-def:textfilecontent54_state id="oval:org.gentoo.dev.swift:ste:18" version="1" comment="The match of 0">
+  <ind-def:subexpression operation="pattern match">0</ind-def:subexpression>
+</ind-def:textfilecontent54_state>
+]]>
+</pre>
+
+<p>
+As you can see, the single line expands into more than 30 lines across two
+documents. Now, the OVAL language is very powerful so for more complex
+activities, it is imo no problem to manually sift through it. But for generic
+tests (like regular expression matches of files or variables) this can better be
+automated. And that's the purpose of <b>genoval.sh</b>.
+</p>
+
+</body>
+</section>
+<section>
+<title>Setting up genoval.sh</title>
+<body>
+
+<p>
+To setup genoval, you can <c>git clone</c> from my "small.coding" repository.
+The <b>genoval</b> code is in the subdirectory called genoval (har har).
+</p>
+
+<pre caption="Getting genoval.sh">
+$ <i>git clone http://github.com/sjvermeu/small.coding.git</i>
+</pre>
+
+<p>
+Edit the <path>Makefile</path> since it points to my personal directories and as
+such will probably not work for you ;-)
+</p>
+
+<p>
+You will notice that it contains the sources for the Gentoo security benchmark
+as well. Consider that a nice example to work from ;-)
+</p>
+
+</body>
+</section>
+<section>
+<title>Defining the rules</title>
+<body>
+
+<p>
+Start by defining the rules that you want to check for. The file is called
+<path>definitions.conf</path> and currently supports the following definition
+lines (the highlighted parts can be changed to your liking):
+</p>
+
+<pre caption="Example definitions.conf">
+<i>/home</i> is a separate file system [<i>rule-partition-home</i>]
+<i>/tmp</i> is a separate file system of type <i>tmpfs</i> [<i>rule-partition-tmp</i>]
+mount point <i>/home</i> is mounted with <i>nosuid</i> option [<i>rule-home-mount-nosuid</i>]
+file <i>/etc/ssh/sshd_config</i> must have a line that matches <i>^PermitRootLogin.*no</i> [<i>rule-sshd-norootlogin</i>]
+file <i>/etc/ssh/sshd_config</i> may not have a line that matches <i>^UsePAM.*yes</i> [<i>rule-sshd-nousepam</i>]
+sysctl <i>net.ipv4.ip_forward</i> must be <i>0</i> [<i>rule-sysctl-ipv4-forward</i>]
+gentoo variable <i>USE</i> must contain <i>pam</i> [<i>rule-gentoo-use-pam</i>]
+gentoo variable <i>GCC_SPECS</i> must be [<i>rule-gentoo-gccspecs-empty</i>]
+gentoo profile must contain <i>hardened</i> [<i>rule-gentoo-profile-hardened</i>]
+</pre>
+
+<p>
+The lines contain information how the system <e>should be</e>. It always ends
+with the rule name between [ and ].
+</p>
+
+</body>
+</section>
+<section>
+<title>Editing the XCCDF file</title>
+<body>
+
+<p>
+The XCCDF file contains the benchmark document itself (the guide that describes
+to the user how to harden his system). To use XCCDF with <c>genoval.sh</c>, edit
+the <path>scap-gentoo-xccdf.xml.template</path> file (if you use your own XML
+files, make sure it ends with <path>-xccdf.xml.template</path>). The purpose of
+<c>genoval.sh</c> here is to automatically generate Rule definitions, which you
+can do as follows:
+</p>
+
+<pre caption="Snippet from XCCDF for genoval">
+<![CDATA[
+        <Group id="gt-system-kernel-sysctl-ipv4forward">
+          <title>Disable IPv4 Forwarding</title>
+          <description>
+            The <h:code>net.ipv4.ip_forward</h:code> sysctl setting controls if
+            IP forwarding is allowed or not on the system.
+            <h:br />
+            <h:br />
+            Unless the system is used as a router or gateway, IPv4 forwarding
+            should be disabled.
+          </description>
+          <!-- @@GEN START rule-sysctl-ipv4-forward -->
+          <!-- @@GEN END rule-sysctl-ipv4-forward -->
+        </Group>
+]]>
+</pre>
+
+<p>
+The <c>@@GEN START rule-sysctl-ipv4-forward</c> and the <c>END</c> one are
+important here: between these lines, <c>genoval.sh</c> will insert the necessary
+Rule code. The name (<c>rule-sysctl-ipv4-forward</c>) is taken from the
+<path>definitions.conf</path> file.
+</p>
+
+<p>
+Make sure that you add a <c>select</c> line in the beginning of the document on
+the <c>Profile</c>:
+</p>
+
+<pre caption="Adding a select line for rule-sysctl-ipv4-forward">
+<![CDATA[
+  <Profile id="Gentoo-Default">
+    ...
+    <select idref="rule-sysctl-ipv4-forward" selected="true" />
+  </Profile>
+]]>
+</pre>
+
+</body>
+</section>
+<section>
+<title>Editing the OVAL file</title>
+<body>
+
+<p>
+The OVAL content is automatically generated from the
+<path>scap-gentoo-oval.xml.template</path> file, which contains the necessary
+placeholders between which <c>genoval.sh</c> will generate the necessary lines.
+</p>
+
+<p>
+If you need to add your own OVAL statements, just edit this template file but
+never between the <c>START</c> and <c>END</c> statements for <c>genoval.sh</c>!
+</p>
+
+<p>
+Also, make sure that the name of the file is similar to the XCCDF one, just with
+<path>oval</path> instead of <path>xccdf</path> in the name.
+</p>
+
+</body>
+</section>
+<section>
+<title>Calling genoval.sh</title>
+<body>
+
+<p>
+To execute the magic, call <c>genoval.sh</c> with three arguments:
+</p>
+
+<ul>
+<li>
+  Name of the XCCDF template file (currect directory)
+</li>
+<li>
+  Namespace to use for the OVAL ids (like "org.gentoo.dev.swift")
+</li>
+<li>
+  Directory in which to save the results
+</li>
+</ul>
+
+<p>
+For instance:
+</p>
+
+<pre caption="Calling genoval.sh">
+$ <i>./genoval.sh scap-gentoo-xccdf.xml.template org.gentoo.dev.swift .</i>
+File scap-gentoo-oval.xml already exists. Renaming to scap-gentoo-oval.xml.20111223134826.607527446
+Loading in ./lib/00-lib-gentoo.sh...
+Loading in ./lib/00-lib-sysctl.sh...
+Loading in ./lib/99-lib-fix.sh...
+Loading in ./lib/99-lib-general.sh...
+</pre>
+
+<p>
+The <c>genoval.sh</c> script does not just overwrite an existing OVAL file. Instead,
+it makes a backup first. I do this because I might want to check the differences
+during development.
+</p>
+
+<p>
+Once generated, you can execute the following to generate a report as well as
+guide:
+</p>
+
+<pre caption="Running XCCDF/OVAL content">
+<comment>### Generate the Gentoo specific output that OVAL cannot capture otherwise</comment>
+# <i>emerge --info --verbose &gt; emerge-info-verbose</i>
+# <i>zcat /proc/config.gz &gt; kernel-config || cp /usr/src/linux/.config # kernel-config</i>
+# <i>export GENOVAL_SCRIPTOUTPUTDIR=$(pwd)</i>
+
+<comment>### Generate the guide in HTML format</comment>
+# <i>oscap xccdf generate guide scap-gentoo-xccdf.xml &gt; guide.html</i>
+
+<comment>### Verify the local system and generate report</comment>
+# <i>oscap xccdf eval --oval-results --profile Gentoo-Default --results xccdf-results.xml --report report.html</i>
+
+<comment>### Generate fix script where possible</comment>
+# <i>oscap xccdf generate fix --result-id OSCAP-Test-Gentoo-Profile xccdf-results.xml &gt; fixscript.sh</i>
+</pre>
+
+</body>
+</section>
+</chapter>
+
+</guide>

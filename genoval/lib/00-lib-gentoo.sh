@@ -7,7 +7,16 @@ gentooVariableMatches() {
   return 1;
 }
 
+gentooProfileMatches() {
+  echo ${LINE} | grep -q '^gentoo profile ' && return 0;
+  return 1;
+}
+
 gentooVariableFile() {
+  echo "emerge-info-verbose";
+}
+
+gentooProfileFile() {
   echo "emerge-info-verbose";
 }
 
@@ -32,3 +41,15 @@ gentooVariableRegexp() {
   fi
 }
 
+gentooProfileRegexp() {
+  local REGEXP=$(echo "${LINE}" | sed -e 's:^gentoo profile must contain ::g');
+  # profile is first line of output, after (
+  echo "^Portage.*\\\(.*${REGEXP}.*, gcc.*";
+  return 0;
+}
+
+gentooProfileFix() {
+  local VALUE=$(echo "${LINE}" | sed -e 's:^gentoo profile must contain ::g');
+  echo 'eselect profile set `eselect profile list | awk /${VALUE}/ '"{print \$2; exit}"'`';
+  return 0;
+}

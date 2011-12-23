@@ -57,36 +57,20 @@ touch states.conf;
 ###
 ### HERE STARTS THE REAL WORK
 ###
-cat > ${OVAL} << EOF
-<?xml version="1.0"?>
-<oval_definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5"
- xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5"
- xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5"
- xmlns:ind-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent"
- xmlns:lin-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux"
- xmlns:unix-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
-  <generator>
-    <oval:product_name>vim</oval:product_name>
-    <oval:schema_version>5.9</oval:schema_version>
-    <oval:timestamp>2011-10-31T12:00:00-04:00</oval:timestamp>
-  </generator>
-
-<definitions>
-EOF
+grep -B 9999 "@@GENOVAL START DEFINITIONS" ${OVAL}.template > ${OVAL};
 
 ##
 ## Regenerate XCCDF file and OVAL definitions based on definitions.conf.
 ##
 for RULE in $(sed -e 's:.*\[\([^[]*\)\]$:\1:g' definitions.conf);
 do
-  export LINE=$(grep ${RULE} definitions.conf | sed -e 's: \[[^[]*\]$::g');
+  export LINE=$(grep "\[${RULE}\]" definitions.conf | sed -e 's: \[[^[]*\]$::g');
   LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
   grep -q "@@GEN START ${RULE} " ${XCCDF} || continue;
 
   # XCCDF
   grep -B 99999 "@@GEN START ${RULE} " ${XCCDF} > ${XCCDF}.work;
-  echo "<Rule id=\"${RULE}\">" >> ${XCCDF}.work;
+  echo "<Rule id=\"${RULE}\" selected=\"false\">" >> ${XCCDF}.work;
   echo "  <title>${LINE}</title>" >> ${XCCDF}.work;
   echo "  <description>${LINE}</description>" >> ${XCCDF}.work;
   if `hasFix`;
@@ -112,16 +96,14 @@ do
   echo "</definition>" >> ${OVAL};
 done
 
-echo "</definitions>" >> ${OVAL};
-echo "" >> ${OVAL};
-echo "<tests>" >> ${OVAL};
+grep -A 9999 "@@GENOVAL END DEFINITIONS" ${OVAL}.template | grep -B 9999 "@@GENOVAL START TESTS" >> ${OVAL};
 
 ##
 ## Loop over definitions to generate tests
 ##
 for RULE in $(sed -e 's:.*\[\([^[]*\)\]$:\1:g' definitions.conf);
 do
-  export LINE=$(grep ${RULE} definitions.conf | sed -e "s: \[${RULE}\]$::g");
+  export LINE=$(grep "\[${RULE}\]" definitions.conf | sed -e "s: \[${RULE}\]$::g");
   export LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
 
   ## Test for separate file system
@@ -203,11 +185,31 @@ do
 
     genTextfileMatch "at least one" >> ${OVAL};
   fi
+
+  ## Test for gentoo profile
+  if `gentooProfileMatches`;
+  then
+    FILE=$(gentooProfileFile);
+    REGEXP=$(gentooProfileRegexp);
+    export OBJNUM=$(getObjnum "scriptoutput" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+
+    genTextfileMatch "at least one" >> ${OVAL};
+  fi
+
+  ## Test for kernel config
+  if `kernelMatches`;
+  then
+    FILE=$(kernelFile);
+    REGEXP=$(kernelRegexp);
+    export OBJNUM=$(getObjnum "scriptoutput" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+
+    genTextfileMatch "at least one" >> ${OVAL};
+  fi
 done
 
-echo "</tests>" >> ${OVAL};
-echo "" >> ${OVAL};
-echo "<objects>" >> ${OVAL};
+grep -A 9999 "@@GENOVAL END TESTS" ${OVAL}.template | grep -B 9999 "@@GENOVAL START OBJECTS" >> ${OVAL};
 
 ##
 ## Loop over objects.conf to generate objects
@@ -249,14 +251,7 @@ do
   fi
 done
 
-# Specific GENOVAL objects
-echo "<ind-def:environmentvariable_object id=\"oval:${OVALNS}.genoval:obj:1\" version=\"1\">" >> ${OVAL};
-echo "  <ind-def:name>GENOVAL_SCRIPTOUTPUTDIR</ind-def:name>" >> ${OVAL};
-echo "</ind-def:environmentvariable_object>" >> ${OVAL};
-
-echo "</objects>" >> ${OVAL};
-echo "" >> ${OVAL};
-echo "<states>" >> ${OVAL};
+grep -A 9999 "@@GENOVAL END OBJECTS" ${OVAL}.template | grep -B 9999 "@@GENOVAL START STATES" >> ${OVAL};
 
 ##
 ## Loop over states.conf to generate states
@@ -303,18 +298,11 @@ do
   fi
 done < states.conf;
 
-echo "</states>" >> ${OVAL};
+grep -A 9999 "@@GENOVAL END STATES" ${OVAL}.template >> ${OVAL};
 
-## Specific variables used by genoval
-echo "" >> ${OVAL};
-echo "<variables>" >> ${OVAL};
-# Location of GENOVAL_SCRIPTOUTPUTDIR
-echo "<local_variable id=\"oval:${OVALNS}.genoval:var:1\" version=\"1\" datatype=\"string\" comment=\"Location where the helper scripts output is stored\">" >> ${OVAL};
-echo "  <object_component item_field=\"value\" object_ref=\"oval:${OVALNS}.genoval:obj:1\"/>" >> ${OVAL};
-echo "</local_variable>" >> ${OVAL};
-echo "</variables>" >> ${OVAL};
-
-echo "</oval_definitions>" >> ${OVAL};
+# Substitute variables
+sed -i -e "s:@@OVALNS@@:${OVALNS}:g" ${OVAL};
+sed -i -e "s:@@OVALNS@@:${OVALNS}:g" ${XCCDF};
 
 popd > /dev/null 2>&1;
 

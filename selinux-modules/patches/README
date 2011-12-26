@@ -87,11 +87,14 @@ not yet approved).
 0073 . dhcpd can use ldap as a backend
 0074 . inetd should also be allowed to bind/listen on pop port
 0075 - allow mozilla plugin to read its configuration files ($$$TODO currently still generic)
-0076 . support slim and lxdm contexts
+0076 + support slim and lxdm contexts
 0077 - introduce dontaudit statements to clean up audit logs
 0078 - mark portage_ebuild_t as a mountpoint
 0079 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
 0080 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
+0081 - add virtualization context files
+0082 - allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
+0083 - ensure that libvirt can be started properly by initrc_t
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

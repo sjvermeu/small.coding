@@ -202,7 +202,7 @@ do
   then
     FILE=$(kernelFile);
     REGEXP=$(kernelRegexp);
-    export OBJNUM=$(getObjnum "scriptoutput" "${FILE}");
+    export OBJNUM=$(getObjnum "scriptoutput_kernelconfig" "${FILE}");
     export STENUM=$(getStenum "regexp" "${REGEXP}");
 
     genTextfileMatch "at least one" >> ${OVAL};
@@ -246,6 +246,17 @@ do
     echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}.genoval:var:1\"/>" >> ${OVAL};
     echo "  <ind-def:filename>${OBJVALUE}</ind-def:filename>" >> ${OVAL};
     echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
+    echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
+    echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+  fi
+
+  ## Kernel configuration
+  if [ "${OBJTYPE}" == "scriptoutput_kernelconfig" ];
+  then
+    echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Kernel configuration entry ${OBJVALUE%%@*}\">" >> ${OVAL};
+    echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}.genoval:var:1\"/>" >> ${OVAL};
+    echo "  <ind-def:filename>${OBJVALUE##*@}</ind-def:filename>" >> ${OVAL};
+    echo "  <ind-def:pattern operation=\"pattern match\">(${OBJVALUE%%@*}.*)</ind-def:pattern>" >> ${OVAL};
     echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
   fi

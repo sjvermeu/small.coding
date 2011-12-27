@@ -141,6 +141,9 @@ sysctl <i>net.ipv4.ip_forward</i> must be <i>0</i> [<i>rule-sysctl-ipv4-forward<
 gentoo variable <i>USE</i> must contain <i>pam</i> [<i>rule-gentoo-use-pam</i>]
 gentoo variable <i>GCC_SPECS</i> must be [<i>rule-gentoo-gccspecs-empty</i>]
 gentoo profile must contain <i>hardened</i> [<i>rule-gentoo-profile-hardened</i>]
+kernel config <i>CONFIG_GRKERNSEC_TPE</i> must be <i>y</i> [<i>rule-kernel-grsec-tpe</i>]
+kernel config <i>CONFIG_GRKERNSEC_USER</i> must be enabled [<i>rule-kernel-grsec-user</i>]
+kernel config <i>CNOFIG_GRKERNSEC_IGNOREMRE</i> must not be set [<i>rule-kernel-grsec-ignoremre</i>]
 </pre>
 
 <p>

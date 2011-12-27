@@ -8,7 +8,8 @@ kernelMatches() {
 }
 
 kernelFile() {
-  echo "kernel-config";
+  local SETTING=$(echo ${LINE} | awk '{print $3}');
+  echo "${SETTING}@kernel-config";
 }
 
 kernelRegexp() {

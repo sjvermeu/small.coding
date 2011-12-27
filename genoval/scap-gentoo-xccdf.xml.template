@@ -668,6 +668,8 @@ PubkeyAuthentication yes</h:pre>
                 accepting regular password authentication again.
               </h:li>
             </h:ul>
+	    Only when PAM support is necessary on your system (for instance because
+	    you use a centralized authentication approach) should this be enabled.
           </description>
           <!-- @@GEN START rule-sshd-nousepam -->
 	  <!-- @@GEN END rule-sshd-nousepam -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
-  <status date="2011-11-23">draft</status>
+  <status date="2011-12-27">draft</status>
   <title>Gentoo Security Benchmark</title>
   <description>
     This benchmarks helps people in improving their system configuration to be
@@ -102,7 +102,23 @@
       configuration for a Gentoo systems. Although this is important, an
       improved method for describing and tuning a systems' security state has
       emerged: SCAP, or the <h:em>Security Content Automation Protocol</h:em>.
+      <h:br />
+      <h:br />
+      As such, this benchmark is a first attempt to have an update on the security
+      handbook, including both the in-depth explanation of settings as well as the
+      means to validate if a system complies with this or not. Now, during the development
+      of this benchmark document, we did not include all information from the Gentoo 
+      Security Handbook as some of the settings are specific to a service that is not
+      all that default on a Gentoo Linux system. Although these settings are important
+      as well, it is our believe that this is best done in separate benchmarks for those
+      services instead.
+      <h:br />
+      <h:br />
+      However, most common services like SSH will be covered as those are easily found
+      on many Gentoo Linux systems.
     </description>
+    <reference href="http://www.gentoo.org/doc/en/security/security-handbook.xml">Gentoo
+    Security Handbook</reference>
     <Group id="gr-intro-scap">
       <title>A little more about SCAP and OVAL</title>
       <description>
@@ -383,13 +399,32 @@
       <!-- @@GEN START rule-gentoo-gccspecs-empty -->
       <!-- @@GEN END rule-gentoo-gccspecs-empty -->
     </Group>
+    <Group id="gt-installation-selinux">
+      <title>Use a Mandatory Access Control system</title>
+      <description>
+        Linux uses, by default, what is called a <h:em>Discretionary Access Control</h:em>
+	system. This means, amongst other things, that a user can control which files others
+	can access, but also that he is able to leak information towards other users.
+	<h:br />
+	<h:br />
+	With a <h:em>Mandatory Access Control</h:em> system in place, the security administrator
+	of a system defines security policies to which the entire system should adhere to. Users
+	then can "play" within the defined fields of this policy, but cannot extend this policy themselves.
+	<h:br />
+	<h:br />
+	Linux supports a few of these MAC systems. SELinux is a popular one, grSecurity RBAC system
+	is another, TOMOYO exists as well, etc. It is advisable to use such a MAC system, but its
+	configuration and testing of these settings are beyond the scope of this benchmark for now.
+      </description>
+      <reference href="http://hardened.gentoo.org/selinux">Gentoo Hardened SELinux project page</reference>
+    </Group>
   </Group>
   <Group id="gt-system">
     <title>System Settings</title>
     <description>
       Within this chapter, we describe the (recommended) settings that can be
       adjusted relatively easily, even when a Gentoo installation has already
-      been performed.
+      been performed. This is the bulk of the security settings.
     </description>
     <Group id="gt-system-mounts">
       <title>Mounts and Mount Points</title>
@@ -438,6 +473,11 @@ tmpfs      /tmp      tmpfs      defaults<h:b>,nosuid,noexec,nodev</h:b>   0 0</h
           within this location).
           <h:pre>### Sample /etc/fstab line for /tmp ###
 tmpfs   /tmp   tmpfs       defaults,nosuid,noexec,nodev     0 0</h:pre>
+          Also, the location must have the sticky bit set (cfr the trailing 't' in the
+	  output of <h:b>ls -ld</h:b>).
+	  <h:pre>### Sticky bit for /tmp must be set ###
+# <h:b>ls -ld /tmp</h:b>
+drwxrwxrwt  9 root root  260  Dec 27  16:00  /tmp</h:pre>
         </description>
 	<!-- @@GEN START rule-partition-tmp -->
 	<!-- @@GEN END rule-partition-tmp -->
@@ -497,6 +537,7 @@ tmpfs   /tmp   tmpfs       defaults,nosuid,noexec,nodev     0 0</h:pre>
         <reference
         href="http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch28_:_Managing_Disk_Usage_with_Quotas">Managing
         Disk Usage with Quotas (LinuxHomeNetworking)</reference>
+	<reference href="http://www.gentoo.org/doc/en/kernel-config.xml#shorthand">Gentoo Linux Kernel Configuration - shorthand notation information</reference>
 	<!-- @@GEN START rule-home-mount-usrquota -->
 	<!-- @@GEN END rule-home-mount-usrquota -->
 	<!-- @@GEN START rule-home-mount-grpquota -->
@@ -515,7 +556,7 @@ tmpfs   /tmp   tmpfs       defaults,nosuid,noexec,nodev     0 0</h:pre>
         In this benchmark, we will only focus on those services that are either
         default available on a Gentoo installation (like SSHd) or that are 
         commonly used in Gentoo server architectures (like rsync). For the other
-        services, I refer to other benchmarks.
+        services, we refer to other benchmarks.
       </description>
       <reference href="http://www.cisecurity.org">Center for Internet Security,
       host of many service benchmarks</reference>
@@ -558,7 +599,7 @@ su0:S:wait:/sbin/rc single
           With TCP wrappers, services that support TCP wrappers (or those
           started through <h:b>xinetd</h:b>) should be configured to only accept
           communication with trusted hosts. With the use of
-          <h:code>/etc/hosts.allo</h:code> and <h:code>/etc/hosts.deny</h:code>,
+          <h:code>/etc/hosts.allow</h:code> and <h:code>/etc/hosts.deny</h:code>,
           proper access control lists can be created.
           <h:br />
           <h:br />
@@ -613,7 +654,7 @@ PubkeyAuthentication yes</h:pre>
         <Group id="gt-system-services-ssh-usepam">
           <title>Disable UsePAM for SSH</title>
           <description>
-            Although this is the default setting, I still find it important to
+            Although this is the default setting, we still find it important to
             mention it as many users tend to enable it. <h:code>UsePAM</h:code>
             should remain disabled, and this for the following reasons:
             <h:ul>
@@ -863,6 +904,7 @@ SYNC=""</h:pre>
         mind. When using grSecurity, additional security-enhancing settings can
         be enabled.
       </description>
+      <reference href="http://www.gentoo.org/doc/en/kernel-config.xml#shorthand">Gentoo Kernel Configuration Guide - Shorthand notation information</reference>
       <Group id="gt-system-kernel-grsec">
         <title>Use grSecurity</title>
 	<description>

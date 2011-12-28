@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuprsync";
+typeset STEPS="configsystem configureportage installsoftware setuplighttpd setuprsync setupnfs";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -153,6 +153,21 @@ EOF
   logMessage "done\n";
 }
 
+setupnfs() {
+  logMessage "  > Setting up exports... ";
+  typeset FILE=/etc/exports;
+  typeset META=$(initChangeFile ${FILE});
+  cat > /etc/exports << EOF
+/var/local/rsync/portage	192.168.0.0/24(async,ro,subtree_check,no_root_squash)
+EOF
+  applyMetaOnFile ${FILE} ${META};
+  commitChangeFile ${FILE} ${META};
+  logMessage "done\n";
+
+  ## exportfs -vra to export
+  ## mount -t nfsd none /proc/fs/nfsd first
+}
+
 stepOK "configsystem" && (
 logMessage ">>> Step \"configsystem\" starting...\n";
 runStep configsystem;
@@ -180,6 +195,12 @@ nextStep;
 stepOK "setuprsync" && (
 logMessage ">>> Step \"setuprsync\" starting...\n";
 runStep setuprsync;
+);
+nextStep;
+
+stepOK "setupnfs" && (
+logMessage ">>> Step \"setupnfs\" starting...\n";
+runStep setupnfs;
 );
 nextStep;
 

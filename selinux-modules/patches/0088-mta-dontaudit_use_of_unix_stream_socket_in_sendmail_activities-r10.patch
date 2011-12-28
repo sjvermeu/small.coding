@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/services/mta.if	2011-03-28 17:05:14.000000000 +0200
++++ refpolicy/policy/modules/services/mta.if	2011-12-28 18:28:36.552217331 +0100
+@@ -362,6 +362,8 @@
+ 	allow mta_user_agent $1:fd use;
+ 	allow mta_user_agent $1:process sigchld;
+ 	allow mta_user_agent $1:fifo_file rw_fifo_file_perms;
++
++	dontaudit mta_user_agent $1:unix_stream_socket rw_socket_perms;
+ ')
+ 
+ ########################################

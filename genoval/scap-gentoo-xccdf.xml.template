@@ -55,6 +55,7 @@
     <select idref="rule-sysctl-icmpboguserror" selected="true" />
     <select idref="rule-sysctl-ipv4-all-logmartians" selected="true" />
     <select idref="rule-sysctl-ipv4-default-logmartians" selected="true" />
+    <select idref="rule-sysctl-ipv4-tcpsyncookies" selected="true" />
     <select idref="rule-grub-password" selected="true" />
     <select idref="rule-securetty" selected="true" />
     <select idref="rule-pam-cracklib" selected="true" />
@@ -93,6 +94,7 @@
     <select idref="rule-kernel-grsec-chroot-nice" selected="true" />
     <select idref="rule-kernel-grsec-chroot-sysctl" selected="true" />
     <select idref="rule-kernel-grsec-chroot-caps" selected="true" />
+    <select idref="rule-kernel-syncookies" selected="true" />
   </Profile>
   <Group id="gr-intro">
     <title>Introduction</title>
@@ -1211,11 +1213,44 @@ net.ipv4.ip_forward = 1
 	    <h:br />
 	    Note that martians can only exist if you do not use a "default gateway", since
 	    a default gateway always matches (if no other route does) for any IP address.
+	    <h:br />
+	    <h:br />
+	    Logging of martians can be enabled through <h:code>net.ipv4.conf.*.log_martians=1</h:code>.
 	  </description>
 	  <!-- @@GEN START rule-sysctl-ipv4-all-logmartians -->
 	  <!-- @@GEN END rule-sysctl-ipv4-all-logmartians -->
 	  <!-- @@GEN START rule-sysctl-ipv4-default-logmartians -->
 	  <!-- @@GEN END rule-sysctl-ipv4-default-logmartians -->
+	</Group>
+	<Group id="gt-system-kernel-sysctl-tcpsyncookies">
+          <title>Enable TCP SYN Cookie Protection</title>
+	  <description>
+	    One denial of service attack against a service would be to flood the server with SYN requests
+	    (the TCP package that starts a handshake for a connection). Such a flood can easily lead to a
+	    service disruption as connection state handling would consume a lot of resources in a small timeframe.
+	    <h:br />
+	    <h:br />
+	    By enabling <h:code>net.ipv4.tcp_syncookies</h:code>, the Linux kernel will change its handshake 
+	    behavior when its SYN backlog queue overflows: it replies to SYN requests with the appropriate
+	    SYN+ACK reply, but it does not store the connection in its backlog queue. Instead, it will only
+	    do that when it gets the ACK reply on his SYN+ACK. Based on the information in this reply, the 
+	    Linux kernel can then reconstruct the necessary information to generate an entry in the backlog
+	    queue.
+	    <h:br />
+	    <h:br />
+	    It should be noted that enabling TCP cookies is a last-resort. It changes the TCP stack behavior
+	    of the Linux kernel, violating TCP protocol and dropping support for certain TCP extensions whose
+	    information is only available in a SYN package.
+	    <h:br />
+	    <h:br />
+	    To enable TCP SYN cookie protection, enable <h:code>CONFIG_SYN_COOKIES</h:code> in the kernel, 
+	    set <h:code>net.ipv4.tcp_syncookies=1</h:code> and set proper values for <h:code>net.ipv4.tcp_max_syn_backlog</h:code>,
+	    <h:code>net.ipv4.tcp_synack_retries</h:code> and <h:code>net.ipv4.tcp_abort_on_overflow</h:code>.
+	  </description>
+	  <!-- @@GEN START rule-kernel-syncookies -->
+	  <!-- @@GEN END rule-kernel-syncookies -->
+	  <!-- @@GEN START rule-sysctl-ipv4-tcpsyncookies -->
+	  <!-- @@GEN END rule-sysctl-ipv4-tcpsyncookies -->
 	</Group>
       </Group>
     </Group>

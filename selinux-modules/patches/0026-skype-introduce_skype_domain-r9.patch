@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/apps/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/skype.te	2011-10-09 15:52:23.574569991 +0200
-@@ -0,0 +1,110 @@
++++ refpolicy/policy/modules/apps/skype.te	2011-12-27 17:51:08.298028116 +0100
+@@ -0,0 +1,111 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -53,6 +53,7 @@
 +fs_tmpfs_filetrans(skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
 +
 +kernel_dontaudit_search_sysctl(skype_t)
++kernel_read_network_state(skype_t)
 +kernel_read_system_state(skype_t)
 +
 +corecmd_exec_bin(skype_t)
@@ -109,7 +110,7 @@
 +')
 +
 +optional_policy(`
-+	xdg_read_generic_config_home_files(skype_t)
++	xdg_manage_generic_config_home_content(skype_t)
 +')
 --- refpolicy/policy/modules/apps/skype.if	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/apps/skype.if	2011-10-09 12:46:57.603000482 +0200

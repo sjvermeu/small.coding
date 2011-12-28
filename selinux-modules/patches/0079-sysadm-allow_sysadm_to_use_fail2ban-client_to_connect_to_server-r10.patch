@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2011-12-28 12:53:47.013174451 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2011-12-28 12:52:49.376174328 +0100
+@@ -145,6 +145,10 @@
+ ')
+ 
+ optional_policy(`
++	fail2ban_stream_connect(sysadm_t)
++')
++
++optional_policy(`
+ 	firstboot_run(sysadm_t, sysadm_r)
+ ')
+ 

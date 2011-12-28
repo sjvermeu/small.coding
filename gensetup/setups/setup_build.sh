@@ -164,6 +164,10 @@ EOF
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
 
+  logMessage "  > Setting nfs_export_all_ro to on... ";
+  setsebool -P nfs_export_all_ro on;
+  logMessage "done\n";
+
   ## exportfs -vra to export
   ## mount -t nfsd none /proc/fs/nfsd first
 }

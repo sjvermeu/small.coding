@@ -1,0 +1,24 @@
+--- refpolicy/policy/modules/system/init.if	2011-12-26 13:55:27.583000585 +0100
++++ refpolicy/policy/modules/system/init.if	2011-12-26 13:26:44.177311088 +0100
+@@ -783,7 +783,7 @@
+ 	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
+ 	# wants to execute initrc_exec_t (no transition needed anymore) whereas
+ 	# runscript previously was a binary
+-	allow $1 initrc_exec_t:file execute_no_trans;
++	# allow $1 initrc_exec_t:file execute_no_trans;
+ 
+ 	domain_entry_file($1, initrc_exec_t)
+ ')
+--- refpolicy/policy/modules/system/init.fc	2011-12-26 13:55:27.583000585 +0100
++++ refpolicy/policy/modules/system/init.fc	2011-12-26 13:54:56.587000339 +0100
+@@ -39,10 +39,6 @@
+ 
+ ifdef(`distro_gentoo', `
+ /sbin/rc		--	gen_context(system_u:object_r:rc_exec_t,s0)
+-/sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/svcinit		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ ')
+ 
+ #

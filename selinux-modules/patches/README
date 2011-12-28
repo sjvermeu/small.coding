@@ -95,6 +95,13 @@ not yet approved).
 0081 - add virtualization context files
 0082 - allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
 0083 - ensure that libvirt can be started properly by initrc_t
+0084 - update virtualization so that sysadmin can use tools like virsh
+0085 - drop compatibility rules for baselayout versus openrc (cfr 0035)
+0086 - allow creation of user keys by sudo, needed for sudo with selinux integration
+0087 - dontaudit search activities on domain state information (/proc/*/) for xserver
+0088 - dontaudit use of unix_stream_socket for mail (mta_send_mail), like already supported through fifo
+0089 . introduce bacula domain
+0090 . have sshd use the mkhomedir_helper through the oddjob domains
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

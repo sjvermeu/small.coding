@@ -160,4 +160,15 @@ EOF
   applyMetaOnFile ${FILE} ${META};
   commitChangeFile ${FILE} ${META};
   logMessage "done\n";
+
+  logMessage "  > Update /etc/ssmtp/ssmtp.conf... ";
+  FILE=/etc/ssmtp/ssmtp.conf
+  if [ -f ${FILE} ];
+  then
+    META=$(initChangeFile ${FILE});
+    sed -i -e "s|^mailhub:.*|mailhub: mail1.virtdomain.com|g" ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+  fi;
+  logMessage "done\n";
 }

@@ -210,11 +210,11 @@ setupldap() {
 setupsync() {
   logMessage "  > Adding ldapreader ldif... ";
   cat > /root/ldapreader.ldif << EOF
-dn: cn=ldapreader.virtdomain.com,dc=virtdomain,dc=com
+dn: cn=ldapreader,dc=virtdomain,dc=com
 userPassword: {SSHA}XvbdAv6rdskp9HgFaFL9YhGkJH3HSkiM
 objectClass: organizationalRole
 objectClass: simpleSecurityObject
-cn: ldapreader.virtdomain.com
+cn: ldapreader
 description: LDAP reader used for synchronization
 EOF
   ldapadd -x -w $(getValue openldap.password) -D "cn=Manager,dc=virtdomain,dc=com" -f /root/ldapreader.ldif;

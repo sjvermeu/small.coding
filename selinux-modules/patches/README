@@ -102,6 +102,11 @@ not yet approved).
 0088 - dontaudit use of unix_stream_socket for mail (mta_send_mail), like already supported through fifo
 0089 . introduce bacula domain
 0090 . have sshd use the mkhomedir_helper through the oddjob domains
+0091 - support generic attributes for apache
+0092 - dontaudit fd usage by dbus session users
+0093 - dontaudit getattr on filesystems by firefox (mozilla)
+0094 - dontaudit fd usage by ifconfig on wpa_cli descriptors
+0095 - dontaudit unix_stream_socket usage by hostname_t on dhcpc_t descriptors
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
-  <status date="2011-12-27">draft</status>
+  <status date="2011-12-29">draft</status>
   <title>Gentoo Security Benchmark</title>
   <description>
     This benchmarks helps people in improving their system configuration to be
@@ -121,6 +121,25 @@
     </description>
     <reference href="http://www.gentoo.org/doc/en/security/security-handbook.xml">Gentoo
     Security Handbook</reference>
+    <Group id="gr-intro-security">
+      <title>This is no security policy</title>
+      <description>
+        It is <h:em>very important</h:em> to realize that this document is not a policy.
+	You are not obliged to follow this if you want a secure system nor do you need to
+	agree with everything said in the document.
+	<h:br />
+	<h:br />
+	The purpose of this document is to guide you in your quest to hardening your system.
+	It will provide pointers that could help you decide in particular configuration settings
+	and will do this hopefully using sufficient background information to make a good
+	choice.
+	<h:br />
+	<h:br />
+	You <h:em>will</h:em> find settings you don't agree with. That's fine, but if you
+	disagree with <h:em>why</h:em> we do this, we would like to hear it and we'll add
+	the feedback to the guide.
+      </description>
+    </Group>
     <Group id="gr-intro-scap">
       <title>A little more about SCAP and OVAL</title>
       <description>
@@ -480,6 +499,8 @@ tmpfs   /tmp   tmpfs       defaults,nosuid,noexec,nodev     0 0</h:pre>
 	  <h:pre>### Sticky bit for /tmp must be set ###
 # <h:b>ls -ld /tmp</h:b>
 drwxrwxrwt  9 root root  260  Dec 27  16:00  /tmp</h:pre>
+          Of course, using <h:code>tmpfs</h:code> does not give you freedom nor a 
+	  secure means to write security sensitive information in <h:code>/tmp</h:code>.
         </description>
 	<!-- @@GEN START rule-partition-tmp -->
 	<!-- @@GEN END rule-partition-tmp -->
@@ -891,8 +912,9 @@ USE="... pam tcpd ssl"</h:pre>
 	  <h:pre>### Using emerge-webrsync with GPG signatures ###
 # <h:b>mkdir -p /etc/portage/gpg</h:b>
 # <h:b>chmod 0700 /etc/portage/gpg</h:b>
-# <h:b>gpg --homedir /etc/portage/gpg --keyserver subkeys.pgp.net --recv-keys 0x239C75C4</h:b>
+# <h:b>gpg --homedir /etc/portage/gpg --keyserver subkeys.pgp.net --recv-keys 0x239C75C4 0x96D8BF6D</h:b>
 # <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x239C75C4 trust</h:b></h:pre>
+# <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x96D8BF6D trust</h:b></h:pre>
           After this, you can edit <h:code>/etc/make.conf</h:code>:
 	  <h:pre>### Editing make.conf for signed portage trees ###
 FEATURES="webrsync-gpg"

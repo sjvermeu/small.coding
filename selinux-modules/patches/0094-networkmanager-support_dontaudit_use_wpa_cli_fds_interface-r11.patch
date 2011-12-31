@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/services/networkmanager.if	2011-12-31 14:20:34.129738813 +0100
++++ refpolicy/policy/modules/services/networkmanager.if	2011-12-31 14:19:32.702738681 +0100
+@@ -194,6 +194,25 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit use of wpa_cli file descriptors
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to dontaudit access.
++##	</summary>
++## </param>
++#
++interface(`networkmanager_dontaudit_use_wpa_cli_fds',`
++	gen_require(`
++		type wpa_cli_t;
++	')
++
++	dontaudit $1 wpa_cli_t:fd use;
++')
++
++
++########################################
++## <summary>
+ ##      Execute wpa_cli in the wpa_cli domain.
+ ## </summary>
+ ## <param name="domain">

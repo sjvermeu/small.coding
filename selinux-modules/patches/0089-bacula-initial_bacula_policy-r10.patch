@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/services/bacula.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/bacula.te	2011-12-28 19:49:06.557227640 +0100
-@@ -0,0 +1,117 @@
++++ refpolicy/policy/modules/services/bacula.te	2011-12-28 20:58:49.610236568 +0100
+@@ -0,0 +1,125 @@
 +policy_module(bacula, 1.0.0)
 +
 +########################################
@@ -11,6 +11,9 @@
 +type bacula_t;
 +type bacula_exec_t;
 +init_daemon_domain(bacula_t, bacula_exec_t)
++
++type bacula_etc_t;
++files_type(bacula_etc_t)
 +
 +type bacula_store_t;
 +files_type(bacula_store_t)
@@ -42,13 +45,16 @@
 +
 +allow bacula_t bacula_var_run_t:file { create_file_perms write_file_perms unlink};
 +
-+files_pid_filetrans(bacula_t, bacula_var_run_t, file)
-+files_var_lib_filetrans(bacula_t, bacula_var_lib_t, file)
++read_files_pattern(bacula_t, bacula_etc_t, bacula_etc_t)
 +
 +manage_files_pattern(bacula_t, bacula_store_t, bacula_store_t)
 +manage_lnk_files_pattern(bacula_t, bacula_store_t, bacula_store_t)
 +manage_dirs_pattern(bacula_t, bacula_store_t, bacula_store_t)
++
 +manage_files_pattern(bacula_t, bacula_var_lib_t, bacula_var_lib_t)
++
++files_pid_filetrans(bacula_t, bacula_var_run_t, file)
++files_var_lib_filetrans(bacula_t, bacula_var_lib_t, file)
 +
 +kernel_read_kernel_sysctls(bacula_t)
 +kernel_read_system_state(bacula_t)
@@ -102,6 +108,8 @@
 +allow bacula_admin_t self:process signal;
 +allow bacula_admin_t self:tcp_socket create_stream_socket_perms;
 +allow bacula_admin_t self:dgram_socket_class_set create_socket_perms;
++
++read_files_pattern(bacula_admin_t, bacula_etc_t, bacula_etc_t)
 +
 +corenet_tcp_connect_hplip_port(bacula_admin_t)
 +corenet_udp_sendrecv_hplip_port(bacula_admin_t)
@@ -167,7 +175,7 @@
 +	role $2 types bacula_admin_t;
 +')
 --- refpolicy/policy/modules/services/bacula.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/services/bacula.fc	2011-12-28 19:51:09.611227903 +0100
++++ refpolicy/policy/modules/services/bacula.fc	2011-12-28 20:59:10.296236613 +0100
 @@ -0,0 +1,20 @@
 +#
 +# /usr
@@ -179,7 +187,7 @@
 +#
 +# /etc
 +#
-+/etc/bacula(/.*)?	--	gen_context(system_u:object_r:bacula_conf_t,s0)
++/etc/bacula(/.*)?		gen_context(system_u:object_r:bacula_etc_t,s0)
 +
 +# 
 +# /var

@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/services/dbus.if	2011-12-31 14:05:58.449736943 +0100
++++ refpolicy/policy/modules/services/dbus.if	2011-12-31 14:04:45.961736789 +0100
+@@ -223,6 +223,8 @@
+ 
+ 	# For connecting to the bus
+ 	allow $1 session_bus_type:unix_stream_socket connectto;
++
++	dontaudit $1 session_bus_type:fd use;
+ ')
+ 
+ ########################################

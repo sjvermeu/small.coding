@@ -61,7 +61,7 @@ not yet approved).
 0046 - various xserver updates
 0047 - fixes for asterisk
 0048 + support LDAPS within nsswitch
-0049 - dontaudit on udp_socket listen - udp does not support listen() anyhow
+0049 + dontaudit on udp_socket listen - udp does not support listen() anyhow
 0050 + update courier file contexts for courier-imap installations
 0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
 0053 - make cron domains use interactive file descriptors (?)
@@ -107,6 +107,7 @@ not yet approved).
 0093 - dontaudit getattr on filesystems by firefox (mozilla)
 0094 - dontaudit fd usage by ifconfig on wpa_cli descriptors
 0095 - dontaudit unix_stream_socket usage by hostname_t on dhcpc_t descriptors
+0096 - do not have java-config be marked as a java_t entry point
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

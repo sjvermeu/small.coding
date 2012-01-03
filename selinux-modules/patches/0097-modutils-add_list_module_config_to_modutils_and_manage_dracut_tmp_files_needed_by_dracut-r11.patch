@@ -1,0 +1,43 @@
+--- refpolicy/policy/modules/system/modutils.te	2011-07-26 14:10:41.000000000 +0200
++++ refpolicy/policy/modules/system/modutils.te	2012-01-03 23:27:41.074268850 +0100
+@@ -90,6 +90,10 @@
+ ')
+ 
+ optional_policy(`
++	dracut_manage_tmp_files(depmod_t)
++')
++
++optional_policy(`
+ 	rpm_rw_pipes(depmod_t)
+ 	rpm_manage_script_tmp_files(depmod_t)
+ ')
+--- refpolicy/policy/modules/system/modutils.if	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/modutils.if	2012-01-03 21:37:50.800254783 +0100
+@@ -39,6 +39,27 @@
+ 
+ ########################################
+ ## <summary>
++##	List the module configuration option files 
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`modutils_list_module_config',`
++	gen_require(`
++		type modules_conf_t;
++	')
++
++	list_dirs_pattern($1, modules_conf_t, modules_conf_t)
++')
++
++
++
++########################################
++## <summary>
+ ##	Read the configuration options used when
+ ##	loading modules.
+ ## </summary>

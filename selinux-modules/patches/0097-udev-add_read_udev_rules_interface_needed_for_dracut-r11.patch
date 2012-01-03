@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/system/udev.if	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/udev.if	2012-01-03 21:03:09.565250342 +0100
+@@ -132,6 +132,25 @@
+ 
+ ########################################
+ ## <summary>
++##	Read udev rules files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_read_rules_files',`
++	gen_require(`
++		type udev_rules_t;
++	')
++
++	read_files_pattern($1, udev_rules_t, udev_rules_t)
++')
++
++
++########################################
++## <summary>
+ ##	Manage udev rules files
+ ## </summary>
+ ## <param name="domain">

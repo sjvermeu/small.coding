@@ -46,6 +46,7 @@ initTools;
 
 configsystem() {
   _configsystem;
+  die "Restart network and continue with setuppam";
 }
 
 setuppam() {

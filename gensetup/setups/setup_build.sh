@@ -168,8 +168,9 @@ EOF
   setsebool -P nfs_export_all_ro on;
   logMessage "done\n";
 
-  ## exportfs -vra to export
-  ## mount -t nfsd none /proc/fs/nfsd first
+  logMessage "  > Adding nfs to the default runlevel... ";
+  rc-update add nfs default;
+  logMessage "done\n";
 }
 
 stepOK "configsystem" && (

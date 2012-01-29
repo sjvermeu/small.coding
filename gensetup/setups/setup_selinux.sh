@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay reboot_0 arch mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
+typeset STEPS="overlay arch reboot_0 mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
 export STEPS;
 
 typeset STEPFROM=$2;

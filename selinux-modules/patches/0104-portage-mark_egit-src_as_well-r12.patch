@@ -1,0 +1,20 @@
+--- refpolicy/policy/modules/admin/portage.if	2012-01-22 12:37:03.992017008 +0100
++++ refpolicy/policy/modules/admin/portage.if	2012-01-22 12:36:33.174015775 +0100
+@@ -200,6 +200,7 @@
+ 	corenet_udp_sendrecv_all_ports($1)
+ 	corenet_tcp_connect_all_reserved_ports($1)
+ 	corenet_tcp_connect_distccd_port($1)
++	corenet_tcp_connect_git_port($1)
+ 
+ 	dev_read_sysfs($1)
+ 	dev_read_rand($1)
+--- refpolicy/policy/modules/admin/portage.fc	2012-01-22 12:37:03.997017008 +0100
++++ refpolicy/policy/modules/admin/portage.fc	2012-01-22 12:26:33.032991726 +0100
+@@ -19,6 +19,7 @@
+ /usr/portage(/.*)?			gen_context(system_u:object_r:portage_ebuild_t,s0)
+ /usr/portage/distfiles/cvs-src(/.*)?	gen_context(system_u:object_r:portage_srcrepo_t,s0)
+ /usr/portage/distfiles/git-src(/.*)?	gen_context(system_u:object_r:portage_srcrepo_t,s0)
++/usr/portage/distfiles/egit-src(/.*)?	gen_context(system_u:object_r:portage_srcrepo_t,s0)
+ /usr/portage/distfiles/svn-src(/.*)?	gen_context(system_u:object_r:portage_srcrepo_t,s0)
+ 
+ /var/db/pkg(/.*)?			gen_context(system_u:object_r:portage_db_t,s0)

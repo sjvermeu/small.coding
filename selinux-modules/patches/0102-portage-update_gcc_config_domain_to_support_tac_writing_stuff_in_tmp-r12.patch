@@ -1,0 +1,30 @@
+--- refpolicy/policy/modules/admin/portage.te	2012-01-21 20:56:04.707096409 +0100
++++ refpolicy/policy/modules/admin/portage.te	2012-01-21 20:55:11.854094292 +0100
+@@ -33,6 +33,9 @@
+ type gcc_config_exec_t;
+ application_domain(gcc_config_t, gcc_config_exec_t)
+ 
++type gcc_config_tmp_t;
++files_tmp_file(gcc_config_tmp_t)
++
+ # constraining type
+ type portage_t;
+ type portage_exec_t;
+@@ -96,6 +99,9 @@
+ allow gcc_config_t self:capability { chown fsetid };
+ allow gcc_config_t self:fifo_file rw_file_perms;
+ 
++manage_files_pattern(gcc_config_t, gcc_config_tmp_t, gcc_config_tmp_t)
++files_tmp_filetrans(gcc_config_t, gcc_config_tmp_t, file)
++
+ manage_files_pattern(gcc_config_t, portage_cache_t, portage_cache_t)
+ 
+ read_files_pattern(gcc_config_t, portage_conf_t, portage_conf_t)
+@@ -116,6 +122,7 @@
+ 
+ files_manage_etc_files(gcc_config_t)
+ files_manage_etc_runtime_files(gcc_config_t)
++files_manage_etc_runtime_lnk_files(gcc_config_t)
+ files_read_usr_files(gcc_config_t)
+ files_search_var_lib(gcc_config_t)
+ files_search_pids(gcc_config_t)

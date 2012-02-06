@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/init.te	2012-01-29 14:14:56.110212779 +0100
++++ refpolicy/policy/modules/system/init.te	2012-01-29 14:12:57.045212525 +0100
+@@ -483,6 +483,10 @@
+ 	optional_policy(`
+ 		dhcpd_setattr_state_files(initrc_t)
+ 	')
++
++	optional_policy(`
++		rpc_manage_nfs_state_data(initrc_t)
++	')
+ ')
+ 
+ ifdef(`distro_redhat',`

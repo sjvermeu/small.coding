@@ -1,14 +1,7 @@
 --- refpolicy/policy/modules/apps/dracut.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/apps/dracut.te	2012-01-03 23:31:04.660269285 +0100
-@@ -0,0 +1,79 @@
-+policy_module(localmod, 1.0)
-+
-+require {
-+  type depmod_t;
-+  type sysadm_t;
-+  type ldconfig_t;
-+  role sysadm_r;
-+}
++++ refpolicy/policy/modules/apps/dracut.te	2012-01-05 20:43:08.069190417 +0100
+@@ -0,0 +1,74 @@
++policy_module(dracut, 1.0)
 +
 +type dracut_t;
 +type dracut_exec_t;
@@ -52,32 +45,34 @@
 +files_read_usr_files(dracut_t)
 +files_search_pids(dracut_t)
 +
-+fstools_domtrans(dracut_t)
++fstools_exec(dracut_t)
 +
 +libs_domtrans_ldconfig(dracut_t)
 +libs_exec_ld_so(dracut_t)
 +libs_exec_lib_files(dracut_t)
 +
-+lvm_domtrans(dracut_t)
++lvm_exec(dracut_t)
 +lvm_read_config(dracut_t)
 +
 +miscfiles_read_localization(dracut_t)
 +
-+modutils_domtrans_depmod(dracut_t)
-+modutils_domtrans_insmod(dracut_t)
++modutils_exec_depmod(dracut_t)
++modutils_exec_insmod(dracut_t)
 +modutils_read_module_config(dracut_t)
 +modutils_list_module_config(dracut_t)
 +modutils_read_module_deps(dracut_t)
 +
-+mount_domtrans(dracut_t)
++mount_exec(dracut_t)
 +
-+udev_domtrans(dracut_t)
++seutil_exec_setfiles(dracut_t)
++
++udev_exec(dracut_t)
 +udev_read_rules_files(dracut_t)
 +
 +userdom_use_user_terminals(dracut_t)
 +
 +optional_policy(`
-+	dmesg_domtrans(dracut_t)
++	dmesg_exec(dracut_t)
 +')
 +
 --- refpolicy/policy/modules/apps/dracut.if	1970-01-01 01:00:00.000000000 +0100

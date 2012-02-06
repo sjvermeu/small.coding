@@ -1,0 +1,14 @@
+--- refpolicy/policy/modules/admin/portage.if	2012-02-06 21:56:29.085758203 +0100
++++ refpolicy/policy/modules/admin/portage.if	2012-02-06 21:56:16.754758177 +0100
+@@ -421,6 +421,10 @@
+                type portage_t;
+        ')
+        allow $1 self:fifo_file { read write };
+-       corecmd_exec_shell($1)  
++
++       corecmd_exec_shell($1)
++
++       # Support for /etc/env.d changes
++       files_manage_etc_runtime_files($1)
+ ')
+ 

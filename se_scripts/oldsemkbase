@@ -9,7 +9,7 @@ then
 fi
 
 REV=$1;
-[[ -n ${PATCHES} ]] || PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches;
+[[ -n ${PATCHES} ]] || PATCHES=/home/swift/Development/Centralized/small.coding/selinux-modules/patches_old;
 [[ -n ${OVERLAY} ]] || OVERLAY=/home/swift/Development/Centralized/gentoo.overlay;
 
 [ ! -d "${PATCHES}" ] && echo "Directory PATCHES = ${PATCHES} does not exist!" && exit 1;

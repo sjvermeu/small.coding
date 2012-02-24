@@ -109,10 +109,12 @@ cleanupTools() {
 };
 
 logTestMessage() {
+  printf "%-8s - %-3s - %-53s - \n" $1 "$2" "$3" >> ${LOG};
   printf "%-8s - %-3s - %-53s - " $1 "$2" "$3" >&3;
 }
 
 logMessage() {
+  printf "$*\n" >> ${LOG};
   printf "$*" >&3;
 }
 

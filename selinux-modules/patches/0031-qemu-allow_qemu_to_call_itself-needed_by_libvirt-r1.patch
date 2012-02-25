@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/qemu.te	2012-02-25 12:16:51.502323399 +0100
++++ refpolicy/policy/modules/contrib/qemu.te	2012-02-25 12:16:03.873323299 +0100
+@@ -51,6 +51,8 @@
+ #
+ dontaudit qemu_t self:socket create;
+ 
++can_exec(qemu_t, qemu_exec_t)
++
+ storage_raw_write_removable_device(qemu_t)
+ storage_raw_read_removable_device(qemu_t)
+ 

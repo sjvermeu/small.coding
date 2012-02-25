@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/staff.te	2012-02-25 09:43:13.849303725 +0100
++++ refpolicy/policy/modules/roles/staff.te	2012-02-25 09:42:15.928303602 +0100
+@@ -153,6 +153,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		skype_role(staff_r, staff_t)
++	')
++
++	optional_policy(`
+ 		screen_role_template(staff, staff_r, staff_t)
+ 	')
+ 

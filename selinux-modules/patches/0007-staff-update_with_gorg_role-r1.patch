@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/staff.te	2012-02-25 09:46:42.596304171 +0100
++++ refpolicy/policy/modules/roles/staff.te	2012-02-25 09:45:21.439303997 +0100
+@@ -97,6 +97,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		gorg_role(staff_r, staff_t)
++	')
++
++	optional_policy(`
+ 		gpg_role(staff_r, staff_t)
+ 	')
+ 

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/kernel.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/kernel/kernel.te	2012-02-25 11:15:56.375315599 +0100
+@@ -56,6 +56,7 @@
+ #
+ 
+ type debugfs_t;
++files_mountpoint(debugfs_t)
+ fs_type(debugfs_t)
+ allow debugfs_t self:filesystem associate;
+ genfscon debugfs / gen_context(system_u:object_r:debugfs_t,s0)

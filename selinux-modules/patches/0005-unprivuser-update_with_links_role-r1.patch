@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:39:22.186303231 +0100
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:38:20.863303101 +0100
+@@ -86,6 +86,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		links_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		lockdev_role(user_r, user_t)
+ 	')
+ 

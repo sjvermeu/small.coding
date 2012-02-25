@@ -1,0 +1,20 @@
+--- refpolicy/policy/modules/contrib/rpc.te	2011-10-25 19:20:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-02-25 12:35:54.443325840 +0100
+@@ -112,7 +112,7 @@
+ #
+ 
+ allow nfsd_t self:capability { dac_override dac_read_search sys_admin sys_resource };
+-
++allow nfsd_t self:udp_socket listen;
+ allow nfsd_t exports_t:file read_file_perms;
+ allow nfsd_t { nfsd_rw_t nfsd_ro_t }:dir list_dir_perms;
+ 
+--- refpolicy/policy/modules/contrib/rpc.if	2011-10-25 19:20:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/rpc.if	2012-02-25 12:35:54.444325840 +0100
+@@ -431,5 +431,6 @@
+ 	')
+ 
+ 	files_search_var_lib($1)
++	rw_dirs_pattern($1, var_lib_nfs_t, var_lib_nfs_t)
+ 	manage_files_pattern($1, var_lib_nfs_t, var_lib_nfs_t)
+ ')

@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/init.te	2012-02-25 11:59:27.338321171 +0100
++++ refpolicy/policy/modules/system/init.te	2012-02-25 11:59:08.099321131 +0100
+@@ -646,6 +646,10 @@
+ ')
+ 
+ optional_policy(`
++	fail2ban_stream_connect(initrc_t)
++')
++
++optional_policy(`
+ 	ftp_read_config(initrc_t)
+ ')
+ 

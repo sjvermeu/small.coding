@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:46:31.309304146 +0100
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:45:01.908303956 +0100
+@@ -70,6 +70,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		gorg_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		gpg_role(user_r, user_t)
+ 	')
+ 

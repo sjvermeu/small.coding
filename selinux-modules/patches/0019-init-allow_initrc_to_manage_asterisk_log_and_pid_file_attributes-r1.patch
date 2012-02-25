@@ -1,0 +1,14 @@
+--- refpolicy/policy/modules/system/init.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/system/init.te	2012-02-25 11:23:56.833316624 +0100
+@@ -571,6 +571,11 @@
+ ')
+ 
+ optional_policy(`
++	asterisk_setattr_logs(initrc_t)
++	asterisk_setattr_pid_files(initrc_t)
++')
++
++optional_policy(`
+ 	bind_read_config(initrc_t)
+ 
+ 	# for chmod in start script

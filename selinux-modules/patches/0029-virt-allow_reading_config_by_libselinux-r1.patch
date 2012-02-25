@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/virt.te	2011-10-25 19:20:08.000000000 +0200
++++ refpolicy/policy/modules/contrib/virt.te	2012-02-25 12:12:58.762322904 +0100
+@@ -286,6 +286,7 @@
+ 
+ logging_send_syslog_msg(virtd_t)
+ 
++seutil_read_config(virtd_t)
+ seutil_read_default_contexts(virtd_t)
+ 
+ sysnet_domtrans_ifconfig(virtd_t)

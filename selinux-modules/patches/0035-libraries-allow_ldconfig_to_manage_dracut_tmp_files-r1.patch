@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/libraries.te	2011-10-25 19:19:35.000000000 +0200
++++ refpolicy/policy/modules/system/libraries.te	2012-02-25 12:24:43.695324408 +0100
+@@ -131,6 +131,10 @@
+ ')
+ 
+ optional_policy(`
++	dracut_manage_tmp_files(ldconfig_t)
++')
++
++optional_policy(`
+ 	puppet_rw_tmp(ldconfig_t)
+ ')
+ 

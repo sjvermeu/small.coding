@@ -76,16 +76,16 @@ not yet approved).
 0062 - gcc-config needs to unlink files in etc/env.d which are marked as etc_runtime_t files
 0063 . introduce support for vde
 0064 - bootmisc wants to write (temporarily) to /var/log. Support logging_manage_generic_log_dirs
-0065 . fix amavisd.conf context
-0066 . allow nrpe (nagios) read access to /proc/mdstat
-0067 . inetd support for pam_limits needs cap_sys_resource and setrlimit
-0068 . make call to inetd_tcp_service_domain optional (otherwise we would need to depend on inetd)
+0065 + fix amavisd.conf context
+0066 + allow nrpe (nagios) read access to /proc/mdstat
+0067 + inetd support for pam_limits needs cap_sys_resource and setrlimit
+0068 + make call to inetd_tcp_service_domain optional (otherwise we would need to depend on inetd)
 0069 . drop vde_conf_t from patches as etc_t is sufficient
 0070 . corrections on links policy with refpolicy feedback
 0071 . Mark /dev/.tmp-block-.* as fixed_disk_device_t so that mdadm can work on it (file is created by udev as $tempnode)
 0072 - wpa_cli is an interactive application
 0073 . dhcpd can use ldap as a backend
-0074 . inetd should also be allowed to bind/listen on pop port
+0074 + inetd should also be allowed to bind/listen on pop port
 0075 - allow mozilla plugin to read its configuration files ($$$TODO currently still generic)
 0076 + support slim and lxdm contexts
 0077 - introduce dontaudit statements to clean up audit logs

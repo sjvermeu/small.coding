@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/dbus.if	2012-02-25 10:15:37.906307875 +0100
++++ refpolicy/policy/modules/contrib/dbus.if	2012-02-25 10:12:15.972307444 +0100
+@@ -223,6 +223,8 @@
+ 
+ 	# For connecting to the bus
+ 	allow $1 session_bus_type:unix_stream_socket connectto;
++
++	dontaudit $1 session_bus_type:fd use;
+ ')
+ 
+ ########################################

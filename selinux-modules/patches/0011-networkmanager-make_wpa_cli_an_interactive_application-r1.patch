@@ -1,0 +1,147 @@
+--- refpolicy/policy/modules/contrib/networkmanager.te	2011-10-25 19:20:02.000000000 +0200
++++ refpolicy/policy/modules/contrib/networkmanager.te	2012-02-25 10:17:49.815308157 +0100
+@@ -28,6 +28,9 @@
+ type wpa_cli_exec_t;
+ init_system_domain(wpa_cli_t, wpa_cli_exec_t)
+ 
++type wpa_cli_var_run_t;
++files_pid_file(wpa_cli_var_run_t)
++
+ ########################################
+ #
+ # Local policy
+@@ -68,6 +71,11 @@
+ manage_sock_files_pattern(NetworkManager_t, NetworkManager_var_run_t, NetworkManager_var_run_t)
+ files_pid_filetrans(NetworkManager_t, NetworkManager_var_run_t, { dir file sock_file })
+ 
++manage_dirs_pattern(wpa_cli_t, wpa_cli_var_run_t, wpa_cli_var_run_t)
++manage_files_pattern(wpa_cli_t, wpa_cli_var_run_t, wpa_cli_var_run_t)
++manage_sock_files_pattern(wpa_cli_t, wpa_cli_var_run_t, wpa_cli_var_run_t)
++files_pid_filetrans(wpa_cli_t, wpa_cli_var_run_t, { dir file sock_file })
++
+ kernel_read_system_state(NetworkManager_t)
+ kernel_read_network_state(NetworkManager_t)
+ kernel_read_kernel_sysctls(NetworkManager_t)
+@@ -125,10 +133,12 @@
+ init_read_utmp(NetworkManager_t)
+ init_dontaudit_write_utmp(NetworkManager_t)
+ init_domtrans_script(NetworkManager_t)
++init_domtrans_script(wpa_cli_t)
+ 
+ auth_use_nsswitch(NetworkManager_t)
+ 
+ logging_send_syslog_msg(NetworkManager_t)
++logging_send_syslog_msg(wpa_cli_t)
+ 
+ miscfiles_read_localization(NetworkManager_t)
+ miscfiles_read_generic_certs(NetworkManager_t)
+@@ -149,6 +159,8 @@
+ 
+ userdom_dontaudit_use_unpriv_user_fds(NetworkManager_t)
+ userdom_dontaudit_use_user_ttys(NetworkManager_t)
++userdom_use_user_ttys(wpa_cli_t)
++userdom_use_user_ptys(wpa_cli_t)
+ # Read gnome-keyring
+ userdom_read_user_home_content_files(NetworkManager_t)
+ 
+@@ -287,3 +299,21 @@
+ miscfiles_read_localization(wpa_cli_t)
+ 
+ term_dontaudit_use_console(wpa_cli_t)
++
++fs_search_tmpfs(wpa_cli_t)
++fs_search_tmpfs(NetworkManager_t)
++fs_rw_tmpfs_files(wpa_cli_t)
++fs_rw_tmpfs_files(NetworkManager_t)
++fs_manage_tmpfs_dirs(wpa_cli_t)
++fs_manage_tmpfs_sockets(wpa_cli_t)
++fs_manage_tmpfs_sockets(NetworkManager_t)
++getty_use_fds(wpa_cli_t)
++files_search_pids(wpa_cli_t)
++corecmd_exec_shell(wpa_cli_t)
++corecmd_exec_bin(wpa_cli_t)
++domain_use_interactive_fds(wpa_cli_t)
++
++ifdef(`distro_gentoo',`
++       sysnet_domtrans_dhcpc(wpa_cli_t)
++       allow wpa_cli_t etc_t:file { getattr };
++')
+--- refpolicy/policy/modules/contrib/networkmanager.if	2011-10-25 19:20:02.000000000 +0200
++++ refpolicy/policy/modules/contrib/networkmanager.if	2012-02-25 10:18:03.592308187 +0100
+@@ -191,3 +191,68 @@
+ 	files_search_pids($1)
+ 	allow $1 NetworkManager_var_run_t:file read_file_perms;
+ ')
++
++########################################
++## <summary>
++##	Do not audit use of wpa_cli file descriptors
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to dontaudit access.
++##	</summary>
++## </param>
++#
++interface(`networkmanager_dontaudit_use_wpa_cli_fds',`
++	gen_require(`
++		type wpa_cli_t;
++	')
++
++	dontaudit $1 wpa_cli_t:fd use;
++')
++
++
++########################################
++## <summary>
++##      Execute wpa_cli in the wpa_cli domain.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed to transition.
++##      </summary>
++## </param>
++#
++interface(`networkmanager_domtrans_wpa_cli',`
++        gen_require(`
++                type wpa_cli_t, wpa_cli_exec_t;
++        ')
++
++        corecmd_search_bin($1)
++        domtrans_pattern($1, wpa_cli_exec_t, wpa_cli_t)
++')
++
++########################################
++## <summary>
++##      Execute wpa cli in the wpa_cli domain, and
++##      allow the specified role the wpa_cli domain.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed to transition.
++##      </summary>
++## </param>
++## <param name="role">
++##      <summary>
++##      Role allowed access.
++##      </summary>
++## </param>
++## <rolecap/>
++#
++interface(`networkmanager_run_wpa_cli',`
++        gen_require(`
++                type wpa_cli_exec_t;
++        ')
++
++        networkmanager_domtrans_wpa_cli($1)
++        role $2 types wpa_cli_t;
++')
++
+--- refpolicy/policy/modules/contrib/networkmanager.fc	2011-10-25 19:20:02.000000000 +0200
++++ refpolicy/policy/modules/contrib/networkmanager.fc	2012-02-25 10:17:39.068308133 +0100
+@@ -24,3 +24,5 @@
+ /var/run/nm-dhclient.*			gen_context(system_u:object_r:NetworkManager_var_run_t,s0)
+ /var/run/wpa_supplicant(/.*)?		gen_context(system_u:object_r:NetworkManager_var_run_t,s0)
+ /var/run/wpa_supplicant-global	-s	gen_context(system_u:object_r:NetworkManager_var_run_t,s0)
++/var/run/wpa_cli-.*		--	gen_context(system_u:object_r:wpa_cli_var_run_t,s0)
++/usr/bin/wpa_cli		--	gen_context(system_u:object_r:wpa_cli_exec_t,s0)

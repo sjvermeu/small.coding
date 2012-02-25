@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-02-25 12:26:31.717324639 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2012-02-25 12:25:36.282324520 +0100
+@@ -152,6 +152,10 @@
+ ')
+ 
+ optional_policy(`
++	dracut_run(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	firstboot_run(sysadm_t, sysadm_r)
+ ')
+ 

@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:46:52.407304192 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:45:48.929304057 +0100
+@@ -459,6 +459,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		gorg_role(sysadm_r, sysadm_t)
++	')
++
++	optional_policy(`
+ 		gpg_role(sysadm_r, sysadm_t)
+ 	')
+ 

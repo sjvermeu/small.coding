@@ -97,7 +97,7 @@ selinux() {
   getfilecon /etc/hosts | grep -q 'object_r:swapfile_t' && logOK || logNOK;
 
   logTestMessage selinux 008 "Restoring context using restorecon -F";
-  restorecon -F /etc/hosts && logOK || logNOK;
+  restorecon -F /etc/hosts && logNOK || logOK; # restorecon <> 0 if changed
 
   logTestMessage selinux 009 "Verifying privilege using findcon";
   findcon -t net_conf_t /etc | grep -q '/etc/hosts' && logOK || logNOK;
@@ -132,14 +132,14 @@ selinux() {
   logTestMessage selinux 019 "Getting boolean description using semanage";
   semanage boolean -l | grep global_ssp | grep -q ' on' && logOK || logNOK;
 
-  logTestMessage selinux 020 "Setting login for test to staff_u";
-  semanage login -a -s staff_u test && logOK || logNOK;
+  logTestMessage selinux 020 "Setting login for user to staff_u";
+  semanage login -a -s staff_u user && logOK || logNOK;
 
   logTestMessage selinux 021 "Getting login information using semanage";
-  semanage login -l | grep test | grep -q staff_u && logOK || logNOK;
+  semanage login -l | grep user | grep -q staff_u && logOK || logNOK;
 
-  logTestMessage selinux 022 "Removing login from test (staff_u)";
-  semanage login -d -s staff_u test && logOK || logNOK;
+  logTestMessage selinux 022 "Removing login from user (staff_u)";
+  semanage login -d -s staff_u user && logOK || logNOK;
 
   logTestMessage selinux 023 "Getting port information using semanage";
   semanage port -l | grep -q '22$' && logOK || logNOK;

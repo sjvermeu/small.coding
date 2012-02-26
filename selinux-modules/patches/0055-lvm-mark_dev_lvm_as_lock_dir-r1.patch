@@ -1,0 +1,24 @@
+--- refpolicy/policy/modules/system/lvm.te	2012-02-26 12:17:58.325507959 +0100
++++ refpolicy/policy/modules/system/lvm.te	2012-02-26 12:17:44.055507929 +0100
+@@ -191,6 +191,7 @@
+ can_exec(lvm_t, lvm_exec_t)
+ 
+ # Creating lock files
++manage_dirs_pattern(lvm_t, lvm_lock_t, lvm_lock_t)
+ manage_files_pattern(lvm_t, lvm_lock_t, lvm_lock_t)
+ files_lock_filetrans(lvm_t, lvm_lock_t, file)
+ 
+--- refpolicy/policy/modules/system/lvm.fc	2011-10-25 19:19:35.000000000 +0200
++++ refpolicy/policy/modules/system/lvm.fc	2012-02-26 11:47:45.214504088 +0100
+@@ -11,6 +11,11 @@
+ ')
+ 
+ #
++# /dev
++#
++/dev/.lvm(/.*)?		gen_context(system_u:object_r:lvm_lock_t,s0)
++
++#
+ # /etc
+ #
+ /etc/lvm(/.*)?			gen_context(system_u:object_r:lvm_etc_t,s0)

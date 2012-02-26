@@ -71,7 +71,7 @@ portage() {
   qlist portage | grep -q _selinux.py && logOK || logNOK;
 
   logTestMessage portage 008 "Running qfile";
-  qfile /etc/selinux/config | grep -q selinux-base-policy && logOK || logNOK;
+  qfile /etc/selinux/config | grep -q selinux-base && logOK || logNOK;
 }
 
 selinux() {

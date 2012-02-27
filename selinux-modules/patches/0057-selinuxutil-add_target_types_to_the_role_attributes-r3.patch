@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/selinuxutil.te	2012-02-27 19:33:22.079784176 +0100
++++ refpolicy/policy/modules/system/selinuxutil.te	2012-02-27 19:32:40.322782503 +0100
+@@ -13,8 +13,10 @@
+ attribute can_relabelto_binary_policy;
+ 
+ attribute_role newrole_roles;
++role newrole_roles types newrole_t;
+ 
+ attribute_role run_init_roles;
++role run_init_roles types run_init_t;
+ role system_r types run_init_t;
+ 
+ attribute_role semanage_roles;

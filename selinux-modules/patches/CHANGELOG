@@ -1,0 +1,9 @@
+
+
+** 2012-02-26 Revision 2
+
+<no bug>	Fix file context for dracut (now in bin instead of sbin)
+<no bug>	Do not add unconfined to base for targeted. Instead use selinux-base for that
+<no bug>	Reintroduce gentoo booleans (so we do not break updates)
+
+** 2012-02-26 Revision 1

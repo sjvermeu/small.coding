@@ -1,0 +1,22 @@
+--- refpolicy/policy/modules/admin/usermanage.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/admin/usermanage.te	2012-02-27 19:32:25.044781900 +0100
+@@ -6,9 +6,11 @@
+ #
+ 
+ attribute_role chfn_roles;
++role chfn_roles types chfn_t;
+ role system_r types chfn_t;
+ 
+ attribute_role groupadd_roles;
++role groupadd_roles types groupadd_t;
+ 
+ attribute_role passwd_roles;
+ roleattribute system_r passwd_roles;
+@@ -17,6 +19,7 @@
+ roleattribute system_r sysadm_passwd_roles;
+ 
+ attribute_role useradd_roles;
++role useradd_roles types useradd_t;
+ 
+ type admin_passwd_exec_t;
+ files_type(admin_passwd_exec_t)

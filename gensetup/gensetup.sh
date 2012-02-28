@@ -22,6 +22,7 @@ then
   exit 1;
 fi
 
+source master.lib.sh;
 
 ##
 ## Global variables
@@ -107,37 +108,6 @@ listSectionOverview() {
   FIELD=$((${FIELD}+1));
 
   grep "^${SECTION}." ${DATA} | sed -e 's:=:\.:g' | awk -F'.' '{print $'${FIELD}'}' | sort | uniq;
-}
-
-updateConfFile() {
-  SECTION="$1";
-  FILE="$2";
-
-  VARIABLES=$(listSectionOverview ${SECTION});
-  
-  for VARIABLE in ${VARIABLES};
-  do
-    VALUE=$(awk -F'=' "/${SECTION}.${VARIABLE}=/ {print \$2}" ${DATA});
-    FIRSTCHAR=$(echo ${VALUE} | sed -e 's:\(.\).*:\1:g');
-    if [ "${FIRSTCHAR}" = "(" ];
-    then
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=${VALUE}:g" ${FILE};
-      else
-        echo "${VARIABLE}=${VALUE}" >> ${FILE};
-      fi
-    else
-      grep "^${VARIABLE}=" ${FILE} > /dev/null 2>&1;
-      if [ $? -eq 0 ];
-      then
-        sed -i -e "s:^${VARIABLE}=.*:${VARIABLE}=\"${VALUE}\":g" ${FILE};
-      else
-        echo "${VARIABLE}=\"${VALUE}\"" >> ${FILE};
-      fi
-    fi
-  done
 }
 
 updateEtcConfFile() {

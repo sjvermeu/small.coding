@@ -81,7 +81,13 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0056 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
 0057 - expand selinux and usermanage role usage to include the proper type definitions
 0058 ! temporarily reintroduce gentoo booleans (remove on 01/07/2012)
+0059 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
+0060 - add port 3128 as http_cache_port_t (default port for squid cache)
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.
     However, the patch is, imo (SwifT) fairly simple as-is so I suggest to keep it this way.
+[2] Without, su fails with "Authentication service cannot retrieve
+    authentication info". We notice that it wants to get the attribute on security_t
+    and then stops. In permissive mode, I notice that it calls the chpwd binary (as
+    expected). 

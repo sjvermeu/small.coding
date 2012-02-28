@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/corenetwork.te	2012-02-15 20:32:45.000000000 +0100
++++ refpolicy/policy/modules/kernel/corenetwork.te	2012-02-27 21:00:50.715994485 +0100
+@@ -519,6 +519,7 @@
+ type http_cache_client_packet_t, packet_type, client_packet_type;
+ type http_cache_server_packet_t, packet_type, server_packet_type;
+ typeattribute http_cache_port_t unreserved_port_type;
++portcon tcp 3128 gen_context(system_u:object_r:http_cache_port_t,s0)
+ portcon udp 3130 gen_context(system_u:object_r:http_cache_port_t,s0)
+ portcon tcp 8080 gen_context(system_u:object_r:http_cache_port_t,s0)
+ portcon tcp 8118 gen_context(system_u:object_r:http_cache_port_t,s0)

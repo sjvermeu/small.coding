@@ -1,4 +1,13 @@
+<no bug>	Make sure mozilla_plugin_t is allowed for mozilla_roles (role attribute) as well
 
+** 2012-02-27 Revision 3
+
+<no bug>	Allow sysadm to call qemu directly to launch virtual guests from commandline
+<no bug>	Allow su to get the security file system attributes, needed for su calls
+#401857		Set /usr/share/GNUstep/Makefiles/*.sh (and mkinstalldirs) as #bin_t t allow building gnustep-base
+#403143		Add TCP 3128 as http_cache_port_t (default port for squid cache)
+<no bug>	Update usermanage/selinux util role attributes to include the proper types
+<no bug>	Allow mount to get the security file system attributes, needed for rootcontext mounts
 
 ** 2012-02-26 Revision 2
 

@@ -22,7 +22,7 @@ then
   exit 1;
 fi
 
-source master.lib.sh;
+source ./master.lib.sh;
 
 ##
 ## Global variables
@@ -30,6 +30,7 @@ source master.lib.sh;
 
 cat ${DATA} | grep -v '^#' | sed -e 's:#.*::g' > ${DATA}.parsed;
 DATA=${DATA}.parsed;
+CONFFILE=${DATA};
 
 STEPFROM=$2;
 STEPTO=$3
@@ -52,62 +53,8 @@ runChrootCommand() {
   chroot ${WORKDIR} sh -c "source /etc/profile; $*";
 };
 
-die() {
-  echo $*;
-  rm -f ${FAILED};
-  exit 2;
-}
-
-stepOK() {
-  STEP=$1;
-
-  echo "Step ${STEP}, FROM=${STEPFROM}, TO=${STEPTO}, Failed=`test -f ${FAILED}; echo $?`, STEPS=${STEPS}" >> ${LOG};
-
-  [ -f ${FAILED} ] || return 1;
-
-  [ "x${STEPFROM}" = "x" ] && return 0;
-  echo "${STEPS}" | grep " ${STEPFROM}" > /dev/null 2>&1;
-  if [ $? -ne 0 ];
-  then
-    # Check if last step
-    [ "x${STEPTO}" = "x" ] && return 0;
-    echo "${STEPS}" | grep " ${STEPTO}" > /dev/null 2>&1;
-    if [ $? -eq 0 ];
-    then
-      return 0;
-    else
-      return 1;
-    fi
-  else
-    [ "${STEP}" = "${STEPFROM}" ] || return 1;
-    return 0;
-  fi
-}
-
-nextStep() {
-  STEPS=" $(echo ${STEPS} | sed -e 's:^[^ ]* ::g')";
-  if [ ! -f ${FAILED} ];
-  then
-    exit 2;
-  fi
-}
-
 logPrint() {
   echo ">>> $(date +%Y%m%d-%H%M%S): $*";
-}
-
-getValue() {
-  KEY="$1";
-
-  grep "^${KEY}=" ${DATA} | awk -F'=' '{print $2}';
-}
-
-listSectionOverview() {
-  SECTION="$1";
-  FIELD=$(echo ${SECTION} | sed -e 's:[^\.]::g' | wc -c);	# Is number of .'s + 1
-  FIELD=$((${FIELD}+1));
-
-  grep "^${SECTION}." ${DATA} | sed -e 's:=:\.:g' | awk -F'.' '{print $'${FIELD}'}' | sort | uniq;
 }
 
 updateEtcConfFile() {

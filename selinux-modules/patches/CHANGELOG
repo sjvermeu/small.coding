@@ -1,3 +1,15 @@
+<no bug>	Support integrated run_init properly again
+<no bug>	Add in references to sysfs where SELinux access is used (dev_getattr_sysfs_fs)
+<no bug>	Mark /lib/rc/console as initrc_state_t to allow bootup to remove stale files in there
+<no bug>	Do not attempt to update base in selinux-base, wait for selinux-base-policy
+<no bug>	Allow nginx_t to list the content of its configuration directories
+<no bug>	Mark /var/lib/ip6tables as initrc_tmp_t to allow init script to save/restore
+
+** 2012-03-01 Revision 4
+
+<no bug>	Update patch for DHCP LDAP support to use a tunable (dhcp_use_ldap)
+<no bug>	Correct clamav_var_log_t usage (instead of clamav_log_t, which doesn't exist)
+<no bug>	Allow gorg to signal itself
 <no bug>	Make sure mozilla_plugin_t is allowed for mozilla_roles (role attribute) as well
 
 ** 2012-02-27 Revision 3

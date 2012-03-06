@@ -1,0 +1,26 @@
+--- refpolicy/policy/modules/contrib/dhcp.te	2012-03-01 20:58:01.639381470 +0100
++++ refpolicy/policy/modules/contrib/dhcp.te	2012-03-01 20:57:28.991381401 +0100
+@@ -4,6 +4,12 @@
+ #
+ # Declarations
+ #
++## <desc>
++## <p>
++##	Enable LDAP backend support for DHCP daemon.
++## </p>
++## </desc>
++gen_tunable(dhcp_use_ldap, false)
+ 
+ type dhcpd_t;
+ type dhcpd_exec_t;
+@@ -106,6 +112,10 @@
+ 	allow dhcpd_t self:capability { chown dac_override setgid setuid sys_chroot };
+ ')
+ 
++tunable_policy(`dhcp_use_ldap',`
++	sysnet_use_ldap(dhcpd_t)
++')
++
+ optional_policy(`
+ 	# used for dynamic DNS
+ 	bind_read_dnssec_keys(dhcpd_t)

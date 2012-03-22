@@ -1,3 +1,14 @@
+** 2012-03-22 Revision 5
+
+<no bug>	Do not audit getattr/search on user_home_dir_t stuff from within portage_fetch_t
+<no bug>	Do not audit getattr on udev netlink_kobject_uevent_sockets and unix_stream_sockets from within initrc (bootmisc)
+<no bug>	Allow init scripts (bootmisc) to clean up /tmp location
+<no bug>	Allow init scripts to delete stale syslog control sockets
+<no bug>	Allow bootmisc to mkdir/rmdir in /var/lib
+<no bug>	Allow mount to setsched on kernel_t
+<no bug>	Mark the selinuxfs mounts as mountpoints
+<no bug>	Do not audit searches by mount on unlabeled_t before it mounts on them
+#389425		Update patch for DHCP regarding binding to generic UDP ports
 <no bug>	Support integrated run_init properly again
 <no bug>	Add in references to sysfs where SELinux access is used (dev_getattr_sysfs_fs)
 <no bug>	Mark /lib/rc/console as initrc_state_t to allow bootup to remove stale files in there

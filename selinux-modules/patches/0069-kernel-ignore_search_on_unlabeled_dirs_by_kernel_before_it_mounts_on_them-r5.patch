@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/kernel.te	2012-03-07 22:31:17.406214365 +0100
++++ refpolicy/policy/modules/kernel/kernel.te	2012-03-07 22:27:00.163213816 +0100
+@@ -224,6 +224,7 @@
+ 
+ # Other possible mount points for the root fs are in files
+ allow kernel_t unlabeled_t:dir mounton;
++dontaudit kernel_t unlabeled_t:dir search;
+ # Kernel-generated traffic e.g., TCP resets on
+ # connections with invalidated labels:
+ allow kernel_t unlabeled_t:packet send;

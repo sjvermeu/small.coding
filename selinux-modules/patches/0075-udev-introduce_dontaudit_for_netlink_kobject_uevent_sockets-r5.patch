@@ -1,0 +1,29 @@
+--- refpolicy/policy/modules/system/udev.if	2012-03-22 19:48:49.828026360 +0100
++++ refpolicy/policy/modules/system/udev.if	2012-03-22 19:47:37.017026206 +0100
+@@ -132,6 +132,26 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit attempts to get attributes
++##	of a udev netlink_kobject_uevent_socket
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`udev_dontaudit_getattr_netlink_kobject_uevent_sockets',`
++	gen_require(`
++		type udev_t;
++	')
++
++	dontaudit $1 udev_t:netlink_kobject_uevent_socket getattr;
++')
++
++
++########################################
++## <summary>
+ ##	Read udev rules files
+ ## </summary>
+ ## <param name="domain">

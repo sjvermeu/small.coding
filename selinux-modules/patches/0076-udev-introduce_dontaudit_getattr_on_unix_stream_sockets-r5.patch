@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/system/udev.if	2012-03-22 19:57:37.854027488 +0100
++++ refpolicy/policy/modules/system/udev.if	2012-03-22 19:56:38.709027362 +0100
+@@ -149,6 +149,25 @@
+ 	dontaudit $1 udev_t:netlink_kobject_uevent_socket getattr;
+ ')
+ 
++########################################
++## <summary>
++##	Do not audit attempts to get attributes
++##	of a udev unix_stream_socket.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`udev_dontaudit_getattr_unix_stream_sockets',`
++	gen_require(`
++		type udev_t;
++	')
++
++	dontaudit $1 udev_t:unix_stream_socket getattr;
++')
++
+ 
+ ########################################
+ ## <summary>

@@ -1,0 +1,54 @@
+POLICY_LOCATION="/home/swift/Development/Centralized/hardened-refpolicy/";
+
+# sefindif - Find interface definitions that have a string that matches the
+# given regular expression
+sefindif() {
+  REGEXP="$1";
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  for FILE in */*.if;
+  do
+    awk "/(interface\(|template\()/ { NAME=\$NF; P=0 }; /${REGEXP}/ { if (P==0) {P=1; print NAME}; print };" ${FILE} | sed -e "s:^:${FILE}\: :g";
+  done
+  popd > /dev/null 2>&1;
+}
+
+# seshowif - Show the interface definition
+seshowif() {
+  INTERFACE="$1";
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  for FILE in */*.if;
+  do
+    grep -A 9999 "\(interface(\`${INTERFACE}'\|template(\`${INTERFACE}'\)" ${FILE} | grep -B 9999 -m 1 "^')";
+  done
+  popd > /dev/null 2>&1;
+}
+
+# sefinddef - Find macro definitions that have a string that matches the given
+# regular expression
+sefinddef() {
+  REGEXP="$1";
+  grep -H "define(\`.*${REGEXP}.*" ${POLICY_LOCATION}/policy/support/* | sed -e 's:.*\/\([^(]*\):\1:g'
+}
+
+# seshowdef - Show the macro definition
+seshowdef() {
+  MACRONAME="$1";
+  pushd ${POLICY_LOCATION}/policy/support > /dev/null 2>&1;
+  for FILE in *.spt;
+  do
+    grep -A 9999 "define(\`${MACRONAME}'" ${FILE} | grep -B 999 -m 1 "')";
+  done
+  popd > /dev/null 2>&1;
+}
+
+# selist - List all templates/interfaces in the order allowed by refpolicy
+selist() {
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  (
+  egrep '^(interface|template)' kernel/kernel.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, kernel):g" | sort;
+  egrep '^(interface|template)' kernel/*.if | grep -v 'kernel/kernel.if' | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, other):g" | sort;
+  egrep '^(interface|template)' system/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (system):g" | sort;
+  egrep '^(interface|template)' admin/*.if apps/*.if roles/*.if services/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sort;
+  ) | nl | sed -e "s:$: :g";
+  popd > /dev/null 2>&1;
+}

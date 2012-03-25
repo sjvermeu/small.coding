@@ -34,12 +34,12 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0009 . add bacula declaration
 0010 . dontaudit set 1
 0011 - wpa_cli is a commandline utility
-0012 - various corecommands file contexts updates
+0012 . various corecommands file contexts updates
 0013 - add gentoo_portage_eselect_module interface
 0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
 0015 . allow mount to read/write puppet tmp files (used to gather output of mount)
-0016 - mark portage_ebuild_t as a mountpoint
-0017 - mark debugfs_t as a mountpoint
+0016 . mark portage_ebuild_t as a mountpoint
+0017 . mark debugfs_t as a mountpoint
 0018 - allow syslog to create /var/lib/syslog
 0019 - structured set of patches for asterisk
 0020 - mark glsa-check as portage entry file
@@ -93,7 +93,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0068 - remove domtrans when calling rc_exec_t to initrc_t, gentoo init system already supports integrated run_init (runscript_selinux.so is a modified run_init), all it needs is execute rights on rc_exec_t and "wait" until initrc_exec_t is called.
 0069 - do not audit searches on unlabeled_t by kernel_t (during mount) right before the mount on that dir occurs (like with cgroups)
 0070 - allow mount to setsched kernel
-0071 - mark security_t (for /selinux and /sys/fs/selinux) as a mountpoint
+0071 . mark security_t (for /selinux and /sys/fs/selinux) as a mountpoint
 0072 - allow bootmisc init script to mkdir/rmdir in /var/lib
 0073 - allow initrc scripts to delete stale syslog control sockets in /var/run
 0074 - allow initrc script to clean up /tmp

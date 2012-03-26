@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/system/logging.te	2012-03-26 22:11:01.984579826 +0200
++++ refpolicy/policy/modules/system/logging.te	2012-03-26 22:10:39.957579779 +0200
+@@ -358,7 +358,7 @@
+ dontaudit syslogd_t self:capability sys_tty_config;
+ # setpgid for metalog
+ # setrlimit for syslog-ng
+-allow syslogd_t self:process { signal_perms setpgid setrlimit };
++allow syslogd_t self:process { signal_perms setpgid setrlimit getsched };
+ # receive messages to be logged
+ allow syslogd_t self:unix_dgram_socket create_socket_perms;
+ allow syslogd_t self:unix_stream_socket create_stream_socket_perms;

@@ -41,7 +41,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0016 . mark portage_ebuild_t as a mountpoint
 0017 . mark debugfs_t as a mountpoint
 0018 - allow syslog to create /var/lib/syslog
-0019 - structured set of patches for asterisk
+0019 . structured set of patches for asterisk
 0020 - mark glsa-check as portage entry file
 0021 - allow gcc_config_t to work with nfs-mounted portage tree
 0022 - use runtime files for gcc-config (+ tmp support for "tac" command)
@@ -51,7 +51,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0026 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
 0027 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
 0028 - add virtualization context files
-0029 - allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
+0029 . allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
 0030 - ensure that initrc can connect to the virt sockets
 0031 - update virtualization so that sysadmin can use tools like virsh
 0032 - updates for init
@@ -100,6 +100,9 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0075 - do not audit getattr on udev netlink_kobject_uevent_sockets from within initrc (bootmisc)
 0076 - do not audit getattr on udev unix_stream_sockets from within initrc (bootmisc)
 0077 - do not audit search/getattr on user_home_dir from within portage_fetch domain
+0078 - allow initscripts to manipulate sysctls (sys_admin capability)
+0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
+0080 - allow syslog-ng to getsched, needed for newer syslog-ng implementations
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

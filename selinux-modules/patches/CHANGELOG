@@ -1,3 +1,7 @@
+#405425		Allow syslog-ng to getsched capability (needed for its new threading implementation)
+<no bug>	Do not audit sys_admin capability for dhcpc (in sysnetwork)
+<no bug>	Allow sys_admin capability for init scripts (modify sysctl settings)
+
 ** 2012-03-22 Revision 5
 
 <no bug>	Do not audit getattr/search on user_home_dir_t stuff from within portage_fetch_t

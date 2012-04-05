@@ -31,7 +31,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0006 - add skype declaration
 0007 - add gorg declaration
 0008 - add nginx declaration
-0009 . add bacula declaration
+0009 + add bacula declaration
 0010 . dontaudit set 1
 0011 - wpa_cli is a commandline utility
 0012 . various corecommands file contexts updates
@@ -103,6 +103,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0078 - allow initscripts to manipulate sysctls (sys_admin capability)
 0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
 0080 - allow syslog-ng to getsched, needed for newer syslog-ng implementations
+0081 ! allow cronie (crond_t) to create cronjob_t keys (needed to run cronjobs by cronie) [3]
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.
@@ -111,3 +112,5 @@ not yet approved). An "!" means that the patch will not be sent upstream
     authentication info". We notice that it wants to get the attribute on security_t
     and then stops. In permissive mode, I notice that it calls the chpwd binary (as
     expected). 
+[3] I don't think it is needed. The cronie sourcecode does check for setkeycreate rights, but there is no need 
+    for it later in the code. We might want to patch cronie instead not to check for the keys anymore?

@@ -1,3 +1,7 @@
+#403293		Support SELinux-aware cronie and have it create cronjob_t keys
+
+** 2012-03-29 Revision 6
+
 #405425		Allow syslog-ng to getsched capability (needed for its new threading implementation)
 <no bug>	Do not audit sys_admin capability for dhcpc (in sysnetwork)
 <no bug>	Allow sys_admin capability for init scripts (modify sysctl settings)

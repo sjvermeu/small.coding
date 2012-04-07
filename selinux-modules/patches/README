@@ -104,6 +104,8 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
 0080 - allow syslog-ng to getsched, needed for newer syslog-ng implementations
 0081 ! allow cronie (crond_t) to create cronjob_t keys (needed to run cronjobs by cronie) [3]
+0082 - mark pwd.lck as etc_t so that recent shadow utilities can work with it
+0083 - allow init scripts to manage cgroup files and directories (openrc requirement)
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

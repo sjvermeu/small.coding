@@ -1,3 +1,4 @@
+#411193		Support init scripts working with cgroups (manage cgroup_t)
 #403293		Support SELinux-aware cronie and have it create cronjob_t keys
 
 ** 2012-03-29 Revision 6

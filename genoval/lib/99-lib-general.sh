@@ -6,7 +6,7 @@ getObjnum() {
   local KEY=$1;
   local VAL=$2;
 
-  local OBJNUM=$(grep ":${KEY}=${VAL}:" objects.conf | awk -F':' '{print $1}');
+  local OBJNUM=$(grep -F ":${KEY}=${VAL}:" objects.conf | awk -F':' '{print $1}');
 
   if [ "${OBJNUM}" == "" ];
   then
@@ -23,7 +23,7 @@ getStenum() {
   local KEY=$1;
   local VAL=$2;
 
-  local STENUM=$(grep ":${KEY}=${VAL}:" states.conf | awk -F':' '{print $1}');
+  local STENUM=$(grep -F ":${KEY}=${VAL}:" states.conf | awk -F':' '{print $1}');
 
   if [ "${STENUM}" == "" ];
   then

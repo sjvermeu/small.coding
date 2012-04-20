@@ -1,3 +1,6 @@
+#411149		Introduce httpd_setrlimit to support setrlimit/sys_resource on apache (for lighttpd)
+#411943		Allow unconfined users to start X (or XFCE) from the commandline
+
 ** 2012-04-11 Revision 7
 
 #401595		Mark .pwd.lock as etc_t 

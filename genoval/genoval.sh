@@ -2,12 +2,13 @@
 
 #set -x;
 
-if [ $# -ne 3 ];
+if [ $# -ne 4 ];
 then
-  echo "Usage: $0 <xccdf-template> <oval-namespace> <save-dir>";
+  echo "Usage: $0 <xccdf-template> <oval-namespace> <def-file> <save-dir>";
   echo "";
   echo " xccdf-template: Filename of the XCCDF template (must end in .template)";
   echo " oval-namespace: Namespace for the OVAL objects, like \"org.gentoo.dev.swift\"";
+  echo " def-file:       Filename of the definitions file";
   echo " save-dir:       Directory in which to save the results (can be \".\")";
   exit 1;
 fi
@@ -15,8 +16,10 @@ fi
 typeset XCCDF=$1;
 typeset OVALNS=$2;
 export OVALNS;
+typeset DEFFILE=$3;
+export DEFFILE;
 typeset OVAL=$(echo ${XCCDF} | sed -e 's:.template::g' | sed -e 's:[Xx][Cc][Cc][Dd][Ff]:oval:g');
-typeset WORKDIR=$3;
+typeset WORKDIR=$4;
 
 # Error checking
 if [ ! -f ${XCCDF} ];
@@ -25,10 +28,16 @@ then
   exit 2;
 fi
 
+if [ ! -f ${DEFFILE} ];
+then
+  echo "File ${DEFFILE} must exist!";
+  exit 3;
+fi
+
 if [ ! -d ${WORKDIR} ];
 then
   echo "Directory ${WORKDIR} must exist!";
-  exit 3;
+  exit 4;
 fi
 
 if [ -f ${WORKDIR}/${OVAL} ];
@@ -48,7 +57,7 @@ done
 # Preparing the work directory
 cp ${XCCDF} ${WORKDIR}/${XCCDF%%.template};
 XCCDF=${XCCDF%%.template};
-cp definitions.conf ${WORKDIR} > /dev/null 2>&1;
+cp ${DEFFILE} ${WORKDIR}/definitions.conf > /dev/null 2>&1;
 
 pushd ${WORKDIR} > /dev/null 2>&1;
 touch objects.conf;
@@ -207,6 +216,17 @@ do
 
     genTextfileMatch "at least one" >> ${OVAL};
   fi
+
+  ## Test for environment variable
+  if `environmentMatches`;
+  then
+    FILE=$(environmentName);
+    REGEXP=$(environmentRegexp);
+    export OBJNUM=$(getObjnum "environmentvariable" "${FILE}");
+    export STENUM=$(getStenum "regexp" "${REGEXP}");
+
+    genEnvironmentMatch "at least one" >> ${OVAL};
+  fi
 done
 
 grep -A 9999 "@@GENOVAL END TESTS" ${OVAL}.template | grep -B 9999 "@@GENOVAL START OBJECTS" >> ${OVAL};
@@ -232,11 +252,26 @@ do
   ## File content lines (non-commented)
   if [ "${OBJTYPE}" == "file" ];
   then
-    echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Non-comment lines in ${OBJVALUE}\">" >> ${OVAL};
-    echo "  <ind-def:filepath>${OBJVALUE}</ind-def:filepath>" >> ${OVAL};
-    echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
-    echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
-    echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+    echo "${OBJVALUE}" | grep -q '@[^ ]*@';
+    if [ $? -eq 0 ];
+    then
+      # Variable declared inside
+      VARNAME=$(echo ${OBJVALUE} | sed -e 's:.*@::g' -e 's:@.*::g');
+      VARNUM=$(getObjnum "environmentvariable" "${VARNAME}");
+
+      echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Non-comment lines in ${OBJVALUE}\">" >> ${OVAL};
+      echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}:obj:${VARNUM}\"/>" >> ${OVAL};
+      echo "  <ind-def:filename>${OBJVALUE}</ind-def:filename>" >> ${OVAL};
+      echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
+      echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
+      echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+    else
+      echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Non-comment lines in ${OBJVALUE}\">" >> ${OVAL};
+      echo "  <ind-def:filepath>${OBJVALUE}</ind-def:filepath>" >> ${OVAL};
+      echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
+      echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
+      echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+    fi
   fi
 
   ## Non-commented script output
@@ -259,6 +294,14 @@ do
     echo "  <ind-def:pattern operation=\"pattern match\">(${OBJVALUE%%@*}.*)</ind-def:pattern>" >> ${OVAL};
     echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
+  fi
+
+  ## Environment variables
+  if [ "${OBJTYPE}" == "environmentvariable" ];
+  then
+    echo "<ind-def:environmentvariable_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Environment variable ${OBJVALUE}\">" >> ${OVAL};
+    echo "  <ind-def:name>${OBJVALUE}</ind-def:name>" >> ${OVAL};
+    echo "</ind-def:environmentvariable_object>" >> ${OVAL};
   fi
 done
 

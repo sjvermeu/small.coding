@@ -913,7 +913,7 @@ USE="... pam tcpd ssl"</h:pre>
 # <h:b>mkdir -p /etc/portage/gpg</h:b>
 # <h:b>chmod 0700 /etc/portage/gpg</h:b>
 # <h:b>gpg --homedir /etc/portage/gpg --keyserver subkeys.pgp.net --recv-keys 0x239C75C4 0x96D8BF6D</h:b>
-# <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x239C75C4 trust</h:b></h:pre>
+# <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x239C75C4 trust</h:b>
 # <h:b>gpg --homedir /etc/portage/gpg --edit-key 0x96D8BF6D trust</h:b></h:pre>
           After this, you can edit <h:code>/etc/make.conf</h:code>:
 	  <h:pre>### Editing make.conf for signed portage trees ###

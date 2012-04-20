@@ -6,6 +6,21 @@ getObjnum() {
   local KEY=$1;
   local VAL=$2;
 
+  # Special case: @SOMETHING@ is an environment variable
+  echo "${VAL}" | grep -q '@[^ ]*@';
+  if [ $? -eq 0 ];
+  then
+    local VARNAME=$(echo "${VAL}" | sed -e 's:.*@\([^ ]*\)@.*:\1:g');
+    local TEMPOBJNUM=$(grep -F ":environmentvariable=${VARNAME}:" objects.conf | awk -F':' '{print $1}');
+
+    if [[ "${TEMPOBJNUM}" == "" ]];
+    then
+      # Environment variable not declared yet
+      NEWTOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
+      echo "${NEWTOBJNUM}:environmentvariable=${VARNAME}:" >> objects.conf;
+    fi
+  fi
+
   local OBJNUM=$(grep -F ":${KEY}=${VAL}:" objects.conf | awk -F':' '{print $1}');
 
   if [ "${OBJNUM}" == "" ];

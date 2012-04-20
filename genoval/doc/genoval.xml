@@ -12,8 +12,8 @@ more readable definitions (instead of XML). This document describes genoval.sh
 and how to use it.
 </abstract>
 
-<version>1</version>
-<date>2011-12-23</date>
+<version>2</version>
+<date>2012-04-20</date>
 
 <chapter>
 <title>OVAL and genoval.sh</title>
@@ -137,6 +137,7 @@ lines (the highlighted parts can be changed to your liking):
 mount point <i>/home</i> is mounted with <i>nosuid</i> option [<i>rule-home-mount-nosuid</i>]
 file <i>/etc/ssh/sshd_config</i> must have a line that matches <i>^PermitRootLogin.*no</i> [<i>rule-sshd-norootlogin</i>]
 file <i>/etc/ssh/sshd_config</i> may not have a line that matches <i>^UsePAM.*yes</i> [<i>rule-sshd-nousepam</i>]
+file <i>%ENVVARNAME%named.conf</i> may not have a line that matches <i>allow-transfer.*any</i> [<i>rule-bind-no-transfer-any</i>]
 sysctl <i>net.ipv4.ip_forward</i> must be <i>0</i> [<i>rule-sysctl-ipv4-forward</i>]
 gentoo variable <i>USE</i> must contain <i>pam</i> [<i>rule-gentoo-use-pam</i>]
 gentoo variable <i>GCC_SPECS</i> must be [<i>rule-gentoo-gccspecs-empty</i>]
@@ -144,6 +145,8 @@ gentoo profile must contain <i>hardened</i> [<i>rule-gentoo-profile-hardened</i>
 kernel config <i>CONFIG_GRKERNSEC_TPE</i> must be <i>y</i> [<i>rule-kernel-grsec-tpe</i>]
 kernel config <i>CONFIG_GRKERNSEC_USER</i> must be enabled [<i>rule-kernel-grsec-user</i>]
 kernel config <i>CONFIG_GRKERNSEC_IGNOREMRE</i> must not be set [<i>rule-kernel-grsec-ignoremre</i>]
+environmentvariable <i>HOMEDIR</i> must match <i>^/home/.*</i> [<i>rule-homedir</i>]
+environmentvariable <i>PATH</i> must not match <i>:.:</i> [<i>rule-no-cwd-path</i>]
 </pre>
 
 <p>

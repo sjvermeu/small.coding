@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<oval_definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+ xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5"
+ xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+ xmlns:ind-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent"
+ xmlns:lin-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux"
+ xmlns:unix-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+  <generator>
+    <oval:product_name>vim</oval:product_name>
+    <oval:schema_version>5.9</oval:schema_version>
+    <oval:timestamp>2011-10-31T12:00:00-04:00</oval:timestamp>
+  </generator>
+
+<definitions>
+<!-- @@GENOVAL START DEFINITIONS -->
+<!-- @@GENOVAL END DEFINITIONS -->
+</definitions>
+
+<tests>
+<!-- @@GENOVAL START TESTS -->
+<!-- @@GENOVAL END TESTS -->
+</tests>
+
+<objects>
+<!-- @@GENOVAL START OBJECTS -->
+<!-- @@GENOVAL END OBJECTS -->
+</objects>
+
+<states>
+<!-- @@GENOVAL START STATES -->
+<!-- @@GENOVAL END STATES -->
+</states>
+
+</oval_definitions>

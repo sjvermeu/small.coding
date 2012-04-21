@@ -57,6 +57,8 @@
 </states>
 
 <variables>
+<!-- @@GENOVAL START VARIABLES -->
+<!-- @@GENOVAL END VARIABLES -->
 <local_variable id="oval:@@OVALNS@@.genoval:var:1" version="1" datatype="string" comment="Location where the helper scripts output is stored">
   <object_component item_field="value" object_ref="oval:@@OVALNS@@.genoval:obj:1"/>
 </local_variable>

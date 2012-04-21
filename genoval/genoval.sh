@@ -62,6 +62,7 @@ cp ${DEFFILE} ${WORKDIR}/definitions.conf > /dev/null 2>&1;
 pushd ${WORKDIR} > /dev/null 2>&1;
 touch objects.conf;
 touch states.conf;
+touch variables.conf;
 
 ###
 ### HERE STARTS THE REAL WORK
@@ -225,7 +226,13 @@ do
     export OBJNUM=$(getObjnum "environmentvariable" "${FILE}");
     export STENUM=$(getStenum "regexp" "${REGEXP}");
 
-    genEnvironmentMatch "at least one" >> ${OVAL};
+    echo ${LINE} | egrep -q 'may not match';
+    if [ $? -eq 0 ];
+    then
+      genEnvironmentMatch "none satisfy" >> ${OVAL};
+    else
+      genEnvironmentMatch "at least one" >> ${OVAL}; 
+    fi
   fi
 done
 
@@ -256,12 +263,13 @@ do
     if [ $? -eq 0 ];
     then
       # Variable declared inside
-      VARNAME=$(echo ${OBJVALUE} | sed -e 's:.*@::g' -e 's:@.*::g');
-      VARNUM=$(getObjnum "environmentvariable" "${VARNAME}");
+      VARNAME=$(echo ${OBJVALUE} | sed -e 's:.*@\([^ ]*\)@.*:\1:g');
+      VARNUM=$(getVarnum "envvar" "${VARNAME}");
+      FILENAME=$(echo "${OBJVALUE}" | sed -e 's:@[^ ]*@::g');
 
       echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Non-comment lines in ${OBJVALUE}\">" >> ${OVAL};
-      echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}:obj:${VARNUM}\"/>" >> ${OVAL};
-      echo "  <ind-def:filename>${OBJVALUE}</ind-def:filename>" >> ${OVAL};
+      echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}:var:${VARNUM}\"/>" >> ${OVAL};
+      echo "  <ind-def:filename>${FILENAME}</ind-def:filename>" >> ${OVAL};
       echo "  <ind-def:pattern operation=\"pattern match\">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ind-def:pattern>" >> ${OVAL};
       echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
       echo "</ind-def:textfilecontent54_object>" >> ${OVAL};
@@ -352,7 +360,29 @@ do
   fi
 done < states.conf;
 
-grep -A 9999 "@@GENOVAL END STATES" ${OVAL}.template >> ${OVAL};
+grep -A 9999 "@@GENOVAL END STATES" ${OVAL}.template | grep -B 9999 "@@GENOVAL START VARIABLES" >> ${OVAL};
+
+##
+## Loop over variables.conf to generate variables
+##
+while read VAR;
+do
+  VARNUM=$(echo ${VAR} | awk -F':' '{print $1}');
+  VARTYPE=$(echo ${VAR} | awk -F':' '{print $2}' | awk -F'=' '{print $1}');
+  VARVALUE=$(echo "${VAR}" | awk -F':' '{print $2}' | sed -e 's:^[^=]*=::g');
+  VAROBJREF=$(echo "${VAR}" | awk -F':' '{print $3}');
+  VARCOMMENT=$(echo ${VARNAME}=${VARVAL} | tr -d '["]');
+
+  # environment variable
+  if [ "${VARTYPE}" == "envvar" ];
+  then
+    echo "<local_variable comment=\"${VARCOMMENT}\" version=\"1\" id=\"oval:${OVALNS}:var:${VARNUM}\" datatype=\"string\">" >> ${OVAL};
+    echo "  <object_component object_ref=\"oval:${OVALNS}:obj:${VAROBJREF}\" item_field=\"name\"/>" >> ${OVAL};
+    echo "</local_variable>" >> ${OVAL};
+  fi
+done < variables.conf;
+
+grep -A 9999 "@@GENOVAL END VARIABLES" ${OVAL}.template >> ${OVAL};
 
 # Substitute variables
 sed -i -e "s:@@OVALNS@@:${OVALNS}:g" ${OVAL};

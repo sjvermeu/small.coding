@@ -2,6 +2,24 @@
 ## General functions for genoval
 ##
 
+getVarnum() {
+  local KEY=$1;
+  local VAL=$2;
+  local REF=$3;
+
+  local VARNUM=$(grep -F ":${KEY}=${VAL}:" variables.conf | awk -F':' '{print $1}');
+
+  if [ "${VARNUM}" == "" ];
+  then
+    # Definition doesn't exist yet
+    NEWVARNUM=$(wc -l variables.conf | awk '{print $1+1}');
+    echo "${NEWVARNUM}:${KEY}=${VAL}:${REF}:" >> variables.conf;
+    VARNUM=${NEWVARNUM};
+  fi
+
+  echo ${VARNUM};
+}
+
 getObjnum() {
   local KEY=$1;
   local VAL=$2;
@@ -11,14 +29,9 @@ getObjnum() {
   if [ $? -eq 0 ];
   then
     local VARNAME=$(echo "${VAL}" | sed -e 's:.*@\([^ ]*\)@.*:\1:g');
-    local TEMPOBJNUM=$(grep -F ":environmentvariable=${VARNAME}:" objects.conf | awk -F':' '{print $1}');
-
-    if [[ "${TEMPOBJNUM}" == "" ]];
-    then
-      # Environment variable not declared yet
-      NEWTOBJNUM=$(wc -l objects.conf | awk '{print $1+1}');
-      echo "${NEWTOBJNUM}:environmentvariable=${VARNAME}:" >> objects.conf;
-    fi
+    local TEMPOBJNUM=$(getObjnum "environmentvariable" "${VARNAME}");
+    # Just register the environment variable
+    local VARNUM=$(getVarnum "envvar" "${VARNAME}" "${TEMPOBJNUM}");
   fi
 
   local OBJNUM=$(grep -F ":${KEY}=${VAL}:" objects.conf | awk -F':' '{print $1}');

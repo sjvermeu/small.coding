@@ -24,7 +24,7 @@ environmentRegexp() {
     return 0;
   fi
 
-  echo "${LINE}" | grep -q 'must not match';
+  echo "${LINE}" | grep -q 'may not match';
   if [ $? -eq 0 ];
   then
     REGEXP=$(echo "${LINE}" | awk '{print $6}');

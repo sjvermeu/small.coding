@@ -1,3 +1,10 @@
+#413065		Allow passwd_t to read default context definitions
+#413061		Allow groupadd_t to read default context definitions
+#410951		Use /usr/lib and /lib instead of the /usr/lib(64)? and similar calls
+
+** 2012-04-21 Revision 8
+
+#411719		Update whitespace in python scripts (support python3)
 #411149		Introduce httpd_setrlimit to support setrlimit/sys_resource on apache (for lighttpd)
 #411943		Allow unconfined users to start X (or XFCE) from the commandline
 

@@ -33,15 +33,24 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0008 - add nginx declaration
 0009 + add bacula declaration
 0010 . dontaudit set 1
+     + sudo
+     + raid
+     + audit leaked fd
+     + portage
+     + mozilla
+     + mount
+     + dhcp client unix_stream_sockets
+     + sysnet interfaces for dontaudit
+     + dontaudit interfaces for files module
 0011 - wpa_cli is a commandline utility
 0012 . various corecommands file contexts updates
 0013 - add gentoo_portage_eselect_module interface
 0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
 0015 . allow mount to read/write puppet tmp files (used to gather output of mount)
-0016 . mark portage_ebuild_t as a mountpoint
-0017 . mark debugfs_t as a mountpoint
+0016 + mark portage_ebuild_t as a mountpoint
+0017 + mark debugfs_t as a mountpoint
 0018 - allow syslog to create /var/lib/syslog
-0019 . structured set of patches for asterisk
+0019 + structured set of patches for asterisk
 0020 - mark glsa-check as portage entry file
 0021 - allow gcc_config_t to work with nfs-mounted portage tree
 0022 - use runtime files for gcc-config (+ tmp support for "tac" command)
@@ -50,10 +59,10 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0025 + Mark /dev/.tmp-block-.* as fixed_disk_device_t so that mdadm can work on it (file is created by udev as $tempnode)
 0026 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
 0027 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
-0028 . add virtualization context files
-0029 . allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
+0028 + add virtualization context files
+0029 + allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
 0030 . ensure that initrc can connect to the virt sockets
-0031 . update virtualization so that sysadmin can use tools like virsh
+0031 + update virtualization so that sysadmin can use tools like virsh
 0032 - updates for init
 0033 . allow creation of user keys by sudo, needed for sudo with selinux integration
 0034 - do not have java-config be marked as a java_t entry point
@@ -74,7 +83,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0049 - update on postgresql policy
 0050 - update on xserver policy
 0051 - make cron domains use interactive file descriptors (?)
-0052 . dhcpd can use ldap as backend
+0052 + dhcpd can use ldap as backend
 0053 - allow mozilla plugin to read its configuration files (currently still very generic)
 0054 - introduce generic attributes for apache and web content handling
 0055 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
@@ -108,6 +117,9 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0083 - allow init scripts to manage cgroup files and directories (openrc requirement)
 0084 - support calling startx(fce4) from console for unconfined_t (transition to xserver_t)
 0085 . introduce tunable support for setrlimit within apache
+0086 - update whitespace issues with segenxml.py script to fix python3 issues
+0087 - switch to substituted file locations (subs_dist)
+0088 - allow shadow utils to read default context definitions
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

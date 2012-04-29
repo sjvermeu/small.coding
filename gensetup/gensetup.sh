@@ -327,7 +327,6 @@ umountDisks() {
 
 generateFstab() {
   echo "none		/selinux	selinuxfs	defaults		0 0"
-  echo "shm		/dev/shm	tmpfs		nodev,nosuid,noexec	0 0"
   ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
   ROOT="${ROOT}$(awk -F'.' "/disk.lvm.*.purpose=root/ {print \$3/\$4}" ${DATA})";
   ROOTLABEL=$(grep '.purpose=root' ${DATA} | sed -e 's:.purpose=root.*::g');

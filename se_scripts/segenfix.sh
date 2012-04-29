@@ -7,7 +7,7 @@
 
 typeset TARGET=$2;
 typeset TYPE=$1;
-typeset TRANSLATE="s:/.*/policy/modules:refpolicy/policy/modules:g";
+typeset TRANSLATE="s:\(${TMPLOC}\|${NEWDST%%policy/modules}\):refpolicy:g";
 typeset MODULETRANSLATE="s:/.*/policy/modules/::g";
 
 typeset SUBJECT="";
@@ -40,7 +40,11 @@ then
   SUBJECT="${TARGET}";
 else
   SUBJECT=$(find ${NEWDST} -type f -name ${TARGET}.te 2>/dev/null | awk -F'/' '{print $(NF-1)"/"$NF}' | sed -e "s:.te$::g");
-  if [ "${SUBJECT}" = "" ];
+  if [ "${TARGET}" = "all" ];
+  then
+    SUBJECT=${TARGET};
+    NEWDST=${NEWDST%%policy/modules};
+  elif [ "${SUBJECT}" = "" ];
   then
     SUBJECT=${TARGET};
   fi
@@ -73,15 +77,20 @@ then
   pushd ${TMPLOC} > /dev/null 2>&1;
   for PATCH in ${PATCHES}/*.patch;
   do
-    patch -p1 < ${PATCH} > /dev/null 2>&1;
+    patch --no-backup-if-mismatch -p1 < ${PATCH} > /dev/null 2>&1;
     [[ $? -ne 0 ]] && echo "Patch ${PATCH} failed to apply!" && return 1;
   done
   popd > /dev/null 2>&1;
   # Now take the diff of the requested target
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
-  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
+  if [ "${SUBJECT}" == "all" ];
+  then
+    diff -uNr -x ".git*" -x "CVS" ${TMPLOC} ${NEWDST} | sed -e ${TRANSLATE};
+  else
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
+    [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
+  fi
   # Clear working dir
   rm -rf ${TMPLOC};
 elif [ "${TYPE%%-r*}" = "incremental" ];
@@ -101,14 +110,19 @@ then
   do
     PREV=$(echo ${PATCH} | sed -e "s:.*-r\([0-9]*\).patch:\1:g");
     [ ${PREV} -gt ${REV} ] && continue;
-    patch -p1 < ${PATCH} > /dev/null 2>&1;
+    patch --no-backup-if-mismatch -p1 < ${PATCH} > /dev/null 2>&1;
   done
   popd > /dev/null 2>&1;
   # Now take the diff of the requested target
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
-  diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
-  [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
+  if [ "${SUBJECT}" == "all" ];
+  then
+    diff -uNr -x ".git" -x "CVS" ${TMPLOC} ${NEWDST} | sed -e ${TRANSLATE};
+  else
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};
+    diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.fc ${NEWDST}/${SUBJECT}.fc | sed -e ${TRANSLATE};
+    [ -f ${NEWDST}/${SUBJECT}.te.in ] && diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te.in ${NEWDST}/${SUBJECT}.te.in | sed -e ${TRANSLATE};
+  fi
   # Clear working dir
   rm -rf ${TMPLOC};
 else

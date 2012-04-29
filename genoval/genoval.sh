@@ -224,7 +224,7 @@ do
     FILE=$(environmentName);
     REGEXP=$(environmentRegexp);
     export OBJNUM=$(getObjnum "environmentvariable" "${FILE}");
-    export STENUM=$(getStenum "regexp" "${REGEXP}");
+    export STENUM=$(getStenum "envregexp" "${REGEXP}");
 
     echo ${LINE} | egrep -q 'may not match';
     if [ $? -eq 0 ];
@@ -357,6 +357,14 @@ do
     echo "<ind-def:textfilecontent54_state id=\"oval:${OVALNS}:ste:${STENUM}\" version=\"1\" comment=\"The match of ${STEVALUECOMMENT}\">" >> ${OVAL};
     echo "  <ind-def:subexpression operation=\"pattern match\">${STEVALUE}</ind-def:subexpression>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_state>" >> ${OVAL};
+  fi
+
+  # environment-related regular expressions
+  if [ "${STETYPE}" == "envregexp" ];
+  then
+    echo "<ind-def:environmentvariable_state id=\"oval:${OVALNS}:ste:${STENUM}\" version=\"1\" comment=\"The match of ${STEVALUECOMMENT}\">" >> ${OVAL};
+    echo "  <ind-def:value operation=\"pattern match\">${STEVALUE}</ind-def:value>" >> ${OVAL};
+    echo "</ind-def:environmentvariable_state>" >> ${OVAL};
   fi
 done < states.conf;
 

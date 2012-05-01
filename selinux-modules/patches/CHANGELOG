@@ -1,3 +1,5 @@
+<no bug>	Update symbol in clamav_append_log interface (backport)
+#411719		Update (some more) whitespace in python scripts (support #python3)
 #413065		Allow passwd_t to read default context definitions
 #413061		Allow groupadd_t to read default context definitions
 #410951		Use /usr/lib and /lib instead of the /usr/lib(64)? and similar calls

@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/contrib/clamav.if	2012-04-30 21:02:27.649877802 +0200
++++ refpolicypolicy/modules/contrib/clamav.if	2012-04-30 21:01:03.788877623 +0200
+@@ -49,12 +49,12 @@
+ #
+ interface(`clamav_append_log',`
+ 	gen_require(`
+-		type clamav_var_log_t;
++		type clamd_var_log_t;
+ 	')
+ 
+ 	logging_search_logs($1)
+-	allow $1 clamav_var_log_t:dir list_dir_perms;
+-	append_files_pattern($1, clamav_var_log_t, clamav_var_log_t)
++	allow $1 clamd_var_log_t:dir list_dir_perms;
++	append_files_pattern($1, clamd_var_log_t, clamd_var_log_t)
+ ')
+ 
+ ########################################

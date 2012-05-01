@@ -32,16 +32,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0007 - add gorg declaration
 0008 - add nginx declaration
 0009 + add bacula declaration
-0010 . dontaudit set 1
-     + sudo
-     + raid
-     + audit leaked fd
-     + portage
-     + mozilla
-     + mount
-     + dhcp client unix_stream_sockets
-     + sysnet interfaces for dontaudit
-     + dontaudit interfaces for files module
+0010 + dontaudit set 1
 0011 - wpa_cli is a commandline utility
 0012 . various corecommands file contexts updates
 0013 - add gentoo_portage_eselect_module interface
@@ -68,13 +59,13 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0034 - do not have java-config be marked as a java_t entry point
 0035 . introduce dracut domain and interfaces
 0036 . update on udev, later versions manage the udev_tbl_t more than just files
-0037 - lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
+0037 . lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
 0038 - allow initrc_t to create dirs in /sys (some init scripts do this), we might want to change to named filetrans later here
 0039 - allow portage_fetch_t to use portage_devpts_t, show progress of downloads for instance
 0040 - allow portage_sandbox_t to use git (git-2 eclass)
 0041 - update syslog file contexts for .persist- file
 0042 - allow exports (under initrc_t) to manage state data for NFS
-0043 - allow dhcp daemon to bind to generic udp ports
+0043 . allow dhcp daemon to bind to generic udp ports
 0044 - update on puppet policy
 0045 - update on mozilla policy
 0046 - update on courier policy
@@ -88,12 +79,12 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0054 - introduce generic attributes for apache and web content handling
 0055 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
 0056 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
-0057 - expand selinux and usermanage role usage to include the proper type definitions
+0057 . expand selinux and usermanage role usage to include the proper type definitions
 0058 ! temporarily reintroduce gentoo booleans (remove on 01/07/2012)
 0059 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
-0060 - add port 3128 as http_cache_port_t (default port for squid cache)
+0060 . add port 3128 as http_cache_port_t (default port for squid cache)
 0061 - allow sysadmin to call qemu
-0062 - mark mozilla_plugin_t as part of the mozilla_roles
+0062 . mark mozilla_plugin_t as part of the mozilla_roles
 0063 + use correct clamav_var_log_t call, not clamav_log_t
 0064 - mark /var/lib/ip6tables as initrc_tmp_t, needed by ip6tables init script
 0065 - allow nginx_t to list the contents of its configuration directories
@@ -102,7 +93,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0068 - remove domtrans when calling rc_exec_t to initrc_t, gentoo init system already supports integrated run_init (runscript_selinux.so is a modified run_init), all it needs is execute rights on rc_exec_t and "wait" until initrc_exec_t is called.
 0069 - do not audit searches on unlabeled_t by kernel_t (during mount) right before the mount on that dir occurs (like with cgroups)
 0070 - allow mount to setsched kernel
-0071 . mark security_t (for /selinux and /sys/fs/selinux) as a mountpoint
+0071 + mark security_t (for /selinux and /sys/fs/selinux) as a mountpoint
 0072 - allow bootmisc init script to mkdir/rmdir in /var/lib
 0073 - allow initrc scripts to delete stale syslog control sockets in /var/run
 0074 - allow initrc script to clean up /tmp
@@ -111,15 +102,16 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0077 - do not audit search/getattr on user_home_dir from within portage_fetch domain
 0078 - allow initscripts to manipulate sysctls (sys_admin capability)
 0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
-0080 - allow syslog-ng to getsched, needed for newer syslog-ng implementations
+0080 . allow syslog-ng to getsched, needed for newer syslog-ng implementations
 0081 ! allow cronie (crond_t) to create cronjob_t keys (needed to run cronjobs by cronie) [3]
 0082 - mark pwd.lck as etc_t so that recent shadow utilities can work with it
 0083 - allow init scripts to manage cgroup files and directories (openrc requirement)
 0084 - support calling startx(fce4) from console for unconfined_t (transition to xserver_t)
 0085 . introduce tunable support for setrlimit within apache
-0086 - update whitespace issues with segenxml.py script to fix python3 issues
-0087 - switch to substituted file locations (subs_dist)
-0088 - allow shadow utils to read default context definitions
+0086 . update whitespace issues with segenxml.py script to fix python3 issues
+0087 . switch to substituted file locations (subs_dist)
+0088 . allow shadow utils to read default context definitions
+0089 + Update symbol in clamav_append_log interface (backport)
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

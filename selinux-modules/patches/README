@@ -110,8 +110,12 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0085 + introduce tunable support for setrlimit within apache
 0086 . update whitespace issues with segenxml.py script to fix python3 issues
 0087 + switch to substituted file locations (subs_dist)
-0088 . allow shadow utils to read default context definitions
+0088 + allow shadow utils to read default context definitions
 0089 + Update symbol in clamav_append_log interface (backport)
+0090 + Eliminate "*_except_auth_files" expressions through new attribute
+0091 + Introduce named file transition support (backport)
+0092 - Remove duplicate context definition for firefox
+0093 - Mark kudzu call as optional in ddcprobe
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

@@ -1,0 +1,486 @@
+diff -uNr -x '.git*' -x CVS refpolicy/doc/templates/bool_list.html refpolicy/doc/templates/bool_list.html
+--- refpolicy/doc/templates/bool_list.html	2009-07-14 14:24:46.000000000 +0200
++++ refpolicy/doc/templates/bool_list.html	2012-05-01 14:15:16.757010072 +0200
+@@ -2,7 +2,7 @@
+ 
+ [[for bool in booleans]]
+ <div id="interfacesmall">
+-[[if bool.has_key('mod_layer')]]
++[[if 'mod_layer' in bool]]
+ Module: <a href='[[bool['mod_layer']+ "_" + bool['mod_name'] + ".html#link_" + bool['bool_name']]]'>
+ [[bool['mod_name']]]</a><p/>
+ Layer: <a href='[[bool['mod_layer']]].html'>
+diff -uNr -x '.git*' -x CVS refpolicy/doc/templates/interface.html refpolicy/doc/templates/interface.html
+--- refpolicy/doc/templates/interface.html	2009-07-14 14:24:46.000000000 +0200
++++ refpolicy/doc/templates/interface.html	2012-05-01 14:15:01.079010040 +0200
+@@ -1,10 +1,10 @@
+ [[for int in interfaces]]
+ <a name="link_[[int['interface_name']]]"></a>
+ <div id="interface">
+-[[if int.has_key("mod_layer")]]
++[[if "mod_layer" in int]]
+ 	Layer: [[mod_layer]]<br>
+ [[end]]
+-[[if int.has_key("mod_name")]]
++[[if "mod_name" in int]]
+ 	Module: [[mod_name]]<br>
+ [[end]]
+ <div id="codeblock">
+diff -uNr -x '.git*' -x CVS refpolicy/doc/templates/template.html refpolicy/doc/templates/template.html
+--- refpolicy/doc/templates/template.html	2009-07-14 14:24:46.000000000 +0200
++++ refpolicy/doc/templates/template.html	2012-05-01 14:14:17.284009945 +0200
+@@ -1,10 +1,10 @@
+ [[for temp in templates]]
+ <a name="link_[[temp['template_name']]]"></a>
+ <div id="template">
+-[[if temp.has_key("mod_layer")]]
++[[if "mod_layer" in temp]]
+ 	Layer: [[mod_layer]]<br>
+ [[end]]
+-[[if temp.has_key("mod_name")]]
++[[if "mod_name" in temp]]
+ 	Module: [[mod_name]]<br>
+ [[end]]
+ <div id="codeblock">
+diff -uNr -x '.git*' -x CVS refpolicy/doc/templates/tun_list.html refpolicy/doc/templates/tun_list.html
+--- refpolicy/doc/templates/tun_list.html	2009-07-14 14:24:46.000000000 +0200
++++ refpolicy/doc/templates/tun_list.html	2012-05-01 14:15:27.189010095 +0200
+@@ -2,7 +2,7 @@
+ 
+ [[for tun in tunables]]
+ <div id="interfacesmall">
+-[[if tun.has_key('mod_layer')]]
++[[if 'mod_layer' in tun]]
+ Module: <a href='[[tun['mod_layer']+ "_" + tun['mod_name'] + ".html#link_" + tun['tun_name']]]'>
+ [[tun['mod_name']]]</a><p/>
+ Layer: <a href='[[tun['mod_layer']]].html'>
+diff -uNr -x '.git*' -x CVS refpolicy/policy/flask/flask.py refpolicy/policy/flask/flask.py
+--- refpolicy/policy/flask/flask.py	2009-07-14 14:24:46.000000000 +0200
++++ refpolicy/policy/flask/flask.py	2012-05-01 14:15:46.828010136 +0200
+@@ -313,7 +313,7 @@
+ 		results = []
+ 		results.append(self.autogen)
+ 		for c in self.vectors:
+-			if self.inherits.has_key(c):
++			if c in self.inherits:
+ 				i = self.inherits[c]
+ 				count = len(self.common[i])
+ 				if not (mode == self.KERNEL and self.userspace[c]):
+@@ -355,7 +355,7 @@
+ 			count = 0
+ 
+ 			ps = []
+-			if self.inherits.has_key(c):
++			if c in self.inherits:
+ 				ps += self.common[self.inherits[c]]
+ 			ps += self.vector[c]
+ 			for p in ps: 
+diff -uNr -x '.git*' -x CVS refpolicy/support/genclassperms.py refpolicy/support/genclassperms.py
+--- refpolicy/support/genclassperms.py	2009-07-14 14:24:48.000000000 +0200
++++ refpolicy/support/genclassperms.py	2012-04-30 20:08:59.139870954 +0200
+@@ -287,10 +287,10 @@
+ 	Print an error message and exit.
+ 	"""
+ 
+-        sys.stderr.write("%s exiting for: " % sys.argv[0])
+-        sys.stderr.write("%s\n" % error)
+-        sys.stderr.flush()
+-        sys.exit(1)
++	sys.stderr.write("%s exiting for: " % sys.argv[0])
++	sys.stderr.write("%s\n" % error)
++	sys.stderr.flush()
++	sys.exit(1)
+ 
+ # MAIN PROGRAM
+ app_name = sys.argv[0]
+diff -uNr -x '.git*' -x CVS refpolicy/support/genhomedircon refpolicy/support/genhomedircon
+--- refpolicy/support/genhomedircon	2010-05-03 17:45:09.000000000 +0200
++++ refpolicy/support/genhomedircon	2012-05-01 14:16:24.438010216 +0200
+@@ -82,7 +82,7 @@
+ 				u[5] != "/" and \
+ 				string.count(u[5], "/") > 1:
+ 			prefix = u[5][:string.rfind(u[5], "/")]
+-			if not prefixes.has_key(prefix):
++			if not prefix in prefixes:
+ 				prefixes[prefix] = ""
+ 	return prefixes
+  
+@@ -133,7 +133,7 @@
+                 homedir = rc[1].split("=")[1]
+                 homedir = homedir.split("#")[0]
+                 homedir = homedir.strip()
+-                if not prefixes.has_key(homedir):
++                if not homedir in prefixes:
+                         prefixes[homedir] = ""
+         else:
+                 #rc[0] == 256 means the file was there, we read it, but the grep didn't match
+@@ -149,7 +149,7 @@
+                 homedir = homedir.split("#")[0]
+                 homedir = homedir.strip()
+                 homedir = re.sub(r"[^/a-zA-Z0-9].*$", "", homedir)
+-                if not prefixes.has_key(homedir):
++                if not homedir in prefixes:
+                         prefixes[homedir] = ""
+ 
+         #the idea is that we need to find all of the home_root_t directories we do this by just accepting
+@@ -187,7 +187,7 @@
+                         if re.search(regex, potential, 0):
+                                 addme = 0
+                 if addme == 1:
+-                        if not prefixes.has_key(potential):
++                        if not potential in prefixes:
+                                 prefixes[potential] = ""
+ 
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/support/pyplate.py refpolicy/support/pyplate.py
+--- refpolicy/support/pyplate.py	2009-07-14 14:24:48.000000000 +0200
++++ refpolicy/support/pyplate.py	2012-05-01 13:57:27.757007790 +0200
+@@ -51,7 +51,7 @@
+ #
+ 
+ from __future__ import nested_scopes
+-import sys, string, re, cStringIO
++import sys, string, re, io
+ 
+ re_directive = re.compile("\[\[(.*)\]\]")
+ re_for_loop = re.compile("for (.*) in (.*)")
+@@ -82,7 +82,7 @@
+     file.close()
+ 
+   def parse_string(self, template):
+-    file = cStringIO.StringIO(template)
++    file = io.StringIO(template)
+     self.parse(file)
+     file.close()
+ 
+@@ -111,7 +111,7 @@
+     file.close()
+ 
+   def execute_string(self, data):
+-    s = cStringIO.StringIO()
++    s = io.StringIO()
+     self.execute(s, data)
+     return s.getvalue()
+ 
+@@ -185,7 +185,7 @@
+   def execute(self, stream, data):
+     remember_vars = {}
+     for var in self.vars:
+-      if data.has_key(var):
++      if var in data:
+         remember_vars[var] = data[var]
+     for list in eval(self.expression, globals(), data):
+       if is_sequence(list):
+@@ -264,7 +264,7 @@
+   def call(self, args, stream, data):
+     remember_vars = {}
+     for index, var in enumerate(self.vars):
+-      if data.has_key(var):
++      if var in data:
+         remember_vars[var] = data[var]
+       data[var] = args[index]
+     TemplateNode.execute(self, stream, data)
+diff -uNr -x '.git*' -x CVS refpolicy/support/sedoctool.py refpolicy/support/sedoctool.py
+--- refpolicy/support/sedoctool.py	2009-07-14 14:24:48.000000000 +0200
++++ refpolicy/support/sedoctool.py	2012-05-01 14:22:54.343011050 +0200
+@@ -1,7 +1,7 @@
+ #!/usr/bin/python
+ 
+ #  Author: Joshua Brindle <jbrindle@tresys.com>
+-#          Caleb Case <ccase@tresys.com>
++#	  Caleb Case <ccase@tresys.com>
+ #
+ # Copyright (C) 2005 - 2006 Tresys Technology, LLC
+ #      This program is free software; you can redistribute it and/or modify
+@@ -62,7 +62,7 @@
+ 	for node in doc.getElementsByTagName("bool"):
+ 		for desc in node.getElementsByTagName("desc"):
+ 			bool_desc = format_txt_desc(desc)
+-		s = string.split(bool_desc, "\n")
++		s = bool_desc.split("\n")
+ 		file_name.write("#\n")
+ 		for line in s:
+ 			file_name.write("# %s\n" % line)
+@@ -80,14 +80,14 @@
+ 				bool_val = BOOL_DISABLED
+ 
+ 			if bool_name and bool_val:
+-	            		file_name.write("%s = %s\n\n" % (bool_name, bool_val))
++				file_name.write("%s = %s\n\n" % (bool_name, bool_val))
+ 				bool_name = bool_val = None
+ 
+ 	# tunables are currently implemented as booleans
+ 	for node in doc.getElementsByTagName("tunable"):
+ 		for desc in node.getElementsByTagName("desc"):
+ 			bool_desc = format_txt_desc(desc)
+-		s = string.split(bool_desc, "\n")
++		s = bool_desc.split("\n")
+ 		file_name.write("#\n")
+ 		for line in s:
+ 			file_name.write("# %s\n" % line)
+@@ -105,7 +105,7 @@
+ 				bool_val = BOOL_DISABLED
+ 
+ 			if bool_name and bool_val:
+-	            		file_name.write("%s = %s\n\n" % (bool_name, bool_val))
++				file_name.write("%s = %s\n\n" % (bool_name, bool_val))
+ 				bool_name = bool_val = None
+ 
+ def gen_module_conf(doc, file_name, namevalue_list):
+@@ -153,7 +153,7 @@
+ 			for desc in node.getElementsByTagName("summary"):
+ 				if not desc.parentNode == node:
+ 					continue
+-				s = string.split(format_txt_desc(desc), "\n")
++				s = format_txt_desc(desc).split("\n")
+ 				for line in s:
+ 					file_name.write("# %s\n" % line)
+ 
+@@ -209,39 +209,40 @@
+ 
+ 	return namevalue_list
+ 
+-def first_cmp(a, b):
++def first_cmp_func(a):
+ 	"""
+-	Compares the two first elements of a list instead of the entire list.
++	Return the first element to sort/compare on.
+ 	"""
+ 
+-	return cmp(a[0], b[0])
++	return a[0]
+ 
+-def int_cmp(a, b):
++def int_cmp_func(a):
+ 	"""
+-	Compares two interfaces.
++	Return the interface name to sort/compare on.
+ 	"""
+ 
+-	return cmp(a["interface_name"], b["interface_name"])
++	return a["interface_name"]
+ 		
+-def temp_cmp(a, b):
++def temp_cmp_func(a):
+ 	"""
+-	Compares two templates.
++	Return the template name to sort/compare on.
+ 	"""
+ 
+-	return cmp(a["template_name"], b["template_name"])
++	return a["template_name"]
+ 
+-def tun_cmp(a, b):
++def tun_cmp_func(a):
+ 	"""
+-	Compares two tunables.
++	Return the tunable name to sort/compare on.
+ 	"""
+ 
+-	return cmp(a["tun_name"], b["tun_name"])
+-def bool_cmp(a, b):
++	return a["tun_name"]
++
++def bool_cmp_func(a):
+ 	"""
+-	Compares two booleans.
++	Return the boolean name to sort/compare on.
+ 	"""
+ 
+-	return cmp(a["bool_name"], b["bool_name"])
++	return a["bool_name"]
+ 
+ def gen_doc_menu(mod_layer, module_list):
+ 	"""
+@@ -249,18 +250,18 @@
+ 	"""
+ 
+ 	menu = []
+-	for layer, value in module_list.iteritems():
++	for layer, value in module_list.items():
+ 		cur_menu = (layer, [])
+ 		menu.append(cur_menu)
+ 		if layer != mod_layer and mod_layer != None:
+ 			continue
+ 		#we are in our layer so fill in the other modules or we want them all
+-		for mod, desc in value.iteritems():
++		for mod, desc in value.items():
+ 			cur_menu[1].append((mod, desc))
+ 
+-	menu.sort(first_cmp)
++	menu.sort(key=first_cmp_func)
+ 	for x in menu:
+-		x[1].sort(first_cmp)
++		x[1].sort(key=first_cmp_func)
+ 	return menu
+ 
+ def format_html_desc(node):
+@@ -364,7 +365,7 @@
+ #arg, i have to go through this dom tree ahead of time to build up the menus
+ 	module_list = {}
+ 	for node in doc.getElementsByTagName("module"):
+-                mod_name = mod_layer = interface_buf = ''
++		mod_name = mod_layer = interface_buf = ''
+ 
+ 		mod_name = node.getAttribute("name")
+ 		mod_layer = node.parentNode.getAttribute("name")
+@@ -372,14 +373,14 @@
+ 		for desc in node.getElementsByTagName("summary"):
+ 			if desc.parentNode == node and desc:
+ 				mod_summary = format_html_desc(desc)
+-		if not module_list.has_key(mod_layer):
++		if not mod_layer in module_list:
+ 			module_list[mod_layer] = {}
+ 
+ 		module_list[mod_layer][mod_name] = mod_summary
+ 
+ #generate index pages
+ 	main_content_buf = ''
+-	for mod_layer,modules in module_list.iteritems():
++	for mod_layer,modules in module_list.items():
+ 		menu = gen_doc_menu(mod_layer, module_list)
+ 
+ 		layer_summary = None
+@@ -428,7 +429,7 @@
+ 	all_tunables = []
+ 	all_booleans = []
+ 	for node in doc.getElementsByTagName("module"):
+-                mod_name = mod_layer = mod_desc = interface_buf = ''
++		mod_name = mod_layer = mod_desc = interface_buf = ''
+ 
+ 		mod_name = node.getAttribute("name")
+ 		mod_layer = node.parentNode.getAttribute("name")
+@@ -485,7 +486,7 @@
+ 					   "interface_parameters" : interface_parameters,
+ 					   "mod_name": mod_name,
+ 					   "mod_layer" : mod_layer })
+-		interfaces.sort(int_cmp)	
++		interfaces.sort(key=int_cmp_func)	
+ 		interface_tpl = pyplate.Template(intdata)
+ 		interface_buf = interface_tpl.execute_string({"interfaces" : interfaces})
+ 	
+@@ -532,7 +533,7 @@
+ 					   "mod_name": mod_name,
+ 					   "mod_layer" : mod_layer })
+ 
+-		templates.sort(temp_cmp)	
++		templates.sort(key=temp_cmp_func)	
+ 		template_tpl = pyplate.Template(templatedata)
+ 		template_buf = template_tpl.execute_string({"templates" : templates})
+ 
+@@ -556,7 +557,7 @@
+ 					   "def_val" : boolean_dftval,
+ 					   "mod_name": mod_name,
+ 					   "mod_layer" : mod_layer })
+-		booleans.sort(bool_cmp)
++		booleans.sort(key=bool_cmp_func)
+ 		boolean_tpl = pyplate.Template(booldata)
+ 		boolean_buf = boolean_tpl.execute_string({"booleans" : booleans})
+ 
+@@ -580,7 +581,7 @@
+ 					   "def_val" : tunable_dftval,
+ 					   "mod_name": mod_name,
+ 					   "mod_layer" : mod_layer })
+-		tunables.sort(tun_cmp)
++		tunables.sort(key=tun_cmp_func)
+ 		tunable_tpl = pyplate.Template(tundata)
+ 		tunable_buf = tunable_tpl.execute_string({"tunables" : tunables})
+ 	
+@@ -639,7 +640,7 @@
+ 	menu_buf = menu_tpl.execute_string(menu_args)
+ 	
+ 	#build the interface index
+-	all_interfaces.sort(int_cmp)
++	all_interfaces.sort(key=int_cmp_func)
+ 	interface_tpl = pyplate.Template(intlistdata)
+ 	interface_buf = interface_tpl.execute_string({"interfaces" : all_interfaces})
+ 	int_file = "interfaces.html"
+@@ -654,7 +655,7 @@
+ 
+ 
+ 	#build the template index
+-	all_templates.sort(temp_cmp)
++	all_templates.sort(key=temp_cmp_func)
+ 	template_tpl = pyplate.Template(templistdata)
+ 	template_buf = template_tpl.execute_string({"templates" : all_templates})
+ 	temp_file = "templates.html"
+@@ -679,7 +680,7 @@
+ 			global_tun.append( { "tun_name" : tunable_name,
+ 						"def_val" : default_value,
+ 						"desc" : description } )
+-	global_tun.sort(tun_cmp)
++	global_tun.sort(key=tun_cmp_func)
+ 	global_tun_tpl = pyplate.Template(gtunlistdata)
+ 	global_tun_buf = global_tun_tpl.execute_string({"tunables" : global_tun})
+ 	global_tun_file = "global_tunables.html"
+@@ -694,7 +695,7 @@
+ 
+ 	#build the tunable index
+ 	all_tunables = all_tunables + global_tun
+-	all_tunables.sort(tun_cmp)
++	all_tunables.sort(key=tun_cmp_func)
+ 	tunable_tpl = pyplate.Template(tunlistdata)
+ 	tunable_buf = tunable_tpl.execute_string({"tunables" : all_tunables})
+ 	temp_file = "tunables.html"
+@@ -718,7 +719,7 @@
+ 			global_bool.append( { "bool_name" : bool_name,
+ 						"def_val" : default_value,
+ 						"desc" : description } )
+-	global_bool.sort(bool_cmp)
++	global_bool.sort(key=bool_cmp_func)
+ 	global_bool_tpl = pyplate.Template(gboollistdata)
+ 	global_bool_buf = global_bool_tpl.execute_string({"booleans" : global_bool})
+ 	global_bool_file = "global_booleans.html"
+@@ -733,7 +734,7 @@
+ 	
+ 	#build the boolean index
+ 	all_booleans = all_booleans + global_bool
+-	all_booleans.sort(bool_cmp)
++	all_booleans.sort(key=bool_cmp_func)
+ 	boolean_tpl = pyplate.Template(boollistdata)
+ 	boolean_buf = boolean_tpl.execute_string({"booleans" : all_booleans})
+ 	temp_file = "booleans.html"
+@@ -753,10 +754,10 @@
+ 	Print an error message and exit.
+ 	"""
+ 
+-        sys.stderr.write("%s exiting for: " % sys.argv[0])
+-        sys.stderr.write("%s\n" % error)
+-        sys.stderr.flush()
+-        sys.exit(1)
++	sys.stderr.write("%s exiting for: " % sys.argv[0])
++	sys.stderr.write("%s\n" % error)
++	sys.stderr.flush()
++	sys.exit(1)
+ 
+ def warning(warn):
+ 	"""
+diff -uNr -x '.git*' -x CVS refpolicy/support/segenxml.py refpolicy/support/segenxml.py
+--- refpolicy/support/segenxml.py	2009-07-14 14:24:48.000000000 +0200
++++ refpolicy/support/segenxml.py	2012-04-21 20:07:11.768210983 +0200
+@@ -1,9 +1,9 @@
+ #!/usr/bin/python
+ 
+ #  Author(s): Donald Miner <dminer@tresys.com>
+-#             Dave Sugar <dsugar@tresys.com>
+-#             Brian Williams <bwilliams@tresys.com>
+-#             Caleb Case <ccase@tresys.com>
++#	     Dave Sugar <dsugar@tresys.com>
++#	     Brian Williams <bwilliams@tresys.com>
++#	     Caleb Case <ccase@tresys.com>
+ #
+ # Copyright (C) 2005 - 2006 Tresys Technology, LLC
+ #      This program is free software; you can redistribute it and/or modify
+@@ -335,9 +335,9 @@
+ 	'''
+ 
+ 	sys.stderr.write("%s: " % sys.argv[0] )
+-        sys.stderr.write("error: " + description + "\n")
+-        sys.stderr.flush()
+-        sys.exit(1)
++	sys.stderr.write("error: " + description + "\n")
++	sys.stderr.flush()
++	sys.exit(1)
+ 
+ 
+ 

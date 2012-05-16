@@ -1,0 +1,710 @@
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/devices.if refpolicy/policy/modules/kernel/devices.if
+--- refpolicy/policy/modules/kernel/devices.if	2012-05-13 10:33:56.598716492 +0200
++++ refpolicy/policy/modules/kernel/devices.if	2012-05-13 10:33:08.975716390 +0200
+@@ -932,13 +932,18 @@
+ ##	the transition will occur.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_filetrans',`
+ 	gen_require(`
+ 		type device_t;
+ 	')
+ 
+-	filetrans_pattern($1, device_t, $2, $3)
++	filetrans_pattern($1, device_t, $2, $3, $4)
+ 
+ 	dev_associate($2)
+ 	files_associate_tmp($2)
+@@ -962,13 +967,18 @@
+ ##	the transition will occur.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_tmpfs_filetrans_dev',`
+ 	gen_require(`
+ 		type device_t;
+ 	')
+ 
+-	fs_tmpfs_filetrans($1, device_t, $2)
++	fs_tmpfs_filetrans($1, device_t, $2, $3)
+ ')
+ 
+ ########################################
+@@ -1637,13 +1647,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_filetrans_cardmgr',`
+ 	gen_require(`
+ 		type device_t, cardmgr_dev_t;
+ 	')
+ 
+-	filetrans_pattern($1, device_t, cardmgr_dev_t, { chr_file blk_file })
++	filetrans_pattern($1, device_t, cardmgr_dev_t, { chr_file blk_file }, $2)
+ ')
+ 
+ ########################################
+@@ -1893,13 +1908,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_filetrans_dri',`
+ 	gen_require(`
+ 		type device_t, dri_device_t;
+ 	')
+ 
+-	filetrans_pattern($1, device_t, dri_device_t, chr_file)
++	filetrans_pattern($1, device_t, dri_device_t, chr_file, $2)
+ ')
+ 
+ ########################################
+@@ -2347,13 +2367,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_filetrans_lirc',`
+ 	gen_require(`
+ 		type device_t, lirc_device_t;
+ 	')
+ 
+-	filetrans_pattern($1, device_t, lirc_device_t, chr_file)
++	filetrans_pattern($1, device_t, lirc_device_t, chr_file, $2)
+ ')
+ 
+ ########################################
+@@ -4666,13 +4691,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`dev_filetrans_xen',`
+ 	gen_require(`
+ 		type device_t, xen_device_t;
+ 	')
+ 
+-	filetrans_pattern($1, device_t, xen_device_t, chr_file)
++	filetrans_pattern($1, device_t, xen_device_t, chr_file, $2)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/devices.te refpolicy/policy/modules/kernel/devices.te
+--- refpolicy/policy/modules/kernel/devices.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/kernel/devices.te	2012-05-13 10:33:08.975716390 +0200
+@@ -1,4 +1,4 @@
+-policy_module(devices, 1.13.0)
++policy_module(devices, 1.13.1)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/files.if refpolicy/policy/modules/kernel/files.if
+--- refpolicy/policy/modules/kernel/files.if	2012-05-13 10:33:56.654716492 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-05-13 10:33:08.976716390 +0200
+@@ -1747,13 +1747,18 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_root_filetrans',`
+ 	gen_require(`
+ 		type root_t;
+ 	')
+ 
+-	filetrans_pattern($1, root_t, $2, $3)
++	filetrans_pattern($1, root_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -2033,13 +2038,18 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_boot_filetrans',`
+ 	gen_require(`
+ 		type boot_t;
+ 	')
+ 
+-	filetrans_pattern($1, boot_t, $2, $3)
++	filetrans_pattern($1, boot_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -2809,13 +2819,18 @@
+ ##	Object classes to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_etc_filetrans',`
+ 	gen_require(`
+ 		type etc_t;
+ 	')
+ 
+-	filetrans_pattern($1, etc_t, $2, $3)
++	filetrans_pattern($1, etc_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -2833,6 +2848,11 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ ## <rolecap/>
+ #
+ interface(`files_create_boot_flag',`
+@@ -2841,7 +2861,7 @@
+ 	')
+ 
+ 	allow $1 etc_runtime_t:file manage_file_perms;
+-	filetrans_pattern($1, root_t, etc_runtime_t, file)
++	filetrans_pattern($1, root_t, etc_runtime_t, file, $2)
+ ')
+ 
+ ########################################
+@@ -3024,13 +3044,18 @@
+ ##	The class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_etc_filetrans_etc_runtime',`
+ 	gen_require(`
+ 		type etc_t, etc_runtime_t;
+ 	')
+ 
+-	filetrans_pattern($1, etc_t, etc_runtime_t, $2)
++	filetrans_pattern($1, etc_t, etc_runtime_t, $2, $3)
+ ')
+ 
+ ########################################
+@@ -3569,13 +3594,18 @@
+ ##	The class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_home_filetrans',`
+ 	gen_require(`
+ 		type home_root_t;
+ 	')
+ 
+-	filetrans_pattern($1, home_root_t, $2, $3)
++	filetrans_pattern($1, home_root_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -4009,13 +4039,18 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_kernel_modules_filetrans',`
+ 	gen_require(`
+ 		type modules_object_t;
+ 	')
+ 
+-	filetrans_pattern($1, modules_object_t, $2, $3)
++	filetrans_pattern($1, modules_object_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -4523,13 +4558,18 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_tmp_filetrans',`
+ 	gen_require(`
+ 		type tmp_t;
+ 	')
+ 
+-	filetrans_pattern($1, tmp_t, $2, $3)
++	filetrans_pattern($1, tmp_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -4886,13 +4926,18 @@
+ ##	The object class.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_usr_filetrans',`
+ 	gen_require(`
+ 		type usr_t;
+ 	')
+ 
+-	filetrans_pattern($1, usr_t, $2, $3)
++	filetrans_pattern($1, usr_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -5289,13 +5334,18 @@
+ ##	The object class.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_var_filetrans',`
+ 	gen_require(`
+ 		type var_t;
+ 	')
+ 
+-	filetrans_pattern($1, var_t, $2, $3)
++	filetrans_pattern($1, var_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -5423,6 +5473,11 @@
+ ##	The object class.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_var_lib_filetrans',`
+ 	gen_require(`
+@@ -5430,7 +5485,7 @@
+ 	')
+ 
+ 	allow $1 var_t:dir search_dir_perms;
+-	filetrans_pattern($1, var_lib_t, $2, $3)
++	filetrans_pattern($1, var_lib_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -5763,6 +5818,11 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_lock_filetrans',`
+ 	gen_require(`
+@@ -5771,7 +5831,7 @@
+ 
+ 	allow $1 var_t:dir search_dir_perms;
+ 	allow $1 var_lock_t:lnk_file read_lnk_file_perms;
+-	filetrans_pattern($1, var_lock_t, $2, $3)
++	filetrans_pattern($1, var_lock_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -5957,6 +6017,11 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ ## <infoflow type="write" weight="10"/>
+ #
+ interface(`files_pid_filetrans',`
+@@ -5966,7 +6031,7 @@
+ 
+ 	allow $1 var_t:dir search_dir_perms;
+ 	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+-	filetrans_pattern($1, var_run_t, $2, $3)
++	filetrans_pattern($1, var_run_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -6294,6 +6359,11 @@
+ ##	the transition will occur.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`files_spool_filetrans',`
+ 	gen_require(`
+@@ -6301,7 +6371,7 @@
+ 	')
+ 
+ 	allow $1 var_t:dir search_dir_perms;
+-	filetrans_pattern($1, var_spool_t, $2, $3)
++	filetrans_pattern($1, var_spool_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/filesystem.if refpolicy/policy/modules/kernel/filesystem.if
+--- refpolicy/policy/modules/kernel/filesystem.if	2011-11-15 15:28:16.000000000 +0100
++++ refpolicy/policy/modules/kernel/filesystem.if	2012-05-13 10:33:08.976716390 +0200
+@@ -2188,6 +2188,11 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`fs_hugetlbfs_filetrans',`
+ 	gen_require(`
+@@ -2195,7 +2200,7 @@
+ 	')
+ 
+ 	allow $2 hugetlbfs_t:filesystem associate;
+-	filetrans_pattern($1, hugetlbfs_t, $2, $3)
++	filetrans_pattern($1, hugetlbfs_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -4014,6 +4019,11 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`fs_tmpfs_filetrans',`
+ 	gen_require(`
+@@ -4021,7 +4031,7 @@
+ 	')
+ 
+ 	allow $2 tmpfs_t:filesystem associate;
+-	filetrans_pattern($1, tmpfs_t, $2, $3)
++	filetrans_pattern($1, tmpfs_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/filesystem.te refpolicy/policy/modules/kernel/filesystem.te
+--- refpolicy/policy/modules/kernel/filesystem.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/kernel/filesystem.te	2012-05-13 10:33:08.977716390 +0200
+@@ -1,4 +1,4 @@
+-policy_module(filesystem, 1.15.0)
++policy_module(filesystem, 1.15.1)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/init.if refpolicy/policy/modules/system/init.if
+--- refpolicy/policy/modules/system/init.if	2012-05-13 10:33:56.601716492 +0200
++++ refpolicy/policy/modules/system/init.if	2012-05-13 10:33:08.977716390 +0200
+@@ -1579,6 +1579,11 @@
+ ##	The object class.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`init_script_tmp_filetrans',`
+ 	gen_require(`
+@@ -1586,7 +1591,7 @@
+ 	')
+ 
+ 	files_search_tmp($1)
+-	filetrans_pattern($1, initrc_tmp_t, $2, $3)
++	filetrans_pattern($1, initrc_tmp_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+@@ -1754,7 +1759,7 @@
+ 		type initrc_var_run_t;
+ 	')
+ 
+-	files_pid_filetrans($1, initrc_var_run_t, file)
++	files_pid_filetrans($1, initrc_var_run_t, file, "utmp")
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/logging.if refpolicy/policy/modules/system/logging.if
+--- refpolicy/policy/modules/system/logging.if	2012-05-13 10:33:56.612716492 +0200
++++ refpolicy/policy/modules/system/logging.if	2012-05-13 10:33:08.977716390 +0200
+@@ -480,6 +480,11 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ ## <infoflow type="write" weight="10"/>
+ #
+ interface(`logging_log_filetrans',`
+@@ -488,7 +493,7 @@
+ 	')
+ 
+ 	files_search_var($1)
+-	filetrans_pattern($1, var_log_t, $2, $3)
++	filetrans_pattern($1, var_log_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/selinuxutil.if refpolicy/policy/modules/system/selinuxutil.if
+--- refpolicy/policy/modules/system/selinuxutil.if	2011-11-15 15:28:16.000000000 +0100
++++ refpolicy/policy/modules/system/selinuxutil.if	2012-05-13 10:33:08.977716390 +0200
+@@ -1043,7 +1043,7 @@
+ 	files_search_etc($1)
+ 	manage_dirs_pattern($1, selinux_config_t, semanage_store_t)
+ 	manage_files_pattern($1, semanage_store_t, semanage_store_t)
+-	filetrans_pattern($1, selinux_config_t, semanage_store_t, dir)
++	filetrans_pattern($1, selinux_config_t, semanage_store_t, dir, "modules")
+ ')
+ 
+ #######################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/sysnetwork.if refpolicy/policy/modules/system/sysnetwork.if
+--- refpolicy/policy/modules/system/sysnetwork.if	2012-05-13 10:33:56.481716492 +0200
++++ refpolicy/policy/modules/system/sysnetwork.if	2012-05-13 10:33:08.978716390 +0200
+@@ -403,13 +403,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`sysnet_etc_filetrans_config',`
+ 	gen_require(`
+ 		type net_conf_t;
+ 	')
+ 
+-	files_etc_filetrans($1, net_conf_t, file)
++	files_etc_filetrans($1, net_conf_t, file, $2)
+ ')
+ 
+ #######################################
+@@ -624,6 +629,11 @@
+ ##	The object class.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`sysnet_dhcp_state_filetrans',`
+ 	gen_require(`
+@@ -631,7 +641,7 @@
+ 	')
+ 
+ 	files_search_var_lib($1)
+-	filetrans_pattern($1, dhcp_state_t, $2, $3)
++	filetrans_pattern($1, dhcp_state_t, $2, $3, $4)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/userdomain.if refpolicy/policy/modules/system/userdomain.if
+--- refpolicy/policy/modules/system/userdomain.if	2012-05-13 10:33:56.657716492 +0200
++++ refpolicy/policy/modules/system/userdomain.if	2012-05-13 10:33:08.978716390 +0200
+@@ -1607,13 +1607,18 @@
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_home_filetrans_user_home_dir',`
+ 	gen_require(`
+ 		type user_home_dir_t;
+ 	')
+ 
+-	files_home_filetrans($1, user_home_dir_t, dir)
++	files_home_filetrans($1, user_home_dir_t, dir, $2)
+ ')
+ 
+ ########################################
+@@ -2084,13 +2089,18 @@
+ ##	The class of the object to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_user_home_dir_filetrans',`
+ 	gen_require(`
+ 		type user_home_dir_t;
+ 	')
+ 
+-	filetrans_pattern($1, user_home_dir_t, $2, $3)
++	filetrans_pattern($1, user_home_dir_t, $2, $3, $4)
+ 	files_search_home($1)
+ ')
+ 
+@@ -2115,13 +2125,18 @@
+ ##	The class of the object to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_user_home_content_filetrans',`
+ 	gen_require(`
+ 		type user_home_dir_t, user_home_t;
+ 	')
+ 
+-	filetrans_pattern($1, user_home_t, $2, $3)
++	filetrans_pattern($1, user_home_t, $2, $3, $4)
+ 	allow $1 user_home_dir_t:dir search_dir_perms;
+ 	files_search_home($1)
+ ')
+@@ -2142,13 +2157,18 @@
+ ##	The class of the object to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_user_home_dir_filetrans_user_home_content',`
+ 	gen_require(`
+ 		type user_home_dir_t, user_home_t;
+ 	')
+ 
+-	filetrans_pattern($1, user_home_dir_t, user_home_t, $2)
++	filetrans_pattern($1, user_home_dir_t, user_home_t, $2, $3)
+ 	files_search_home($1)
+ ')
+ 
+@@ -2466,13 +2486,18 @@
+ ##	The class of the object to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_user_tmp_filetrans',`
+ 	gen_require(`
+ 		type user_tmp_t;
+ 	')
+ 
+-	filetrans_pattern($1, user_tmp_t, $2, $3)
++	filetrans_pattern($1, user_tmp_t, $2, $3, $4)
+ 	files_search_tmp($1)
+ ')
+ 
+@@ -2492,13 +2517,18 @@
+ ##	The class of the object to be created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`userdom_tmp_filetrans_user_tmp',`
+ 	gen_require(`
+ 		type user_tmp_t;
+ 	')
+ 
+-	files_tmp_filetrans($1, user_tmp_t, $2)
++	files_tmp_filetrans($1, user_tmp_t, $2, $3)
+ ')
+ 
+ ########################################

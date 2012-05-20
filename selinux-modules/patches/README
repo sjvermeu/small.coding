@@ -116,6 +116,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0091 + Introduce named file transition support (backport)
 0092 - Remove duplicate context definition for firefox
 0093 - Mark kudzu call as optional in ddcprobe
+0094 - Allow kdevtmpfs to setattr on its device files
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

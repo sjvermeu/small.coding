@@ -1,3 +1,4 @@
+#416323		Allow kdevtmpfs to setattr on the device files
 #416305		Mark kudzu privilege as optional in ddcprobe module
 #416303		Remove duplicate file context definition for firefox
 

@@ -19,6 +19,12 @@
     <select idref="rule-named-transfer" selected="true" />
     <select idref="rule-named-anytransfer" selected="true" />
   </Profile>
+  <Value id="CHROOT_HOME" interactive="true" interfaceHint="text" type="string">
+    <title>CHROOT_HOME</title>
+    <question>What is the root of the CHROOT location (leave empty if no chroot is used)?</question>
+    <value/>
+    <default>/var/named/chroot</default>
+  </Value>
   <Group id="gr-intro">
     <title>Introduction</title>
     <description>

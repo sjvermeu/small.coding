@@ -1,4 +1,4 @@
-SUBDIRS = sesearch
+SUBDIRS = sesearch findcon seinfo
 
 all:
 	@for subdir in $(SUBDIRS); do \

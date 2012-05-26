@@ -1,4 +1,4 @@
-SUBDIRS = semanage
+SUBDIRS = semanage semodule audit2allow
 
 all:
 	@for subdir in $(SUBDIRS); do \

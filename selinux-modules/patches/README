@@ -114,9 +114,14 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0089 + Update symbol in clamav_append_log interface (backport)
 0090 + Eliminate "*_except_auth_files" expressions through new attribute
 0091 + Introduce named file transition support (backport)
-0092 - Remove duplicate context definition for firefox
+0092 + Remove duplicate context definition for firefox
 0093 - Mark kudzu call as optional in ddcprobe
 0094 - Allow kdevtmpfs to setattr on its device files
+0095 - Mark /etc/selinux/*/modules as semanage_store_t
+0096 - With /run, subdirectories are created dynamically, so using named filetrans here
+0097 - Update udev file contexts
+0098 - SEPostgresql changes (backport)
+0099 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

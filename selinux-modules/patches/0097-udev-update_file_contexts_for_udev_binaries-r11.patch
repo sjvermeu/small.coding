@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/system/udev.fc	2011-11-16 20:51:52.000000000 +0100
++++ refpolicypolicy/modules/system/udev.fc	2012-05-28 09:24:51.361485104 +0200
+@@ -9,6 +9,7 @@
+ /etc/udev/rules.d(/.*)? gen_context(system_u:object_r:udev_rules_t,s0)
+ /etc/udev/scripts/.+ --	gen_context(system_u:object_r:udev_helper_exec_t,s0)
+ 
++/lib/udev/udevd	--	gen_context(system_u:object_r:udev_exec_t,s0)
+ /lib/udev/udev-acl --	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
+ ifdef(`distro_debian',`
+@@ -26,6 +27,7 @@
+ /sbin/start_udev --	gen_context(system_u:object_r:udev_exec_t,s0)
+ ')
+ 
++/usr/bin/udevadm	--	gen_context(system_u:object_r:udev_exec_t,s0)
+ /usr/bin/udevinfo --	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)

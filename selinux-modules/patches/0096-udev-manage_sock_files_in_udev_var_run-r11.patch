@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/udev.te	2012-05-28 10:27:26.281493120 +0200
++++ refpolicypolicy/modules/system/udev.te	2012-05-28 10:26:53.624493049 +0200
+@@ -74,6 +74,7 @@
+ manage_dirs_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_lnk_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
++manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ files_pid_filetrans(udev_t, udev_var_run_t, { dir file })
+ 
+ kernel_read_system_state(udev_t)

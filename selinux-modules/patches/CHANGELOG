@@ -1,3 +1,13 @@
+#417937		Do not audit access to device_t:chr_file by dmesg
+#417857		Support dynamic /run directories
+#413719		Correct udev context in /run/udev
+<no bug>	Backporting SEPostgresql changes
+<no bug>	Update udev file contexts (udevadm and udevd binaries)
+#417821		Mark /etc/selinux/*/modules as semanage_store_t (fixes permission issue on .../modules/tmp)
+
+** 2012-05-26 Revision 10
+
+#412321		Allow kdevtmpfs to setattr on the device files (udev-180 requirement)
 #416323		Allow kdevtmpfs to setattr on the device files
 #416305		Mark kudzu privilege as optional in ddcprobe module
 #416303		Remove duplicate file context definition for firefox

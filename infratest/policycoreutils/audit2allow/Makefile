@@ -6,4 +6,4 @@ simple:
 
 dmesg:
 	@echo "[audit2allow] generating SELinux statements for dmesg output"
-	audit2allow -d
+	audit2allow -d 2>&1 | grep -vq 'Traceback' 

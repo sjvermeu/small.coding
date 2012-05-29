@@ -13,6 +13,11 @@ selist() {
   popd > /dev/null 2>&1;
 }
 
+if [ $# -ne 2 ];
+then
+  echo "Usage: $0 <domain> <file>"
+  exit 1;
+fi
 
 typeset LIST=$(mktemp);
 typeset DOMAIN=$1;

@@ -1,3 +1,8 @@
+<no bug>	Correct backport of SEPostgresql changes (remove "execute" from a mlsconstrain)
+<no bug>	Fix typo in postgresql update
+
+** 2012-05-28 Revision 11
+
 #417937		Do not audit access to device_t:chr_file by dmesg
 #417857		Support dynamic /run directories
 #413719		Correct udev context in /run/udev

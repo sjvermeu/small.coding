@@ -1,4 +1,4 @@
---- refpolicy/policy/modules/system/udev.if	2012-05-28 10:18:03.373491918 +0200
+--- refpolicy/policy/modules/system/udev.if	2012-05-29 20:06:32.351751698 +0200
 +++ refpolicypolicy/modules/system/udev.if	2012-05-28 10:17:31.573491850 +0200
 @@ -272,6 +272,29 @@
  
@@ -54,3 +54,15 @@
 +	files_search_var_lib($1)
 +	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
 +')
+--- refpolicy/policy/modules/system/udev.fc	2012-05-29 20:06:32.454751700 +0200
++++ refpolicypolicy/modules/system/udev.fc	2012-05-28 17:38:47.569548362 +0200
+@@ -31,7 +31,8 @@
+ /usr/bin/udevinfo --	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)
+-/var/run/udev(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev	-d	gen_context(system_u:object_r:udev_var_run_t,s0)
++/var/run/udev/rules\.d(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
+ 
+ ifdef(`distro_debian',`
+ /var/run/xen-hotplug -d	gen_context(system_u:object_r:udev_var_run_t,s0)

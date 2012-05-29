@@ -33,7 +33,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0008 - add nginx declaration
 0009 + add bacula declaration
 0010 + dontaudit set 1
-0011 - wpa_cli is a commandline utility
+0011 . wpa_cli is a commandline utility
 0012 . various corecommands file contexts updates
 0013 - add gentoo_portage_eselect_module interface
 0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage

@@ -28,13 +28,13 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/flask/access_vectors refpolicy/poli
  	insert
 diff -uNr -x '.git*' -x CVS refpolicy/policy/mcs refpolicy/policy/mcs
 --- refpolicy/policy/mcs	2011-03-31 14:26:41.000000000 +0200
-+++ refpolicy/policy/mcs	2012-05-28 09:39:47.048487016 +0200
++++ refpolicy/policy/mcs	2012-05-29 20:03:21.317751292 +0200
 @@ -117,13 +117,13 @@
  mlsconstrain db_database { drop getattr setattr relabelfrom access install_module load_module get_param set_param }
  	( h1 dom h2 );
  
 -mlsconstrain db_language { drop getattr setattr relabelfrom execute }
-+mlsconstrain db_schema { drop getattr setattr relabelfrom execute }
++mlsconstrain db_schema { drop getattr setattr relabelfrom }
  	( h1 dom h2 );
  
 -mlsconstrain db_table { drop getattr setattr relabelfrom select update insert delete use lock }
@@ -84,8 +84,8 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/mls refpolicy/policy/mls
  	 (( t1 == mlsdbreadtoclr ) and ( h1 dom l2 )) or
  	 ( t1 == mlsdbread ) or
 diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.if refpolicy/policy/modules/services/postgresql.if
---- refpolicy/policy/modules/services/postgresql.if	2012-05-28 10:01:37.616489814 +0200
-+++ refpolicy/policy/modules/services/postgresql.if	2012-05-28 09:48:58.451488194 +0200
+--- refpolicy/policy/modules/services/postgresql.if	2012-05-29 20:06:53.850751744 +0200
++++ refpolicy/policy/modules/services/postgresql.if	2012-05-28 14:38:37.001525321 +0200
 @@ -32,10 +32,12 @@
  		attribute sepgsql_schema_type, sepgsql_sysobj_table_type;
  
@@ -205,7 +205,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.if refp
 +	type_transition $1 sepgsql_database_type:db_blob unpriv_sepgsql_blob_t;
 +
 +	allow $1 unpriv_sepgsql_proc_exec_t:db_procedure { getattr execute };
-+	ype_transition $1 sepgsql_schema_type:db_procedure unpriv_sepgsql_proc_exec_t;
++	type_transition $1 sepgsql_schema_type:db_procedure unpriv_sepgsql_proc_exec_t;
 +
  	allow $1 unpriv_sepgsql_schema_t:db_schema { getattr add_name remove_name };
  	type_transition $1 sepgsql_database_type:db_schema unpriv_sepgsql_schema_t;

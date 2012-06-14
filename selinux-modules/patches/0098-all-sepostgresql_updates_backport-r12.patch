@@ -84,7 +84,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/mls refpolicy/policy/mls
  	 (( t1 == mlsdbreadtoclr ) and ( h1 dom l2 )) or
  	 ( t1 == mlsdbread ) or
 diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.if refpolicy/policy/modules/services/postgresql.if
---- refpolicy/policy/modules/services/postgresql.if	2012-05-29 20:06:53.850751744 +0200
+--- refpolicy/policy/modules/services/postgresql.if	2012-06-08 20:46:50.192003348 +0200
 +++ refpolicy/policy/modules/services/postgresql.if	2012-05-28 14:38:37.001525321 +0200
 @@ -32,10 +32,12 @@
  		attribute sepgsql_schema_type, sepgsql_sysobj_table_type;
@@ -251,7 +251,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.if refp
  ########################################
 diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.te refpolicy/policy/modules/services/postgresql.te
 --- refpolicy/policy/modules/services/postgresql.te	2012-02-15 20:32:44.000000000 +0100
-+++ refpolicy/policy/modules/services/postgresql.te	2012-05-28 10:00:39.800489692 +0200
++++ refpolicy/policy/modules/services/postgresql.te	2012-06-08 20:45:15.942003148 +0200
 @@ -27,6 +27,14 @@
  
  ## <desc>
@@ -287,7 +287,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.te refp
 +# Ranged Trusted Procedure Domain
 +type sepgsql_ranged_proc_t;
 +domain_type(sepgsql_ranged_proc_t)
-+role system_r types sepgqsl_ranged_proc_t;
++role system_r types sepgsql_ranged_proc_t;
 +
 +type sepgsql_ranged_proc_exec_t;
 +postgresql_trusted_procedure_object(sepgsql_ranged_proc_exec_t)
@@ -418,7 +418,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.te refp
  
  allow sepgsql_client_type sepgsql_proc_exec_t:db_procedure { getattr execute install };
 -allow sepgsql_client_type sepgsql_trusted_proc_exec_t:db_procedure { getattr execute entrypoint };
-+allow sepgsql_client_type sepgsql_trusted_procedure_exec_t:db_procedure { getattr execute entrypoint };
++allow sepgsql_client_type sepgsql_trusted_procedure_type:db_procedure { getattr execute entrypoint };
  
  allow sepgsql_client_type sepgsql_lang_t:db_language { getattr };
  allow sepgsql_client_type sepgsql_safe_lang_t:db_language { getattr execute };
@@ -468,7 +468,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.te refp
  
  	allow sepgsql_admin_type sepgsql_proc_exec_t:db_procedure *;
 -	allow sepgsql_admin_type sepgsql_trusted_proc_exec_t:db_procedure ~install;
-+	allow sepgsql_admin_type sepgsql_trusted_procedure_exec_t:db_procedure ~install;
++	allow sepgsql_admin_type sepgsql_trusted_procedure_type:db_procedure ~install;
  	allow sepgsql_admin_type sepgsql_procedure_type:db_procedure ~{ execute install };
  
  	allow sepgsql_admin_type sepgsql_language_type:db_language ~implement;
@@ -493,7 +493,7 @@ diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/services/postgresql.te refp
  # They have to confirm and relabel it at first.
  allow sepgsql_unconfined_type sepgsql_proc_exec_t:db_procedure *;
 -allow sepgsql_unconfined_type sepgsql_trusted_proc_exec_t:db_procedure ~install;
-+allow sepgsql_unconfined_type sepgsql_trusted_procedure_exec_t:db_procedure ~install;
++allow sepgsql_unconfined_type sepgsql_trusted_procedure_type:db_procedure ~install;
  allow sepgsql_unconfined_type sepgsql_procedure_type:db_procedure ~{ execute install };
  
  allow sepgsql_unconfined_type sepgsql_language_type:db_language ~implement;

@@ -1,3 +1,5 @@
+<no bug>	Improve coding style on network manager
+<no bug>	Fix build failures on individual policy modules
 <no bug>	Correct backport of SEPostgresql changes (remove "execute" from a mlsconstrain)
 <no bug>	Fix typo in postgresql update
 

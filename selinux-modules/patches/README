@@ -76,7 +76,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0051 - make cron domains use interactive file descriptors (?)
 0052 + dhcpd can use ldap as backend
 0053 - allow mozilla plugin to read its configuration files (currently still very generic)
-0054 - introduce generic attributes for apache and web content handling
+0054 . introduce generic attributes for apache and web content handling [also 0102]
 0055 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
 0056 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
 0057 + expand selinux and usermanage role usage to include the proper type definitions
@@ -124,9 +124,9 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0099 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
 0100 - fix build failures by marking stuff optional (inetd, apache, ...)
 0101 - improve style on networkmanager items
-0102 - support search on all web content in apache (part of 0054)
-0103 - introduce phpfpm_t domain
-0104 - support wake_alarm and epollwakeup capabilities in capability2 class
+0102 . support search on all web content in apache (part of 0054)
+0103 . introduce phpfpm_t domain
+0104 + support wake_alarm and epollwakeup capabilities in capability2 class
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

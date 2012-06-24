@@ -1,0 +1,65 @@
+--- refpolicy/policy/modules/contrib/gnome.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicypolicy/modules/contrib/gnome.te	2012-06-24 10:13:38.535844092 +0200
+@@ -34,6 +34,9 @@
+ typealias gnome_home_t alias unconfined_gnome_home_t;
+ userdom_user_home_content(gnome_home_t)
+ 
++type gnome_xdg_config_t;
++xdg_config_home_content(gnome_xdg_config_t)
++
+ ##############################
+ #
+ # Local Policy
+--- refpolicy/policy/modules/contrib/gnome.if	2011-10-25 19:20:00.000000000 +0200
++++ refpolicypolicy/modules/contrib/gnome.if	2012-06-24 10:18:30.828833599 +0200
+@@ -143,9 +143,11 @@
+ interface(`gnome_setattr_config_dirs',`
+ 	gen_require(`
+ 		type gnome_home_t;
++		type gnome_xdg_config_t;
+ 	')
+ 
+ 	setattr_dirs_pattern($1, gnome_home_t, gnome_home_t)
++	setattr_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
+ 	files_search_home($1)
+ ')
+ 
+@@ -162,11 +164,16 @@
+ template(`gnome_read_config',`
+ 	gen_require(`
+ 		type gnome_home_t;
++		type gnome_xdg_config_t;
+ 	')
+ 
+ 	list_dirs_pattern($1, gnome_home_t, gnome_home_t)
+ 	read_files_pattern($1, gnome_home_t, gnome_home_t)
+ 	read_lnk_files_pattern($1, gnome_home_t, gnome_home_t)
++
++	list_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	read_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	read_lnk_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
+ ')
+ 
+ ########################################
+@@ -184,7 +191,11 @@
+ 		type gnome_home_t;
+ 	')
+ 
+-	allow $1 gnome_home_t:dir manage_dir_perms;
+-	allow $1 gnome_home_t:file manage_file_perms;
++	manage_dirs_pattern($1, gnome_home_t, gnome_home_t)
++	manage_files_pattern($1, gnome_home_t, gnome_home_t)
++
++	manage_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	manage_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++
+ 	userdom_search_user_home_dirs($1)
+ ')
+--- refpolicy/policy/modules/contrib/gnome.fc	2011-10-25 19:20:00.000000000 +0200
++++ refpolicypolicy/modules/contrib/gnome.fc	2012-06-24 10:18:45.333833123 +0200
+@@ -1,4 +1,4 @@
+-HOME_DIR/\.config/gtk-.*	gen_context(system_u:object_r:gnome_home_t,s0)
++HOME_DIR/\.config/gtk-.*	gen_context(system_u:object_r:gnome_xdg_config_t,s0)
+ HOME_DIR/\.gconf(d)?(/.*)?	gen_context(system_u:object_r:gconf_home_t,s0)
+ HOME_DIR/\.gnome2(/.*)?		gen_context(system_u:object_r:gnome_home_t,s0)
+ 

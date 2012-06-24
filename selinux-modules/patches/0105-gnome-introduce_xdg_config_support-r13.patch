@@ -11,8 +11,33 @@
  #
  # Local Policy
 --- refpolicy/policy/modules/contrib/gnome.if	2011-10-25 19:20:00.000000000 +0200
-+++ refpolicypolicy/modules/contrib/gnome.if	2012-06-24 10:18:30.828833599 +0200
-@@ -143,9 +143,11 @@
++++ refpolicypolicy/modules/contrib/gnome.if	2012-06-24 13:20:08.480443488 +0200
+@@ -19,6 +19,7 @@
+ 	gen_require(`
+ 		type gconfd_t, gconfd_exec_t;
+ 		type gconf_tmp_t;
++		type gconf_home_t;
+ 	')
+ 
+ 	role $1 types gconfd_t;
+@@ -28,11 +29,16 @@
+ 	allow gconfd_t $2:fifo_file write;
+ 	allow gconfd_t $2:unix_stream_socket connectto;
+ 
++	manage_dirs_pattern($2, gconf_home_t, gconf_home_t)
++	manage_files_pattern($2, gconf_home_t, gconf_home_t)
++
+ 	ps_process_pattern($2, gconfd_t)
+ 
+ 	#gnome_stream_connect_gconf_template($1, $2)
+ 	read_files_pattern($2, gconf_tmp_t, gconf_tmp_t)
+ 	allow $2 gconfd_t:unix_stream_socket connectto;
++
++	gnome_manage_config($2)
+ ')
+ 
+ ########################################
+@@ -143,9 +149,11 @@
  interface(`gnome_setattr_config_dirs',`
  	gen_require(`
  		type gnome_home_t;
@@ -24,7 +49,7 @@
  	files_search_home($1)
  ')
  
-@@ -162,11 +164,16 @@
+@@ -162,11 +170,16 @@
  template(`gnome_read_config',`
  	gen_require(`
  		type gnome_home_t;
@@ -41,8 +66,11 @@
  ')
  
  ########################################
-@@ -184,7 +191,11 @@
+@@ -182,9 +195,14 @@
+ interface(`gnome_manage_config',`
+ 	gen_require(`
  		type gnome_home_t;
++		type gnome_xdg_config_t;
  	')
  
 -	allow $1 gnome_home_t:dir manage_dir_perms;

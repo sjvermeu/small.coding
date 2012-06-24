@@ -1,7 +1,7 @@
-From 4b5d9951d2db52b4caf50884dc2b0ee3a03f6850 Mon Sep 17 00:00:00 2001
+From 2c15b5ddc6c9207d3cb45b95e30376198dc11a2c Mon Sep 17 00:00:00 2001
 From: Sven Vermeulen <sven.vermeulen@siphos.be>
 Date: Sun, 24 Jun 2012 09:53:08 +0200
-Subject: [PATCH v2 2/3] Introducing phpfpm_t domain
+Subject: [PATCH v3 2/3] Introducing phpfpm_t domain
 
 The PHP FactCGI Process Manager is a standalone daemon capable of handling web
 content and is specifically targeting high-traffic, dynamic sites.
@@ -32,11 +32,11 @@ index 0000000..536a5c7
 +
 diff --git a/phpfpm.if b/phpfpm.if
 new file mode 100644
-index 0000000..2038ed5
+index 0000000..d9481d9
 --- /dev/null
 +++ b/phpfpm.if
 @@ -0,0 +1,30 @@
-+# <summary>PHP FastCGI Process Manager</summary>
++## <summary>PHP FastCGI Process Manager</summary>
 +
 +#################################################
 +## <summary>

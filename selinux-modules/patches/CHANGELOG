@@ -1,3 +1,9 @@
+** 2012-06-24 Revision 13
+
+<no bug>	Allow wpa_cli to read release files in /etc (find out which distribution it runs in)
+<no bug>	Allow udev_tbl_t managers to search through udev_var_run_t needed for /run/udev
+<no bug>	Update on python3 support within doc generation
+<no bug>	Use gnome_xdg_config_t for gnome ~/.config/gtk-* stuff
 <no bug>	Support wake_alarm and epollwakeup capabilities (backport)
 #379879		Support phpfpm_t domain
 <no bug>	Support search on all web content within apache (interface)

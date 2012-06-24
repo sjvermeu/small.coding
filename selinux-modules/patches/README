@@ -127,6 +127,10 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0102 . support search on all web content in apache (part of 0054)
 0103 . introduce phpfpm_t domain
 0104 + support wake_alarm and epollwakeup capabilities in capability2 class
+0105 - Use gnome_xdg_config_t for gnome config in ~/.config
+0106 - Support python3 within doc generation
+0107 - Allow udev_tbl_t managers to search through udev_var_run_t needed for /run/udev
+0108 - Allow wpa_cli to read etc files, needed to get distribution (through /etc/*-release files)
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

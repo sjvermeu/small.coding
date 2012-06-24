@@ -88,9 +88,9 @@
 +')
 +
 --- refpolicy/policy/modules/contrib/phpfpm.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/phpfpm.if	2012-06-24 09:26:19.508945735 +0200
++++ refpolicypolicy/modules/contrib/phpfpm.if	2012-06-24 10:30:47.172807308 +0200
 @@ -0,0 +1,30 @@
-+# <summary>PHP FastCGI Process Manager</summary>
++## <summary>PHP FastCGI Process Manager</summary>
 +
 +#################################################
 +## <summary>

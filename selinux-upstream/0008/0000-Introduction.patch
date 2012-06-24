@@ -1,0 +1,13 @@
+Subject: [PATCH v2 0/3] Support read/append/manage functions for various httpd content
+
+Within this patch set, we make the web content types as defined by the apache
+module more generic in use so that other domains, who need to interact with
+these types, can do so without getting too many privileges assigned (like with
+apache_manage_all_content).
+
+Since v1, the following changes have been incorporated:
+- Adding apache_search_all_content within the apache_append_all_ra_content_files
+  interface
+- Adding phpfpm_t domain as an example user for these interfaces
+
+With thanks to Dominick Grift for his feedback.

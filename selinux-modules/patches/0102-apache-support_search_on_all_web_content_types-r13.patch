@@ -1,0 +1,51 @@
+--- refpolicy/policy/modules/contrib/apache.if	2012-06-23 18:22:06.438888054 +0200
++++ refpolicypolicy/modules/contrib/apache.if	2012-06-23 18:20:58.810890475 +0200
+@@ -470,7 +470,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Append to all appendable web content.
++##	Append to all appendable web content files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -479,12 +479,12 @@
+ ## </param>
+ ## <rolecap/>
+ #
+-interface(`apache_append_all_ra_content',`
++interface(`apache_append_all_ra_content_files',`
+ 	gen_require(`
+ 		attribute httpd_ra_content;
+ 	')
+ 
+-	allow $1 httpd_ra_content:dir { list_dir_perms add_entry_dir_perms };
++	apache_search_all_content($1)
+ 	append_files_pattern($1, httpd_ra_content, httpd_ra_content)
+ ')
+ 
+@@ -553,6 +553,24 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Search all apache content.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`apache_search_all_content',`
++	gen_require(`
++		attribute httpdcontent;
++	')
++
++	allow $1 httpdcontent:dir search_dir_perms;
++')
++
++########################################
+ ## <summary>
+ ##	Create, read, write, and delete all web content.
+ ## </summary>

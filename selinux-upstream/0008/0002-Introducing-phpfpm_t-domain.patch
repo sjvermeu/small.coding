@@ -1,0 +1,163 @@
+From 4b5d9951d2db52b4caf50884dc2b0ee3a03f6850 Mon Sep 17 00:00:00 2001
+From: Sven Vermeulen <sven.vermeulen@siphos.be>
+Date: Sun, 24 Jun 2012 09:53:08 +0200
+Subject: [PATCH v2 2/3] Introducing phpfpm_t domain
+
+The PHP FactCGI Process Manager is a standalone daemon capable of handling web
+content and is specifically targeting high-traffic, dynamic sites.
+
+Since it too is a web server, it needs access to the various http content types
+as declared through the apache module.
+
+Signed-off-by: Sven Vermeulen <sven.vermeulen@siphos.be>
+---
+ phpfpm.fc |    5 +++
+ phpfpm.if |   30 +++++++++++++++++++++
+ phpfpm.te |   86 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+), 0 deletions(-)
+ create mode 100644 phpfpm.fc
+ create mode 100644 phpfpm.if
+ create mode 100644 phpfpm.te
+
+diff --git a/phpfpm.fc b/phpfpm.fc
+new file mode 100644
+index 0000000..536a5c7
+--- /dev/null
++++ b/phpfpm.fc
+@@ -0,0 +1,5 @@
++/usr/lib(64)?/php.*/bin/php-fpm		gen_context(system_u:object_r:phpfpm_exec_t,s0)
++
++/var/log/php-fpm.log			gen_context(system_u:object_r:phpfpm_log_t,s0)
++/var/run/php-fpm.pid			gen_context(system_u:object_r:phpfpm_var_run_t,s0)
++
+diff --git a/phpfpm.if b/phpfpm.if
+new file mode 100644
+index 0000000..2038ed5
+--- /dev/null
++++ b/phpfpm.if
+@@ -0,0 +1,30 @@
++# <summary>PHP FastCGI Process Manager</summary>
++
++#################################################
++## <summary>
++## 	Administrate a phpfpm environment
++## </summary>
++## <param name="domain">
++## 	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++# 
++interface(`phpfpm_admin',`
++	gen_require(`
++		type phpfpm_t;
++		type phpfpm_log_t, phpfpm_tmp_t, phpfpm_var_run_t;
++	')
++
++	allow $1 phpfpm_t:process { ptrace signal_perms };
++	ps_process_pattern($1, phpfpm_t)
++
++	logging_list_logs($1)
++	admin_pattern($1, phpfpm_log_t)
++
++	files_list_tmp($1)
++	admin_pattern($1, phpfpm_tmp_t)
++
++	files_list_pids($1)
++	admin_pattern($1, phpfpm_var_run_t)
++')
+diff --git a/phpfpm.te b/phpfpm.te
+new file mode 100644
+index 0000000..2bd30d7
+--- /dev/null
++++ b/phpfpm.te
+@@ -0,0 +1,86 @@
++policy_module(phpfpm, 1.0)
++
++#######################################
++#
++# Declarations
++#
++
++type phpfpm_t;
++type phpfpm_exec_t;
++init_daemon_domain(phpfpm_t, phpfpm_exec_t)
++
++type phpfpm_tmp_t;
++files_tmp_file(phpfpm_tmp_t)
++
++type phpfpm_var_run_t;
++files_pid_file(phpfpm_var_run_t)
++
++type phpfpm_log_t;
++logging_log_file(phpfpm_log_t)
++
++#######################################
++#
++# Local policy
++#
++
++
++allow phpfpm_t self:process signal;
++allow phpfpm_t self:capability { setuid setgid kill };
++allow phpfpm_t self:tcp_socket rw_stream_socket_perms;
++allow phpfpm_t self:udp_socket connected_socket_perms;
++allow phpfpm_t self:unix_stream_socket accept;
++
++manage_files_pattern(phpfpm_t, phpfpm_log_t, phpfpm_log_t)
++logging_log_filetrans(phpfpm_t, phpfpm_log_t, file)
++
++manage_files_pattern(phpfpm_t, phpfpm_tmp_t, phpfpm_tmp_t)
++manage_dirs_pattern(phpfpm_t, phpfpm_tmp_t, phpfpm_tmp_t)
++files_tmp_filetrans(phpfpm_t, phpfpm_tmp_t, {file dir})
++
++manage_files_pattern(phpfpm_t, phpfpm_var_run_t, phpfpm_var_run_t)
++files_pid_filetrans(phpfpm_t, phpfpm_var_run_t, file)
++
++kernel_read_kernel_sysctls(phpfpm_t)
++
++corecmd_read_bin_symlinks(phpfpm_t)
++corecmd_search_bin(phpfpm_t)
++
++corenet_tcp_bind_all_unreserved_ports(phpfpm_t)
++corenet_tcp_bind_generic_node(phpfpm_t)
++corenet_tcp_bind_generic_port(phpfpm_t)
++# Comment was 'allow ldap connections' -> sysnet_use_ldap ?
++# Also, if it was optional because the application optionally does it, perhaps
++# introduce a tunable for this? phpfpm_allow_ldap?
++corenet_tcp_connect_ldap_port(phpfpm_t)
++
++dev_read_rand(phpfpm_t)
++dev_read_urand(phpfpm_t)
++
++files_read_etc_files(phpfpm_t)
++files_read_usr_files(phpfpm_t)
++files_search_var_lib(phpfpm_t)
++
++miscfiles_read_localization(phpfpm_t)
++
++sysnet_dns_name_resolve(phpfpm_t)
++sysnet_read_config(phpfpm_t)
++
++userdom_search_user_home_dirs(phpfpm_t)
++
++apache_append_all_ra_content(phpfpm_t)
++apache_manage_all_rw_content(phpfpm_t)
++apache_read_sys_content(phpfpm_t)
++apache_dontaudit_search_modules(phpfpm_t)
++
++optional_policy(`
++	mysql_tcp_connect(phpfpm_t)
++')
++
++optional_policy(`
++	postgresql_tcp_connect(phpfpm_t)
++')
++
++optional_policy(`
++	snmp_read_snmp_var_lib_files(phpfpm_t)
++')
++
+-- 
+1.7.3.4
+

@@ -34,7 +34,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0009 + add bacula declaration
 0010 + dontaudit set 1
 0011 . wpa_cli is a commandline utility
-0012 . various corecommands file contexts updates
+0012 ! various corecommands file contexts updates [mainly openrc stuff, review later, already quite outdated with newest changes]
 0013 - add gentoo_portage_eselect_module interface
 0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
 0015 . allow mount to read/write puppet tmp files (used to gather output of mount)
@@ -52,12 +52,12 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0027 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
 0028 + add virtualization context files
 0029 + allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
-0030 . ensure that initrc can connect to the virt sockets
+0030 + ensure that initrc can connect to the virt sockets
 0031 + update virtualization so that sysadmin can use tools like virsh
 0032 - updates for init
 0033 + allow creation of user keys by sudo, needed for sudo with selinux integration
 0034 - do not have java-config be marked as a java_t entry point
-0035 . introduce dracut domain and interfaces
+0035 - introduce dracut domain and interfaces
 0036 . update on udev, later versions manage the udev_tbl_t more than just files
 0037 + lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
 0038 - allow initrc_t to create dirs in /sys (some init scripts do this), we might want to change to named filetrans later here
@@ -79,7 +79,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0054 - introduce generic attributes for apache and web content handling
 0055 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
 0056 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
-0057 . expand selinux and usermanage role usage to include the proper type definitions
+0057 + expand selinux and usermanage role usage to include the proper type definitions
 0058 ! temporarily reintroduce gentoo booleans (remove on 01/07/2012)
 0059 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
 0060 + add port 3128 as http_cache_port_t (default port for squid cache)
@@ -124,6 +124,9 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0099 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
 0100 - fix build failures by marking stuff optional (inetd, apache, ...)
 0101 - improve style on networkmanager items
+0102 - support search on all web content in apache (part of 0054)
+0103 - introduce phpfpm_t domain
+0104 - support wake_alarm and epollwakeup capabilities in capability2 class
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

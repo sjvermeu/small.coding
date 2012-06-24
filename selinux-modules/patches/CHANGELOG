@@ -1,3 +1,7 @@
+<no bug>	Support wake_alarm and epollwakeup capabilities (backport)
+#379879		Support phpfpm_t domain
+<no bug>	Support search on all web content within apache (interface)
+
 ** 2012-06-14 Revision 12
 
 <no bug>	Improve coding style on network manager

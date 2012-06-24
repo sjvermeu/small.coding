@@ -1,0 +1,29 @@
+From 3113de2a8778b772289b7933be98085e5f79e899 Mon Sep 17 00:00:00 2001
+From: Sven Vermeulen <sven.vermeulen@siphos.be>
+Date: Sun, 24 Jun 2012 09:56:15 +0200
+Subject: [PATCH v2 3/3] Allow sysadm_t to administer phpfpm environment
+
+
+Signed-off-by: Sven Vermeulen <sven.vermeulen@siphos.be>
+---
+ policy/modules/roles/sysadm.te |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/policy/modules/roles/sysadm.te b/policy/modules/roles/sysadm.te
+index bd5a2ea..0c30596 100644
+--- a/policy/modules/roles/sysadm.te
++++ b/policy/modules/roles/sysadm.te
+@@ -260,6 +260,10 @@ optional_policy(`
+ ')
+ 
+ optional_policy(`
++	phpfpm_admin(sysadm_t)
++')
++
++optional_policy(`
+ 	portage_run(sysadm_t, sysadm_r)
+ 	portage_run_fetch(sysadm_t, sysadm_r)
+ 	portage_run_gcc_config(sysadm_t, sysadm_r)
+-- 
+1.7.3.4
+

@@ -199,6 +199,7 @@ mountDisks() {
   logPrint "Performing other mounts (proc/dev/tmp/...)." >> ${LOG};
   [ -d ${WORKDIR}/proc ] || mkdir ${WORKDIR}/proc; mount -t proc proc ${WORKDIR}/proc;
   [ -d ${WORKDIR}/dev ] || mkdir ${WORKDIR}/dev; mount --rbind /dev ${WORKDIR}/dev;
+  [ -d ${WORKDIR}/sys ] || mkdir ${WORKDIR}/sys; mount --rbind /sys ${WORKDIR}/sys;
   [ -d ${WORKDIR}/var/tmp ] || mkdir -p ${WORKDIR}/var/tmp; chmod 1777 ${WORKDIR}/var/tmp;
   [ -d ${WORKDIR}/tmp ] || mkdir ${WORKDIR}/tmp; mount -t tmpfs tmpfs ${WORKDIR}/tmp;
   printf "done\n";

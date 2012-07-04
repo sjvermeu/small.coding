@@ -170,7 +170,7 @@ readConfig() {
   else
     cat > ~/.mglshowrc << EOF
 workdir=/tmp
-source.http=http://swift.siphos.be/mglshow/data
+source.http=http://dev.gentoo.org/~swift/mglshow/data
 EOF
     export MGLSHOWCONF=~/.mglshowrc
     hasKey workdir ${MGLSHOWCONF} || die "Key workdir is not found in the configuration file ${MGLSHOWCONF})!"

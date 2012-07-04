@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<refentry id="refentry-refdb-bug">
+  <refmeta>
+    <refentrytitle>selinuxnode</refentrytitle>
+
+    <manvolnum>7</manvolnum>
+
+    <refmiscinfo class="source">July 1st, 2012</refmiscinfo>
+
+    <refmiscinfo class="manual">Gentoo Hardened SELinux Node
+    Information</refmiscinfo>
+  </refmeta>
+
+  <refnamediv id="refdb-bug-name">
+    <refname>selinuxnode</refname>
+
+    <refpurpose>Example SELinux-enabled Gentoo Hardened image</refpurpose>
+  </refnamediv>
+
+  <!-- body begins here -->
+
+  <refsect1>
+    <title>Usage</title>
+
+    <refsect2>
+      <title>First things first</title>
+
+      <para>This playground image has been cleaned up a bit to reduce system
+      space. One of the things you will need to run first is emerge-webrsync
+      to populate the portage tree again. Afterwards you need to regenerate
+      the metadata as the dependency cache has been cleared as well.</para>
+
+      <programlisting>~# <command>emerge-webrsync</command>
+~# <command>emerge --metadata</command></programlisting>
+
+      <para>Update the configuration files in /etc to suit your system
+      environment, including</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>setting keymap in /etc/conf.d/keymaps to your keyboard
+          layout</para>
+        </listitem>
+
+        <listitem>
+          <para>copying the right zone file from /usr/share/zoneinfo onto
+          /etc/localtime.</para>
+        </listitem>
+      </itemizedlist>
+    </refsect2>
+
+    <refsect2>
+      <title>The user, oper and root users</title>
+
+      <para>On this SELinux node, three users are defined.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>user is a regular system user, mapped to the SELinux user_u
+          user</para>
+        </listitem>
+
+        <listitem>
+          <para>oper is a regular system user for operators and
+          administrators, mapped to the SELinux staff_u user</para>
+        </listitem>
+
+        <listitem>
+          <para>root is an administrative user, mapped to the SELinux root
+          user</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>These SELinux mappings define which actions a user is allowed to
+      take. For instance user_u is not able to switch roles and thus will
+      never be able to manage the system. The oper user by default works in
+      the staff_r role, so is limited in his ability to manage the system,
+      until he switches his role to sysadm_r using <command>newrole -r
+      sysadm_r</command>. The root user either logs in in the staff_r role
+      (remote login) or sysadm_r (local login).</para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>Command Reference</title>
+
+    <refsect2>
+      <title>SELinux command reference</title>
+
+      <para>For a full explanation of all the SELinux-related commands, please
+      read the Gentoo Hardened SELinux handbook at
+      http://hardened.gentoo.org/selinux</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>newrole -r &lt;role&gt;</term>
+
+          <listitem>
+            <para>Switch to the specified SELinux role. Supported roles are
+            staff_r and sysadm_r (user_r is supported too but will not be
+            switched to nor switched from).</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>setenforce [0 | 1]</term>
+
+          <listitem>
+            <para>Disable (0) or enable (1) SELinux enforcing mode. By
+            default, the node boots in enforcing mode.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Custom Comments</title>
+
+      <para>On the SELinux system node, a few custom scripts have been made
+      available:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>mglshow &lt;id&gt;</term>
+
+          <term>mglshow -i &lt;category&gt;</term>
+
+          <listitem>
+            <para>Show script replays of recorded sessions. This will be used
+            in the future for educational purposes. With -i, mglshow displays
+            the current list of categories and scripts.</para>
+
+            <para>This command needs a working Internet connection. For more
+            info about script replay sessions, see
+            <command>script(1)</command> and
+            <command>scriptreplay(1)</command>.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>About this image</title>
+
+    <refsect2>
+      <title>Specific portage settings</title>
+
+      <para>Due to the introduction of /run, the SELinux policies are
+      currently being updated to reflect the dynamical nature of this
+      location. As a result, this image is currently using the ~arch version
+      of the SELinux policies (see the selinux file in
+      /etc/portage/package.accept_keywords).</para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1 id="refdb-bug-author">
+    <title>Author</title>
+
+    <para>The SELinux node is maintained by Sven Vermeulen
+    &lt;swift@gentoo.org&gt;</para>
+  </refsect1>
+</refentry>

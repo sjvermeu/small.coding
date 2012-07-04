@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/system/udev.if	2012-06-25 20:51:07.165454239 +0200
++++ refpolicypolicy/modules/system/udev.if	2012-06-25 20:50:07.404452858 +0200
+@@ -184,6 +184,8 @@
+ 		type udev_rules_t;
+ 	')
+ 
++	files_search_etc($1) # /etc/udev/rules.d
++	udev_search_pids($1) # /run/udev/rules.d
+ 	read_files_pattern($1, udev_rules_t, udev_rules_t)
+ ')
+ 

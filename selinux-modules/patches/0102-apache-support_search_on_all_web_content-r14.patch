@@ -1,0 +1,27 @@
+--- refpolicy/policy/modules/contrib/apache.if	2012-06-26 21:55:05.501538826 +0200
++++ refpolicypolicy/modules/contrib/apache.if	2012-06-26 21:52:33.083535305 +0200
+@@ -554,6 +554,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Search all apache content.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`apache_search_all_content',`
++	gen_require(`
++		attribute httpdcontent;
++	')
++
++	allow $1 httpdcontent:dir search_dir_perms;
++')
++
++########################################
++## <summary>
+ ##	Create, read, write, and delete all web content.
+ ## </summary>
+ ## <param name="domain">

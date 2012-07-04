@@ -18,7 +18,7 @@ then
 fi
 
 echo "## Removing obsoleted kernel files in /boot";
-
+echo "cd /boot";
 cd /boot;
 for F in System.map-* config-* initramfs-* vmlinuz-*;
 do
@@ -33,11 +33,11 @@ do
 done
 for F in vmlinux-*;
 do
-  ${PRECMD} rm ${F};
+  [ -f ${F} ] && ${PRECMD} rm ${F};
 done
 
 echo "## Cleaning log files";
-
+echo "cd /var/log"
 cd /var/log;
 for F in *;
 do
@@ -51,7 +51,7 @@ do
 done
 
 echo "## Cleaning root and user home directories"
-
+echo "cd /root"
 cd /root;
 for F in .??*;
 do
@@ -62,6 +62,7 @@ done
 
 for U in user oper;
 do
+  echo "cd /home/${U}"
   cd /home/${U};
   for F in .??*;
   do
@@ -72,7 +73,35 @@ do
 done
 
 echo "## Cleaning caches"
-
+echo "cd /var/cache"
 cd /var/cache;
 [ -d revdep-rebuild ] && ${PRECMD} rm -rf revdep-rebuild;
 [ -d edb/dep ] && ${PRECMD} rm -rf edb/dep; # emerge --metadata regenerates this
+for D in man/*;
+do
+  [ -d ${D} ] && ${PRECMD} rm -rf ${D};
+done
+
+echo "## Cleaning udev persistent rules"
+echo "cd /etc/udev/rules.d"
+cd /etc/udev/rules.d
+for F in *;
+do
+  [ -f ${F} ] && ${PRECMD} rm -f ${F};
+done
+
+echo "## Cleaning SSHd host keys"
+echo "cd /etc/ssh"
+cd /etc/ssh
+for F in *_key*;
+do
+  [ -f ${F} ] && ${PRECMD} rm -f ${F};
+done
+
+echo "## Cleaning /usr/poratge";
+${PRECMD} rm -rf /usr/portage/*;
+
+echo "## "
+echo "## Do not forget:"
+echo "## - reset /etc/conf.d/keymaps"
+echo "## - /etc/localtime"

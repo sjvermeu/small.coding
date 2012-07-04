@@ -1,0 +1,13 @@
+URL: http://oss.tresys.com/pipermail/refpolicy/2012-June/005179.html
+
+ChangeLog
+---------
+
+Changes since v2
+- Add search on etc_t and udev_var_run_t through the udev_read_rules_files
+  interface
+- Update dracut_manage_tmp_files to become dracut_rw_tmp_files
+- Reduce file transitions to directory class only (within tmp)
+
+TODO:
+- transformed various setexec requirements to check_exec requirement

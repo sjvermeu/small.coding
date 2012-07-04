@@ -1,0 +1,65 @@
+From 93c30298fcfef8328ac75fbf6c7eab8ee69ac56f Mon Sep 17 00:00:00 2001
+From: Sven Vermeulen <sven.vermeulen@siphos.be>
+Date: Sun, 24 Jun 2012 19:17:58 +0200
+Subject: [PATCH v2 2/5] Support listing module configuration files
+
+Dracut, an application that creates an initramfs based on the systems'
+requirements, needs to list the module configuration
+files to function. This adds in this interface for this purpose.
+
+Signed-off-by: Sven Vermeulen <sven.vermeulen@siphos.be>
+---
+ policy/modules/system/modutils.if |   21 +++++++++++++++++++++
+ policy/modules/system/modutils.te |    4 ++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
+
+diff --git a/policy/modules/system/modutils.if b/policy/modules/system/modutils.if
+index 350c450..19d328a 100644
+--- a/policy/modules/system/modutils.if
++++ b/policy/modules/system/modutils.if
+@@ -39,6 +39,27 @@ interface(`modutils_read_module_deps',`
+ 
+ ########################################
+ ## <summary>
++##	List the module configuration option files 
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`modutils_list_module_config',`
++	gen_require(`
++		type modules_conf_t;
++	')
++
++	list_dirs_pattern($1, modules_conf_t, modules_conf_t)
++')
++
++
++
++########################################
++## <summary>
+ ##	Read the configuration options used when
+ ##	loading modules.
+ ## </summary>
+diff --git a/policy/modules/system/modutils.te b/policy/modules/system/modutils.te
+index 560d5d9..7607294 100644
+--- a/policy/modules/system/modutils.te
++++ b/policy/modules/system/modutils.te
+@@ -89,6 +89,10 @@ tunable_policy(`use_samba_home_dirs',`
+ ')
+ 
+ optional_policy(`
++	dracut_manage_tmp_files(depmod_t)
++')
++
++optional_policy(`
+ 	rpm_rw_pipes(depmod_t)
+ 	rpm_manage_script_tmp_files(depmod_t)
+ ')
+-- 
+1.7.3.4
+

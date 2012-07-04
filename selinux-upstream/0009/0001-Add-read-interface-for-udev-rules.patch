@@ -1,0 +1,48 @@
+From de0e29111cca658973b789f9ba3f067c81c8fb45 Mon Sep 17 00:00:00 2001
+From: Sven Vermeulen <sven.vermeulen@siphos.be>
+Date: Sun, 24 Jun 2012 18:58:48 +0200
+Subject: [PATCH v2 1/5] Add read interface for udev rules
+
+Applications, such as dracut or other initramfs creators, need read access to
+udev rules to see if they need to pull in additional requirements for the
+initramfs or not. This adds in the udev_read_rules_files() interface for
+this purpose.
+
+Signed-off-by: Sven Vermeulen <sven.vermeulen@siphos.be>
+---
+ policy/modules/system/udev.if |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/policy/modules/system/udev.if b/policy/modules/system/udev.if
+index 025348a..57fd764 100644
+--- a/policy/modules/system/udev.if
++++ b/policy/modules/system/udev.if
+@@ -132,6 +132,25 @@ interface(`udev_dontaudit_rw_dgram_sockets',`
+ 
+ ########################################
+ ## <summary>
++##	Read udev rules files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_read_rules_files',`
++	gen_require(`
++		type udev_rules_t;
++	')
++
++	read_files_pattern($1, udev_rules_t, udev_rules_t)
++')
++
++
++########################################
++## <summary>
+ ##	Manage udev rules files
+ ## </summary>
+ ## <param name="domain">
+-- 
+1.7.3.4
+

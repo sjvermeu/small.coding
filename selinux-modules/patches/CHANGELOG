@@ -1,3 +1,8 @@
+<no bug>	Backport support/ related commits
+<no bug>	Backport packagekit file contexts
+<no bug>	Refactor dracut domain policy
+<no bug>	Refactor fixes for udev and init support for /run directory
+
 ** 2012-06-24 Revision 13
 
 <no bug>	Allow wpa_cli to read release files in /etc (find out which distribution it runs in)

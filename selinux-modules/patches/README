@@ -33,7 +33,6 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0008 - add nginx declaration
 0009 + add bacula declaration
 0010 + dontaudit set 1
-0011 . wpa_cli is a commandline utility
 0012 ! various corecommands file contexts updates [mainly openrc stuff, review later, already quite outdated with newest changes]
 0013 - add gentoo_portage_eselect_module interface
 0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
@@ -57,7 +56,6 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0032 - updates for init
 0033 + allow creation of user keys by sudo, needed for sudo with selinux integration
 0034 - do not have java-config be marked as a java_t entry point
-0035 - introduce dracut domain and interfaces
 0036 . update on udev, later versions manage the udev_tbl_t more than just files
 0037 + lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
 0038 - allow initrc_t to create dirs in /sys (some init scripts do this), we might want to change to named filetrans later here
@@ -97,8 +95,6 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0072 - allow bootmisc init script to mkdir/rmdir in /var/lib
 0073 - allow initrc scripts to delete stale syslog control sockets in /var/run
 0074 - allow initrc script to clean up /tmp
-0075 - do not audit getattr on udev netlink_kobject_uevent_sockets from within initrc (bootmisc)
-0076 - do not audit getattr on udev unix_stream_sockets from within initrc (bootmisc)
 0077 - do not audit search/getattr on user_home_dir from within portage_fetch domain
 0078 - allow initscripts to manipulate sysctls (sys_admin capability)
 0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
@@ -108,7 +104,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0083 - allow init scripts to manage cgroup files and directories (openrc requirement)
 0084 - support calling startx(fce4) from console for unconfined_t (transition to xserver_t)
 0085 + introduce tunable support for setrlimit within apache
-0086 . update whitespace issues with segenxml.py script to fix python3 issues
+0086 + update whitespace issues with segenxml.py script to fix python3 issues
 0087 + switch to substituted file locations (subs_dist)
 0088 + allow shadow utils to read default context definitions
 0089 + Update symbol in clamav_append_log interface (backport)
@@ -118,19 +114,20 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0093 - Mark kudzu call as optional in ddcprobe
 0094 - Allow kdevtmpfs to setattr on its device files
 0095 - Mark /etc/selinux/*/modules as semanage_store_t
-0096 - With /run, subdirectories are created dynamically, so using named filetrans here
 0097 - Update udev file contexts
-0098 - SEPostgresql changes (backport)
+0098 + SEPostgresql changes (backport)
 0099 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
 0100 - fix build failures by marking stuff optional (inetd, apache, ...)
-0101 - improve style on networkmanager items
 0102 . support search on all web content in apache (part of 0054)
 0103 . introduce phpfpm_t domain
 0104 + support wake_alarm and epollwakeup capabilities in capability2 class
 0105 - Use gnome_xdg_config_t for gnome config in ~/.config
-0106 - Support python3 within doc generation
-0107 - Allow udev_tbl_t managers to search through udev_var_run_t needed for /run/udev
-0108 - Allow wpa_cli to read etc files, needed to get distribution (through /etc/*-release files)
+0106 + Support python3 within doc generation
+0110 - Support /run directory for udev and init
+0111 - Introduce dracut domain
+0112 - wpa_cli is an interactive application
+0113 + packagekit context updates (backport)
+0114 + Backporting some support related commits
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

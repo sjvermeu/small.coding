@@ -1,0 +1,22 @@
+Subject: [PATCH v2 0/5] Support dracut domain
+
+While trying to get a SELinux-supporting initramfs booted up (in enforcing
+mode, without unconfined domains) my current attempts are at dracut. But
+dracut itself didn't work quite well on such a system as running it in
+sysadm_t domain fails (some domain transitions occur which are then asked to
+write files in user_tmp_t which isn't allowed for those domains).
+
+Instead of patching those domains (ldconfig_t and depmod_t) to allow writing
+& creating files in user_tmp_t (i.e. manage privileges) I drafted up a
+dracut domain (dracut_t) and grant those domains manage access to
+dracut_tmp_t.
+
+To support dracut, a few changes were necessary to the policy as well
+(additional interfaces).
+
+The summary:
+- Add read interface for udev rules (udev_read_rules_files)
+- List module configuration option files (modutils_list_module_config)
+- Add in the dracut_t policy
+- Grant ldconfig_t and depmod_t the dracut_manage_tmp_files privilege
+- Allow sysadm_t to run/transition to dracut_t

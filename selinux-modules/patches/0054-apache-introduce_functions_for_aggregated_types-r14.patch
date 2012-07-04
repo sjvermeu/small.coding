@@ -1,6 +1,6 @@
---- refpolicy/policy/modules/contrib/apache.te	2011-10-25 19:19:57.000000000 +0200
-+++ refpolicy/policy/modules/contrib/apache.te	2012-02-25 12:55:03.056328292 +0100
-@@ -143,6 +143,8 @@
+--- refpolicy/policy/modules/contrib/apache.te	2012-06-26 21:53:29.295536603 +0200
++++ refpolicypolicy/modules/contrib/apache.te	2012-05-05 16:11:26.049762611 +0200
+@@ -150,6 +150,8 @@
  gen_tunable(httpd_use_nfs, false)
  
  attribute httpdcontent;
@@ -9,8 +9,8 @@
  attribute httpd_user_content_type;
  
  # domains that can exec all users scripts
---- refpolicy/policy/modules/contrib/apache.if	2011-10-25 19:19:57.000000000 +0200
-+++ refpolicy/policy/modules/contrib/apache.if	2012-02-26 10:22:51.748493216 +0100
+--- refpolicy/policy/modules/contrib/apache.if	2012-06-26 21:53:29.358536605 +0200
++++ refpolicypolicy/modules/contrib/apache.if	2012-06-26 21:52:33.083535305 +0200
 @@ -16,6 +16,8 @@
  		attribute httpdcontent;
  		attribute httpd_exec_scripts;
@@ -59,7 +59,7 @@
 +
 +########################################
 +## <summary>
-+##	Append to all appendable web content.
++##	Append to all appendable web content files.
 +## </summary>
 +## <param name="domain">
 +##	<summary>
@@ -73,7 +73,7 @@
 +		attribute httpd_ra_content;
 +	')
 +
-+	allow $1 httpd_ra_content:dir { list_dir_perms add_entry_dir_perms };
++	apache_search_all_content($1)
 +	append_files_pattern($1, httpd_ra_content, httpd_ra_content)
 +')
 +
@@ -143,5 +143,5 @@
 +
 +########################################
  ## <summary>
- ##	Create, read, write, and delete all web content.
+ ##	Search all apache content.
  ## </summary>

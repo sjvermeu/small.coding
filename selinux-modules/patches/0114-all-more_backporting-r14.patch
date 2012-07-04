@@ -1,0 +1,42 @@
+diff -uNr -x '.git*' -x CVS refpolicy/support/comment_move_decl.sed refpolicy/support/comment_move_decl.sed
+--- refpolicy/support/comment_move_decl.sed	2011-09-21 15:00:40.000000000 +0200
++++ refpolicy/support/comment_move_decl.sed	2012-07-04 18:55:18.533995956 +0200
+@@ -10,5 +10,6 @@
+ /^[[:blank:]]*fs_use_(xattr|task|trans) /s/^/# this line was moved by the build process: &/
+ /^[[:blank:]]*sid /s/^/# this line was moved by the build process: &/
+ /^[[:blank:]]*bool /s/^/# this line was moved by the build process: &/
++/^[[:blank:]]*role[[:blank:]]+[a-zA-Z_]+[[:blank:]]*;/s/^/# this line was moved by the build process: &/
+ 
+ :nextline
+diff -uNr -x '.git*' -x CVS refpolicy/support/get_type_attr_decl.sed refpolicy/support/get_type_attr_decl.sed
+--- refpolicy/support/get_type_attr_decl.sed	2011-09-21 15:00:40.000000000 +0200
++++ refpolicy/support/get_type_attr_decl.sed	2012-07-04 18:55:48.411995513 +0200
+@@ -1,5 +1,5 @@
+ #n
+-# print out type and attribute declarations that
++# print out type, role and attribute declarations that
+ # are not inside require and optional blocks.
+ 
+ /require \{/,/} # end require/b nextline
+@@ -9,5 +9,10 @@
+ 	s/^[[:blank:]]+//
+ 	p
+ }
++
++/^[[:blank:]]*role[[:blank:]]+[a-zA-Z_]+[[:blank:]]*;/{
++	s/^[[:blank:]]+//
++	p
++}
+ 
+ :nextline
+diff -uNr -x '.git*' -x CVS refpolicy/support/pyplate.py refpolicy/support/pyplate.py
+--- refpolicy/support/pyplate.py	2012-07-04 18:57:00.937994437 +0200
++++ refpolicy/support/pyplate.py	2012-07-04 18:56:06.340995247 +0200
+@@ -296,7 +296,6 @@
+     else:
+       stream.write(str(eval(self.s, globals(), data)).decode('utf-8'))
+ 
+-
+ class ExecTemplateNode(LeafTemplateNode):
+   def __init__(self, parent, s):
+     LeafTemplateNode.__init__(self, parent, s)

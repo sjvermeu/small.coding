@@ -1,1 +1,9 @@
 URL: http://oss.tresys.com/pipermail/refpolicy/2012-June/005169.html
+
+ChangeLog
+---------
+
+Changes since v3
+- Use "apache_append_all_ra_content" instead of
+  "apache_append_all_ra_content_files"
+

@@ -1,0 +1,80 @@
+'\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH selinuxnode 7 "1 July 2012" "July 1st, 2012" "Gentoo Hardened SELinux Node Information"
+.SH NAME
+selinuxnode \- Example SELinux-enabled Gentoo Hardened image
+.SH USAGE
+.SS "FIRST THINGS FIRST"
+This playground image has been cleaned up a bit to reduce system
+space. One of the things you will need to run first is emerge-webrsync
+to populate the portage tree again. Afterwards you need to regenerate
+the metadata as the dependency cache has been cleared as well.
+.PP
+.nf
+\*(T<~# \fBemerge\-webrsync\fR
+~# \fBemerge \-\-metadata\fR\*(T>
+.fi
+.SS "THE USER, OPER AND ROOT USERS"
+On this SELinux node, three users are defined.
+.TP 0.2i
+\(bu
+user is a regular system user, mapped to the SELinux user_u
+user
+.TP 0.2i
+\(bu
+oper is a regular system user for operators and
+administrators, mapped to the SELinux staff_u user
+.TP 0.2i
+\(bu
+root is an administrative user, mapped to the SELinux root
+user
+.PP
+These SELinux mappings define which actions a user is allowed to
+take. For instance user_u is not able to switch roles and thus will
+never be able to manage the system. The oper user by default works in
+the staff_r role, so is limited in his ability to manage the system,
+until he switches his role to sysadm_r using \fBnewrole -r
+sysadm_r\fR. The root user either logs in in the staff_r role
+(remote login) or sysadm_r (local login).
+.SH "COMMAND REFERENCE"
+.SS "SELINUX COMMAND REFERENCE"
+For a full explanation of all the SELinux-related commands, please
+read the Gentoo Hardened SELinux handbook at
+http://hardened.gentoo.org/selinux
+.TP 
+newrole -r <role>
+Switch to the specified SELinux role. Supported roles are
+staff_r and sysadm_r (user_r is supported too but will not be
+switched to nor switched from).
+.TP 
+setenforce [0 | 1]
+Disable (0) or enable (1) SELinux enforcing mode. By
+default, the node boots in enforcing mode.
+.SS "CUSTOM COMMENTS"
+On the SELinux system node, a few custom scripts have been made
+available:
+.TP 
+mglshow <id>, mglshow -i <category>
+Show script replays of recorded sessions. This will be used
+in the future for educational purposes. With -i, mglshow displays
+the current list of categories and scripts.
+
+This command needs a working Internet connection. For more
+info about script replay sessions, see
+\fBscript(1)\fR and
+\fBscriptreplay(1)\fR.
+.SH "ABOUT THIS IMAGE"
+.SS "SPECIFIC PORTAGE SETTINGS"
+Due to the introduction of /run, the SELinux policies are
+currently being updated to reflect the dynamical nature of this
+location. As a result, this image is currently using the ~arch version
+of the SELinux policies (see the selinux file in
+/etc/portage/package.accept_keywords).
+.SH AUTHOR
+The SELinux node is maintained by Sven Vermeulen
+<swift@gentoo.org>

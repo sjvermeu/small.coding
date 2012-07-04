@@ -1,3 +1,4 @@
+#424359		Allow udev init script to generate correct labels on data & rules.d (/run/udev)
 <no bug>	Backport support/ related commits
 <no bug>	Backport packagekit file contexts
 <no bug>	Refactor dracut domain policy

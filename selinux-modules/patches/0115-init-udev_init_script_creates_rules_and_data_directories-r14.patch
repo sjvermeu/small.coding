@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/init.te	2012-07-04 22:12:58.409820008 +0200
++++ refpolicypolicy/modules/system/init.te	2012-07-04 22:12:10.609820717 +0200
+@@ -853,7 +853,9 @@
+ optional_policy(`
+ 	udev_dontaudit_getattr_netlink_kobject_uevent_sockets(initrc_t)
+ 	udev_dontaudit_getattr_unix_stream_sockets(initrc_t)
+-	udev_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_generic_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_pid_filetrans_db_dirs(initrc_t, "rules.d")
++	udev_pid_filetrans_db_dirs(initrc_t, "data")
+ 	udev_manage_pid_files(initrc_t)
+ 	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)

@@ -1,0 +1,42 @@
+--- refpolicy/policy/modules/system/udev.if	2012-07-04 22:13:16.061819746 +0200
++++ refpolicypolicy/modules/system/udev.if	2012-07-04 22:10:51.462821891 +0200
+@@ -276,6 +276,30 @@
+ 
+ ########################################
+ ## <summary>
++##	Write dirs in /var/run/udev with the udev_tbl_t (udev database) file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`udev_pid_filetrans_db_dirs',`
++	gen_require(`
++		type udev_tbl_t;
++		type udev_var_run_t;
++	')
++
++	filetrans_pattern($1, udev_var_run_t, udev_tbl_t, dir, $2)
++')
++
++########################################
++## <summary>
+ ##	Write dirs in /var/run with the udev_var_run file type
+ ## </summary>
+ ## <param name="domain">
+@@ -289,7 +313,7 @@
+ ##	</summary>
+ ## </param>
+ #
+-interface(`udev_pid_filetrans_run_dirs',`
++interface(`udev_generic_pid_filetrans_run_dirs',`
+ 	gen_require(`
+ 		type udev_var_run_t;
+ 	')

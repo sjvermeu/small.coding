@@ -1,0 +1,19 @@
+MODULE=samba
+SUBDOMAINS=nmbd net smbmount winbind_helper smbcontrol
+
+samba.GENTYPES=config log var secrets
+
+samba.CONFIG=samba_etc_t
+samba.LOG=samba_log_t
+samba.VAR=samba_var_t
+samba.SECRETS=samba_secrets_t
+
+samba.nmbd.METHODS=domtrans
+
+samba.net.METHODS=domtrans run
+
+samba.smbmount.METHODS=domtrans run
+
+samba.winbind_helper.METHODS=domtrans run
+
+samba.smbcontrol.METHODS=domtrans run

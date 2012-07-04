@@ -1,0 +1,18 @@
+MODULE=dracut
+DESCRIPTION=Initramfs generation tool
+
+##
+## Are there any subdomains to handle?
+SUBDOMAINS=
+
+##
+## Main methods to generate
+dracut.METHODS=domtrans run role
+dracut.DOMAIN=dracut_t
+dracut.EXEC=dracut_exec_t
+
+##
+## Subtype management
+dracut.GENTYPES=tmp
+dracut.TMP.TYPE=dracut_tmp_t
+dracut.TMP_SCOPE=file

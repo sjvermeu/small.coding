@@ -1,0 +1,26 @@
+MODULE=samba
+DESCRIPTION=SMB and CIFS client/server programs for UNIX and name Service Switch daemon for resolving names from Windows NT servers.
+
+
+##
+## Subtype management
+samba.GENTYPES=config log var
+
+samba.CONFIG.TYPE=samba_etc_t
+samba.CONFIG.SCOPE=file dir
+samba.LOG.TYPE=samba_log_t
+samba.LOG.SCOPE=file dir
+samba.VAR.TYPE=samba_var_t
+samba.VAR.SCOPE=file dir
+
+##
+## Subdomains?
+SUBDOMAINS=nmbd net smbmount winbind_helper smbcontrol
+
+samba.nmbd.METHODS=domtrans
+samba.nmbd.DOMAIN=
+samba.nmbd.EXEC=
+samba.net.METHODS=domtrans run
+samba.smbmount.METHODS=domtrans run
+samba.winbind_helper.METHODS=domtrans run
+samba.smbcontrol.METHODS=domtrans run

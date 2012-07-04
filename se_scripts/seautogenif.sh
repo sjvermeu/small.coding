@@ -818,3 +818,21 @@ do
     genRWTmp ${MODULE} 
   fi
 done
+
+##
+## Part 3 - Combine them all
+##
+if [ -f ${MODULE}.if ]; 
+then
+  echo "Skipping generation of ${MODULE}.if: file already exists.";
+else
+  SUMMARY=$(awk -F'=' '/DESCRIPTION=/ {print $2}' ${CONFFILE});
+  echo "## <summary>" > ${MODULE}.if;
+  echo "##	${SUMMARY}" >> ${MODULE}.if;
+  echo "## </summary>" >> ${MODULE}.if;
+  echo "" >> ${MODULE}.if;
+  for FILE in *.part *.autogen.iface;
+  do
+    cat ${FILE} >> ${MODULE}.if; 
+  done
+fi

@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/contrib/ldap.if	2012-07-10 19:04:42.950296809 +0200
++++ refpolicypolicy/modules/contrib/ldap.if	2012-07-10 18:53:23.838306884 +0200
+@@ -69,13 +69,12 @@
+ 	')
+ 
+ 	files_search_pids($1)
+-	allow $1 slapd_var_run_t:sock_file write;
+-	allow $1 slapd_t:unix_stream_socket connectto;
++	stream_connect_pattern($1, slapd_var_run_t, slapd_var_run_t, slapd_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	All of the rules required to administrate 
++##	All of the rules required to administrate
+ ##	an ldap environment
+ ## </summary>
+ ## <param name="domain">

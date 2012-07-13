@@ -1,3 +1,12 @@
+<no bug>	Update xdg definition, use correct naming
+<no bug>	Rewrite eselect handling, now uses a SELinux attribute
+
+** 2012-07-10 Revision 14
+
+#410961		Get the descriptions for booleans properly displayed
+<no bug>	Backport nss_domain attribute patch
+<no bug>	Backport blueman policy
+<no bug>	Backport bcfg2 policy
 #424359		Allow udev init script to generate correct labels on data & rules.d (/run/udev)
 <no bug>	Backport support/ related commits
 <no bug>	Backport packagekit file contexts

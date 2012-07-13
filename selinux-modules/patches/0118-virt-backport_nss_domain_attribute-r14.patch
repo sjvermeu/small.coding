@@ -1,0 +1,22 @@
+--- refpolicy/policy/modules/contrib/virt.te	2012-07-10 19:04:45.912296766 +0200
++++ refpolicypolicy/modules/contrib/virt.te	2012-07-10 18:56:15.404304339 +0200
+@@ -455,8 +455,6 @@
+ term_use_generic_ptys(virt_domain)
+ term_use_ptmx(virt_domain)
+ 
+-auth_use_nsswitch(virt_domain)
+-
+ logging_send_syslog_msg(virt_domain)
+ 
+ miscfiles_read_localization(virt_domain)
+--- refpolicy/policy/modules/contrib/virt.if	2011-10-25 19:20:08.000000000 +0200
++++ refpolicypolicy/modules/contrib/virt.if	2012-07-10 18:56:02.684304527 +0200
+@@ -69,6 +69,8 @@
+ 	files_pid_filetrans($1_t, $1_var_run_t, { dir file })
+ 	stream_connect_pattern($1_t, $1_var_run_t, $1_var_run_t, virtd_t)
+ 
++	auth_use_nsswitch($1_t)
++
+ 	optional_policy(`
+ 		xserver_rw_shm($1_t)
+ 	')

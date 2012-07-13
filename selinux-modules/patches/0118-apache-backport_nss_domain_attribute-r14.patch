@@ -1,0 +1,14 @@
+--- refpolicy/policy/modules/contrib/apache.te	2012-07-10 19:04:40.352296848 +0200
++++ refpolicypolicy/modules/contrib/apache.te	2012-07-10 18:48:34.815311173 +0200
+@@ -561,6 +561,11 @@
+ ')
+ 
+ optional_policy(`
++	# needed by FreeIPA
++	ldap_stream_connect(httpd_t)
++')
++
++optional_policy(`
+ 	mailman_signal_cgi(httpd_t)
+ 	mailman_domtrans_cgi(httpd_t)
+ 	mailman_read_data_files(httpd_t)

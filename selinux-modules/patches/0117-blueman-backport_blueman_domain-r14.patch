@@ -1,0 +1,157 @@
+--- refpolicy/policy/modules/contrib/blueman.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/blueman.te	2012-07-10 18:41:32.956317430 +0200
+@@ -0,0 +1,46 @@
++policy_module(blueman, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type blueman_t;
++type blueman_exec_t;
++dbus_system_domain(blueman_t, blueman_exec_t)
++init_daemon_domain(blueman_t, blueman_exec_t)
++
++type blueman_var_lib_t;
++files_type(blueman_var_lib_t)
++
++########################################
++#
++# blueman local policy
++#
++allow blueman_t self:fifo_file rw_fifo_file_perms;
++
++manage_dirs_pattern(blueman_t, blueman_var_lib_t, blueman_var_lib_t)
++manage_files_pattern(blueman_t, blueman_var_lib_t, blueman_var_lib_t)
++files_var_lib_filetrans(blueman_t, blueman_var_lib_t, dir)
++
++kernel_read_system_state(blueman_t)
++
++corecmd_exec_bin(blueman_t)
++
++dev_read_rand(blueman_t)
++dev_read_urand(blueman_t)
++dev_rw_wireless(blueman_t)
++
++domain_use_interactive_fds(blueman_t)
++
++files_read_usr_files(blueman_t)
++
++auth_use_nsswitch(blueman_t)
++
++logging_send_syslog_msg(blueman_t)
++
++miscfiles_read_localization(blueman_t)
++
++optional_policy(`
++	avahi_domtrans(blueman_t)
++')
+--- refpolicy/policy/modules/contrib/blueman.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/blueman.if	2012-07-10 18:41:32.956317430 +0200
+@@ -0,0 +1,99 @@
++## <summary>Blueman is a tool to manage Bluetooth devices</summary>
++
++########################################
++## <summary>
++##	Execute blueman in the blueman domain..
++## </summary>
++## <param name="domain">
++## <summary>
++##	Domain allowed to transition.
++## </summary>
++## </param>
++#
++interface(`blueman_domtrans',`
++	gen_require(`
++		type blueman_t, blueman_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	domtrans_pattern($1, blueman_exec_t, blueman_t)
++')
++
++########################################
++## <summary>
++##	Send and receive messages from
++##	blueman over dbus.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`blueman_dbus_chat',`
++	gen_require(`
++		type blueman_t;
++		class dbus send_msg;
++	')
++
++	allow $1 blueman_t:dbus send_msg;
++	allow blueman_t $1:dbus send_msg;
++')
++
++########################################
++## <summary>
++##	Search blueman lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`blueman_search_lib',`
++	gen_require(`
++		type blueman_var_lib_t;
++	')
++
++	allow $1 blueman_var_lib_t:dir search_dir_perms;
++	files_search_var_lib($1)
++')
++
++########################################
++## <summary>
++##	Read blueman lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`blueman_read_lib_files',`
++	gen_require(`
++		type blueman_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	read_files_pattern($1, blueman_var_lib_t, blueman_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Create, read, write, and delete
++##	blueman lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`blueman_manage_lib_files',`
++	gen_require(`
++		type blueman_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_files_pattern($1, blueman_var_lib_t, blueman_var_lib_t)
++')
+--- refpolicy/policy/modules/contrib/blueman.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/blueman.fc	2012-07-10 18:41:32.956317430 +0200
+@@ -0,0 +1,3 @@
++/usr/libexec/blueman-mechanism	--	gen_context(system_u:object_r:blueman_exec_t,s0)
++
++/var/lib/blueman(/.*)?			gen_context(system_u:object_r:blueman_var_lib_t,s0)

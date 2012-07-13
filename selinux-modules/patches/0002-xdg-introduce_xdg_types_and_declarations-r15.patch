@@ -1,5 +1,5 @@
 --- refpolicy/policy/modules/contrib/xdg.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/xdg.te	2012-02-25 09:19:35.379300698 +0100
++++ refpolicypolicy/modules/contrib/xdg.te	2012-05-05 16:11:35.898762632 +0200
 @@ -0,0 +1,26 @@
 +policy_module(xdg, 1.0.0)
 +
@@ -28,8 +28,8 @@
 +type xdg_runtime_home_t;
 +xdg_runtime_home_content(xdg_runtime_home_t)
 --- refpolicy/policy/modules/contrib/xdg.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/xdg.if	2012-02-25 09:19:35.380300698 +0100
-@@ -0,0 +1,581 @@
++++ refpolicypolicy/modules/contrib/xdg.if	2012-07-12 21:45:06.655426926 +0200
+@@ -0,0 +1,588 @@
 +## <summary>Policy for xdg desktop standard</summary>
 +
 +########################################
@@ -73,19 +73,21 @@
 +##	The class of the object to be created.
 +##	</summary>
 +## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Optional name of the file or directory created
++##	</summary>
++## </param>
 +#
-+interface(`xdg_data_home_spec_filetrans',`
++interface(`xdg_data_home_filetrans',`
 +	gen_require(`
 +		type xdg_data_home_t;
 +	')
 +
-+	filetrans_pattern($1, xdg_data_home_t, $2, $3)
-+
 +	userdom_search_user_home_dirs($1)
-+')
 +
-+# TODO Introduce xdg_data_home_filetrans when named file transitions are supported
-+#      to support a filetrans from user_home_dir_t to xdg_data_home_t (~/.local)
++	filetrans_pattern($1, xdg_data_home_t, $2, $3, $4)
++')
 +
 +########################################
 +## <summary>
@@ -128,19 +130,21 @@
 +##	The class of the object to be created.
 +##	</summary>
 +## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Name of the file or directory created
++##	</summary>
++## </param>
 +#
-+interface(`xdg_cache_home_spec_filetrans',`
++interface(`xdg_cache_home_filetrans',`
 +	gen_require(`
 +		type xdg_cache_home_t;
 +	')
 +
-+	filetrans_pattern($1, xdg_cache_home_t, $2, $3)
-+	
 +	userdom_search_user_home_dirs($1)
-+')
 +
-+# TODO Introduce xdg_cache_home_filetrans when named file transitions are supported
-+#      to support a filetrans from user_home_dir_t to xdg_cache_home_t (~/.cache)
++	filetrans_pattern($1, xdg_cache_home_t, $2, $3, $4)
++')
 +
 +########################################
 +## <summary>
@@ -183,21 +187,22 @@
 +##	The class of the object to be created.
 +##	</summary>
 +## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Name of the file or directory created
++##	</summary>
++## </param>
 +#
-+interface(`xdg_config_home_spec_filetrans',`
++interface(`xdg_config_home_filetrans',`
 +	gen_require(`
 +		type xdg_config_home_t;
 +	')
 +
-+	filetrans_pattern($1, xdg_config_home_t, $2, $3)
-+	
 +	userdom_search_user_home_dirs($1)
++
++	filetrans_pattern($1, xdg_config_home_t, $2, $3, $4)
 +')
 +
-+# TODO Introduce xdg_config_home_filetrans when named file transitions are supported
-+#      to support a filetrans from user_home_dir_t to xdg_config_home_t (~/.config)
-+
-+#
 +########################################
 +## <summary>
 +##	Mark the selected type as an xdg_runtime_home_type
@@ -239,19 +244,21 @@
 +##	The class of the object to be created.
 +##	</summary>
 +## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Name of the file or directory created
++##	</summary>
++## </param>
 +#
-+interface(`xdg_runtime_home_spec_filetrans',`
++interface(`xdg_runtime_home_filetrans',`
 +	gen_require(`
 +		type xdg_runtime_home_t;
 +	')
 +
-+	filetrans_pattern($1, xdg_runtime_home_t, $2, $3)
-+
 +	files_search_pids($1)
-+')
 +
-+# TODO Introduce xdg_runtime_home_filetrans (if applicable) when named file transitions are supported
-+#      to support a filetrans from whatever /run/user is to xdg_config_home_t
++	filetrans_pattern($1, xdg_runtime_home_t, $2, $3)
++')
 +
 +########################################
 +## <summary>
@@ -612,7 +619,7 @@
 +')
 +
 --- refpolicy/policy/modules/contrib/xdg.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/xdg.fc	2012-02-25 09:19:35.380300698 +0100
++++ refpolicypolicy/modules/contrib/xdg.fc	2012-05-05 16:11:35.857762632 +0200
 @@ -0,0 +1,8 @@
 +HOME_DIR/\.cache(/.*)?		gen_context(system_u:object_r:xdg_cache_home_t,s0)
 +HOME_DIR/\.config(/.*)?		gen_context(system_u:object_r:xdg_config_home_t,s0)

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/nslcd.te	2011-10-25 19:20:02.000000000 +0200
++++ refpolicypolicy/modules/contrib/nslcd.te	2012-07-10 18:53:41.950306615 +0200
+@@ -43,3 +43,7 @@
+ logging_send_syslog_msg(nslcd_t)
+ 
+ miscfiles_read_localization(nslcd_t)
++
++optional_policy(`
++	ldap_stream_connect(nslcd_t)
++')

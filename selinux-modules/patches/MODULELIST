@@ -125,6 +125,7 @@ openvpn;;
 pan;xserver;
 pcmcia;;
 perdition;;
+phpfpm;apache;
 plymouthd;;
 podsleuth;;
 policykit;;

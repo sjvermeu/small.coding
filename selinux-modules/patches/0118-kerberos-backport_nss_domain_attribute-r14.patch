@@ -1,0 +1,24 @@
+--- refpolicy/policy/modules/contrib/kerberos.te	2011-10-25 19:20:01.000000000 +0200
++++ refpolicypolicy/modules/contrib/kerberos.te	2012-07-10 18:52:29.954307683 +0200
+@@ -160,6 +160,10 @@
+ userdom_dontaudit_search_user_home_dirs(kadmind_t)
+ 
+ optional_policy(`
++	ldap_stream_connect(kadmind_t)
++')
++
++optional_policy(`
+ 	nis_use_ypbind(kadmind_t)
+ ')
+ 
+@@ -260,6 +264,10 @@
+ userdom_dontaudit_search_user_home_dirs(krb5kdc_t)
+ 
+ optional_policy(`
++	ldap_stream_connect(krb5kdc_t)
++')
++
++optional_policy(`
+ 	nis_use_ypbind(krb5kdc_t)
+ ')
+ 

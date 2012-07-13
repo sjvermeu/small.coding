@@ -1,0 +1,24 @@
+--- refpolicy/policy/modules/contrib/samba.te	2012-07-10 19:04:44.230296790 +0200
++++ refpolicypolicy/modules/contrib/samba.te	2012-07-10 18:54:25.348305971 +0200
+@@ -219,6 +219,10 @@
+ userdom_list_user_home_dirs(samba_net_t)
+ 
+ optional_policy(`
++	ldap_stream_connect(samba_net_t)
++')
++
++optional_policy(`
+ 	pcscd_read_pub_files(samba_net_t)
+ ')
+ 
+@@ -421,6 +425,10 @@
+ ')
+ 
+ optional_policy(`
++	ldap_stream_connect(smbd_t)
++')
++
++optional_policy(`
+ 	lpd_exec_lpr(smbd_t)
+ ')
+ 

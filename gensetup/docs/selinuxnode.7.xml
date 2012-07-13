@@ -123,13 +123,13 @@
 
       <variablelist>
         <varlistentry>
-          <term>mglshow &lt;id&gt;</term>
+          <term>mglshow.sh &lt;id&gt;</term>
 
-          <term>mglshow -i &lt;category&gt;</term>
+          <term>mglshow.sh -i &lt;category&gt;</term>
 
           <listitem>
             <para>Show script replays of recorded sessions. This will be used
-            in the future for educational purposes. With -i, mglshow displays
+            in the future for educational purposes. With -i, mglshow.sh displays
             the current list of categories and scripts.</para>
 
             <para>This command needs a working Internet connection. For more

@@ -75,7 +75,7 @@ done
 echo "## Cleaning caches"
 echo "cd /var/cache"
 cd /var/cache;
-[ -d revdep-rebuild ] && ${PRECMD} rm -rf revdep-rebuild;
+[ -d revdep-rebuild ] && ${PRECMD} rm -rf revdep-rebuild/*;
 [ -d edb/dep ] && ${PRECMD} rm -rf edb/dep; # emerge --metadata regenerates this
 for D in man/*;
 do

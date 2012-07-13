@@ -4,6 +4,15 @@ This is a larger set of structured changes to the system
 utilities. The main drivers are supporting the new /run location,
 but some smaller changes have been incorporated as well.
 
+Changes since v4
+----------------
+- Drop files_create_pid_dirs for initrc_t, can be handled through
+  different transitions
+
+Changes since v3
+----------------
+- Change udev_pid_filetrans_run_dirs to udev_generic_pid_filetrans_run_dirs
+
 Changes since v2
 ----------------
 - Allow initrc_t to manage its log files too

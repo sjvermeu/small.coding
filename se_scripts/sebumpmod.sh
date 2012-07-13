@@ -4,6 +4,7 @@ BASE=/home/swift/Development/Centralized
 HRDDEV=${BASE}/hardened-dev/sec-policy;
 GENX86=${BASE}/gentoo-x86/sec-policy;
 GENOVL=${BASE}/gentoo.overlay/sec-policy;
+#GENOVL=/home/swift/Development/build/tmp/sec-policy;
 REFPOL=${BASE}/hardened-refpolicy/policy/modules;
 MODLIST=${BASE}/small.coding/selinux-modules/patches/MODULELIST;
 
@@ -15,12 +16,12 @@ then
   exit 1;
 fi
 
-REVNUM=$1;
-MODLIST=$(awk -F';' '{print $1}' ${MODLIST});
+REVNUM=$2;
+MODULES=$(awk -F';' '{print $1}' ${MODLIST});
 
 cd ${GENOVL};
 
-for MODULE in ${MODLIST};
+for MODULE in ${MODULES};
 do
   [ ! -f ${REFPOL}/*/${MODULE}.te ] && echo "No module ${MODULE}, continuing...  " && continue;
   # Create dir
@@ -39,7 +40,7 @@ do
   [ ! -f ${GENOVL}/selinux-${MODULE}/Manifest ] && echo "Mooo... No Manifest for module ${MODULE}?";
 
   # Generate ebuild
-  DEPLIST=$(awk -F';' "/^${MODULE};/ {print \$2}" ${MODLIST});
+  DEPLIST=$(grep "^${MODULE};" ${MODLIST} | awk -F';' '{print $2}');
   cat > ${GENOVL}/selinux-${MODULE}/selinux-${MODULE}-${REVNUM}.ebuild << EOF
 # Copyright 1999-2012 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
@@ -56,7 +57,7 @@ DESCRIPTION="SELinux policy for ${MODULE}"
 
 KEYWORDS="~amd64 ~x86"
 EOF
-  if [ -n ${DEPLIST} ];
+  if [ -n "${DEPLIST}" ];
   then
     echo "DEPEND=\"\${DEPEND}" >> ${GENOVL}/selinux-${MODULE}/selinux-${MODULE}-${REVNUM}.ebuild;
     for DEP in ${DEPLIST};

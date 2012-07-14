@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
+  <status date="2012-07-14">draft</status>
+  <title>Gentoo Hardened OpenSSH Security Benchmark</title>
+  <description>
+    The OpenSSH server offers remote Secure Shell services towards your users. This benchmark
+    focuses on the hardening of OpenSSH within a Gentoo Hardened environment.
+  </description>
+  <platform idref="cpe:/o:gentoo:linux"/>
+  <version>1</version>
+  <model system="urn:xccdf:scoring:default"/>
+  <model system="urn:xccdf:scoring:flat"/>
+  <Profile id="Default">
+    <title>OpenSSH server setup settings</title>
+    <description>
+      Profile matching all OpenSSH hardening rules
+    </description>
+    <select idref="rule-sshd-def-rhosts" selected="true" />
+    <select idref="rule-sshd-def-rrsa" selected="true" />
+    <select idref="rule-sshd-def-hostbased" selected="true" />
+    <select idref="rule-sshd-def-empty" selected="true" />
+    <select idref="rule-sshd-def-pam" selected="true" />
+    <select idref="rule-sshd-def-protocol" selected="true" />
+  </Profile>
+  <Group id="gr-intro">
+    <title>Introduction</title>
+    <description>
+      The OpenSSH service is one of the most used SSH providing services. 
+    </description>
+    <Group id="gr-intro-using">
+      <title>Using this guide</title>
+      <description>
+        The guide you are currently reading is the guide generated from this SCAP
+        content (more specifically, the XCCDF document) using <h:b>openscap</h:b>,
+        a free software implementation for handling SCAP content. Within Gentoo,
+        the package <h:code>app-forensics/openscap</h:code> provides the tools, and
+        the following command is used to generate the HTML output:
+        <h:br />
+        <h:pre>### Command to generate this guide ###
+# <h:b>oscap xccdf generate guide scap-openssh-xccdf.xml &gt; output.html</h:b>
+        </h:pre>
+        <h:br />
+        Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
+        The two files combined allow you to automatically validate various settings as
+        documented in the benchmark. 
+	<h:br />
+	<h:br />
+        You can test the benchmark against your configuration.
+        <h:pre>### Testing the rules mentioned in the XCCDF document ###
+# <h:b>oscap xccdf eval --profile Default scap-openssh-xccdf.xml</h:b></h:pre>
+        <h:br />
+        To generate a full report in HTML as well, you can use the next command:
+        <h:pre>### Testing the rules and generating an HTML report ###
+# <h:b>oscap xccdf eval --profile Default --results xccdf-results.xml --report report.html scap-openssh-xccdf.xml</h:b></h:pre>
+        <h:br />
+        Finally, this benchmark will suggest some settings which you do not want
+        to enable. That is perfectly fine - even more, some settings might even
+        raise eyebrows left and right. We'll try to document the reasoning behind
+        the settings but you are free to deviate from them. If that is the case,
+        you might want to create your own profile which only contains the rules 
+	you want checked. You can then use that profile instead of the Default one.
+      </description>
+    </Group>
+    <Group id="gr-intro-profiles">
+      <title>Available XCCDF Profiles</title>
+      <description>
+        As mentioned earlier, the XCCDF document supports multiple profiles. For the time
+	being, one profile is defined:
+	<h:br />
+	<h:ul>
+	  <h:li>Default contains all mentioned tests</h:li>
+	</h:ul>
+	Substitute the profile information in the commands above with the profile you want to test on.
+      </description>
+    </Group>
+  </Group>
+  <Group id="gt-config">
+    <title>Configuration Settings</title>
+    <description>
+      In this section, we look at the configuration settings of an OpenSSH service
+    </description>
+    <Group id="gt-config-default">
+      <title>Default OpenSSH settings</title>
+      <description>
+        OpenSSH comes with some sane defaults to start with. These should not be touched.
+      </description>
+      <Group id="gt-config-default-rhosts">
+        <title>Ignore Rhosts</title>
+	<description>
+	  Historically, users could define a <h:code>.rhosts</h:code> or <h:code>.shosts</h:code>
+	  file in which they mention the systems from which they log on to the system (the client
+	  hosts). When the user then logs on from one of these remote locations, the shell service
+	  would not ask for password authentication and just automatically log in the user.
+	  <h:br />
+	  <h:br />
+	  The shell service treats <h:code>.shosts</h:code> mentioned hosts a bit different: it first
+	  checks that hosts identity using some public key authentication scheme (in which case the
+	  host keys of the clients are placed in <h:code>/etc/ssh/ssh_known_hosts</h:code> or
+	  <h:code>~/.ssh/known_hosts</h:code>).
+	  <h:br />
+	  <h:br />
+	  This is however a very insecure setup and can be easily circumvented. It only performs 
+	  host-based authentication, not user authentication, and in case of the <h:code>.rhosts</h:code>
+	  file this host-based authentication is only based on the hostname/IP matching. 
+	  <h:br />
+	  <h:br />
+	  For this reason, support for the <h:code>.rhosts</h:code> and <h:code>.shosts</h:code>
+	  files is by default disabled.
+	</description>
+        <!-- @@GEN START rule-sshd-def-rhosts -->
+        <!-- @@GEN END rule-sshd-def-rhosts -->
+      </Group>
+    </Group>
+  </Group>
+</Benchmark>

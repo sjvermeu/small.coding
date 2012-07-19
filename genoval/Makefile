@@ -1,7 +1,23 @@
-all:
-	emerge --info --verbose > emerge-info-verbose
-	zcat /proc/config.gz > kernel-config || cp /usr/src/linux/.config kernel-config
-	export GENOVAL_SCRIPTOUTPUTDIR=`pwd`
-	oscap xccdf generate guide scap-gentoo-xccdf.xml > ~swift/Downloads/scap.html
-	oscap xccdf generate --format docbook guide scap-gentoo-xccdf.xml > db-gentoo.xml
-	oscap xccdf eval --oval-results --profile Gentoo-Default --results xccdf-results.xml --report ~swift/Downloads/report.html scap-gentoo-xccdf.xml
+all: openssh gentoo
+
+validate_all: validate_openssh validate_gentoo
+
+openssh:
+	./genoval.sh share/openssh scap-openssh-xccdf.xml.template org.gentoo.dev.swift openssh-definitions.conf share/openssh
+	(cd share/openssh && $(MAKE) guide)
+
+validate_openssh: openssh
+	(cd share/openssh && $(MAKE) validate)
+
+gentoo:
+	./genoval.sh share/gentoo scap-gentoo-xccdf.xml.template org.gentoo.dev.swift gentoo-definitions.conf share/gentoo
+	(cd share/gentoo && $(MAKE) guide)
+
+validate_gentoo: gentoo
+	(cd share/gentoo && $(MAKE) guide)
+
+clean:
+	rm objects.conf
+	rm states.conf
+	rm variabels.conf
+	rm definitions.conf

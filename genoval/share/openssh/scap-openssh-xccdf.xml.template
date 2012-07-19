@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-OpenSSH-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
   <status date="2012-07-14">draft</status>
-  <title>Gentoo Hardened OpenSSH Security Benchmark</title>
+  <title>Hardening OpenSSH</title>
   <description>
     The OpenSSH server offers remote Secure Shell services towards your users. This benchmark
     focuses on the hardening of OpenSSH within a Gentoo Hardened environment.
@@ -21,6 +21,19 @@
     <select idref="rule-sshd-def-empty" selected="true" />
     <select idref="rule-sshd-def-pam" selected="true" />
     <select idref="rule-sshd-def-protocol" selected="true" />
+    <select idref="rule-sshd-def-useprivsep" selected="true" />
+    <select idref="rule-sshd-def-nox11fwd" selected="true" />
+    <select idref="rule-sshd-def-strictmode" selected="true" />
+    <select idref="rule-sshd-norootlogin" selected="true" />
+    <select idref="rule-sshd-nopasswordauth" selected="true" />
+    <select idref="rule-sshd-nochallengeresponse" selected="true" />
+    <select idref="rule-sshd-allowgroup" selected="true" />
+    <select idref="rule-sshd-hostsallow" selected="true" />
+    <select idref="rule-sshd-hostsdeny" selected="true" />
+    <select idref="rule-sshd-listen" selected="true" />
+    <select idref="rule-sshd-listen4" selected="true" />
+    <select idref="rule-sshd-listen6" selected="true" />
+    <select idref="rule-sshd-notcpfwd" selected="true" />
   </Profile>
   <Group id="gr-intro">
     <title>Introduction</title>
@@ -43,8 +56,8 @@
         Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
         The two files combined allow you to automatically validate various settings as
         documented in the benchmark. 
-	<h:br />
-	<h:br />
+        <h:br />
+        <h:br />
         You can test the benchmark against your configuration.
         <h:pre>### Testing the rules mentioned in the XCCDF document ###
 # <h:b>oscap xccdf eval --profile Default scap-openssh-xccdf.xml</h:b></h:pre>
@@ -58,19 +71,19 @@
         raise eyebrows left and right. We'll try to document the reasoning behind
         the settings but you are free to deviate from them. If that is the case,
         you might want to create your own profile which only contains the rules 
-	you want checked. You can then use that profile instead of the Default one.
+        you want checked. You can then use that profile instead of the Default one.
       </description>
     </Group>
     <Group id="gr-intro-profiles">
       <title>Available XCCDF Profiles</title>
       <description>
         As mentioned earlier, the XCCDF document supports multiple profiles. For the time
-	being, one profile is defined:
-	<h:br />
-	<h:ul>
-	  <h:li>Default contains all mentioned tests</h:li>
-	</h:ul>
-	Substitute the profile information in the commands above with the profile you want to test on.
+        being, one profile is defined:
+        <h:br />
+        <h:ul>
+          <h:li>Default contains all mentioned tests</h:li>
+        </h:ul>
+        Substitute the profile information in the commands above with the profile you want to test on.
       </description>
     </Group>
   </Group>
@@ -86,29 +99,347 @@
       </description>
       <Group id="gt-config-default-rhosts">
         <title>Ignore Rhosts</title>
-	<description>
-	  Historically, users could define a <h:code>.rhosts</h:code> or <h:code>.shosts</h:code>
-	  file in which they mention the systems from which they log on to the system (the client
-	  hosts). When the user then logs on from one of these remote locations, the shell service
-	  would not ask for password authentication and just automatically log in the user.
-	  <h:br />
-	  <h:br />
-	  The shell service treats <h:code>.shosts</h:code> mentioned hosts a bit different: it first
-	  checks that hosts identity using some public key authentication scheme (in which case the
-	  host keys of the clients are placed in <h:code>/etc/ssh/ssh_known_hosts</h:code> or
-	  <h:code>~/.ssh/known_hosts</h:code>).
-	  <h:br />
-	  <h:br />
-	  This is however a very insecure setup and can be easily circumvented. It only performs 
-	  host-based authentication, not user authentication, and in case of the <h:code>.rhosts</h:code>
-	  file this host-based authentication is only based on the hostname/IP matching. 
-	  <h:br />
-	  <h:br />
-	  For this reason, support for the <h:code>.rhosts</h:code> and <h:code>.shosts</h:code>
-	  files is by default disabled.
-	</description>
+        <description>
+          Historically, users could define a <h:code>.rhosts</h:code> or <h:code>.shosts</h:code>
+          file in which they mention the systems from which they log on to the system (the client
+          hosts). When the user then logs on from one of these remote locations, the shell service
+          would not ask for password authentication and just automatically log in the user.
+          <h:br />
+          <h:br />
+          The shell service treats <h:code>.shosts</h:code> mentioned hosts a bit different: it first
+          checks that hosts identity using some public key authentication scheme (in which case the
+          host keys of the clients are placed in <h:code>/etc/ssh/ssh_known_hosts</h:code> or
+          <h:code>~/.ssh/known_hosts</h:code>).
+          <h:br />
+          <h:br />
+          This is however a very insecure setup and can be easily circumvented. It only performs 
+          host-based authentication, not user authentication, and in case of the <h:code>.rhosts</h:code>
+          file this host-based authentication is only based on the hostname/IP matching. 
+          <h:br />
+          <h:br />
+          For this reason, support for the <h:code>.rhosts</h:code> and <h:code>.shosts</h:code>
+          files is by default disabled.
+          <h:br />
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : IgnoreRhosts
+# If set, IgnoreRhosts must be set to yes (which is the default)
+IgnoreRhosts yes</h:pre>
+        </description>
         <!-- @@GEN START rule-sshd-def-rhosts -->
         <!-- @@GEN END rule-sshd-def-rhosts -->
+      </Group>
+      <Group id="gt-config-default-rhostsrsa">
+        <title>Do not allow RSA Host Authentication</title>
+        <description>
+          As part of the Rhosts implementation, OpenSSH supports using RSA authentication for remote hosts.
+          With RSA authentication enabled, hosts mentioned in the <h:code>.rhosts</h:code> (or <h:code>/etc/hosts.equiv</h:code>)
+          files need to be authenticated based on their RSA key. This applies to the SSH protocol version 1 only.
+          <h:br />
+          <h:br />
+          As Rhosts is found insecure, this option does not make rhosts more feasible to use. For this reason,
+          this option is by default disabled.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : RhostsRSAAuthentication
+# If set, RhostsRSAAuthentication must be set to "no" (which is the default).
+RhostsRSAAuthentication no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-def-rrsa -->
+        <!-- @@GEN END rule-sshd-def-rrsa -->
+      </Group>
+      <Group id="gt-config-default-hostbased">
+        <title>Do not allow Host-based Authentication</title>
+        <description>
+          As part of the Rhosts implementation, Ope SSH supports using public key authenticatoin for remote hosts.
+          With this enabled, hosts mentioned in the <h:code>.rhosts</h:code> (or <h:code>/etc/hosts.equiv</h:code>)
+          files need to be authenticated based on their public key. This applies to the SSH protocol version 2 only.
+          <h:br />
+          <h:br />
+          As Rhosts is found insecure, this option does not make rhosts more feasible to use. For this reason,
+          this option is by default disabled.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : HostbasedAuthentication
+# If set, HostbasedAuthentication must be set to "no" (which is the default) 
+HostbasedAuthentication no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-def-hostbased -->
+        <!-- @@GEN END rule-sshd-def-hostbased -->
+      </Group>
+      <Group id="gt-config-default-emptypassword">
+        <title>Do not Permit Empty Passwords</title>
+        <description>
+          If password-based authentication is used, it is wise not to allow empty passwords.
+          <h:br />
+          <h:br />
+          Allowing empty passwords within your network makes the services <h:em>very</h:em> vulnerable
+          to exploit, even when the software is fully up-to-date. 
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : PermitEmptyPasswords
+# If set, PermitEmptyPasswords must be set to "no" (which is the default).
+PermitEmptyPasswords no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-def-empty -->
+        <!-- @@GEN END rule-sshd-def-empty -->
+      </Group>
+      <Group id="gt-config-default-pam">
+        <title>Use PAM</title>
+        <description>
+          PAM (Pluggable Authentication Modules) is a powerful framework for managing
+          authentication of users and services in a flexible manner. By default, OpenSSH
+          uses PAM for the authentication of users.
+          <h:br />
+          <h:br />
+          One of the many advantages of PAM is that you can add in additional rules you want
+          to enforce during the authentication. You can limit access based on login count (or number of failures),
+          use centralized authentication repositories (like OpenLDAP), allow access only during specific
+          time windows, etc.
+          <h:br />
+          <h:br />
+          It is strongly advised to use PAM for SSH authentication too (but do manage the PAM configuration
+          properly!) Be aware though that the authentication services themselves (is the user who he sais
+          he is) of PAM are not used if public key authentication is used. The other services, which include
+          the access controls mentioned earlier, are still consulted though.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : UsePAM
+# If set, UsePAM must be set to "yes" (which is the default)
+UsePAM yes</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-def-pam -->
+        <!-- @@GEN END rule-sshd-def-pam -->
+      </Group>
+      <Group id="gt-config-default-protocol2">
+        <title>Only use version 2 of the SSH protocol</title>
+        <description>
+          The first version of the SSH protocol has been found insecure: TODO.
+          <h:br />
+          <h:br />
+          For this reason, it is strongly advised to use version 2 of the protocol only. This is also
+          the default for OpenSSH.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : Protocol
+# If set, Protocol must be set to 2 only (which is the default)
+Protocol 2</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-def-protocol -->
+        <!-- @@GEN END rule-sshd-def-protocol -->
+      </Group>
+      <Group id="gt-config-default-privsep">
+        <title>Use privilege separation</title>
+	<description>
+	  With privilege separation enabled, the SSH daemon has a tiny footprint running as root,
+	  whereas the rest of the application runs as an unprivileged process to deal with the
+	  incoming network traffic. This can be tuned with <h:code>UsePrivilegeSeparation yes</h:code>
+	  which is the default for OpenSSH.
+	  <h:br />
+	  <h:pre>### /etc/ssh/sshd_config : UsePrivilegeSeparation
+# If set, UsePrivilegeSeparation must be set to yes (which is the default)
+UsePrivilegeSeparation yes</h:pre>
+	</description>
+        <!-- @@GEN START rule-sshd-def-useprivsep -->
+        <!-- @@GEN END rule-sshd-def-useprivsep -->
+      </Group>
+      <Group id="gt-config-default-x11fwd">
+        <title>Disable X11 forwarding</title>
+	<description>
+	  SSH supports forwarding X11 packets, so X11 applications started on the remote system have their
+	  display shown on the client. This behavior is by default disabled.
+	  <h:br />
+	  <h:pre>### /etc/ssh/sshd_config : X11Forwarding
+# If set, X11Forwarding must be set to no (which is the default)
+X11Forwarding no</h:pre>
+	</description>
+	<!-- @@GEN START rule-sshd-def-nox11fwd -->
+	<!-- @@GEN END rule-sshd-def-nox11fwd -->
+      </Group>
+      <Group id="gt-config-default-strictmode">
+        <title>Enable strict mode</title>
+	<description>
+	  When <h:code>StrictModes yes</h:code> is enabled, the SSH daemon will only allow a remote user to
+	  log on when some of the important files in that users' home directory have the proper privileges and
+	  ownership. This behavior is by default enabled.
+	  <h:br />
+	  <h:pre>### /etc/ssh/sshd_config : StrictModes
+# If set, StrictModes must be set to yes (which is the default)
+StrictModes yes</h:pre>
+	</description>
+	<!-- @@GEN START rule-sshd-def-strictmode -->
+	<!-- @@GEN END rule-sshd-def-strictmode -->
+      </Group>
+    </Group>
+    <Group id="gt-config-auth">
+      <title>Authentication-related settings</title>
+      <description>
+        Being a remote shell service, authentication is one of the main features that OpenSSH provides. 
+        A few settings help us in hardening the SSH server even further.
+      </description>
+      <Group id="gt-config-auth-noroot">
+        <title>Disable root logins</title>
+        <description>
+          As root is one of the most powerful accounts, direct access to root should be limited. It is 
+          advised that, if a process needs root privileges, it uses a functional account which has the
+          right to call one or a few commands as root, but nothing else.
+          <h:br />
+          <h:br />
+          With OpenSSH, it is possible to prohibit direct root access towards the system if feasible within
+          your architecture. This can be accomplished using the <h:code>PermitRootLogin no</h:code> directive.
+          If you need root logins, consider only allowing specified command access (forced-commands-only).
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : PermitRootLogin
+# Set this to "no" or, if needed, "forced-commands-only"
+PermitRootLogin no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-norootlogin -->
+        <!-- @@GEN END rule-sshd-norootlogin -->
+      </Group>
+      <Group id="gt-config-auth-nopassword">
+        <title>Use public key authentication</title>
+        <description>
+          By default, OpenSSH uses interactive, keyboard-based password logins. One intrinsic problem with
+          passwords is that they can be weak, but also that hacked passwords can be used from other locations.
+          <h:br />
+          <h:br />
+          A safer approach for remote shell invocation is to use a keypair: the key is much stronger than most
+          passwords, making brute-force improbably and dictionary-attacks useless. The private key is only
+          known by you (on your system) and optionally (but preferably) protected by a (strong) passphraze so that
+          adversaries that force access to your system can still not use your private key.
+          <h:br />
+          <h:br />
+          Such a keypair an be generated by the users using <h:b>ssh-keygen -t dsa</h:b> after which the private and
+          public keys are stored in <h:code>~/.ssh</h:code>
+          <h:br />
+          <h:br />
+          On the OpenSSH server level, you can force the use of public key authentication (and thus deny
+          keyboard-interactive password logins) using <h:code>PasswordAuthentication no</h:code>.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : PasswordAuthentication
+# Set this to "no"
+PasswordAuthentication no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-nopasswordauth -->
+        <!-- @@GEN END rule-sshd-nopasswordauth -->
+      </Group>
+      <Group id="gt-config-auth-nochallengeresponse">
+        <title>Disable ChallengeResponseAuthentication</title>
+        <description>
+	  In OpenSSH, a (confusing) parameter called <h:code>ChallengeResponseAuthentication</h:code>
+	  is available (and by default enabled). Many users might believe that this implements a more secure
+	  authentication method (based on a challenge and a token that need to be verified - i.e. multi-factor
+	  authentication). However, in case of this parameter, this isn't true.
+          <h:br />
+	  <h:br />
+	  The <h:code>ChallengeResponseAuthentication</h:code> setting enables <h:em>TIS Challenge/Response</h:em>
+	  in SSH protocol version 1, and keyboard-interactive in SSH protocol v2. Hence, in our case, it is best
+	  set disabled as we do not want regular password authentication to be enabled (and don't use protocol
+	  version 1).
+	  <h:br />
+          <h:pre>### /etc/ssh/sshd_config : ChallengeResponseAuthentication
+# Set this to "no"
+ChallengeResponseAuthentication no</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-nochallengeresponse -->
+        <!-- @@GEN END rule-sshd-nochallengeresponse -->
+      </Group>
+    </Group>
+    <Group id="gt-config-acl">
+      <title>Access control related settings</title>
+      <description>
+        By default, OpenSSH allows access from any location and by any user who gets authenticated properly.
+        However, it is safer if you can restrict access from hosts that are allowed to access the SSH service
+        (and not other hosts) as well as users that are known to access the system remotely.
+      </description>
+      <Group id="gt-config-acl-allowgroup">
+        <title>Only allow specific group(s) access</title>
+        <description>
+          Not every user on your system needs to be able to remotely log on to the system. Many
+          users on your system are local-only, either because they are services accounts, or
+          because the users are only meant to log on directly (or through another service).
+          <h:br />
+          <h:br />
+          With OpenSSH, you can limit SSH access to users defined in a limited set of (Unix) groups.
+          It is recommended to define a Unix group (like <h:code>ssh</h:code> if that isn't used by the
+          service daemon itself) in which those users are defined, and then only allow SSH access
+          for this group.
+          <h:br />
+          <h:pre>### /etc/ssh/sshd_config : AllowGroup
+# Set this to the unix group whose members are allowed access
+AllowGroup ssh</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-allowgroup -->
+        <!-- @@GEN END rule-sshd-allowgroup -->
+      </Group>
+      <Group id="gt-config-acl-hosts">
+        <title>Only allow specific host(s) access</title>
+        <description>
+          Not every host on your network (or beyond) needs access to your system. On the contrary, most
+          hosts probably shouldn't have SSH access to your system.
+          <h:br />
+          <h:br />
+          With a service called <h:em>tcpwrappers</h:em> OpenSSH allows administrators to define the hosts
+          allowed access (or explicitly not allowed access) in the <h:code>/etc/hosts.allow</h:code> and
+          <h:code>/etc/hosts.deny</h:code>.
+          <h:br />
+          <h:br />
+          For a good secure setting, it is recommended to disallow access from any host, and then explicitly grant
+          access from a select set of hosts (or subnetworks).
+          <h:br />
+          <h:pre>### /etc/hosts.allow
+# Give the list of allowed hosts or networks
+sshd: 192.168.1.0/24</h:pre><h:br />
+          <h:pre>### /etc/hosts.deny
+# Deny access by default from everywhere
+sshd: ALL</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-hostsallow -->
+        <!-- @@GEN END rule-sshd-hostsallow -->
+        <!-- @@GEN START rule-sshd-hostsdeny -->
+        <!-- @@GEN END rule-sshd-hostsdeny -->
+      </Group>
+      <Group id="gt-config-acl-listen">
+        <title>Only listen on proper interfaces</title>
+        <description>
+          By default, OpenSSH listens on all available interfaces. In many cases though, this isn't necessary.
+          <h:br />
+          <h:br />
+          Multihomed systems (i.e. systems with multiple network interfaces) usually only use a single interface
+          for the administrative access, whereas the other interface is to connect to the Internet or disclose the
+          "business applications".
+          <h:br />
+          <h:br />
+          On dual stack systems (i.e. systems with an IPv4 and IPv6 stack) the IPv6 (or IPv4) address might not be
+          in use, or not for the administrative access (like through OpenSSH). In these cases, it is wise not to have
+          OpenSSH listen on these addresses either.
+          <h:br />
+          <h:pre>## /etc/ssh/sshd_config : ListenAddress
+# Define a ListenAddress, but do not set it to "any address"
+# (which is 0.0.0.0 in IPv4 and :: in IPv6)
+ListenAddress 192.168.100.121</h:pre>
+        </description>
+        <!-- @@GEN START rule-sshd-listen -->
+        <!-- @@GEN END rule-sshd-listen -->
+        <!-- @@GEN START rule-sshd-listen4 -->
+        <!-- @@GEN END rule-sshd-listen4 -->
+        <!-- @@GEN START rule-sshd-listen6 -->
+        <!-- @@GEN END rule-sshd-listen6 -->
+      </Group>
+    </Group>
+    <Group id="gt-config-use">
+      <title>Disable unused settings</title>
+      <description>
+        OpenSSH has a few more options that it supports. If you, however, have no need for these options,
+	it is safer to have them disabled. Potential vulnerabilities that might be discovered later on these
+	options then have no effect on your system.
+      </description>
+      <Group id="gt-config-use-tcpfwd">
+        <title>Disable TCP forwarding</title>
+	<description>
+	  SSH supports "tunneling", where packets are forwarded over a (partially) secure channel towards
+	  another location. If you do not need this, disable TCP forwarding through <h:code>AllowTcpForwarding no</h:code>
+	  <h:br />
+	  <h:pre>### /etc/ssh/sshd_config : AllowTcpForwarding
+# If not needed, disable TCP forwarding
+AllowTcpForwarding no</h:pre>
+	</description>
+	<!-- @@GEN START rule-sshd-notcpfwd -->
+	<!-- @@GEN END rule-sshd-notcpfwd -->
       </Group>
     </Group>
   </Group>

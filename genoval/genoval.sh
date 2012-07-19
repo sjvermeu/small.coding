@@ -2,10 +2,11 @@
 
 #set -x;
 
-if [ $# -ne 4 ];
+if [ $# -ne 5 ];
 then
-  echo "Usage: $0 <xccdf-template> <oval-namespace> <def-file> <save-dir>";
+  echo "Usage: $0 <basedir> <xccdf-template> <oval-namespace> <def-file> <save-dir>";
   echo "";
+  echo " basedir:        Directory where <xccdf-template> and <def-file> are stored.";
   echo " xccdf-template: Filename of the XCCDF template (must end in .template)";
   echo " oval-namespace: Namespace for the OVAL objects, like \"org.gentoo.dev.swift\"";
   echo " def-file:       Filename of the definitions file";
@@ -13,24 +14,25 @@ then
   exit 1;
 fi
 
-typeset XCCDF=$1;
-typeset OVALNS=$2;
+typeset BASEDIR=$1;
+typeset XCCDF=$2;
+typeset OVALNS=$3;
 export OVALNS;
-typeset DEFFILE=$3;
+typeset DEFFILE=$4;
 export DEFFILE;
 typeset OVAL=$(echo ${XCCDF} | sed -e 's:.template::g' | sed -e 's:[Xx][Cc][Cc][Dd][Ff]:oval:g');
-typeset WORKDIR=$4;
+typeset WORKDIR=$5;
 
 # Error checking
-if [ ! -f ${XCCDF} ];
+if [ ! -f ${BASEDIR}/${XCCDF} ];
 then
-  echo "File ${XCCDF} must exist!";
+  echo "File ${BASEDIR}/${XCCDF} must exist!";
   exit 2;
 fi
 
-if [ ! -f ${DEFFILE} ];
+if [ ! -f ${BASEDIR}/${DEFFILE} ];
 then
-  echo "File ${DEFFILE} must exist!";
+  echo "File ${BASEDIR}/${DEFFILE} must exist!";
   exit 3;
 fi
 
@@ -55,9 +57,9 @@ do
 done
 
 # Preparing the work directory
-cp ${XCCDF} ${WORKDIR}/${XCCDF%%.template};
+cp ${BASEDIR}/${XCCDF} ${WORKDIR}/${XCCDF%%.template};
 XCCDF=${XCCDF%%.template};
-cp ${DEFFILE} ${WORKDIR}/definitions.conf > /dev/null 2>&1;
+cp ${BASEDIR}/${DEFFILE} ${WORKDIR}/definitions.conf > /dev/null 2>&1;
 
 pushd ${WORKDIR} > /dev/null 2>&1;
 touch objects.conf;

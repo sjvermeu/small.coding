@@ -78,13 +78,23 @@ for RULE in $(sed -e 's:.*\[\([^[]*\)\]$:\1:g' definitions.conf);
 do
   export LINE=$(grep "\[${RULE}\]" definitions.conf | sed -e 's: \[[^[]*\]$::g');
   LINENUM=$(grep -n "\[${RULE}\]" definitions.conf | sed -e 's|:.*||g');
+  TITLE=$(grep "^# @@${RULE} " definitions.conf | sed -e 's:# @[^ ]* ::g');
+  if [ "${TITLE}" = "" ];
+  then
+    TITLE=${LINE};
+  fi
+  DESCRIPTION=$(grep "^# @${RULE} " definitions.conf | sed -e 's:# @[^ ]* ::g');
+  if [ "${DESCRIPTION}" = "" ];
+  then
+    DESCRIPTION=${TITLE};
+  fi
   grep -q "@@GEN START ${RULE} " ${XCCDF} || continue;
 
   # XCCDF
   grep -B 99999 "@@GEN START ${RULE} " ${XCCDF} > ${XCCDF}.work;
   echo "<Rule id=\"${RULE}\" selected=\"false\">" >> ${XCCDF}.work;
-  echo "  <title>${LINE}</title>" >> ${XCCDF}.work;
-  echo "  <description>${LINE}</description>" >> ${XCCDF}.work;
+  echo "  <title>${TITLE}</title>" >> ${XCCDF}.work;
+  echo "  <description>${DESCRIPTION}</description>" >> ${XCCDF}.work;
   if `hasFix`;
   then
     genFix >> ${XCCDF}.work;
@@ -214,7 +224,7 @@ do
   then
     FILE=$(kernelFile);
     REGEXP=$(kernelRegexp);
-    export OBJNUM=$(getObjnum "scriptoutput_kernelconfig" "${FILE}");
+    export OBJNUM=$(getObjnum "kernelconfig" "${FILE}");
     export STENUM=$(getStenum "regexp" "${REGEXP}");
 
     genTextfileMatch "at least one" >> ${OVAL};
@@ -296,11 +306,10 @@ do
   fi
 
   ## Kernel configuration
-  if [ "${OBJTYPE}" == "scriptoutput_kernelconfig" ];
+  if [ "${OBJTYPE}" == "kernelconfig" ];
   then
     echo "<ind-def:textfilecontent54_object id=\"oval:${OVALNS}:obj:${OBJNUM}\" version=\"1\" comment=\"Kernel configuration entry ${OBJVALUE%%@*}\">" >> ${OVAL};
-    echo "  <ind-def:path var_check=\"at least one\" var_ref=\"oval:${OVALNS}.genoval:var:1\"/>" >> ${OVAL};
-    echo "  <ind-def:filename>${OBJVALUE##*@}</ind-def:filename>" >> ${OVAL};
+    echo "  <ind-def:filepath>/usr/src/linux/.config</ind-def:filepath>" >> ${OVAL};
     echo "  <ind-def:pattern operation=\"pattern match\">(${OBJVALUE%%@*}.*)</ind-def:pattern>" >> ${OVAL};
     echo "  <ind-def:instance datatype=\"int\" operation=\"greater than or equal\">1</ind-def:instance>" >> ${OVAL};
     echo "</ind-def:textfilecontent54_object>" >> ${OVAL};

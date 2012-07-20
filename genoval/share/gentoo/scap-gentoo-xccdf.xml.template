@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
-  <status date="2011-12-29">draft</status>
+  <status date="2012-04-19">draft</status>
   <title>Gentoo Security Benchmark</title>
   <description>
     This benchmarks helps people in improving their system configuration to be
@@ -33,15 +33,6 @@
     <select idref="rule-tmp-mount-nosuid" selected="true" />
     <select idref="rule-tmp-mount-nodev" selected="true" />
     <select idref="rule-tmp-mount-noexec" selected="true" />
-    <select idref="rule-sshd-norootlogin" selected="true" />
-    <select idref="rule-sshd-pubkeyauth" selected="true" />
-    <select idref="rule-sshd-nousepam" selected="true" />
-    <select idref="rule-sshd-proto2" selected="true" />
-    <select idref="rule-sshd-allowusergroup" selected="true" />
-    <select idref="rule-sshd-usepriv" selected="true" />
-    <select idref="rule-sshd-tcpforward" selected="true" />
-    <select idref="rule-sshd-x11forward" selected="true" />
-    <select idref="rule-sshd-strictmodes" selected="true" />
     <select idref="rule-cron-allow" selected="true" />
     <select idref="rule-at-allow" selected="true" />
     <select idref="rule-sysctl-ipv4-forward" selected="true" />
@@ -634,153 +625,12 @@ su0:S:wait:/sbin/rc single
         <title>SSH Service</title>
         <description>
           The SSH service is used for secure remote access towards a system, but
-          also to provide secure file transfers.
+          also to provide secure file transfers. It is very commonly found on Unix/Linux
+	  systems to proper hardening is definitely in place.
+	  <h:br />
+	  <h:br />
+	  Please use the "Hardening OpenSSH" guide for the necessary instructions.
         </description>
-        <Group id="gt-system-services-ssh-noroot">
-          <title>Root Logon Through SSH Is Not Allowed</title>
-          <description>
-            SSH should be configured so that the root user is not allowed to log
-            on remotely. This can be accomplished by editing
-            <h:code>/etc/ssh/sshd_config</h:code> and setting
-            <h:code>PermitRootLogin no</h:code> as the default is "yes".
-            <h:br />
-            <h:pre>### Setting PermitRootLogin in /etc/ssh/sshd_config ###
-PermitRootLogin no</h:pre>
-          </description>
-          <!-- @@GEN START rule-sshd-norootlogin -->
-	  <!-- @@GEN END rule-sshd-norootlogin -->
-        </Group>
-        <Group id="gt-system-services-ssh-pubkey">
-          <title>Public Key Authentication Only</title>
-          <description>
-            SSH should be configured to only allow authentication based on
-            public/private keys. Password-based authentication is too weak;
-            since SSH is used in 99% of the cases for administrative purposes, a
-            leaked password can have major consequences.
-            <h:br />
-            <h:br />
-            Instead, public/private key authentication would require the
-            adversary to have access to the private key <h:em>and</h:em> the
-            passphraze with which the private key is protected.
-            <h:br />
-            <h:br />
-            Now, even leaked private keys have occurred (and will occur again),
-            so it is important that the users know that the private key is not
-            to be copied, and regular reviews of your audit logs is still
-            mandatory.
-            <h:pre>### Using public key authentication ###
-PubkeyAuthentication yes</h:pre>
-          </description>
-	  <!-- @@GEN START rule-sshd-pubkeyauth -->
-	  <!-- @@GEN END rule-sshd-pubkeyauth -->
-        </Group>
-        <Group id="gt-system-services-ssh-usepam">
-          <title>Disable UsePAM for SSH</title>
-          <description>
-            Although this is the default setting, we still find it important to
-            mention it as many users tend to enable it. <h:code>UsePAM</h:code>
-            should remain disabled, and this for the following reasons:
-            <h:ul>
-              <h:li>
-                When enabled, the <h:b>sshd</h:b> daemon must run as root user.
-                Without, <h:b>sshd</h:b> can leverage the capabilities offered
-                through the kernel without requiring root privileges.
-              </h:li>
-              <h:li>
-                When enabled, public key authentication can be worked around,
-                accepting regular password authentication again.
-              </h:li>
-            </h:ul>
-	    Only when PAM support is necessary on your system (for instance because
-	    you use a centralized authentication approach) should this be enabled.
-          </description>
-          <!-- @@GEN START rule-sshd-nousepam -->
-	  <!-- @@GEN END rule-sshd-nousepam -->
-        </Group>
-        <Group id="gt-system-services-ssh-version2">
-          <title>Only Allow Version 2</title>
-          <description>
-            The SSH daemon should only allow version 2 connections. Although
-            this is default for recent OpenSSH implementations, some users might
-            still support version 1 in their configuration file.
-            <h:br />
-            <h:br />
-            The <h:code>Protocol</h:code> directive is used to specify which
-            protocol versions are supported. If defined, it should only contain
-            <h:code>Protocol 2</h:code>.
-          </description>
-	  <!-- @@GEN START rule-sshd-proto2 -->
-	  <!-- @@GEN END rule-sshd-proto2 -->
-        </Group>
-        <Group id="gt-system-services-ssh-groups">
-          <title>Only Allow Specific Groups to Log On</title>
-          <description>
-            With the <h:code>AllowUsers</h:code> and
-            <h:code>AllowGroups</h:code> you can fine-tune which accounts are
-            allowed to log on through SSH.
-          </description>
-	  <!-- @@GEN START rule-sshd-allowusergroup -->
-	  <!-- @@GEN END rule-sshd-allowusergroup -->
-        </Group>
-        <Group id="gt-system-services-ssh-listen">
-          <title>Listen on Management Interface</title>
-          <description>
-            If you have a multi-homed system (i.e. the system has multiple
-            interfaces), only have SSHd running on those interfaces that you use
-            for management tasks. This can be accomplished with the
-            <h:code>ListenAddress</h:code> directive.
-          </description>
-        </Group>
-	<Group id="gt-system-services-ssh-privseparation">
-          <title>Use Privilege Separation</title>
-	  <description>
-            With privilege separation enabled, the SSH daemon has a tiny footprint running
-	    as root, whereas the rest of the application runs as an unprivileged process to
-	    deal with the incoming network traffic. This can be tuned with 
-	    <h:code>UsePrivilegeSeparation yes</h:code>.
-	    <h:br />
-	    <h:br />
-	    This is the default for OpenSSH.
-	  </description>
-	  <!-- @@GEN START rule-sshd-usepriv -->
-	  <!-- @@GEN END rule-sshd-usepriv -->
-	</Group>
-	<Group id="gt-system-services-ssh-tcpforward">
-          <title>Disable TCP Forwarding</title>
-	  <description>
-            SSH supports "tunneling", where packets are forwarded over a (partially) 
-	    secure channel towards another location. If you do not need this, disable
-	    TCP forwarding through <h:code>AllowTcpForwarding no</h:code>.
-	  </description>
-	  <!-- @@GEN START rule-sshd-tcpforward -->
-	  <!-- @@GEN END rule-sshd-tcpforward -->
-	</Group>
-	<Group id="gt-system-services-ssh-x11forward">
-          <title>Disable X11 Forwarding</title>
-	  <description>
-            SSH supports forwarding X11 packets, so X11 applications started on the remote
-	    system have their display shown on the client. If you do not need this, disable
-	    X11 forwarding through <h:code>X11Forwarding no</h:code>.
-	    <h:br />
-	    <h:br />
-	    This is the default for OpenSSH.
-	  </description>
-	  <!-- @@GEN START rule-sshd-x11forward -->
-	  <!-- @@GEN END rule-sshd-x11forward -->
-	</Group>
-	<Group id="gt-system-services-ssh-strictmode">
-          <title>Enable Strict Mode</title>
-	  <description>
-	    When <h:code>StrictModes yes</h:code> is enabled, the SSH daemon will only allow
-	    a remote user to log on when some of the important files in that users' home directory
-	    have the proper privileges and ownership.
-	    <h:br />
-	    <h:br />
-	    This is the default for OpenSSH.
-	  </description>
-	  <!-- @@GEN START rule-sshd-strictmodes -->
-	  <!-- @@GEN END rule-sshd-strictmodes -->
-	</Group>
       </Group>
       <Group id="gt-system-services-cron">
         <title>Cron Service</title>

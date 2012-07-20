@@ -12,8 +12,8 @@ more readable definitions (instead of XML). This document describes genoval.sh
 and how to use it.
 </abstract>
 
-<version>2</version>
-<date>2012-04-20</date>
+<version>3</version>
+<date>2012-07-19</date>
 
 <chapter>
 <title>OVAL and genoval.sh</title>
@@ -132,7 +132,10 @@ lines (the highlighted parts can be changed to your liking):
 </p>
 
 <pre caption="Example definitions.conf">
+<comment># @rule-partition-home Have /home as a separate partition</comment>
 <i>/home</i> is a separate file system [<i>rule-partition-home</i>]
+<comment># @rule-partition-tmp Have /tmp as a separate partition</comment>
+<comment># @@rule-partition-tmp Use the tmpfs file system for the /tmp, which needs to be a separate partition</comment>
 <i>/tmp</i> is a separate file system of type <i>tmpfs</i> [<i>rule-partition-tmp</i>]
 mount point <i>/home</i> is mounted with <i>nosuid</i> option [<i>rule-home-mount-nosuid</i>]
 file <i>/etc/ssh/sshd_config</i> must have a line that matches <i>^PermitRootLogin.*no</i> [<i>rule-sshd-norootlogin</i>]
@@ -152,6 +155,14 @@ environmentvariable <i>PATH</i> must not match <i>:.:</i> [<i>rule-no-cwd-path</
 <p>
 The lines contain information how the system <e>should be</e>. It always ends
 with the rule name between [ and ].
+</p>
+
+<p>
+If you define a comment field that starts with <c># @</c>, followed by the rule
+name, and then a sentence, then this will be treated as the title and
+description for the rule in the XCCDF and OVAL files. If <c># @@</c> is used, then
+that sentence is treated as the description. The comments can be left out though,
+in which case the rule itself will be used as the title and description. 
 </p>
 
 </body>

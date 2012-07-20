@@ -1,3 +1,5 @@
+#426958		Allow dhcpc to create /var/run/dhcpc (/run/dhcpc) through its dhcpcd-hooks
+#426954		New udevd since systemd integration needs to be labeled as udev executable
 <no bug>	Update xdg definition, use correct naming
 <no bug>	Rewrite eselect handling, now uses a SELinux attribute
 

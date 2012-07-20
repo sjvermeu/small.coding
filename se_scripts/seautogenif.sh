@@ -16,7 +16,7 @@ MODULE=$(awk -F'=' '/MODULE=/ {print $2}' ${CONFFILE});
 ## Generate the <module>_domtrans interface
 genDomtrans() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_domtrans
+  typeset WORKNAME=${MODULE}/${MODULE}_domtrans
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.DOMAIN=/ {print \$2}" ${CONFFILE});
   typeset ETYPE=$(awk -F'=' "/${MODULE}.EXDC=/ {print \$2}" ${CONFFILE});
@@ -58,7 +58,7 @@ EOF
 ## Generate the <module>_run interface
 genRun() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_run
+  typeset WORKNAME=${MODULE}/${MODULE}_run
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.DOMAIN=/ {print \$2}" ${CONFFILE});
 
@@ -103,7 +103,7 @@ EOF
 ## Generate the <module>_role interface
 genRole() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_role
+  typeset WORKNAME=${MODULE}/${MODULE}_role
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.DOMAIN=/ {print \$2}" ${CONFFILE});
   typeset ETYPE=$(awk -F'=' "/${MODULE}.EXEC=/ {print \$2}" ${CONFFILE});
@@ -156,7 +156,7 @@ EOF
 ## Generate the <module>_read_config interface
 genReadConfig() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_read_config
+  typeset WORKNAME=${MODULE}/${MODULE}_read_config
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -206,7 +206,7 @@ EOF
 ## Generate the <module>_rw_config interface
 genRWConfig() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_rw_config
+  typeset WORKNAME=${MODULE}/${MODULE}_rw_config
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -256,7 +256,7 @@ EOF
 ## Generate the <module>_manage_config interface
 genManageConfig() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_manage_config
+  typeset WORKNAME=${MODULE}/${MODULE}_manage_config
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -306,7 +306,7 @@ EOF
 ## Generate the <module>_read_logs interface
 genReadLogs() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_read_logs
+  typeset WORKNAME=${MODULE}/${MODULE}_read_logs
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -356,7 +356,7 @@ EOF
 ## Generate the <module>_manage_logs interface
 genManageLogs() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_manage_logs
+  typeset WORKNAME=${MODULE}/${MODULE}_manage_logs
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -406,7 +406,7 @@ EOF
 ## Generate the <module>_search_var_* interfaces
 genSearchVar() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_search_var
+  typeset WORKNAME=${MODULE}/${MODULE}_search_var
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -447,7 +447,7 @@ EOF
 ## Generate the <module>_read_var_* interfaces
 genReadVar() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_read_var
+  typeset WORKNAME=${MODULE}/${MODULE}_read_var
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -530,7 +530,7 @@ EOF
 ## Generate the <module>_rw_var_* interfaces
 genRWVar() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_rw_var
+  typeset WORKNAME=${MODULE}/${MODULE}_rw_var
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -613,7 +613,7 @@ EOF
 ## Generate the <module>_manage_var_* interfaces
 genManageVar() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_manage_var
+  typeset WORKNAME=${MODULE}/${MODULE}_manage_var
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -696,7 +696,7 @@ EOF
 ## Generate the <module>_rw_tmp_* interfaces
 genRWTmp() {
   typeset MODULE=$1;
-  typeset WORKNAME=${MODULE}_rw_tmp
+  typeset WORKNAME=${MODULE}/${MODULE}_rw_tmp
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.TYPE=/ {print \$2}" ${CONFFILE});
   typeset SCOPE=$(awk -F'=' "/${MODULE}.${UGENTYPE}.SCOPE=/ {print \$2}" ${CONFFILE});
@@ -831,7 +831,7 @@ else
   echo "##	${SUMMARY}" >> ${MODULE}.if;
   echo "## </summary>" >> ${MODULE}.if;
   echo "" >> ${MODULE}.if;
-  for FILE in *.part *.autogen.iface;
+  for FILE in ${MODULE}/*.part ${MODULE}/*.autogen.iface;
   do
     cat ${FILE} >> ${MODULE}.if; 
   done

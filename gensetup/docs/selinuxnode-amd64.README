@@ -18,3 +18,9 @@ Once booted, you can find more information about the SELinux node using
 
 For more information or feedback, please contact Sven Vermeulen through
 swift@gentoo.org
+
+Extracting
+----------
+
+The image is compressed using xz. You can decompress it using "xz -d <filename>".
+Expect the extracted image to be around 1.6 GiB.

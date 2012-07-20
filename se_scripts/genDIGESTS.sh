@@ -6,7 +6,7 @@ then
   exit 1;
 fi
 
-typeset FILENAME=$1;
+typeset FILENAME=$2;
 
 echo "#sha1sum"
 sha1sum ${FILENAME};

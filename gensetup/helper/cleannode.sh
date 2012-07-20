@@ -98,7 +98,7 @@ do
   [ -f ${F} ] && ${PRECMD} rm -f ${F};
 done
 
-echo "## Cleaning /usr/poratge";
+echo "## Cleaning /usr/portage";
 ${PRECMD} rm -rf /usr/portage/*;
 
 echo "## "

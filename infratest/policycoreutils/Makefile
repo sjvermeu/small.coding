@@ -1,4 +1,4 @@
-SUBDIRS = semanage semodule audit2allow
+SUBDIRS = semanage semodule audit2allow rlpkg
 
 all:
 	@for subdir in $(SUBDIRS); do \

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-Kernel-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
-  <status date="2012-07-19">draft</status>
+  <status date="2012-07-21">draft</status>
   <title>Hardening Linux Kernel</title>
   <description>
     The Linux kernel is at the heart of every Linux system. With its extensive configuration
@@ -34,6 +34,16 @@
     <select idref="rule-sysctl-ipv4-default-logmartians" selected="true" />
     <select idref="rule-sysctl-ipv4-tcpsyncookies" selected="true" />
     <select idref="rule-kernel-syncookies" selected="true" />
+    <select idref="rule-kernel-config-rand" selected="true" />
+    <select idref="rule-kernel-config-hwrand" selected="true" />
+    <select idref="rule-kernel-config-hwrand-detail" selected="true" />
+    <select idref="rule-kernel-config-audit" selected="true" />
+    <select idref="rule-kernel-config-audit-syscall" selected="true" />
+    <select idref="rule-kernel-ccstackprotect" selected="true" />
+    <select idref="rule-kernel-rodata" selected="true" />
+    <select idref="rule-kernel-strictdevmem" selected="true" />
+    <select idref="rule-kernel-prockcore" selected="true" />
+    <select idref="rule-kernel-nodmesg" selected="true" />
   </Profile>
   <Profile id="Full" extends="grSecurity">
     <title>grSecurity (incl. PaX) kernel hardening</title>
@@ -85,8 +95,147 @@
       The Linux kernel should be configured using a sane security standard in
       mind. When using grSecurity, additional security-enhancing settings can
       be enabled.
+      <h:br />
+      <h:br />
+      In this guide, kernel configuration is shown in the short-hand notation.
+      This allows us to document configuration settings in a way that is somewhat more
+      future proof, since the position of the settings in the kernel configuration changes
+      often. In the resources below you will find instructions on how to convert short-hand
+      notation to the current, right location in the configuration.
+      <h:br />
+      <h:br />
+      Kernel configuration can be handled through <h:b>make menuconfig</h:b> within
+      the Linux kernel source code repository (usually <h:code>/usr/src/linux</h:code>).
     </description>
     <reference href="http://www.gentoo.org/doc/en/kernel-config.xml#shorthand">Gentoo Kernel Configuration Guide - Shorthand notation information</reference>
+    <Group id="gt-kernelconfig-general">
+      <title>General kernel configuration settings</title>
+      <description>
+        Next to the grSecurity-related settings, general Linux kernel configuration entries have a positive
+        influence on the security of your system. These settings are described further in this section
+      </description>
+      <Group id="gt-kernelconfig-general-random">
+        <title>Enable random number generator</title>
+        <description>
+          If supported by your platform, enable the random number generator to provide
+          a high bandwidth, secure source of random numbers (which is important for cryptographic
+          functions). This can be accomplished using the <h:code>CONFIG_ARCH_RANDOM</h:code> setting.
+          <h:br />
+          <h:br />
+          Next, enable hardware-supported random generators (<h:code>CONFIG_HW_RANDOM</h:code>) and
+          select the random number generator for your platform. Examples are the Intel i8xx-based
+          random number generator (<h:code>CONFIG_HW_RANDOM_INTEL</h:code>) or the AMD 76x-based
+          ones (<h:code>CONFIG_HW_RANDOM_AMD</h:code>) but others exist as well.
+        </description>
+        <!-- @@GEN START rule-kernel-config-rand -->
+        <!-- @@GEN END rule-kernel-config-rand -->
+        <!-- @@GEN START rule-kernel-config-hwrand -->
+        <!-- @@GEN END rule-kernel-config-hwrand -->
+        <!-- @@GEN START rule-kernel-config-hwrand-detail -->
+        <!-- @@GEN END rule-kernel-config-hwrand-detail -->
+      </Group>
+      <!-- Do not enable, only works on systemd systems 
+      <Group id="gt-kernelconfig-general-immutableuid">
+        <title>Make audit loginuid immutable</title>
+        <description>
+        </description>
+      </Group>
+      -->
+      <Group id="gt-kernelconfig-general-audit">
+        <title>Enable audit support</title>
+        <description>
+          If you need to enable auditing on the system (which definitely is a best practice to follow), you
+          will need to enable auditing in the kernel configuration (<h:code>CONFIG_AUDIT</h:code>) together
+          with support for auditing system calls (<h:code>CONFIG_AUDITSYSCALL</h:code>)
+        </description>
+        <!-- @@GEN START rule-kernel-config-audit -->
+        <!-- @@GEN END rule-kernel-config-audit -->
+        <!-- @@GEN START rule-kernel-config-audit-syscall -->
+        <!-- @@GEN END rule-kernel-config-audit-syscall -->
+      </Group>
+      <Group id="gt-kernelconfig-general-syncookie">
+        <title>Enable TCP SYN cookie protection support</title>
+        <description>
+          To support SYN cookies (a method to work around a denial-of-service attack using a flood
+          of SYN requests) the Linux kernel first needs to be configured to support the method. This
+          is handled through the <h:code>CONFIG_SYN_COOKIES</h:code> parameter.
+          <h:br />
+          <h:br />
+          Further configuration of this setting is then handled by the <h:b>sysctl</h:b> settings (which
+          we describe later in this guide).
+        </description>
+        <!-- @@GEN START rule-kernel-syncookies -->
+        <!-- @@GEN END rule-kernel-syncookies -->
+      </Group>
+      <Group id="gt-kernelconfig-general-stackprotect">
+        <title>Enable compiler-driven stack protection</title>
+        <description>
+          In Gentoo Hardened, the use of stack protection in the compiler is by default enabled, but for
+          the Linux kernel, this feature is only selectable through the <h:code>CONFIG_CC_STACKPROTECTOR</h:code>
+          selection.
+          <h:br />
+          <h:br />
+          Enabling this will provide some level of protection against stack based buffer overflows within
+          the Linux kernel memory (not the user processes). If detected, the kernel will die with a kernel panic.
+          <!--
+            This is not available if UDEREF is setµ
+            https://forums.grsecurity.net/viewtopic.php?t=2725
+           -->
+        </description>
+        <!-- @@GEN START rule-kernel-ccstackprotect -->
+        <!-- @@GEN END rule-kernel-ccstackprotect -->
+      </Group>
+      <Group id="gt-kernelconfig-general-rodata">
+        <title>Mark read-only data pages as write-protected</title>
+        <description>
+          When <h:code>CONFIG_DEBUG_RODATA</h:code> is set, the memory pages containing the Linux
+          kernel read-only data are marked as write-protected, so that any attempt to update the data is
+          trapped, prevented and reported.
+        </description>
+        <!-- @@GEN START rule-kernel-rodata -->
+        <!-- @@GEN END rule-kernel-rodata -->
+      </Group>
+      <Group id="gt-kernelconfig-restrictmemaccess">
+        <title>Restrict memory access through /dev/mem</title>
+        <description>
+          Do not allow root processes full access to all of the systems' memory through <h:code>/dev/mem</h:code>
+          (which includes kernel memory and process memory). This should only be needed for kernel programmers or
+          kernel debugging.
+          <h:br />
+          <h:br />
+          By enabling <h:code>CONFIG_STRICT_DEVMEM</h:code> the (root) user can only access memory regions expected
+          for all legitimate common usage of <h:code>/dev/mem</h:code>.
+        </description>
+        <!-- @@GEN START rule-kernel-strictdevmem -->
+        <!-- @@GEN END rule-kernel-strictdevmem -->
+      </Group>
+      <Group id="gt-kernelconfig-prockcore">
+        <title>Disable /proc/kcore support</title>
+        <description>
+          When <h:code>CONFIG_PROC_KCORE</h:code> is selected, the system will have a <h:code>/proc/kcore</h:code>
+          pseudo-file which corresponds to the system memory. As we do not want users snooping around in our
+          memory, support for this must be disabled.
+        </description>
+        <!-- @@GEN START rule-kernel-prockcore -->
+        <!-- @@GEN END rule-kernel-prockcore -->
+      </Group>
+      <Group id="gt-kernelconfig-nodmesg">
+        <title>Restrict access to the kernel syslog</title>
+        <description>
+          Users that hold no administrator function on the system should not need to access the
+          kernel system logs (through <h:b>dmesg</h:b>). You can enforce this through the
+          <h:code>CONFIG_SECURITY_DMESG_RESTRICT</h:code> option, but if you chose not to,
+          you can still enable it through the sysctl <h:code>kernel.dmesg_restrict</h:code>.
+          <h:br />
+          <h:br />
+          Also, grSecurity has a related kernel setting for this (<h:code>CONFIG_GRKERNSEC_DMESG</h:code>)
+          which accomplishes the same. As a matter of fact, the <h:code>CONFIG_SECURITY_DMESG_RESTRICT</h:code>
+          setting is somewhat based on the grSecurity patch and available in the main kernel tree.
+        </description>
+        <!-- @@GEN START rule-kernel-nodmesg -->
+        <!-- @@GEN END rule-kernel-nodmesg -->
+      </Group>
+    </Group>
     <Group id="gt-kernelconfig-grsec">
       <title>Use grSecurity</title>
       <description>
@@ -94,175 +243,180 @@
         against popular exploit methods and common vulnerabilities. Although the patchset
         is not part of the mainstream Linux kernel sources, Gentoo offers grSecurity through
         the <h:code>hardened-sources</h:code> kernel package.
+        <h:br />
+        <h:br />
+        If you do not intend to use grSecurity, then you can ignore the rest of this section.
       </description>
       <reference href="https://grsecurity.net">grSecurity Homepage</reference>
       <reference href="http://www.gentoo.org/proj/en/hardened/grsecurity.xml">Gentoo grSecurity v2 Guide</reference>
       <!-- @@GEN START rule-kernel-grsec -->
       <!-- @@GEN END rule-kernel-grsec -->
       <Group id="gt-kernelconfig-grsec-pax">
-      <title>Use PaX</title>
-      <description>
-        With PaX, additional protection against memory corruption bugs and exploits
-        is enabled. We recommend to enable the following settings:
-        <h:ul>
-        <h:li>
-          <h:em>Use legacy ELF header marking</h:em> (CONFIG_PAX_EI_PAX) and
-          <h:em>Use ELF program header marking</h:em> (CONFIG_PAX_PT_PAX_FLAGS) so that you can enable/disable
-          PaX settings on a per-binary basis. 
-        </h:li>
-        <h:li>
-          <h:em>Enforce non-executable pages</h:em> (CONFIG_PAX_NOEXEC) to disable allocation of
-          memory that is both executable (contains runnable code) and writeable. Write- and executable
-          pages are risky as it allows attackers to introduce code (through overflows or other methods) 
-          in memory and then execute that code. However, the downside is that there are still applications
-          (or drivers) that depend on RWX memory.
-        </h:li>
-        <h:li>
-          <h:em>Segmentation based non-executable pages</h:em> (CONFIG_PAX_SEGMEXEC) or
-          <h:em>Paging based non-executable pages</h:em> (CONFIG_PAX_PAGEEXEC) will support the
-          non-executable pages through memory segmentation or paging rules. 
-        </h:li>
-        <h:li>
-          <h:em>Emulate trampolines</h:em> (CONFIG_PAX_EMUTRAMP) if you are on x86_32 architecture (the option
-          is not available for x86_64). This will enable emulation of trampolines (small bits of code in 
-          non-executable memory pages) for those applications that you enable this on (which can be triggered
-          through <h:b>chpax</h:b> or <h:b>paxctl</h:b>).
-        </h:li>
-        <h:li>
-          <h:em>Restrict mprotect()</h:em> (CONFIG_PAX_MPROTECT) will restrict the use of <h:em>mprotect()</h:em>
-          so that applications cannot switch the purpose of pages (executable vs non-executable and such) after
-          creating them.
-        </h:li>
-        <h:li>
-          <h:em>Address Space Layout Randomization</h:em> (CONFIG_PAX_ASLR) to introduce some randomization
-          in the memory allocation so that attackers will find it much more difficult to guess the address
-          of specific pages correctly.
-        </h:li>
-        <h:li>
-          <h:em>Randomize kernel stack base</h:em> (CONFIG_PAX_RANDKSTACK) to randomize every task's kernel
-          stack on each system call, making it more difficult to both guess locations as well as use leaked
-          information from previous calls.
-        </h:li>
-        <h:li>
-          <h:em>Randomize user stack base</h:em> (CONFIG_PAX_RANDUSTACK) to randomize every task's userland
-          stack, providing similar protection as mentioned earlier but for user applications.
-        </h:li>
-        <h:li>
-          <h:em>Randomize mmap() base</h:em> (CONFIG_PAX_RANDMMAP) to randomize the base address of
-          mmap() requests (unless the requests specify an address themselves). This will cause dynamically
-          loaded libraries to appear at random addresses.
-        </h:li>
-      </h:ul>
-      </description>
-      <!-- @@GEN START rule-kernel-grsec-pax -->
-      <!-- @@GEN END rule-kernel-grsec-pax -->
-      <!-- @@GEN START rule-kernel-grsec-pax-noexec -->
-      <!-- @@GEN END rule-kernel-grsec-pax-noexec -->
-      <!-- @@GEN START rule-kernel-grsec-pax-anyexec -->
-      <!-- @@GEN END rule-kernel-grsec-pax-anyexec -->
-      <!-- @@GEN START rule-kernel-grsec-pax-mprotect -->
-      <!-- @@GEN END rule-kernel-grsec-pax-mprotect -->
-      <!-- @@GEN START rule-kernel-grsec-pax-aslr -->
-      <!-- @@GEN END rule-kernel-grsec-pax-aslr -->
-      <!-- @@GEN START rule-kernel-grsec-pax-randkstack -->
-      <!-- @@GEN END rule-kernel-grsec-pax-randkstack -->
-      <!-- @@GEN START rule-kernel-grsec-pax-randustack -->
-      <!-- @@GEN END rule-kernel-grsec-pax-randustack -->
-      <!-- @@GEN START rule-kernel-grsec-pax-randmmap -->
-      <!-- @@GEN END rule-kernel-grsec-pax-randmmap -->
+        <title>Use PaX</title>
+        <description>
+          With PaX, additional protection against memory corruption bugs and exploits
+          is enabled. We recommend to enable the following settings:
+          <h:ul>
+          <h:li>
+            <h:em>Use legacy ELF header marking</h:em> (<h:code>CONFIG_PAX_EI_PAX</h:code>) and
+            <h:em>Use ELF program header marking</h:em> (<h:code>CONFIG_PAX_PT_PAX_FLAGS</h:code>) so that
+            you can enable/disable PaX settings on a per-binary basis. 
+          </h:li>
+          <h:li>
+            <h:em>Enforce non-executable pages</h:em> (<h:code>CONFIG_PAX_NOEXEC</h:code>) to disable allocation of
+            memory that is both executable (contains runnable code) and writeable. Write- and executable
+            pages are risky as it allows attackers to introduce code (through overflows or other methods) 
+            in memory and then execute that code. However, the downside is that there are still applications
+            (or drivers) that depend on RWX memory.
+          </h:li>
+          <h:li>
+            <h:em>Segmentation based non-executable pages</h:em> (<h:code>CONFIG_PAX_SEGMEXEC</h:code>) or
+            <h:em>Paging based non-executable pages</h:em> (<h:code>CONFIG_PAX_PAGEEXEC</h:code>) will support the
+            non-executable pages through memory segmentation or paging rules. 
+          </h:li>
+          <h:li>
+            <h:em>Emulate trampolines</h:em> (<h:code>CONFIG_PAX_EMUTRAMP</h:code>) if you are on x86_32 architecture (the option
+            is not available for x86_64). This will enable emulation of trampolines (small bits of code in 
+            non-executable memory pages) for those applications that you enable this on (which can be triggered
+            through <h:b>chpax</h:b> or <h:b>paxctl</h:b>).
+          </h:li>
+          <h:li>
+            <h:em>Restrict mprotect()</h:em> (<h:code>CONFIG_PAX_MPROTECT</h:code>) will restrict the use of <h:em>mprotect()</h:em>
+            so that applications cannot switch the purpose of pages (executable vs non-executable and such) after
+            creating them.
+          </h:li>
+          <h:li>
+            <h:em>Address Space Layout Randomization</h:em> (<h:code>CONFIG_PAX_ASLR</h:code>) to introduce some randomization
+            in the memory allocation so that attackers will find it much more difficult to guess the address
+            of specific pages correctly.
+          </h:li>
+          <h:li>
+            <h:em>Randomize kernel stack base</h:em> (<h:code>CONFIG_PAX_RANDKSTACK</h:code>) to randomize every task's kernel
+            stack on each system call, making it more difficult to both guess locations as well as use leaked
+            information from previous calls.
+          </h:li>
+          <h:li>
+            <h:em>Randomize user stack base</h:em> (<h:code>CONFIG_PAX_RANDUSTACK</h:code>) to randomize every task's userland
+            stack, providing similar protection as mentioned earlier but for user applications.
+          </h:li>
+          <h:li>
+            <h:em>Randomize mmap() base</h:em> (<h:code>CONFIG_PAX_RANDMMAP</h:code>) to randomize the base address of
+            mmap() requests (unless the requests specify an address themselves). This will cause dynamically
+            loaded libraries to appear at random addresses.
+          </h:li>
+        </h:ul>
+        </description>
+        <!-- @@GEN START rule-kernel-grsec-pax -->
+        <!-- @@GEN END rule-kernel-grsec-pax -->
+        <!-- @@GEN START rule-kernel-grsec-pax-noexec -->
+        <!-- @@GEN END rule-kernel-grsec-pax-noexec -->
+        <!-- @@GEN START rule-kernel-grsec-pax-anyexec -->
+        <!-- @@GEN END rule-kernel-grsec-pax-anyexec -->
+        <!-- @@GEN START rule-kernel-grsec-pax-mprotect -->
+        <!-- @@GEN END rule-kernel-grsec-pax-mprotect -->
+        <!-- @@GEN START rule-kernel-grsec-pax-aslr -->
+        <!-- @@GEN END rule-kernel-grsec-pax-aslr -->
+        <!-- @@GEN START rule-kernel-grsec-pax-randkstack -->
+        <!-- @@GEN END rule-kernel-grsec-pax-randkstack -->
+        <!-- @@GEN START rule-kernel-grsec-pax-randustack -->
+        <!-- @@GEN END rule-kernel-grsec-pax-randustack -->
+        <!-- @@GEN START rule-kernel-grsec-pax-randmmap -->
+        <!-- @@GEN END rule-kernel-grsec-pax-randmmap -->
+      </Group>
+      <Group id="gt-kernelconfig-grsec-filesystem">
+        <title>Enable file system protection measures</title>
+        <description>
+          In the grSecurity patches, a set of additional protections are included to thwart information
+          leakage as well as further limit chroot environments. We recommend to enable the following settings:
+          <h:ul>
+          <h:li>
+            <h:em>Proc restrictions</h:em> (<h:code>CONFIG_GRKERNSEC_PROC</h:code>) so that the <h:code>/proc</h:code> file system
+            will be altered to enhance privacy (prevent information leakage).
+          </h:li>
+          <h:li>
+            <h:em>Restrict /proc to user only</h:em> (<h:code>CONFIG_GRKERNSEC_PROC_USER</h:code>) so that non-root users cannot 
+            see processes of other users.
+          </h:li>
+          <h:li>
+            <h:em>Allow special group</h:em> (<h:code>CONFIG_GRKERNSEC_PROC_USERGROUP</h:code>) so that the members of a specific
+            group can see other users' processes and network-related information.
+          </h:li>
+          <h:li>
+            <h:em>Additional restrictions</h:em> (<h:code>CONFIG_GRKERNSEC_PROC_ADD</h:code>) will prevent non-root users to
+            see device information and memory information which can be (ab)used for exploit purposes.
+          </h:li>
+          <h:li>
+            <h:em>Linking restrictions</h:em> (<h:code>CONFIG_GRKERNSEC_LINK</h:code>) will prevent users to follow
+            symlinks that are owned by other users in world-writeable sticky directories such as <h:code>/tmp</h:code>
+            (unless that user is the owner of that directory). This prevents a certain kind of race conditions.
+          </h:li>
+          <h:li>
+            <h:em>FIFO restrictions</h:em> (<h:code>CONFIG_GRKERNSEC_FIFO</h:code>) will prevent users to write into 
+            FIFOs in world-writeable sticky directories (like <h:code>/tmp</h:code> if they do not own
+            these FIFOs themselves.
+          </h:li>
+          <h:li>
+            <h:em>Chroot jail restrictions</h:em> (<h:code>CONFIG_GRKERNSEC_CHROOT</h:code> and all chroot-related options) to
+            make the chroot jails more strict and less easy to break out from. 
+          </h:li>
+        </h:ul>
+        </description>
+        <!-- @@GEN START rule-kernel-grsec-proc -->
+        <!-- @@GEN END rule-kernel-grsec-proc -->
+        <!-- @@GEN START rule-kernel-grsec-proc-user -->
+        <!-- @@GEN END rule-kernel-grsec-proc-user -->
+        <!-- @@GEN START rule-kernel-grsec-proc-usergroup -->
+        <!-- @@GEN END rule-kernel-grsec-proc-usergroup -->
+        <!-- @@GEN START rule-kernel-grsec-proc-add -->
+        <!-- @@GEN END rule-kernel-grsec-proc-add -->
+        <!-- @@GEN START rule-kernel-grsec-link -->
+        <!-- @@GEN END rule-kernel-grsec-link -->
+        <!-- @@GEN START rule-kernel-grsec-fifo -->
+        <!-- @@GEN END rule-kernel-grsec-fifo -->
+        <!-- @@GEN START rule-kernel-grsec-chroot -->
+        <!-- @@GEN END rule-kernel-grsec-chroot -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-mount -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-mount -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-double -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-double -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-pivot -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-pivot -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-chdir -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-chdir -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-chmod -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-chmod -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-fchdir -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-fchdir -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-mknod -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-mknod -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-shmat -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-shmat -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-unix -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-unix -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-findtask -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-findtask -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-nice -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-nice -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-sysctl -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-sysctl -->
+        <!-- @@GEN START rule-kernel-grsec-chroot-caps -->
+        <!-- @@GEN END rule-kernel-grsec-chroot-caps -->
+      </Group>
+      <Group id="gt-kernelconfig-grsec-tpe">
+        <title>Enable Trusted Path Execution</title>
+        <description>
+          When using <h:code>sys-kernel/hardened-sources</h:code>, enable
+          <h:code>CONFIG_GRKERNSEC_TPE</h:code>, which enabled <h:em>Trusted
+          Path Execution</h:em>, a safety measure that ensures that, for a set
+          of users, these users can only execute binaries and scripts from
+          root-owned directories.
+        </description>
+        <reference href="http://www.gentoo.org/proj/en/hardened/grsec-tpe.xml">Gentoo Hardened grSecurity TPE Guide</reference>
+        <!-- @@GEN START rule-kernel-tpe -->
+        <!-- @@GEN END rule-kernel-tpe -->
+      </Group>
     </Group>
-    <Group id="gt-kernelconfig-grsec-filesystem">
-      <title>Enable file system protection measures</title>
-      <description>
-        In the grSecurity patches, a set of additional protections are included to thwart information
-        leakage as well as further limit chroot environments. We recommend to enable the following settings:
-        <h:ul>
-        <h:li>
-          <h:em>Proc restrictions</h:em> (CONFIG_GRKERNSEC_PROC) so that the <h:code>/proc</h:code> file system
-          will be altered to enhance privacy (prevent information leakage).
-        </h:li>
-        <h:li>
-          <h:em>Restrict /proc to user only</h:em> (CONFIG_GRKERNSEC_PROC_USER) so that non-root users cannot 
-          see processes of other users.
-        </h:li>
-        <h:li>
-          <h:em>Allow special group</h:em> (CONFIG_GRKERNSEC_PROC_USERGROUP) so that the members of a specific
-          group can see other users' processes and network-related information.
-        </h:li>
-        <h:li>
-          <h:em>Additional restrictions</h:em> (CONFIG_GRKERNSEC_PROC_ADD) will prevent non-root users to
-          see device information and memory information which can be (ab)used for exploit purposes.
-        </h:li>
-        <h:li>
-          <h:em>Linking restrictions</h:em> (CONFIG_GRKERNSEC_LINK) will prevent users to follow
-          symlinks that are owned by other users in world-writeable sticky directories such as <h:code>/tmp</h:code>
-          (unless that user is the owner of that directory). This prevents a certain kind of race conditions.
-        </h:li>
-        <h:li>
-          <h:em>FIFO restrictions</h:em> (CONFIG_GRKERNSEC_FIFO) will prevent users to write into 
-          FIFOs in world-writeable sticky directories (like <h:code>/tmp</h:code> if they do not own
-          these FIFOs themselves.
-        </h:li>
-        <h:li>
-          <h:em>Chroot jail restrictions</h:em> (CONFIG_GRKERNSEC_CHROOT and all chroot-related options) to
-          make the chroot jails more strict and less easy to break out from. 
-        </h:li>
-      </h:ul>
-      </description>
-      <!-- @@GEN START rule-kernel-grsec-proc -->
-      <!-- @@GEN END rule-kernel-grsec-proc -->
-      <!-- @@GEN START rule-kernel-grsec-proc-user -->
-      <!-- @@GEN END rule-kernel-grsec-proc-user -->
-      <!-- @@GEN START rule-kernel-grsec-proc-usergroup -->
-      <!-- @@GEN END rule-kernel-grsec-proc-usergroup -->
-      <!-- @@GEN START rule-kernel-grsec-proc-add -->
-      <!-- @@GEN END rule-kernel-grsec-proc-add -->
-      <!-- @@GEN START rule-kernel-grsec-link -->
-      <!-- @@GEN END rule-kernel-grsec-link -->
-      <!-- @@GEN START rule-kernel-grsec-fifo -->
-      <!-- @@GEN END rule-kernel-grsec-fifo -->
-      <!-- @@GEN START rule-kernel-grsec-chroot -->
-      <!-- @@GEN END rule-kernel-grsec-chroot -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-mount -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-mount -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-double -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-double -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-pivot -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-pivot -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-chdir -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-chdir -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-chmod -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-chmod -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-fchdir -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-fchdir -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-mknod -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-mknod -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-shmat -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-shmat -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-unix -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-unix -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-findtask -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-findtask -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-nice -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-nice -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-sysctl -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-sysctl -->
-      <!-- @@GEN START rule-kernel-grsec-chroot-caps -->
-      <!-- @@GEN END rule-kernel-grsec-chroot-caps -->
-    </Group>
-    <Group id="gt-kernelconfig-grsec-tpe">
-      <title>Enable Trusted Path Execution</title>
-      <description>
-        When using <h:code>sys-kernel/hardened-sources</h:code>, enable
-        <h:code>CONFIG_GRKERNSEC_TPE</h:code>, which enabled <h:em>Trusted
-        Path Execution</h:em>, a safety measure that ensures that, for a set
-        of users, these users can only execute binaries and scripts from
-        root-owned directories.
-      </description>
-      <reference href="http://www.gentoo.org/proj/en/hardened/grsec-tpe.xml">Gentoo Hardened grSecurity TPE Guide</reference>
-      <!-- @@GEN START rule-kernel-tpe -->
-      <!-- @@GEN END rule-kernel-tpe -->
-    </Group>
+
   </Group>
   <Group id="gt-sysctl">
     <title>Kernel Tunables (Sysctl)</title>
@@ -278,9 +432,9 @@
       file (which is used by the <h:code>sysctl</h:code> service (init
       script), part of the default boot process.
       <h:pre>### Using sysctl command to read and set variables ###
-  # <h:b>sysctl net.ipv4.ip_forward</h:b>
-  net.ipv4.ip_forward = 1
-  # <h:b>sysctl -w net.ipv4.ip_forward=0</h:b></h:pre>
+# <h:b>sysctl net.ipv4.ip_forward</h:b>
+net.ipv4.ip_forward = 1
+# <h:b>sysctl -w net.ipv4.ip_forward=0</h:b></h:pre>
       The sysctl values can also be read through the
       <h:code>/proc/sys</h:code> file system.
     </description>
@@ -306,7 +460,7 @@
           <h:br />
           <h:br />
           With source route verification, the Linux kernel validates that an IP
-          package comes from the right interface. In other words, on a multi-homed
+          packet comes from the right interface. In other words, on a multi-homed
           system, packets that claim to be from your internal network on your external
           interface are dropped (and vice versa).
       </description>
@@ -323,7 +477,7 @@
         <h:br />
         <h:br />
         IP source routing would allow a remote user (the sender) to specify
-        the route that the package should take, rather than use the
+        the route that the packet should take, rather than use the
         (default) routing tables used by the routers between the sender and
         the destination. This could be (ab)used to spoof IP addresses and still
         get the replies (rather than sending the replies to the real owner
@@ -342,7 +496,7 @@
         <h:br />
         <h:br />
         ICMP redirect messages are used by routers to inform hosts to use a
-        different gateway than the one used. These packages should only be
+        different gateway than the one used. These packets should only be
         sent by the gateway of the system, but since you control that
         gateway and know when this gateway is changed, there is no point in
         allowing ICMP redirect messages on your system. After all, this would
@@ -382,7 +536,7 @@
     <title>Enable Logging of Martians</title>
       <description>
         When you receive a packet that seemingly originates from a location where
-        you have no route for, this package is dropped silently. You can enable logging
+        you have no route for, this packet is dropped silently. You can enable logging
         of these packets (which are called <h:em>martians</h:em>) so that you at least
         are aware of them.
         <h:br />
@@ -400,34 +554,31 @@
     </Group>
     <Group id="gt-sysctl-tcpsyncookies">
       <title>Enable TCP SYN Cookie Protection</title>
-        <description>
-          One denial of service attack against a service would be to flood the server with SYN requests
-          (the TCP package that starts a handshake for a connection). Such a flood can easily lead to a
-          service disruption as connection state handling would consume a lot of resources in a small timeframe.
-          <h:br />
-          <h:br />
-          By enabling <h:code>net.ipv4.tcp_syncookies</h:code>, the Linux kernel will change its handshake 
-          behavior when its SYN backlog queue overflows: it replies to SYN requests with the appropriate
-          SYN+ACK reply, but it does not store the connection in its backlog queue. Instead, it will only
-          do that when it gets the ACK reply on his SYN+ACK. Based on the information in this reply, the 
-          Linux kernel can then reconstruct the necessary information to generate an entry in the backlog
-          queue.
-          <h:br />
-          <h:br />
-          It should be noted that enabling TCP cookies is a last-resort. It changes the TCP stack behavior
-          of the Linux kernel, violating TCP protocol and dropping support for certain TCP extensions whose
-          information is only available in a SYN package.
-          <h:br />
-          <h:br />
-          To enable TCP SYN cookie protection, enable <h:code>CONFIG_SYN_COOKIES</h:code> in the kernel, 
-          set <h:code>net.ipv4.tcp_syncookies=1</h:code> and set proper values for <h:code>net.ipv4.tcp_max_syn_backlog</h:code>,
-          <h:code>net.ipv4.tcp_synack_retries</h:code> and <h:code>net.ipv4.tcp_abort_on_overflow</h:code>.
-        </description>
-        <!-- @@GEN START rule-kernel-syncookies -->
-        <!-- @@GEN END rule-kernel-syncookies -->
-        <!-- @@GEN START rule-sysctl-ipv4-tcpsyncookies -->
-        <!-- @@GEN END rule-sysctl-ipv4-tcpsyncookies -->
-      </Group>
+      <description>
+        One denial of service attack against a service would be to flood the server with SYN requests
+        (the TCP packet that starts a handshake for a connection). Such a flood can easily lead to a
+        service disruption as connection state handling would consume a lot of resources in a small timeframe.
+        <h:br />
+        <h:br />
+        By enabling <h:code>net.ipv4.tcp_syncookies</h:code>, the Linux kernel will change its handshake 
+        behavior when its SYN backlog queue overflows: it replies to SYN requests with the appropriate
+        SYN+ACK reply, but it does not store the connection in its backlog queue. Instead, it will only
+        do that when it gets the ACK reply on his SYN+ACK. Based on the information in this reply, the 
+        Linux kernel can then reconstruct the necessary information to generate an entry in the backlog
+        queue.
+        <h:br />
+        <h:br />
+        It should be noted that enabling TCP cookies is a last-resort. It changes the TCP stack behavior
+        of the Linux kernel, violating TCP protocol and dropping support for certain TCP extensions whose
+        information is only available in a SYN packet.
+        <h:br />
+        <h:br />
+        To enable TCP SYN cookie protection, enable <h:code>CONFIG_SYN_COOKIES</h:code> in the kernel, 
+        set <h:code>net.ipv4.tcp_syncookies=1</h:code> and set proper values for <h:code>net.ipv4.tcp_max_syn_backlog</h:code>,
+        <h:code>net.ipv4.tcp_synack_retries</h:code> and <h:code>net.ipv4.tcp_abort_on_overflow</h:code>.
+      </description>
+      <!-- @@GEN START rule-sysctl-ipv4-tcpsyncookies -->
+      <!-- @@GEN END rule-sysctl-ipv4-tcpsyncookies -->
     </Group>
   </Group>
 </Benchmark>

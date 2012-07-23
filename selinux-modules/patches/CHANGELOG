@@ -1,3 +1,10 @@
+<no bug>	Add fifo_file access for mozilla_t to mozilla_tmp_t (needed for icedtea-appletviewer-to-plugin)
+#412637		Add in policy for chromium
+
+** 2012-07-21 Revision 15
+
+#426660		Allow nslcd to connect to LDAP
+#426960		Allow init to create dbus directories in /run
 #426958		Allow dhcpc to create /var/run/dhcpc (/run/dhcpc) through its dhcpcd-hooks
 #426954		New udevd since systemd integration needs to be labeled as udev executable
 <no bug>	Update xdg definition, use correct naming

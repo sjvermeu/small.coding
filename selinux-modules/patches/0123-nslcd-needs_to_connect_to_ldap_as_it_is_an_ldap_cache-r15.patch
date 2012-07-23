@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/nslcd.te	2012-07-20 17:08:56.644418389 +0200
++++ refpolicypolicy/modules/contrib/nslcd.te	2012-07-20 17:06:16.567420764 +0200
+@@ -36,6 +36,8 @@
+ 
+ kernel_read_system_state(nslcd_t)
+ 
++corenet_tcp_connect_ldap_port(nslcd_t)
++
+ files_read_etc_files(nslcd_t)
+ 
+ auth_use_nsswitch(nslcd_t)

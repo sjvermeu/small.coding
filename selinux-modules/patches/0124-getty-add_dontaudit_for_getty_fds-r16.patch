@@ -1,0 +1,27 @@
+--- refpolicy/policy/modules/system/getty.if	2011-10-25 19:19:35.000000000 +0200
++++ refpolicypolicy/modules/system/getty.if	2012-07-23 12:47:19.537346153 +0200
+@@ -21,6 +21,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit the use of getty file descriptors.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`getty_dontaudit_use_fds',`
++	gen_require(`
++		type getty_t;
++	')
++
++	dontaudit $1 getty_t:fd use;
++')
++
++########################################
++## <summary>
+ ##	Inherit and use getty file descriptors.
+ ## </summary>
+ ## <param name="domain">

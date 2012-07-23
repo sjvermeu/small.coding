@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/kernel/files.if	2012-07-23 11:31:18.587336410 +0200
++++ refpolicypolicy/modules/kernel/files.if	2012-07-23 11:30:59.423336354 +0200
+@@ -2594,6 +2594,25 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit attempts to read files
++##	in /etc 
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`files_dontaudit_read_etc_files',`
++	gen_require(`
++		type etc_runtime_t;
++	')
++
++	dontaudit $1 etc_t:file { getattr read };
++')
++
++########################################
++## <summary>
+ ##	Read generic files in /etc.
+ ## </summary>
+ ## <desc>

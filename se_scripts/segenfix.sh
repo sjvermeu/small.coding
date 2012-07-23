@@ -84,7 +84,7 @@ then
   # Now take the diff of the requested target
   if [ "${SUBJECT}" == "all" ];
   then
-    diff -uNr -x ".git*" -x "CVS" ${TMPLOC} ${NEWDST} | sed -e ${TRANSLATE};
+    diff -uNr -x ".git*" -x "CVS" -x "*.autogen*" -x "*.part" ${TMPLOC} ${NEWDST} | sed -e ${TRANSLATE};
   else
     diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.te ${NEWDST}/${SUBJECT}.te | sed -e ${TRANSLATE};
     diff -uN ${TMPLOC}/policy/modules/${SUBJECT}.if ${NEWDST}/${SUBJECT}.if | sed -e ${TRANSLATE};

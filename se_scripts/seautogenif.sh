@@ -19,7 +19,7 @@ genDomtrans() {
   typeset WORKNAME=${MODULE}/${MODULE}_domtrans
   typeset WORKNAMEFILE=${WORKNAME}.autogen.iface
   typeset TYPE=$(awk -F'=' "/${MODULE}.DOMAIN=/ {print \$2}" ${CONFFILE});
-  typeset ETYPE=$(awk -F'=' "/${MODULE}.EXDC=/ {print \$2}" ${CONFFILE});
+  typeset ETYPE=$(awk -F'=' "/${MODULE}.EXEC=/ {print \$2}" ${CONFFILE});
 
   if [ -f ${WORKNAME}.part ];
   then
@@ -833,6 +833,7 @@ else
   echo "" >> ${MODULE}.if;
   for FILE in ${MODULE}/*.part ${MODULE}/*.autogen.iface;
   do
+    [ ! -f ${FILE} ] && continue;
     cat ${FILE} >> ${MODULE}.if; 
   done
 fi

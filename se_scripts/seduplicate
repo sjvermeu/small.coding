@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# seshowif - Show the interface definition
+seshowif() {
+  INTERFACE="$1";
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  for FILE in */*.if;
+  do
+    grep -A 9999 "\(interface(\`${INTERFACE}'\|template(\`${INTERFACE}'\)" ${FILE} | grep -B 9999 -m 1 "^')";
+  done
+  popd > /dev/null 2>&1;
+}
+
+# selist - List all templates/interfaces in the order allowed by refpolicy
+gendeplist() {
+  typeset POLICY_LOCATION="/home/swift/Development/Centralized/hardened-refpolicy";
+  typeset DEPLIST=$1;
+  [ -f ${DEPLIST} ] && > ${DEPLIST};
+  pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
+  for INTERFACE in $(egrep '^(interface|template)' */*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sort);
+  do
+    printf "${INTERFACE}:" >> ${DEPLIST};
+    for IFACE in $(seshowif ${INTERFACE} | egrep -v '^(interface|template)' | grep -v '^[ 	]*#' | grep -v gen_require | grep '(' | awk -F'(' '{print $1}');
+    do
+      printf "${IFACE}:" >> ${DEPLIST};
+    done
+    printf "\n" >> ${DEPLIST};
+  done
+  popd > /dev/null 2>&1;
+}
+
+if [ $# -ne 3 ];
+then
+  echo "Usage: $0 -r <domain> <file>"
+  echo ""
+  echo " -r Uses cache"
+  echo " -R Regenerates the cache"
+  exit 1;
+fi
+
+typeset LIST=~/.seduplicate.cache
+typeset DOMAIN=$2;
+typeset FILE=$3;
+
+if [ "$1" = "-R" ];
+then
+  gendeplist ${LIST};
+elif [ "$1" = "-r" ];
+then
+  if [ ! -f ${LIST} ];
+  then
+    echo "File ${LIST} does not exist.";
+    exit 1;
+  fi
+else
+  echo "Option $1 is not valid.";
+fi
+
+while read LINE;
+do
+  echo ${LINE} | grep -q ${DOMAIN} || continue;
+  echo ${LINE} | grep -vq "ubac_constrained" || continue;
+  echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
+  echo ${LINE} | grep -vq "^[ 	]*dontaudit " || continue;
+  echo ${LINE} | grep -vq "^type " || continue;
+  echo ${LINE} | sed -e "s:${DOMAIN}::g" | grep -vq "[a-z]*_t[, )]" || continue;
+  echo ${LINE} | grep -vq "^[ 	]*#" || continue;
+  echo ${LINE} | grep -vq ".*_type(" || continue;
+
+  FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
+  # Looking in list for potential supersets
+  SUPERSETS=$(grep ":${FUNC}:" ${LIST} | awk -F':' '{print $1}');
+  for SUPERSET in ${SUPERSETS};
+  do
+    # Checking if one of these is also in the file
+    grep -q "^[ 	]*${SUPERSET}(.*${DOMAIN}.*)" ${FILE};
+    if [ $? -eq 0 ];
+    then
+      echo "Method ${FUNC} called, but privilege already assigned through ${SUPERSET}."
+    fi
+  done
+done < ${FILE};
+

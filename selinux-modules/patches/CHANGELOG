@@ -1,3 +1,6 @@
+<no bug>	Backport: rename epollwakeup to block_suspend to match naming in Linux 3.5
+<no bug>	Backport changes for nslcd
+#427750		Allow init to create /run/mysqld directoriy
 <no bug>	Add fifo_file access for mozilla_t to mozilla_tmp_t (needed for icedtea-appletviewer-to-plugin)
 #412637		Add in policy for chromium
 

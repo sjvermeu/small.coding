@@ -1,6 +1,6 @@
---- refpolicy/policy/modules/kernel/files.if	2012-07-04 18:53:12.249997830 +0200
-+++ refpolicypolicy/modules/kernel/files.if	2012-06-27 23:27:38.490663026 +0200
-@@ -5648,6 +5648,27 @@
+--- refpolicy/policy/modules/kernel/files.if	2012-07-24 15:37:11.508552314 +0200
++++ refpolicypolicy/modules/kernel/files.if	2012-07-24 15:36:52.070552270 +0200
+@@ -5667,6 +5667,27 @@
  
  ########################################
  ## <summary>
@@ -28,7 +28,7 @@
  ##	Relabel to and from all lock directory types.
  ## </summary>
  ## <param name="domain">
-@@ -5691,6 +5712,24 @@
+@@ -5710,6 +5731,24 @@
  
  ########################################
  ## <summary>
@@ -53,7 +53,7 @@
  ##	Delete generic lock files.
  ## </summary>
  ## <param name="domain">
-@@ -5971,6 +6010,31 @@
+@@ -5990,6 +6029,29 @@
  	allow $1 var_run_t:lnk_file read_lnk_file_perms;
  	allow $1 var_run_t:fifo_file write;
  ')
@@ -77,8 +77,6 @@
 +		type var_t, var_run_t;
 +	')
 +
-+	allow $1 var_t:dir search_dir_perms;
-+	allow $1 var_run_t:lnk_file read_lnk_file_perms;
 +	files_pid_filetrans($1, var_lock_t, dir, $2)
 +')
 +

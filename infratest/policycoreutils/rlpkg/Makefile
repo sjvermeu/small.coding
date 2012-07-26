@@ -5,4 +5,4 @@ all: pkg
 ##
 pkg:
 	@echo "[rlpkg] relabeling package policycoreutils"
-	rlpkg policycoreutils
+	rlpkg policycoreutils > /dev/null

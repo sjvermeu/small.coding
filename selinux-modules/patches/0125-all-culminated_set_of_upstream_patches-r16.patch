@@ -110,13 +110,13 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/doc/templates/
  Layer: <a href='[[tun['mod_layer']]].html'>
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/flask/access_vectors refpolicy/policy/flask/access_vectors
 --- refpolicy/policy/flask/access_vectors	2011-03-28 16:42:09.000000000 +0200
-+++ refpolicy/policy/flask/access_vectors	2012-07-17 17:30:25.525244653 +0200
++++ refpolicy/policy/flask/access_vectors	2012-07-25 20:08:29.338771474 +0200
 @@ -445,6 +445,8 @@
  	mac_override	# unused by SELinux
  	mac_admin	# unused by SELinux
  	syslog
 +	wake_alarm
-+	epollwakeup
++	block_suspend
  }
  
  #
@@ -350,7 +350,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /usr/sbin/apache(2)?		--	gen_context(system_u:object_r:httpd_exec_t,s0)
  /usr/sbin/apache-ssl(2)?	--	gen_context(system_u:object_r:httpd_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/apache.te refpolicy/policy/modules/contrib/apache.te
---- refpolicy/policy/modules/contrib/apache.te	2012-07-22 11:20:11.218150569 +0200
+--- refpolicy/policy/modules/contrib/apache.te	2012-07-25 20:09:41.466771628 +0200
 +++ refpolicy/policy/modules/contrib/apache.te	2012-07-17 17:30:25.908244648 +0200
 @@ -100,6 +100,13 @@
  
@@ -1089,7 +1089,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  ########################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/courier.fc refpolicy/policy/modules/contrib/courier.fc
---- refpolicy/policy/modules/contrib/courier.fc	2012-07-22 11:20:11.200150569 +0200
+--- refpolicy/policy/modules/contrib/courier.fc	2012-07-25 20:09:41.408771628 +0200
 +++ refpolicy/policy/modules/contrib/courier.fc	2012-05-05 16:11:26.344762611 +0200
 @@ -10,18 +10,18 @@
  /usr/sbin/couriertcpd			--	gen_context(system_u:object_r:courier_tcpd_exec_t,s0)
@@ -1160,7 +1160,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  /usr/bin/dbus-daemon(-1)? --	gen_context(system_u:object_r:dbusd_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/dbus.if refpolicy/policy/modules/contrib/dbus.if
---- refpolicy/policy/modules/contrib/dbus.if	2012-07-22 11:20:11.361150569 +0200
+--- refpolicy/policy/modules/contrib/dbus.if	2012-07-25 20:09:42.046771629 +0200
 +++ refpolicy/policy/modules/contrib/dbus.if	2012-07-17 19:01:43.499163385 +0200
 @@ -223,6 +223,8 @@
  
@@ -1416,7 +1416,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ldap.fc refpolicy/policy/modules/contrib/ldap.fc
---- refpolicy/policy/modules/contrib/ldap.fc	2012-07-22 11:20:11.202150569 +0200
+--- refpolicy/policy/modules/contrib/ldap.fc	2012-07-25 20:09:41.419771628 +0200
 +++ refpolicy/policy/modules/contrib/ldap.fc	2012-05-05 16:11:27.043762613 +0200
 @@ -4,7 +4,7 @@
  
@@ -1428,7 +1428,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /usr/lib/slapd		--	gen_context(system_u:object_r:slapd_exec_t,s0)
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ldap.if refpolicy/policy/modules/contrib/ldap.if
---- refpolicy/policy/modules/contrib/ldap.if	2012-07-22 11:20:11.202150569 +0200
+--- refpolicy/policy/modules/contrib/ldap.if	2012-07-25 20:09:41.419771628 +0200
 +++ refpolicy/policy/modules/contrib/ldap.if	2012-07-17 17:30:26.132244644 +0200
 @@ -69,13 +69,12 @@
  	')
@@ -1471,7 +1471,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /var/spool/mailman(/.*)?		gen_context(system_u:object_r:mailman_data_t,s0)
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.fc refpolicy/policy/modules/contrib/mozilla.fc
---- refpolicy/policy/modules/contrib/mozilla.fc	2012-07-22 11:20:11.197150569 +0200
+--- refpolicy/policy/modules/contrib/mozilla.fc	2012-07-25 20:09:41.395771628 +0200
 +++ refpolicy/policy/modules/contrib/mozilla.fc	2012-05-05 16:11:27.701762614 +0200
 @@ -24,17 +24,15 @@
  #
@@ -1500,8 +1500,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.if refpolicy/policy/modules/contrib/mozilla.if
---- refpolicy/policy/modules/contrib/mozilla.if	2011-10-25 19:20:02.000000000 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.if	2012-05-05 16:11:27.726762614 +0200
+--- refpolicy/policy/modules/contrib/mozilla.if	2012-07-25 20:09:42.140771629 +0200
++++ refpolicy/policy/modules/contrib/mozilla.if	2012-07-23 18:01:14.563386347 +0200
 @@ -18,9 +18,10 @@
  interface(`mozilla_role',`
  	gen_require(`
@@ -1515,9 +1515,9 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	domain_auto_trans($2, mozilla_exec_t, mozilla_t)
  	# Unrestricted inheritance from the caller.
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.te refpolicy/policy/modules/contrib/mozilla.te
---- refpolicy/policy/modules/contrib/mozilla.te	2012-07-22 11:20:11.215150569 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.te	2012-05-05 16:11:27.754762614 +0200
-@@ -32,7 +32,7 @@
+--- refpolicy/policy/modules/contrib/mozilla.te	2012-07-25 20:09:42.140771629 +0200
++++ refpolicy/policy/modules/contrib/mozilla.te	2012-07-25 11:03:28.567701692 +0200
+@@ -45,7 +45,7 @@
  type mozilla_plugin_t;
  type mozilla_plugin_exec_t;
  application_domain(mozilla_plugin_t, mozilla_plugin_exec_t)
@@ -1526,7 +1526,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  type mozilla_plugin_tmp_t;
  userdom_user_tmp_file(mozilla_plugin_tmp_t)
-@@ -155,6 +155,7 @@
+@@ -169,6 +169,7 @@
  files_read_var_symlinks(mozilla_t)
  files_dontaudit_getattr_boot_dirs(mozilla_t)
  
@@ -1722,9 +1722,21 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /usr/sbin/rpc\.yppasswdd --	gen_context(system_u:object_r:yppasswdd_exec_t,s0)
  /usr/sbin/rpc\.ypxfrd	--	gen_context(system_u:object_r:ypxfr_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nslcd.te refpolicy/policy/modules/contrib/nslcd.te
---- refpolicy/policy/modules/contrib/nslcd.te	2012-07-22 11:20:11.365150569 +0200
-+++ refpolicy/policy/modules/contrib/nslcd.te	2012-07-20 17:06:16.567420764 +0200
-@@ -45,3 +45,7 @@
+--- refpolicy/policy/modules/contrib/nslcd.te	2011-10-25 19:20:02.000000000 +0200
++++ refpolicy/policy/modules/contrib/nslcd.te	2012-07-24 15:31:24.419551573 +0200
+@@ -36,6 +36,11 @@
+ 
+ kernel_read_system_state(nslcd_t)
+ 
++corenet_all_recvfrom_unlabeled(nslcd_t)
++corenet_all_recvfrom_netlabel(nslcd_t)
++corenet_tcp_connect_ldap_port(nslcd_t)
++corenet_sendrecv_ldap_client_packets(nslcd_t)
++
+ files_read_etc_files(nslcd_t)
+ 
+ auth_use_nsswitch(nslcd_t)
+@@ -43,3 +48,7 @@
  logging_send_syslog_msg(nslcd_t)
  
  miscfiles_read_localization(nslcd_t)
@@ -1775,7 +1787,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  /var/db/pkg(/.*)?			gen_context(system_u:object_r:portage_db_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/portage.if refpolicy/policy/modules/contrib/portage.if
---- refpolicy/policy/modules/contrib/portage.if	2012-07-22 11:20:11.352150569 +0200
+--- refpolicy/policy/modules/contrib/portage.if	2012-07-25 20:09:42.014771629 +0200
 +++ refpolicy/policy/modules/contrib/portage.if	2012-07-17 17:30:26.238244643 +0200
 @@ -151,6 +151,7 @@
  	corenet_udp_sendrecv_all_ports($1)
@@ -1799,7 +1811,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	libs_exec_lib_files($1)
  	# some config scripts use ldd
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/portage.te refpolicy/policy/modules/contrib/portage.te
---- refpolicy/policy/modules/contrib/portage.te	2012-07-22 11:20:11.352150569 +0200
+--- refpolicy/policy/modules/contrib/portage.te	2012-07-25 20:09:42.013771629 +0200
 +++ refpolicy/policy/modules/contrib/portage.te	2012-07-17 17:30:26.239244643 +0200
 @@ -68,7 +68,7 @@
  term_pty(portage_devpts_t)
@@ -1860,7 +1872,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  term_search_ptys(portage_fetch_t)
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/postfix.fc refpolicy/policy/modules/contrib/postfix.fc
---- refpolicy/policy/modules/contrib/postfix.fc	2012-07-22 11:20:11.206150569 +0200
+--- refpolicy/policy/modules/contrib/postfix.fc	2012-07-25 20:09:41.431771628 +0200
 +++ refpolicy/policy/modules/contrib/postfix.fc	2012-05-05 16:11:29.954762619 +0200
 @@ -16,19 +16,19 @@
  /usr/libexec/postfix/pipe --	gen_context(system_u:object_r:postfix_pipe_exec_t,s0)
@@ -1896,7 +1908,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /etc/postfix/postfix-script.* -- gen_context(system_u:object_r:postfix_exec_t,s0)
  /etc/postfix/prng_exch	--	gen_context(system_u:object_r:postfix_prng_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/puppet.te refpolicy/policy/modules/contrib/puppet.te
---- refpolicy/policy/modules/contrib/puppet.te	2012-07-22 11:20:11.194150569 +0200
+--- refpolicy/policy/modules/contrib/puppet.te	2012-07-25 20:09:41.389771628 +0200
 +++ refpolicy/policy/modules/contrib/puppet.te	2012-05-05 16:11:30.594762620 +0200
 @@ -143,7 +143,7 @@
  ')
@@ -1908,7 +1920,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	# We should use files_relabel_all_files here, but it calls
  	# seutil_relabelto_bin_policy which sets a "typeattribute type attr",
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/qemu.te refpolicy/policy/modules/contrib/qemu.te
---- refpolicy/policy/modules/contrib/qemu.te	2012-07-22 11:20:11.158150569 +0200
+--- refpolicy/policy/modules/contrib/qemu.te	2012-07-25 20:09:41.245771627 +0200
 +++ refpolicy/policy/modules/contrib/qemu.te	2012-05-05 16:11:30.819762621 +0200
 @@ -49,6 +49,9 @@
  #
@@ -1963,7 +1975,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  /usr/sbin/in\.rlogind		--	gen_context(system_u:object_r:rlogind_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
---- refpolicy/policy/modules/contrib/rpc.te	2012-07-22 11:20:11.191150569 +0200
+--- refpolicy/policy/modules/contrib/rpc.te	2012-07-25 20:09:41.381771628 +0200
 +++ refpolicy/policy/modules/contrib/rpc.te	2012-05-05 16:11:31.947762623 +0200
 @@ -158,7 +158,7 @@
  	dev_getattr_all_chr_files(nfsd_t)
@@ -2340,7 +2352,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 -
  miscfiles_read_localization(zarafa_domain)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/corecommands.fc refpolicy/policy/modules/kernel/corecommands.fc
---- refpolicy/policy/modules/kernel/corecommands.fc	2012-07-22 11:20:11.143150569 +0200
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-07-25 20:09:41.177771627 +0200
 +++ refpolicy/policy/modules/kernel/corecommands.fc	2012-07-17 17:30:26.380244641 +0200
 @@ -139,26 +139,15 @@
  /lib/udev/scsi_id		--	gen_context(system_u:object_r:bin_t,s0)
@@ -2552,8 +2564,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  portcon tcp 8080 gen_context(system_u:object_r:http_cache_port_t,s0)
  portcon tcp 8118 gen_context(system_u:object_r:http_cache_port_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/devices.if refpolicy/policy/modules/kernel/devices.if
---- refpolicy/policy/modules/kernel/devices.if	2012-07-22 11:20:11.287150569 +0200
-+++ refpolicy/policy/modules/kernel/devices.if	2012-07-17 17:30:26.389244641 +0200
+--- refpolicy/policy/modules/kernel/devices.if	2012-07-25 20:09:42.081771629 +0200
++++ refpolicy/policy/modules/kernel/devices.if	2012-07-25 12:19:41.187711503 +0200
 @@ -951,13 +951,18 @@
  ##	the transition will occur.
  ##	</summary>
@@ -2654,7 +2666,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -4685,13 +4710,18 @@
+@@ -4705,13 +4730,18 @@
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -2684,7 +2696,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ########################################
  #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.fc refpolicy/policy/modules/kernel/files.fc
---- refpolicy/policy/modules/kernel/files.fc	2012-07-22 11:20:11.154150569 +0200
+--- refpolicy/policy/modules/kernel/files.fc	2012-07-25 20:09:41.226771627 +0200
 +++ refpolicy/policy/modules/kernel/files.fc	2012-07-17 17:30:26.410244641 +0200
 @@ -54,6 +54,8 @@
  /etc/killpower		--	gen_context(system_u:object_r:etc_runtime_t,s0)
@@ -2708,8 +2720,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ifdef(`distro_debian',`
  # on Debian /lib/init/rw is a tmpfs used like /var/run but
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.if refpolicy/policy/modules/kernel/files.if
---- refpolicy/policy/modules/kernel/files.if	2012-07-22 11:20:11.327150569 +0200
-+++ refpolicy/policy/modules/kernel/files.if	2012-07-17 17:30:26.420244641 +0200
+--- refpolicy/policy/modules/kernel/files.if	2012-07-25 20:09:42.092771629 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-07-25 13:03:40.215717091 +0200
 @@ -78,10 +78,10 @@
  #
  interface(`files_type',`
@@ -2981,7 +2993,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -2618,13 +2819,18 @@
+@@ -2637,13 +2838,18 @@
  ##	Object classes to be created.
  ##	</summary>
  ## </param>
@@ -3001,7 +3013,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -2642,6 +2848,11 @@
+@@ -2661,6 +2867,11 @@
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -3013,7 +3025,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## <rolecap/>
  #
  interface(`files_create_boot_flag',`
-@@ -2650,7 +2861,7 @@
+@@ -2669,7 +2880,7 @@
  	')
  
  	allow $1 etc_runtime_t:file manage_file_perms;
@@ -3022,7 +3034,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -2833,13 +3044,18 @@
+@@ -2870,13 +3081,18 @@
  ##	The class of the object being created.
  ##	</summary>
  ## </param>
@@ -3042,7 +3054,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -3378,13 +3594,18 @@
+@@ -3415,13 +3631,18 @@
  ##	The class of the object being created.
  ##	</summary>
  ## </param>
@@ -3062,7 +3074,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -3818,13 +4039,18 @@
+@@ -3855,13 +4076,18 @@
  ##	The object class of the object being created.
  ##	</summary>
  ## </param>
@@ -3082,7 +3094,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -4332,13 +4558,18 @@
+@@ -4369,13 +4595,18 @@
  ##	The object class of the object being created.
  ##	</summary>
  ## </param>
@@ -3102,7 +3114,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -4695,13 +4926,18 @@
+@@ -4732,13 +4963,18 @@
  ##	The object class.
  ##	</summary>
  ## </param>
@@ -3122,7 +3134,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -5098,13 +5334,18 @@
+@@ -5135,13 +5371,18 @@
  ##	The object class.
  ##	</summary>
  ## </param>
@@ -3142,7 +3154,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -5232,6 +5473,11 @@
+@@ -5269,6 +5510,11 @@
  ##	The object class.
  ##	</summary>
  ## </param>
@@ -3154,7 +3166,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  #
  interface(`files_var_lib_filetrans',`
  	gen_require(`
-@@ -5239,7 +5485,7 @@
+@@ -5276,7 +5522,7 @@
  	')
  
  	allow $1 var_t:dir search_dir_perms;
@@ -3163,7 +3175,60 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -5611,6 +5857,11 @@
+@@ -5439,6 +5685,27 @@
+ 
+ ########################################
+ ## <summary>
++##	Create lock directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_create_lock_dirs',`
++	gen_require(`
++		type var_t, var_lock_t;
++	')
++
++	allow $1 var_t:dir search_dir_perms;
++	allow $1 var_lock_t:lnk_file read_lnk_file_perms;
++	create_dirs_pattern($1, var_lock_t, var_lock_t)
++')
++
++
++########################################
++## <summary>
+ ##	Relabel to and from all lock directory types.
+ ## </summary>
+ ## <param name="domain">
+@@ -5482,6 +5749,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Set the attributes of generic lock directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_setattr_lock_dirs',`
++	gen_require(`
++		type var_t, var_lock_t;
++	')
++
++	setattr_dirs_pattern($1, var_t, var_lock_t)
++')
++
++########################################
++## <summary>
+ ##	Delete generic lock files.
+ ## </summary>
+ ## <param name="domain">
+@@ -5609,6 +5894,11 @@
  ##	The object class of the object being created.
  ##	</summary>
  ## </param>
@@ -3175,7 +3240,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  #
  interface(`files_lock_filetrans',`
  	gen_require(`
-@@ -5619,7 +5870,7 @@
+@@ -5617,7 +5907,7 @@
  
  	allow $1 var_t:dir search_dir_perms;
  	allow $1 var_lock_t:lnk_file read_lnk_file_perms;
@@ -3184,7 +3249,37 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -5830,6 +6081,11 @@
+@@ -5757,6 +6047,29 @@
+ 	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+ 	allow $1 var_run_t:fifo_file write;
+ ')
++########################################
++## <summary>
++##	Write dirs in /var/run with the lock file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`files_pid_filetrans_lock_dir',`
++	gen_require(`
++		type var_t, var_run_t;
++	')
++
++	files_pid_filetrans($1, var_lock_t, dir, $2)
++')
++
+ 
+ ########################################
+ ## <summary>
+@@ -5803,6 +6116,11 @@
  ##	The object class of the object being created.
  ##	</summary>
  ## </param>
@@ -3196,7 +3291,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## <infoflow type="write" weight="10"/>
  #
  interface(`files_pid_filetrans',`
-@@ -5839,7 +6095,7 @@
+@@ -5812,7 +6130,7 @@
  
  	allow $1 var_t:dir search_dir_perms;
  	allow $1 var_run_t:lnk_file read_lnk_file_perms;
@@ -3205,7 +3300,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -6167,6 +6423,11 @@
+@@ -6140,6 +6458,11 @@
  ##	the transition will occur.
  ##	</summary>
  ## </param>
@@ -3217,7 +3312,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  #
  interface(`files_spool_filetrans',`
  	gen_require(`
-@@ -6174,7 +6435,7 @@
+@@ -6147,7 +6470,7 @@
  	')
  
  	allow $1 var_t:dir search_dir_perms;
@@ -3297,7 +3392,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ########################################
  #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/kernel.te refpolicy/policy/modules/kernel/kernel.te
---- refpolicy/policy/modules/kernel/kernel.te	2012-07-22 11:20:11.289150569 +0200
+--- refpolicy/policy/modules/kernel/kernel.te	2012-07-25 20:09:41.766771628 +0200
 +++ refpolicy/policy/modules/kernel/kernel.te	2012-07-17 17:30:26.429244641 +0200
 @@ -56,6 +56,7 @@
  #
@@ -3362,7 +3457,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  init_exec(secadm_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
---- refpolicy/policy/modules/roles/sysadm.te	2012-07-22 11:20:11.344150569 +0200
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-25 20:09:42.004771629 +0200
 +++ refpolicy/policy/modules/roles/sysadm.te	2012-04-21 20:07:09.819210979 +0200
 @@ -94,6 +94,10 @@
  ')
@@ -3387,7 +3482,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.fc refpolicy/policy/modules/services/postgresql.fc
---- refpolicy/policy/modules/services/postgresql.fc	2012-07-22 11:20:11.208150569 +0200
+--- refpolicy/policy/modules/services/postgresql.fc	2012-07-25 20:09:41.433771628 +0200
 +++ refpolicy/policy/modules/services/postgresql.fc	2012-04-22 14:08:14.677349430 +0200
 @@ -14,9 +14,9 @@
  /usr/bin/initdb(\.sepgsql)?	--	gen_context(system_u:object_r:postgresql_exec_t,s0)
@@ -3412,7 +3507,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.if refpolicy/policy/modules/services/postgresql.if
---- refpolicy/policy/modules/services/postgresql.if	2012-07-22 11:20:11.208150569 +0200
+--- refpolicy/policy/modules/services/postgresql.if	2012-07-25 20:09:41.433771628 +0200
 +++ refpolicy/policy/modules/services/postgresql.if	2012-07-17 17:30:26.438244640 +0200
 @@ -32,10 +32,12 @@
  		attribute sepgsql_schema_type, sepgsql_sysobj_table_type;
@@ -3826,7 +3921,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  allow sepgsql_unconfined_type sepgsql_language_type:db_language ~implement;
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/xserver.fc refpolicy/policy/modules/services/xserver.fc
---- refpolicy/policy/modules/services/xserver.fc	2012-07-22 11:20:11.211150569 +0200
+--- refpolicy/policy/modules/services/xserver.fc	2012-07-25 20:09:41.439771628 +0200
 +++ refpolicy/policy/modules/services/xserver.fc	2012-04-22 14:08:14.677349430 +0200
 @@ -67,7 +67,7 @@
  /usr/bin/xauth		--	gen_context(system_u:object_r:xauth_exec_t,s0)
@@ -3838,7 +3933,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /usr/X11R6/bin/[xgkw]dm	--	gen_context(system_u:object_r:xdm_exec_t,s0)
  /usr/X11R6/bin/iceauth	--	gen_context(system_u:object_r:iceauth_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/xserver.te refpolicy/policy/modules/services/xserver.te
---- refpolicy/policy/modules/services/xserver.te	2012-07-22 11:20:11.210150569 +0200
+--- refpolicy/policy/modules/services/xserver.te	2012-07-25 20:09:41.439771628 +0200
 +++ refpolicy/policy/modules/services/xserver.te	2012-04-21 20:07:09.876210979 +0200
 @@ -642,6 +642,8 @@
  manage_files_pattern(xserver_t, xserver_log_t, xserver_log_t)
@@ -4181,8 +4276,19 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  sysnet_read_config(hostname_t)
  sysnet_dns_name_resolve(hostname_t)
  
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.fc refpolicy/policy/modules/system/init.fc
+--- refpolicy/policy/modules/system/init.fc	2012-07-25 20:09:41.560771628 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-07-17 17:30:26.497244640 +0200
+@@ -68,6 +68,7 @@
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ /var/lib/ip6?tables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/var/run/openrc(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ ifdef(`distro_suse', `
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.if refpolicy/policy/modules/system/init.if
---- refpolicy/policy/modules/system/init.if	2012-07-22 11:20:11.248150569 +0200
+--- refpolicy/policy/modules/system/init.if	2012-07-25 20:09:41.597771628 +0200
 +++ refpolicy/policy/modules/system/init.if	2012-05-27 21:25:29.305392978 +0200
 @@ -1579,6 +1579,11 @@
  ##	The object class.
@@ -4215,9 +4321,41 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  ########################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
---- refpolicy/policy/modules/system/init.te	2012-07-22 11:20:11.363150569 +0200
-+++ refpolicy/policy/modules/system/init.te	2012-07-17 19:02:30.249162691 +0200
-@@ -593,6 +593,11 @@
+--- refpolicy/policy/modules/system/init.te	2012-07-25 20:09:42.183771629 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-24 10:25:13.915512286 +0200
+@@ -74,6 +74,9 @@
+ type initrc_tmp_t;
+ files_tmp_file(initrc_tmp_t)
+ 
++type initrc_var_log_t;
++logging_log_file(initrc_var_log_t)
++
+ type initrc_var_run_t;
+ files_pid_file(initrc_var_run_t)
+ 
+@@ -256,6 +259,9 @@
+ manage_lnk_files_pattern(initrc_t, initrc_tmp_t, initrc_tmp_t)
+ files_tmp_filetrans(initrc_t, initrc_tmp_t, { file dir })
+ 
++manage_dirs_pattern(initrc_t, initrc_var_log_t, initrc_var_log_t)
++logging_log_filetrans(initrc_t, initrc_var_log_t, dir);
++
+ init_write_initctl(initrc_t)
+ 
+ kernel_read_system_state(initrc_t)
+@@ -270,7 +276,11 @@
+ # for lsof which is used by alsa shutdown:
+ kernel_dontaudit_getattr_message_if(initrc_t)
+ 
++files_create_lock_dirs(initrc_t)
++files_pid_filetrans(initrc_t, initrc_state_t, dir, "openrc")
++files_pid_filetrans_lock_dir(initrc_t, "lock")
+ files_read_kernel_symbol_table(initrc_t)
++files_setattr_lock_dirs(initrc_t)
+ files_dontaudit_write_usr_dirs(initrc_t)
+ 
+ corecmd_exec_all_executables(initrc_t)
+@@ -583,6 +593,11 @@
  ')
  
  optional_policy(`
@@ -4229,7 +4367,22 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	bind_read_config(initrc_t)
  
  	# for chmod in start script
-@@ -863,6 +868,7 @@
+@@ -839,8 +854,13 @@
+ ')
+ 
+ optional_policy(`
+-	udev_rw_db(initrc_t)
++	udev_create_db_dirs(initrc_t)
++	udev_dontaudit_getattr_netlink_kobject_uevent_sockets(initrc_t)
++	udev_dontaudit_getattr_unix_stream_sockets(initrc_t)
++	udev_generic_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_pid_filetrans_db(initrc_t, dir, "rules.d")
+ 	udev_manage_pid_files(initrc_t)
++	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)
+ ')
+ 
+@@ -849,6 +869,7 @@
  ')
  
  optional_policy(`
@@ -4573,7 +4726,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 -/var/spool/postfix/lib(64)?/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
 +/var/spool/postfix/lib/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/logging.if refpolicy/policy/modules/system/logging.if
---- refpolicy/policy/modules/system/logging.if	2012-07-22 11:20:11.264150569 +0200
+--- refpolicy/policy/modules/system/logging.if	2012-07-25 20:09:41.648771628 +0200
 +++ refpolicy/policy/modules/system/logging.if	2012-05-13 10:33:08.977716390 +0200
 @@ -480,6 +480,11 @@
  ##	The object class of the object being created.
@@ -4597,7 +4750,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  ########################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/logging.te refpolicy/policy/modules/system/logging.te
---- refpolicy/policy/modules/system/logging.te	2012-07-22 11:20:11.149150569 +0200
+--- refpolicy/policy/modules/system/logging.te	2012-07-25 20:09:41.211771627 +0200
 +++ refpolicy/policy/modules/system/logging.te	2012-04-21 20:07:09.948210979 +0200
 @@ -358,7 +358,7 @@
  dontaudit syslogd_t self:capability sys_tty_config;
@@ -4609,7 +4762,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  allow syslogd_t self:unix_dgram_socket create_socket_perms;
  allow syslogd_t self:unix_stream_socket create_stream_socket_perms;
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/lvm.te refpolicy/policy/modules/system/lvm.te
---- refpolicy/policy/modules/system/lvm.te	2012-07-22 11:20:11.221150569 +0200
+--- refpolicy/policy/modules/system/lvm.te	2012-07-25 20:09:41.477771628 +0200
 +++ refpolicy/policy/modules/system/lvm.te	2012-04-21 20:07:09.935210979 +0200
 @@ -167,7 +167,7 @@
  # net_admin for multipath
@@ -4647,7 +4800,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /sbin/depmod.*		--	gen_context(system_u:object_r:depmod_exec_t,s0)
  /sbin/generate-modprobe\.conf -- gen_context(system_u:object_r:update_modules_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/mount.te refpolicy/policy/modules/system/mount.te
---- refpolicy/policy/modules/system/mount.te	2012-07-22 11:20:11.253150569 +0200
+--- refpolicy/policy/modules/system/mount.te	2012-07-25 20:09:41.620771628 +0200
 +++ refpolicy/policy/modules/system/mount.te	2012-05-05 16:00:36.495761224 +0200
 @@ -90,7 +90,8 @@
  # For reading cert files
@@ -4679,7 +4832,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/selinuxutil.fc refpolicy/policy/modules/system/selinuxutil.fc
---- refpolicy/policy/modules/system/selinuxutil.fc	2012-07-22 11:20:11.291150569 +0200
+--- refpolicy/policy/modules/system/selinuxutil.fc	2012-07-25 20:09:41.779771628 +0200
 +++ refpolicy/policy/modules/system/selinuxutil.fc	2012-07-17 17:30:26.531244638 +0200
 @@ -33,7 +33,7 @@
  /usr/bin/checkpolicy		--	gen_context(system_u:object_r:checkpolicy_exec_t,s0)
@@ -4703,7 +4856,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  #######################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/selinuxutil.te refpolicy/policy/modules/system/selinuxutil.te
---- refpolicy/policy/modules/system/selinuxutil.te	2012-07-22 11:20:11.354150569 +0200
+--- refpolicy/policy/modules/system/selinuxutil.te	2012-07-25 20:09:42.025771629 +0200
 +++ refpolicy/policy/modules/system/selinuxutil.te	2012-07-17 17:30:26.540244638 +0200
 @@ -13,8 +13,10 @@
  attribute can_relabelto_binary_policy;
@@ -4809,7 +4962,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  ########################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/sysnetwork.te refpolicy/policy/modules/system/sysnetwork.te
---- refpolicy/policy/modules/system/sysnetwork.te	2012-07-22 11:20:11.358150569 +0200
+--- refpolicy/policy/modules/system/sysnetwork.te	2012-07-25 20:09:42.041771629 +0200
 +++ refpolicy/policy/modules/system/sysnetwork.te	2012-07-17 18:18:49.747201567 +0200
 @@ -341,6 +341,10 @@
  ')
@@ -4822,6 +4975,243 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	nis_use_ypbind(ifconfig_t)
  ')
  
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.fc refpolicy/policy/modules/system/udev.fc
+--- refpolicy/policy/modules/system/udev.fc	2012-07-25 20:09:42.034771629 +0200
++++ refpolicy/policy/modules/system/udev.fc	2012-07-17 17:31:55.765243315 +0200
+@@ -33,7 +33,9 @@
+ /usr/lib/systemd/systemd-udevd	--	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)
+-/var/run/udev(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev(/.*)?		gen_context(system_u:object_r:udev_var_run_t,s0)
++/var/run/udev/rules\.d(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev/data(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
+ 
+ ifdef(`distro_debian',`
+ /var/run/xen-hotplug -d	gen_context(system_u:object_r:udev_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.if refpolicy/policy/modules/system/udev.if
+--- refpolicy/policy/modules/system/udev.if	2011-10-25 19:19:36.000000000 +0200
++++ refpolicy/policy/modules/system/udev.if	2012-07-17 17:30:26.569244638 +0200
+@@ -132,6 +132,66 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit attempts to get attributes
++##	of a udev netlink_kobject_uevent_socket
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`udev_dontaudit_getattr_netlink_kobject_uevent_sockets',`
++	gen_require(`
++		type udev_t;
++	')
++
++	dontaudit $1 udev_t:netlink_kobject_uevent_socket getattr;
++')
++
++########################################
++## <summary>
++##	Do not audit attempts to get attributes
++##	of a udev unix_stream_socket.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`udev_dontaudit_getattr_unix_stream_sockets',`
++	gen_require(`
++		type udev_t;
++	')
++
++	dontaudit $1 udev_t:unix_stream_socket getattr;
++')
++
++
++########################################
++## <summary>
++##	Read udev rules files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_read_rules_files',`
++	gen_require(`
++		type udev_rules_t;
++	')
++
++	files_search_etc($1) # /etc/udev/rules.d
++	udev_search_pids($1) # /run/udev/rules.d
++	read_files_pattern($1, udev_rules_t, udev_rules_t)
++')
++
++
++########################################
++## <summary>
+ ##	Manage udev rules files
+ ## </summary>
+ ## <param name="domain">
+@@ -191,6 +251,8 @@
+ 	allow $1 udev_tbl_t:dir list_dir_perms;
+ 	read_files_pattern($1, udev_tbl_t, udev_tbl_t)
+ 	read_lnk_files_pattern($1, udev_tbl_t, udev_tbl_t)
++	# Device table files are beneith /run/udev
++	udev_search_pids($1)
+ ')
+ 
+ ########################################
+@@ -214,6 +276,99 @@
+ 
+ ########################################
+ ## <summary>
++##	Create udev database directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_create_db_dirs',`
++	gen_require(`
++		type udev_tbl_t;
++		type udev_var_run_t;
++	')
++
++	create_dirs_pattern($1, udev_var_run_t, udev_tbl_t)
++')
++
++
++
++########################################
++## <summary>
++##	Write in /var/run/udev with the udev_tbl_t (udev database) file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="class">
++## 	<summary>
++##	Classes on which the file transition should occur
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`udev_pid_filetrans_db',`
++	gen_require(`
++		type udev_tbl_t;
++		type udev_var_run_t;
++	')
++
++	filetrans_pattern($1, udev_var_run_t, udev_tbl_t, $2, $3)
++')
++
++########################################
++## <summary>
++##	Write dirs in /var/run with the udev_var_run file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`udev_generic_pid_filetrans_run_dirs',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_pid_filetrans($1, udev_var_run_t, dir, $2)
++')
++
++########################################
++## <summary>
++## 	Search through udev pid files and directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_search_pids',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_search_var_lib($1)
++	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++')
++
++
++########################################
++## <summary>
+ ##	Create, read, write, and delete
+ ##	udev pid files.
+ ## </summary>
+@@ -231,3 +386,23 @@
+ 	files_search_var_lib($1)
+ 	manage_files_pattern($1, udev_var_run_t, udev_var_run_t)
+ ')
++
++########################################
++## <summary>
++##	Create, read, write, and delete
++##	udev run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_manage_pid_dirs',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_search_var_lib($1)
++	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.te refpolicy/policy/modules/system/udev.te
+--- refpolicy/policy/modules/system/udev.te	2012-07-25 20:09:41.339771627 +0200
++++ refpolicy/policy/modules/system/udev.te	2012-07-17 17:30:26.569244638 +0200
+@@ -74,6 +74,7 @@
+ manage_dirs_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_lnk_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
++manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ files_pid_filetrans(udev_t, udev_var_run_t, { dir file })
+ 
+ kernel_read_system_state(udev_t)
+@@ -173,6 +174,8 @@
+ 
+ userdom_dontaudit_search_user_home_content(udev_t)
+ 
++udev_pid_filetrans_db(udev_t, dir, "data")
++
+ ifdef(`distro_gentoo',`
+ 	# during boot, init scripts use /dev/.rcsysinit
+ 	# existance to determine if we are in early booting
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/unconfined.fc refpolicy/policy/modules/system/unconfined.fc
 --- refpolicy/policy/modules/system/unconfined.fc	2011-11-16 20:51:52.000000000 +0100
 +++ refpolicy/policy/modules/system/unconfined.fc	2012-04-22 14:08:14.677349430 +0200
@@ -4833,7 +5223,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +/usr/lib/openoffice/program/[^/]+\.bin -- gen_context(system_u:object_r:unconfined_execmem_exec_t,s0)
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/userdomain.if refpolicy/policy/modules/system/userdomain.if
---- refpolicy/policy/modules/system/userdomain.if	2012-07-22 11:20:11.094150569 +0200
+--- refpolicy/policy/modules/system/userdomain.if	2012-07-25 20:09:40.933771627 +0200
 +++ refpolicy/policy/modules/system/userdomain.if	2012-05-13 10:33:08.978716390 +0200
 @@ -1144,9 +1144,9 @@
  

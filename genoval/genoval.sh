@@ -227,7 +227,7 @@ do
     export OBJNUM=$(getObjnum "kernelconfig" "${FILE}");
     export STENUM=$(getStenum "regexp" "${REGEXP}");
 
-    genTextfileMatch "at least one" >> ${OVAL};
+    genTextfileMatch "`kernelCheck`" "`kernelCheckExist`" >> ${OVAL};
   fi
 
   ## Test for environment variable

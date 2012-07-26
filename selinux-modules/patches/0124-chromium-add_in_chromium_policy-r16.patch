@@ -1,12 +1,51 @@
 --- refpolicy/policy/modules/contrib/chromium.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/chromium.te	2012-07-23 21:27:33.108412769 +0200
-@@ -0,0 +1,183 @@
++++ refpolicypolicy/modules/contrib/chromium.te	2012-07-25 13:37:13.224721368 +0200
+@@ -0,0 +1,252 @@
 +policy_module(chromium-browser, 1.0.0)
 +
 +########################################
 +#
 +# Declarations
 +#
++
++## <desc>
++## <p>
++## Allow chromium to read user content
++## </p>
++## </desc>
++gen_tunable(chromium_read_user_content, true)
++
++## <desc>
++## <p>
++## Allow chromium to write (manage) user content
++## </p>
++## </desc>
++gen_tunable(chromium_manage_user_content, false)
++
++## <desc>
++## <p>
++## Allow the use of java plugins
++## </p>
++## <p>
++## Some of these plugins require the use of named pipes (fifo files) that are
++## created within the temporary directory of the first browser that instantiated
++## the plugin. Hence, if other browsers need access to java plugins, they will
++## get search rights in chromium's tmp locations
++## </p>
++## </desc>
++gen_tunable(chromium_use_java, false)
++
++## <desc>
++## <p>
++## Allow chromium to read system information
++## </p>
++## <p>
++## Although not needed for regular browsing, this will allow chromium to update
++## its own memory consumption based on system state, support additional
++## debugging, detect specific devices, etc. 
++## </p>
++## </desc>
++gen_tunable(chromium_read_system_info, false)
 +
 +type chromium_t;
 +domain_dyntrans_type(chromium_t)
@@ -25,6 +64,11 @@
 +
 +type chromium_xdg_config_t;
 +xdg_config_home_content(chromium_xdg_config_t)
++
++type chromium_xdg_cache_t;
++xdg_cache_home_content(chromium_xdg_cache_t)
++
++
 +
 +########################################
 +#
@@ -54,20 +98,21 @@
 +files_tmp_filetrans(chromium_t, chromium_tmp_t, { file dir sock_file })
 +
 +manage_files_pattern(chromium_t, chromium_tmpfs_t, chromium_tmpfs_t)
-+fs_tmpfs_filetrans(chromium_t, chromium_tmpfs_t, notdevfile_class_set)
-+fs_tmpfs_filetrans(chromium_renderer_t, chromium_tmpfs_t, notdevfile_class_set)
++fs_tmpfs_filetrans(chromium_t, chromium_tmpfs_t, file)
++fs_tmpfs_filetrans(chromium_renderer_t, chromium_tmpfs_t, file)
 +
 +manage_files_pattern(chromium_t, chromium_xdg_config_t, chromium_xdg_config_t)
 +manage_lnk_files_pattern(chromium_t, chromium_xdg_config_t, chromium_xdg_config_t)
 +manage_dirs_pattern(chromium_t, chromium_xdg_config_t, chromium_xdg_config_t)
 +xdg_config_home_filetrans(chromium_t, chromium_xdg_config_t, dir, "chromium")
 +
++manage_files_pattern(chromium_t, chromium_xdg_cache_t, chromium_xdg_cache_t)
++manage_dirs_pattern(chromium_t, chromium_xdg_cache_t, chromium_xdg_cache_t)
++xdg_cache_home_filetrans(chromium_t, chromium_xdg_cache_t, dir, "chromium")
++
 +dyntrans_pattern(chromium_t, chromium_renderer_t)
 +
-+kernel_read_kernel_sysctls(chromium_t)
-+
 +corecmd_exec_bin(chromium_t)
-+corecmd_exec_shell(chromium_t)
 +
 +corenet_tcp_connect_all_unreserved_ports(chromium_t)
 +corenet_tcp_connect_ftp_port(chromium_t)
@@ -75,15 +120,13 @@
 +
 +dev_read_sound(chromium_t)
 +dev_write_sound(chromium_t)
-+dev_read_sysfs(chromium_t)
 +dev_read_urand(chromium_t)
 +
 +domain_dontaudit_search_all_domains_state(chromium_t)
 +
-+files_list_home(chromium_t)
++files_search_home(chromium_t)
 +files_read_usr_files(chromium_t)
 +files_read_etc_files(chromium_t)
-+files_read_etc_runtime_files(chromium_t)
 +
 +fs_dontaudit_getattr_xattr_fs(chromium_t)
 +
@@ -91,22 +134,45 @@
 +
 +miscfiles_read_localization(chromium_t)
 +
-+seutil_libselinux_linked(chromium_t)
++sysnet_dns_name_resolve(chromium_t) 
 +
-+sysnet_dns_name_resolve(chromium_t)
-+
-+userdom_manage_user_home_content_dirs(chromium_t)
-+userdom_manage_user_home_content_files(chromium_t)
-+# Debugging. Also on user_tty_device_t if X is started through "startx" for
-+# instance
++userdom_dontaudit_list_user_home_dirs(chromium_t)
++# Debugging. Also on user_tty_device_t if X is started through "startx" for instance
 +userdom_use_user_terminals(chromium_t)
 +
-+xdg_manage_generic_cache_home_content(chromium_t)
-+#xdg_manage_generic_config_home_content(chromium_t)
++xdg_read_generic_data_home_files(chromium_t)
 +xdg_read_generic_config_home_files(chromium_t)
-+xdg_manage_generic_data_home_content(chromium_t)
 +
 +xserver_user_x_domain_template(chromium, chromium_t, chromium_tmpfs_t)
++
++tunable_policy(`chromium_read_system_info',`
++	kernel_read_kernel_sysctls(chromium_t)
++	# Memory optimizations & optimizations based on OS/version
++	kernel_read_system_state(chromium_t)
++
++	# Debugging (sys/kernel/debug) and device information (sys/bus and sys/devices).
++	dev_read_sysfs(chromium_t)
++
++	files_read_etc_runtime_files(chromium_t)
++',`
++	kernel_dontaudit_read_kernel_sysctls(chromium_t)
++	kernel_dontaudit_read_system_state(chromium_t)
++
++	dev_dontaudit_read_sysfs(chromium_t)
++
++	files_dontaudit_read_etc_runtime(chromium_t)
++')
++
++tunable_policy(`chromium_read_user_content',`
++	userdom_read_user_home_content_files(chromium_t)
++	userdom_read_user_home_content_symlinks(chromium_t)
++	userdom_search_user_home_content(chromium_t)
++')
++
++tunable_policy(`chromium_manage_user_content',`
++	userdom_manage_user_home_content_files(chromium_t)
++	userdom_manage_user_home_content_dirs(chromium_t)
++')
 +
 +optional_policy(`
 +	alsa_read_rw_config(chromium_t)
@@ -127,7 +193,12 @@
 +')
 +
 +optional_policy(`
-+	java_noatsecure_domtrans(chromium_t)
++	# Java (iced-tea) plugin .so creates /tmp/icedteaplugin-<name> directory
++	# and fifo files within. These are then used by the renderer and a
++	# freshly forked java process to communicate between each other.
++	tunable_policy(`chromium_use_java',`
++		java_noatsecure_domtrans(chromium_t)
++	')
 +')
 +
 +optional_policy(`
@@ -154,21 +225,15 @@
 +dontaudit chromium_renderer_t chromium_t:dir search;	# /proc/... access
 +dontaudit chromium_renderer_t self:process getsched;
 +
-+kernel_dontaudit_read_system_state(chromium_renderer_t)
-+kernel_dontaudit_search_sysctl(chromium_renderer_t)
-+# Currently needed due to java plugins
-+kernel_read_kernel_sysctls(chromium_renderer_t)
++read_files_pattern(chromium_renderer_t, chromium_xdg_config_t, chromium_xdg_config_t)
++
++rw_fifo_files_pattern(chromium_renderer_t, chromium_tmp_t, chromium_tmp_t)
 +
 +dev_read_urand(chromium_renderer_t)
 +
-+files_list_tmp(chromium_renderer_t)
-+files_read_etc_files(chromium_renderer_t)
-+files_read_usr_files(chromium_renderer_t)
++files_dontaudit_list_tmp(chromium_renderer_t)
++files_dontaudit_read_etc_files(chromium_renderer_t)
 +files_search_var(chromium_renderer_t)
-+
-+#files_dontaudit_read_all_symlinks(chromium_renderer_t)
-+# was dontaudited, perhaps needed for plugins?
-+#files_search_var(chromium_renderer_t)
 +
 +init_sigchld(chromium_renderer_t)
 +
@@ -181,12 +246,16 @@
 +
 +xserver_user_x_domain_template(chromium_renderer, chromium_renderer_t, chromium_tmpfs_t)
 +
-+optional_policy(`
-+	alsa_read_rw_config(chromium_renderer_t)
++tunable_policy(`chromium_read_system_info',`
++	kernel_read_kernel_sysctls(chromium_renderer_t)
++	kernel_read_system_state(chromium_renderer_t)
++',`
++	kernel_dontaudit_read_kernel_sysctls(chromium_renderer_t)
++	kernel_dontaudit_read_system_state(chromium_renderer_t)
 +')
 --- refpolicy/policy/modules/contrib/chromium.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/chromium.if	2012-07-23 18:05:03.069386834 +0200
-@@ -0,0 +1,97 @@
++++ refpolicypolicy/modules/contrib/chromium.if	2012-07-25 10:58:41.275701064 +0200
+@@ -0,0 +1,126 @@
 +## <summary>
 +##	Chromium browser
 +## </summary>
@@ -242,6 +311,35 @@
 +
 +	rw_fifo_files_pattern($1, chromium_tmp_t, chromium_tmp_t)
 +')
++##############################################
++## <summary>
++##	Automatically use the specified type for resources created in chromium's
++##	temporary locations
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain that creates the resource(s)
++##	</summary>
++## </param>
++## <param name="class">
++##	<summary>
++##	Type of the resource created
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	The name of the resource being created
++##	</summary>
++## </param>
++#
++interface(`chromium_tmp_filetrans',`
++	gen_require(`
++		type chromium_tmp_t;
++	')
++
++	search_dirs_pattern($1, chromium_tmp_t, chromium_tmp_t)
++	filetrans_pattern($1, chromium_tmp_t, $2, $3, $4)
++')
 +#######################################
 +## <summary>
 +## 	Execute a domain transition to the chromium domain (chromium_t)
@@ -285,11 +383,16 @@
 +	role $2 types chromium_t;
 +')
 --- refpolicy/policy/modules/contrib/chromium.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/chromium.fc	2012-07-22 10:33:56.345144631 +0200
-@@ -0,0 +1,6 @@
++++ refpolicypolicy/modules/contrib/chromium.fc	2012-07-24 13:26:58.603535656 +0200
+@@ -0,0 +1,11 @@
 +/usr/lib/chromium-browser/chrome			--	gen_context(system_u:object_r:chromium_exec_t,s0)
 +
 +# Although this should be in the core definitions, it makes more sense to
 +# logically keep it close to the module(s) that use it.
 +
 +/usr/lib/chromium-browser/nacl_helper_bootstrap		--	gen_context(system_u:object_r:bin_t,s0)
++
++HOME_DIR/.cache/chromium(/.*)					gen_context(system_u:object_r:chromium_xdg_cache_t,s0)
++HOME_DIR/.config/chromium(/.*)					gen_context(system_u:object_r:chromium_xdg_config_t,s0)
++
++

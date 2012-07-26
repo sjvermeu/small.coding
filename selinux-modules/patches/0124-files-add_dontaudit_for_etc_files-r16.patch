@@ -1,5 +1,5 @@
---- refpolicy/policy/modules/kernel/files.if	2012-07-23 11:31:18.587336410 +0200
-+++ refpolicypolicy/modules/kernel/files.if	2012-07-23 11:30:59.423336354 +0200
+--- refpolicy/policy/modules/kernel/files.if	2012-07-25 13:03:52.426717095 +0200
++++ refpolicypolicy/modules/kernel/files.if	2012-07-25 13:03:40.215717091 +0200
 @@ -2594,6 +2594,25 @@
  
  ########################################
@@ -26,3 +26,28 @@
  ##	Read generic files in /etc.
  ## </summary>
  ## <desc>
+@@ -2908,6 +2927,24 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Do not audit attempts to read etc_runtime resources
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_dontaudit_read_etc_runtime',`
++	gen_require(`
++		type etc_runtime_t;
++	')
++
++	dontaudit $1 etc_runtime_t:file read_file_perms;
++')
++
++########################################
+ ## <summary>
+ ##	Read files in /etc that are dynamically
+ ##	created on boot, such as mtab.

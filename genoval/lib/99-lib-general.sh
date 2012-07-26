@@ -66,10 +66,16 @@ getStenum() {
 
 genTextfileMatch() {
   local CHECK=$1;
+  local CHECKEXIST=$2;
+
+  if [ "${CHECKEXIST}" = "" ];
+  then
+    CHECKEXIST="at_least_one_exists";
+  fi
 
   # OVALNS, LINENUM and LINE are available through the calling function
 
-  echo "<ind-def:textfilecontent54_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"${CHECK}\" comment=\"${LINE}\" check_existence=\"at_least_one_exists\">";
+  echo "<ind-def:textfilecontent54_test id=\"oval:${OVALNS}:tst:${LINENUM}\" version=\"1\" check=\"${CHECK}\" comment=\"${LINE}\" check_existence=\"${CHECKEXIST}\">";
   echo "  <ind-def:object object_ref=\"oval:${OVALNS}:obj:${OBJNUM}\" />";
   echo "  <ind-def:state state_ref=\"oval:${OVALNS}:ste:${STENUM}\" />";
   echo "</ind-def:textfilecontent54_test>";

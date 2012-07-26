@@ -29,24 +29,43 @@ typeset FUNC="";
 
 selist > ${LIST};
 
-while read LINE;
-do
-  echo ${LINE} | grep -q ${DOMAIN} || continue;
-  echo ${LINE} | grep -vq "ubac_constrained" || continue;
-  echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
-  echo ${LINE} | grep -vq "^[ 	]*dontaudit " || continue;
-  echo ${LINE} | grep -vq "^type " || continue;
-  echo ${LINE} | sed -e "s:${DOMAIN}::g" | grep -vq "[a-z]*_t[, )]" || continue;
+# Order of interface calls, only for .te files
+if [ "${FILE%%.te}" != "${FILE}" ];
+then
+  while read LINE;
+  do
+    echo ${LINE} | grep -q ${DOMAIN} || continue;
+    echo ${LINE} | grep -vq "ubac_constrained" || continue;
+    echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
+    echo ${LINE} | grep -vq "^[ 	]*dontaudit " || continue;
+    echo ${LINE} | grep -vq "^type " || continue;
+    echo ${LINE} | sed -e "s:${DOMAIN}::g" | grep -vq "[a-z]*_t[, )]" || continue;
+  
+    FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
+    NUM=$(grep "${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
+    [[ -n "${NUM}" ]] && [[ ${NUM} -gt 0 ]] || continue;
+    if [[ ${NUM} -lt ${PREV} ]];
+    then
+      echo "Function ${FUNC} should be before ${PREVFUNC}";
+    fi
+    PREVFUNC="${FUNC}";
+    PREV=${NUM};
+  done < ${FILE};
+fi
 
-  FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
-  NUM=$(grep "${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
-  [[ -n "${NUM}" ]] && [[ ${NUM} -gt 0 ]] || continue;
-  if [[ ${NUM} -lt ${PREV} ]];
-  then
-    echo "Function ${FUNC} should be before ${PREVFUNC}";
-  fi
-  PREVFUNC="${FUNC}";
-  PREV=${NUM};
-done < ${FILE};
+# Coding issues
+grep -v '##' ${FILE} | grep -q '# ' && echo "In-line comments found in ${FILE}, verify that these are needed or not.";
+grep -q '^[ 	][ 	]*$' ${FILE} && echo "Whitespace lines found in ${FILE}, these need to be removed!";
+grep -q '#.*TODO' ${FILE} && echo "TODO entry in ${FILE}, these need to be removed!";
+tail -1 ${FILE} | grep -q '^$' && echo "Last line is an empty line in ${FILE}, please remove.";
+
+# Same for interface
+FILE=${FILE%%.te}.if;
+if [ -f ${FILE} ];
+then
+  grep -v '##' ${FILE} | grep -q '# ' && echo "In-line comments found in ${FILE}, verify that these are needed or not.";
+  grep -q '^[ 	][ 	]*$' ${FILE} && echo "Whitespace lines found in ${FILE}, these need to be removed!";
+  tail -1 ${FILE} | grep -q '^$' && echo "Last line is an empty line in ${FILE}, please remove.";
+fi
 
 rm ${LIST};

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+#
+# cp /var/log/avc.log raw && ./sedontaudit.sh -u test.te raw && make -f /usr/share/selinux/strict/include/Makefile test.pp && semodule -i test.pp && > /var/log/avc.log && tail -f /var/log/avc.log
+#
+
 if [ $# -eq 0 ] || [ "$1" = "-h" ];
 then
   echo "Usage: $0 -h		Show help"
@@ -72,10 +76,9 @@ commentGranted() {
   RAWFILE=$2;
   WORKFILE=$(mktemp)
 
-  cat ${RAWFILE} | grep granted | sed -e 's|.*granted  {\([^}]*\) } for.*scontext=[^:]*:[^:]*:\([^ ]*\) tcontext=[^:]*:[^:]*:\([^ ]*\) tclass=\(.*\)$|\2:\3:\4:\1|g' > ${WORKFILE};
+  cat ${RAWFILE} | grep granted | sed -e 's|.*granted  {\([^}]*\) } for.*scontext=[^:]*:[^:]*:\([^ ]*\) tcontext=[^:]*:[^:]*:\([^ ]*\) tclass=\(.*\)$|\2:\3:\4:\1|g' | sort | uniq > ${WORKFILE};
   while read LINE
   do
-    echo "Processing ${LINE}";
     SOURCE=$(echo ${LINE} | awk -F':' '{print $1}');
     TARGET=$(echo ${LINE} | awk -F':' '{print $2}');
     CLASS=$(echo ${LINE} | awk -F':' '{print $3}');
@@ -83,6 +86,7 @@ commentGranted() {
 
     for PERM in ${PERMS};
     do
+      echo "Processing grant for: allow ${SOURCE} ${TARGET} : ${CLASS} ${PERM}..";
       sed -i -e "s| auditallow ${SOURCE} ${TARGET} : ${CLASS} ${PERM}|#auditallow ${SOURCE} ${TARGET} : ${CLASS} ${PERM}|g" ${MODULEFILE};
     done
   done < ${WORKFILE};

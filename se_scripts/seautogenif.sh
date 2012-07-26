@@ -831,9 +831,92 @@ else
   echo "##	${SUMMARY}" >> ${MODULE}.if;
   echo "## </summary>" >> ${MODULE}.if;
   echo "" >> ${MODULE}.if;
-  for FILE in ${MODULE}/*.part ${MODULE}/*.autogen.iface;
+  # Templates first
+  for FILE in $(grep -H '^template' ${MODULE}/*.part ${MODULE}/*.autogen.iface 2>/dev/null | awk -F':' '{print $1}' | sort | uniq);
   do
     [ ! -f ${FILE} ] && continue;
-    cat ${FILE} >> ${MODULE}.if; 
+    cat ${FILE} >> ${MODULE}.if;
   done
+  # Next are the transformation types, we use typeattribute for that, but skip the templates...
+  # FILE: look for typeattribute, then print "<attribute> <filename>", sort on attribute and then print only filenames
+  for FILE in $(grep -H '[ 	]*typeattribute ' ${MODULE}/*.part ${MODULE}/*.autogen.iface 2>/dev/null | sed -e 's|\([^:]*\):.*typeattribute.* \([^ ]*\);|\2 \1|g' | sort | awk '{print $2}' | uniq);
+  do
+    [ ! -f ${FILE} ] && continue;
+    grep -q '^template' ${FILE} && continue;
+    cat ${FILE} >> ${MODULE}.if;
+  done
+  # Then we have the majority of things, being the access interfaces.
+  ACCESSES="role domtrans run exec getattr setattr read append write rw filetrans create rename delete manage relabelto relabelfrom relabel"
+  SPECIFIERS="__NONE__ generic all"
+  MODIFIERS="__NONE__ dontaudit"
+
+  # First gather list of types
+  TYPES=$(grep '^[ 	]*\(type\|attribute\) ' ${MODULE}/*.part ${MODULE}/*.autogen.iface 2>/dev/null | awk '{print $3}' | sed -e 's|;||g' | sort | uniq);
+  for TYPE in ${TYPES};
+  do
+    SHORTTYPE=$(echo ${TYPE} | sed -e "s|${MODULE}_||g" -e "s|_t||g" -e "s|_type||g");
+    for ACCESS in ${ACCESSES};
+    do
+      for SPECIFIER in ${SPECIFIERS};
+      do
+        if [ "${SPECIFIER}" = "__NONE__" ];
+	then
+	  SPECIFIER="";
+	else
+	  SPECIFIER="${SPECIFIER}_";
+	fi
+        for MODIFIER in ${MODIFIERS};
+	do
+	  if [ "${MODIFIER}" = "__NONE__" ];
+	  then
+	    MODIFIER=""
+	  else
+	    MODIFIER="${MODIFIER}_"
+	  fi
+          FILE=$(ls ${MODULE}/${MODULE}*${MODIFIER}${ACCESS}_${SPECIFIER}${SHORTTYPE}*.part \
+	            ${MODULE}/${MODULE}*${MODIFIER}${ACCESS}_${SPECIFIER}${SHORTTYPE}*.autogen.iface \
+		    ${MODULE}/${MODULE}_${SPECIFIER}${SHORTTYPE}_${ACCESS}*.part \
+		    ${MODULE}/${MODULE}_${SPECIFIER}${SHORTTYPE}_${ACCESS}*.autogen.iface 2>/dev/null);
+          [ "${FILE}" = "" ] && continue;
+          if [ ! -f "${FILE}" ];
+	  then
+	    echo "Couldn't properly address ${MODIFIER}${SPECIFIER}${ACCESS}_*${SHORTTYPE}.";
+	    echo " -> returned ${FILE}";
+	    continue;
+	  fi
+	  IFNAME=$(grep '^\(interface\|template\)' ${FILE} | sed -e 's|[^`]*`||' | awk -F"'" '{print $1}');
+	  grep -q "^interface(\`${IFNAME}'" ${MODULE}.if && continue;
+	  grep -q "^template(\`${IFNAME}'" ${MODULE}.if && continue;
+          cat ${FILE} >> ${MODULE}.if;
+	done
+      done
+    done
+  done
+  # Admin interfaces
+  for FILE in $(ls ${MODULE}/*_admin_*.part ${MODULE}/*_admin_*.autogen.iface 2>/dev/null | sort);
+  do
+    [ ! -f "${FILE}" ] && continue;
+    IFNAME=$(grep '^\(interface\|template\)' ${FILE} | sed -e 's|[^`]*`||' | awk -F"'" '{print $1}');
+    grep -q "^interface(\`${IFNAME}'" ${MODULE}.if && continue;
+    grep -q "^template(\`${IFNAME}'" ${MODULE}.if && continue;
+    cat ${FILE} >> ${MODULE}.if;
+  done
+  for FILE in $(ls ${MODULE}/*_admin.part ${MODULE}/*_admin.autogen.iface 2>/dev/null | sort);
+  do
+    [ ! -f "${FILE}" ] && continue;
+    IFNAME=$(grep '^\(interface\|template\)' ${FILE} | sed -e 's|[^`]*`||' | awk -F"'" '{print $1}');
+    grep -q "^interface(\`${IFNAME}'" ${MODULE}.if && continue;
+    grep -q "^template(\`${IFNAME}'" ${MODULE}.if && continue;
+    cat ${FILE} >> ${MODULE}.if;
+  done
+
+  # Final validation
+  NUMFILES=$(ls ${MODULE}/*.part ${MODULE}/*.autogen.if 2>/dev/null | wc -l);
+  NUMIF=$(grep -c '^\(template\|interface\)' ${MODULE}.if);
+  if [ ${NUMFILES} -ne ${NUMIF} ];
+  then
+    echo "Discrepancy found in number of generated interfaces:";
+    echo "  ${NUMFILES} interfaces are in the ${MODULE} directory, but";
+    echo "  ${NUMIF} interfaces are finally in the ${MODULE}.if file.";
+  fi
 fi

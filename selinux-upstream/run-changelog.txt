@@ -1,0 +1,11 @@
+More /run changes
+
+This set contains a few more /run changes:
+- dhcpc creates /run/dhcpc (through scripts in the dhcpcd-hooks)
+- dbus' init script creates /run/dbus
+- mysql' init script creates /run/mysqld
+
+It will be submitted separately: first the changes to the contrib modules,
+followed by the changes to the core policy modules.
+
+Gentoo changesets: 0121, 0122, 0126

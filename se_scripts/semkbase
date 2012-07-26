@@ -17,16 +17,16 @@ REV=$1;
 
 cd ${PATCHES};
 printf "Recreating patchbundle for revision ${REV}... ";
-rm ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120215-r${REV}.tar.bz2;
-tar cvjf ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120215-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;
+rm ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120725-r${REV}.tar.bz2;
+tar cvjf ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120725-r${REV}.tar.bz2 *.patch README.patches > /dev/null 2>&1;
 printf "done\n";
 
 cd ${OVERLAY}/sec-policy/selinux-base-policy;
 
 printf "Updating patchbundle references:\n";
-cp files/patchbundle-selinux-base-policy-2.20120215-r${REV}.tar.bz2 /usr/portage/distfiles;
+cp files/patchbundle-selinux-base-policy-2.20120725-r${REV}.tar.bz2 /usr/portage/distfiles;
 cd ..;
-for PKG in *; do sed -i -e "/patchbundle-selinux-base-policy-2.20120215-r${REV}/d" ${PKG}/Manifest; done
+for PKG in *; do sed -i -e "/patchbundle-selinux-base-policy-2.20120725-r${REV}/d" ${PKG}/Manifest; done
 repoman manifest;
 
 printf "Adding to overlay:\n";
@@ -35,7 +35,7 @@ git commit -m 'Update on selinux-base-policy and patchbundle references';
 git push;
 
 printf "Copying patchbundle to destination in dev.g.o...\n";
-scp ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120215-r${REV}.tar.bz2 swift@dev.gentoo.org:public_html/patches/selinux-base-policy;
+scp ${OVERLAY}/sec-policy/selinux-base-policy/files/patchbundle-selinux-base-policy-2.20120725-r${REV}.tar.bz2 swift@dev.gentoo.org:public_html/patches/selinux-base-policy;
 printf "done\n";
 
 printf "All set and done.\n";

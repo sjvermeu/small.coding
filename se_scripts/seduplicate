@@ -56,20 +56,42 @@ else
   echo "Option $1 is not valid.";
 fi
 
+FILELIST=$(mktemp);
+# Build file list, keep track of blocks
 BLOCKID=0;
-PREVBLOCKID=0;
 while read LINE;
 do
   echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
   if [ $? -eq 0 ];
   then
-    BLOCKID=${RANDOM}${RANDOM};
+    BLOCKID=$((${BLOCKID}+1));
+  fi
+  echo ${LINE} | grep -q "^[ 	]*',\`[ 	]*$";
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=$((${BLOCKID}+1));
+  fi
+  echo ${LINE} | grep -q "^[ 	]*')[ 	]*$";
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=0;
+  fi
+  echo ${LINE} | sed -e "s:$: \[${BLOCKID}\]:g" >> ${FILELIST};
+done < ${FILE};
+
+BLOCKID=0;
+while read LINE;
+do
+  echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=$((${BLOCKID}+1));
     continue;
   fi
   echo ${LINE} | grep -q "^[ 	]*',\`[ 	]*$";
   if [ $? -eq 0 ];
   then
-    BLOCKID=${RANDOM}${RANDOM};
+    BLOCKID=$((${BLOCKID}+1));
     continue;
   fi
   echo ${LINE} | grep -q "^[ 	]*')[ 	]*$";
@@ -94,12 +116,22 @@ do
   for SUPERSET in ${SUPERSETS};
   do
     # Checking if one of these is also in the file
-    grep -q "^[ 	]*${SUPERSET}(.*${DOMAIN}.*)" ${FILE};
-    if [ $? -eq 0 ] && [ ${BLOCKID} -eq ${PREVBLOCKID} ];
+    MATCHBLOCK=$(grep "^[ 	]*${SUPERSET}(.*${DOMAIN}.*)" ${FILELIST});
+    if [ $? -eq 0 ];
     then
-      echo "Method ${FUNC} called, but privilege already assigned through ${SUPERSET}."
+      PREVBLOCKID=$(echo ${MATCHBLOCK} | sed -e 's:.*\[\([0-9]*\)\]$:\1:g');
+      if [ ${BLOCKID} -eq ${PREVBLOCKID} ];
+      then
+        echo "Method ${FUNC} already provided by ${SUPERSET}"
+      elif [ ${PREVBLOCKID} -eq 0 ];
+      then
+        echo "Method ${FUNC} already provided by ${SUPERSET} in master block.";
+      else
+        echo "Method ${FUNC} might be provided by ${SUPERSET} in other block.";
+      fi
     fi
   done
   PREVBLOCKID=${BLOCKID};
 done < ${FILE};
 
+rm ${FILELIST};

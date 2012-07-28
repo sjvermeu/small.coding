@@ -8,7 +8,7 @@ selist() {
   egrep '^(interface|template)' kernel/kernel.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, kernel):g" | sort;
   egrep '^(interface|template)' kernel/*.if | grep -v 'kernel/kernel.if' | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, other):g" | sort;
   egrep '^(interface|template)' system/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (system):g" | sort;
-  egrep '^(interface|template)' admin/*.if apps/*.if roles/*.if services/*.if contrib/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sort;
+  egrep '^(interface|template)' admin/*.if apps/*.if roles/*.if services/*.if contrib/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (other):g" | sort;
   ) | nl;
   popd > /dev/null 2>&1;
 }
@@ -30,10 +30,31 @@ typeset FUNC="";
 selist > ${LIST};
 
 # Order of interface calls, only for .te files
+# First start with those direct matches (not within a block)
 if [ "${FILE%%.te}" != "${FILE}" ];
 then
+  BLOCKID=0;
+  PREVBLOCKID=0;
   while read LINE;
   do
+    echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
+    if [ $? -eq 0 ];
+    then
+      BLOCKID=${RANDOM}${RANDOM};
+      continue;
+    fi
+    echo ${LINE} | grep -q "^[ 	]*',\`[ 	]*$";
+    if [ $? -eq 0 ];
+    then
+      BLOCKID=${RANDOM}${RANDOM};
+      continue;
+    fi
+    echo ${LINE} | grep -q "^[ 	]*')[ 	]*$";
+    if [ $? -eq 0 ];
+    then
+      BLOCKID=0;
+      continue;
+    fi
     echo ${LINE} | grep -q ${DOMAIN} || continue;
     echo ${LINE} | grep -vq "ubac_constrained" || continue;
     echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
@@ -44,12 +65,13 @@ then
     FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
     NUM=$(grep "${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
     [[ -n "${NUM}" ]] && [[ ${NUM} -gt 0 ]] || continue;
-    if [[ ${NUM} -lt ${PREV} ]];
+    if [[ ${NUM} -lt ${PREV} ]] && [[ ${PREVBLOCKID} -eq ${BLOCKID} ]];
     then
       echo "Function ${FUNC} should be before ${PREVFUNC}";
     fi
     PREVFUNC="${FUNC}";
     PREV=${NUM};
+    PREVBLOCKID=${BLOCKID};
   done < ${FILE};
 fi
 

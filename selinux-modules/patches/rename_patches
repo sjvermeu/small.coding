@@ -1,0 +1,31 @@
+#!/bin/sh
+
+if [ $# -lt 2 ];
+then
+  echo "Usage $0 <oldnum> <newnum> [<rev>]";
+  echo "";
+  echo "Renames patches starting with <oldnum> to <newnum>, and reset revision to -r<rev>";
+  exit 1;
+fi
+
+OLDNUM=$1;
+NEWNUM=$2;
+REV=$3;
+
+for FILE in ${OLDNUM}-*;
+do
+  [ ! -f ${FILE} ] && continue;
+  NEWFILE=${NEWNUM}-${FILE##${OLDNUM}-};
+  if [ -f ${NEWFILE} ];
+  then
+    echo "File ${NEWFILE} already exists (come from ${FILE})";
+    exit 1;
+  else
+    if [ "${REV}" != "" ];
+    then
+      echo mv ${FILE} ${NEWFILE%%-r*.patch}-r1.patch; 
+    else
+      echo mv ${FILE} ${NEWFILE};
+    fi
+  fi
+done

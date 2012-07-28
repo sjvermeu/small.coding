@@ -56,8 +56,29 @@ else
   echo "Option $1 is not valid.";
 fi
 
+BLOCKID=0;
+PREVBLOCKID=0;
 while read LINE;
 do
+  echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=${RANDOM}${RANDOM};
+    continue;
+  fi
+  echo ${LINE} | grep -q "^[ 	]*',\`[ 	]*$";
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=${RANDOM}${RANDOM};
+    continue;
+  fi
+  echo ${LINE} | grep -q "^[ 	]*')[ 	]*$";
+  if [ $? -eq 0 ];
+  then
+    BLOCKID=0;
+    continue;
+  fi
+
   echo ${LINE} | grep -q ${DOMAIN} || continue;
   echo ${LINE} | grep -vq "ubac_constrained" || continue;
   echo ${LINE} | grep -vq "^[ 	]*allow " || continue;
@@ -74,10 +95,11 @@ do
   do
     # Checking if one of these is also in the file
     grep -q "^[ 	]*${SUPERSET}(.*${DOMAIN}.*)" ${FILE};
-    if [ $? -eq 0 ];
+    if [ $? -eq 0 ] && [ ${BLOCKID} -eq ${PREVBLOCKID} ];
     then
       echo "Method ${FUNC} called, but privilege already assigned through ${SUPERSET}."
     fi
   done
+  PREVBLOCKID=${BLOCKID};
 done < ${FILE};
 

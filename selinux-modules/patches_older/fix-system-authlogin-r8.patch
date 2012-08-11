@@ -1,7 +1,0 @@
---- refpolicy.orig/policy/modules/system/authlogin.fc	2010-08-03 15:11:04.000000000 +0200
-+++ refpolicy/policy/modules/system/authlogin.fc	2011-02-06 21:34:09.960999985 +0100
-@@ -43,3 +43,4 @@
- /var/run/pam_ssh(/.*)?		gen_context(system_u:object_r:var_auth_t,s0)
- /var/run/sepermit(/.*)? 	gen_context(system_u:object_r:pam_var_run_t,s0)
- /var/run/sudo(/.*)?		gen_context(system_u:object_r:pam_var_run_t,s0)
-+/var/(db|lib|adm)/sudo(/.*)?	gen_context(system_u:object_r:pam_var_run_t,s0)

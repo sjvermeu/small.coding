@@ -8,4 +8,9 @@ This set contains a few more /run changes:
 It will be submitted separately: first the changes to the contrib modules,
 followed by the changes to the core policy modules.
 
+Changes since v1
+----------------
+
+- The init script for mysql also needs setattr rights on the run dirs
+
 Gentoo changesets: 0121, 0122, 0126

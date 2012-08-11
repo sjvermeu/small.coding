@@ -1,0 +1,5 @@
+Allow postfix local to change ownership of mailfiles
+
+When the postfix local service delivers a file to a user mailbox, but that
+mailbox doesn't exist, then the service creates the mailbox and wants to change
+the ownership of the file. This needs the chown capability.

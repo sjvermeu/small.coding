@@ -1,0 +1,8 @@
+Postfix (and a few mta) policy updates
+
+This patchset updates the postfix (and mta) policy with various changes:
+- file context support
+- updates for the local service (mail delivery)
+- support for automatically creating the queues
+- fix typo in the interfaces
+- support lock files in mail delivery

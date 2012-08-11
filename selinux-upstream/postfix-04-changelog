@@ -1,0 +1,11 @@
+Allow maildelivery to use dotlock files in the mail spool
+
+When a mail delivery server wants to append mails to the users' mail spool file,
+it might also use dotlock files in order to "lock" access to the mail spool
+file. This requires the domain file managing rights (create/write/remove) within
+the mta_spool_t resource.
+
+Note that this isn't needed if only fcntl locking is used, but most mail
+delivery services use dotlock locking as well. Also, since the lock files are
+named <username>.lock we cannot create file transitions (towards a lock type) as
+we cannot mention the filenames up front.

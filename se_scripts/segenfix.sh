@@ -7,7 +7,7 @@
 
 typeset TARGET=$2;
 typeset TYPE=$1;
-typeset TRANSLATE="s:\(${TMPLOC}\|${NEWDST%%policy/modules}\):refpolicy:g";
+typeset TRANSLATE="s:\(${TMPLOC}\|${NEWDST%%/policy/modules}\):refpolicy:g";
 typeset MODULETRANSLATE="s:/.*/policy/modules/::g";
 
 typeset SUBJECT="";
@@ -43,7 +43,7 @@ else
   if [ "${TARGET}" = "all" ];
   then
     SUBJECT=${TARGET};
-    NEWDST=${NEWDST%%policy/modules};
+    NEWDST=${NEWDST%%/policy/modules};
   elif [ "${SUBJECT}" = "" ];
   then
     SUBJECT=${TARGET};

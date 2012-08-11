@@ -846,7 +846,7 @@ else
     cat ${FILE} >> ${MODULE}.if;
   done
   # Then we have the majority of things, being the access interfaces.
-  ACCESSES="role domtrans run exec getattr setattr read append write rw filetrans create rename delete manage relabelto relabelfrom relabel"
+  ACCESSES="role domtrans run exec getattr search read append setattr write rw filetrans create rename delete manage relabelto relabelfrom relabel"
   SPECIFIERS="__NONE__ generic all"
   MODIFIERS="__NONE__ dontaudit"
 

@@ -1,0 +1,63 @@
+diff -uNr refpolicy/policy/modules/contrib/portage.if refpolicy/policy/modules/contrib/portage.if
+--- refpolicy/policy/modules/contrib/portage.if	2012-07-26 21:09:59.532963767 +0200
++++ refpolicy/policy/modules/contrib/portage.if	2012-07-26 21:10:08.237963786 +0200
+@@ -362,3 +362,29 @@
+ 
+ 	dontaudit $1 portage_tmp_t:file rw_file_perms;
+ ')
++
++########################################
++## <summary>
++##   Allow the domain to run within an eselect module script. 
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain to allow within an eselect module
++##     </summary>
++## </param>
++#   Specific to Gentoo,
++#   eselect modules allow users to switch between different flavors or versions
++#   of underlying components. In return, eselect makes a wrapper binary which 
++#   makes the proper selections. If this binary is different from bin_t, it might
++#   not hold the necessary privileges for the wrapper to function. However, just
++#   marking the target binaries doesn't always work, since for python scripts the
++#   wrapper doesn't execute it, but treats the target as a library.
++#
++interface(`portage_eselect_module',`
++       gen_require(`
++               attribute portage_eselect_domain;
++       ')
++
++       typeattribute $1 portage_eselect_domain;
++')
++
+diff -uNr refpolicy/policy/modules/contrib/portage.te refpolicy/policy/modules/contrib/portage.te
+--- refpolicy/policy/modules/contrib/portage.te	2012-07-26 21:10:05.244963779 +0200
++++ refpolicy/policy/modules/contrib/portage.te	2012-07-26 21:10:08.236963786 +0200
+@@ -29,6 +29,9 @@
+ 
+ attribute_role portage_roles;
+ 
++# Assigned to domains that are managed by eselect
++attribute portage_eselect_domain;
++
+ type gcc_config_t;
+ type gcc_config_exec_t;
+ application_domain(gcc_config_t, gcc_config_exec_t)
+@@ -367,3 +370,16 @@
+ 	dontaudit portage_sandbox_t portage_cache_t:dir { setattr };
+ 	dontaudit portage_sandbox_t portage_cache_t:file { setattr write };
+ ')
++
++##########################################
++#
++# Portage eselect module domain
++#
++
++allow portage_eselect_domain self:fifo_file { read write };
++
++corecmd_exec_shell(portage_eselect_domain)
++
++# Support for /etc/env.d changes
++files_manage_etc_runtime_files(portage_eselect_domain)
++

@@ -1,0 +1,29 @@
+diff -uNr refpolicy/policy/modules/kernel/devices.if refpolicy/policy/modules/kernel/devices.if
+--- refpolicy/policy/modules/kernel/devices.if	2012-07-26 21:10:04.574963777 +0200
++++ refpolicy/policy/modules/kernel/devices.if	2012-07-26 21:10:06.698963782 +0200
+@@ -588,6 +588,25 @@
+ 
+ ########################################
+ ## <summary>
++##	Setattr for generic character device files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`dev_setattr_generic_chr_files',`
++	gen_require(`
++		type device_t;
++	')
++
++	allow $1 device_t:chr_file setattr;
++')
++
++
++########################################
++## <summary>
+ ##	Read generic character device files.
+ ## </summary>
+ ## <param name="domain">

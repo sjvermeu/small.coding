@@ -1,6 +1,7 @@
---- refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:46:52.407304192 +0100
-+++ refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:45:48.929304057 +0100
-@@ -459,6 +459,10 @@
+diff -uNr refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:09:59.525963767 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:01.553963771 +0200
+@@ -463,6 +463,10 @@
  	')
  
  	optional_policy(`

@@ -1,0 +1,27 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-28 23:00:29.099346749 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-07-26 22:40:57.167975416 +0200
+@@ -241,6 +241,10 @@
+ ')
+ 
+ optional_policy(`
++	mutt_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	mysql_stream_connect(sysadm_t)
+ ')
+ 
+@@ -414,11 +418,11 @@
+ ')
+ 
+ optional_policy(`
+-	virt_stream_connect(sysadm_t)
++	vde_role(sysadm_r, sysadm_t)
+ ')
+ 
+ optional_policy(`
+-	vde_role(sysadm_r, sysadm_t)
++	virt_stream_connect(sysadm_t)
+ ')
+ 
+ optional_policy(`

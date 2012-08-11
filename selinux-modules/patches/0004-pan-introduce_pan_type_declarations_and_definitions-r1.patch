@@ -1,5 +1,58 @@
+diff -uNr refpolicy/policy/modules/contrib/pan.fc refpolicy/policy/modules/contrib/pan.fc
+--- refpolicy/policy/modules/contrib/pan.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/pan.fc	2012-07-26 21:10:00.824963769 +0200
+@@ -0,0 +1,6 @@
++HOME_DIR/\.pan2(/.*)?		gen_context(system_u:object_r:pan_home_t,s0)
++
++#
++# /usr
++#
++/usr/bin/pan		--	gen_context(system_u:object_r:pan_exec_t,s0)
+diff -uNr refpolicy/policy/modules/contrib/pan.if refpolicy/policy/modules/contrib/pan.if
+--- refpolicy/policy/modules/contrib/pan.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/pan.if	2012-07-26 21:10:00.824963769 +0200
+@@ -0,0 +1,38 @@
++## <summary>Pan news reader client</summary>
++
++########################################
++## <summary>
++##	Role access for pan
++## </summary>
++## <param name="role">
++##	<summary>
++##	Role allowed access
++##	</summary>
++## </param>
++## <param name="domain">
++##	<summary>
++##	User domain for the role
++##	</summary>
++## </param>
++#
++interface(`pan_role',`
++	gen_require(`
++		type pan_t, pan_exec_t, pan_home_t;
++	')
++	role $1 types pan_t;
++
++	allow $2 pan_t:process signal_perms;
++
++	domtrans_pattern($2, pan_exec_t, pan_t)
++
++	ps_process_pattern($2, pan_t)
++
++        manage_dirs_pattern($2, pan_home_t, pan_home_t)
++        manage_files_pattern($2, pan_home_t, pan_home_t)
++        manage_lnk_files_pattern($2, pan_home_t, pan_home_t)
++
++        relabel_dirs_pattern($2, pan_home_t, pan_home_t)
++        relabel_files_pattern($2, pan_home_t, pan_home_t)
++        relabel_lnk_files_pattern($2, pan_home_t, pan_home_t)
++')
++
+diff -uNr refpolicy/policy/modules/contrib/pan.te refpolicy/policy/modules/contrib/pan.te
 --- refpolicy/policy/modules/contrib/pan.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/pan.te	2012-02-25 09:35:08.786302690 +0100
++++ refpolicy/policy/modules/contrib/pan.te	2012-07-26 21:10:00.824963769 +0200
 @@ -0,0 +1,116 @@
 +policy_module(pan, 1.0)
 +
@@ -117,53 +170,3 @@
 +optional_policy(`
 +	xdg_read_generic_data_home_files(pan_t)
 +')
---- refpolicy/policy/modules/contrib/pan.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/pan.if	2012-02-25 09:35:08.787302690 +0100
-@@ -0,0 +1,38 @@
-+## <summary>Pan news reader client</summary>
-+
-+########################################
-+## <summary>
-+##	Role access for pan
-+## </summary>
-+## <param name="role">
-+##	<summary>
-+##	Role allowed access
-+##	</summary>
-+## </param>
-+## <param name="domain">
-+##	<summary>
-+##	User domain for the role
-+##	</summary>
-+## </param>
-+#
-+interface(`pan_role',`
-+	gen_require(`
-+		type pan_t, pan_exec_t, pan_home_t;
-+	')
-+	role $1 types pan_t;
-+
-+	allow $2 pan_t:process signal_perms;
-+
-+	domtrans_pattern($2, pan_exec_t, pan_t)
-+
-+	ps_process_pattern($2, pan_t)
-+
-+        manage_dirs_pattern($2, pan_home_t, pan_home_t)
-+        manage_files_pattern($2, pan_home_t, pan_home_t)
-+        manage_lnk_files_pattern($2, pan_home_t, pan_home_t)
-+
-+        relabel_dirs_pattern($2, pan_home_t, pan_home_t)
-+        relabel_files_pattern($2, pan_home_t, pan_home_t)
-+        relabel_lnk_files_pattern($2, pan_home_t, pan_home_t)
-+')
-+
---- refpolicy/policy/modules/contrib/pan.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/pan.fc	2012-02-25 09:35:08.787302690 +0100
-@@ -0,0 +1,6 @@
-+HOME_DIR/\.pan2(/.*)?		gen_context(system_u:object_r:pan_home_t,s0)
-+
-+#
-+# /usr
-+#
-+/usr/bin/pan		--	gen_context(system_u:object_r:pan_exec_t,s0)

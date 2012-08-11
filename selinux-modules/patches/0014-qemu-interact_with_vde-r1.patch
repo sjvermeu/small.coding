@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/contrib/qemu.te refpolicy/policy/modules/contrib/qemu.te
+--- refpolicy/policy/modules/contrib/qemu.te	2012-07-26 21:09:59.544963767 +0200
++++ refpolicy/policy/modules/contrib/qemu.te	2012-07-26 21:10:02.228963773 +0200
+@@ -101,6 +101,10 @@
+ ')
+ 
+ optional_policy(`
++	vde_connect(qemu_t)
++')
++
++optional_policy(`
+ 	virt_manage_images(qemu_t)
+ 	virt_append_log(qemu_t)
+ ')

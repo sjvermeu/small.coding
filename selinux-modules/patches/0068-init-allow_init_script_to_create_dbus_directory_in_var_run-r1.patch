@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:10:06.563963782 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:08.576963786 +0200
+@@ -642,8 +642,10 @@
+ 
+ optional_policy(`
+ 	dbus_connect_system_bus(initrc_t)
++	dbus_create_system_dbusd_var_run_dirs(initrc_t)
+ 	dbus_system_bus_client(initrc_t)
+ 	dbus_read_config(initrc_t)
++	dbus_generic_pid_filetrans_system_dbusd_var_run(initrc_t, dir, "dbus")
+ 
+ 	optional_policy(`
+ 		consolekit_dbus_chat(initrc_t)

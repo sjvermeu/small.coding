@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/system/selinuxutil.te refpolicy/policy/modules/system/selinuxutil.te
+--- refpolicy/policy/modules/system/selinuxutil.te	2012-07-26 21:09:59.530963767 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2012-07-26 21:10:08.304963786 +0200
+@@ -517,6 +517,10 @@
+ 	')
+ ')
+ 
++optional_policy(`
++	portage_eselect_module(semanage_t)
++')
++
+ ########################################
+ #
+ # Setfiles local policy

@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/contrib/cron.te refpolicy/policy/modules/contrib/cron.te
+--- refpolicy/policy/modules/contrib/cron.te	2012-07-26 21:10:03.769963775 +0200
++++ refpolicy/policy/modules/contrib/cron.te	2012-07-26 21:10:06.365963782 +0200
+@@ -534,6 +534,7 @@
+ allow crond_t cronjob_t:process transition;
+ dontaudit crond_t cronjob_t:process { noatsecure siginh rlimitinh };
+ allow crond_t cronjob_t:fd use;
++allow crond_t cronjob_t:key create;
+ allow cronjob_t crond_t:fd use;
+ allow cronjob_t crond_t:fifo_file rw_file_perms;
+ allow cronjob_t crond_t:process sigchld;

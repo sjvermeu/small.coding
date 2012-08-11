@@ -1,0 +1,19 @@
+diff -uNr refpolicy/policy/modules/admin/su.if refpolicy/policy/modules/admin/su.if
+--- refpolicy/policy/modules/admin/su.if	2012-07-26 21:09:59.524963767 +0200
++++ refpolicy/policy/modules/admin/su.if	2012-07-26 21:10:04.177963777 +0200
+@@ -73,6 +73,7 @@
+ 
+ 	# for the rootok check
+ 	selinux_compute_access_vector($1_su_t)
++	selinux_get_fs_mount($1_su_t)
+ 
+ 	auth_domtrans_chk_passwd($1_su_t)
+ 	auth_dontaudit_read_shadow($1_su_t)
+@@ -205,6 +206,7 @@
+ 
+ 	# needed for pam_rootok
+ 	selinux_compute_access_vector($1_su_t)
++	selinux_get_fs_mount($1_su_t)
+ 
+ 	auth_domtrans_chk_passwd($1_su_t)
+ 	auth_dontaudit_read_shadow($1_su_t)

@@ -1,0 +1,62 @@
+--- refpolicy/policy/modules/contrib/ldap.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicypolicy/modules/contrib/ldap.te	2012-05-05 16:11:27.049762613 +0200
+@@ -42,9 +42,10 @@
+ # cjp: why net_raw?
+ allow slapd_t self:capability { kill setgid setuid net_raw dac_override dac_read_search };
+ dontaudit slapd_t self:capability sys_tty_config;
+-allow slapd_t self:process setsched;
++allow slapd_t self:process { setsched signal };
+ allow slapd_t self:fifo_file rw_fifo_file_perms;
+ allow slapd_t self:udp_socket create_socket_perms;
++allow slapd_t self:unix_stream_socket listen;
+ #slapd needs to listen and accept needed by ldapsearch (slapd needs to accept from ldapseach)
+ allow slapd_t self:tcp_socket create_stream_socket_perms;
+ 
+@@ -114,6 +115,7 @@
+ 
+ userdom_dontaudit_use_unpriv_user_fds(slapd_t)
+ userdom_dontaudit_search_user_home_dirs(slapd_t)
++userdom_use_user_terminals(slapd_t)
+ 
+ optional_policy(`
+ 	kerberos_keytab_template(slapd, slapd_t)
+--- refpolicy/policy/modules/contrib/ldap.if	2012-07-10 14:45:57.000000000 +0200
++++ refpolicypolicy/modules/contrib/ldap.if	2012-07-17 17:30:26.132244644 +0200
+@@ -93,7 +93,7 @@
+ 	gen_require(`
+ 		type slapd_t, slapd_tmp_t, slapd_replog_t;
+ 		type slapd_lock_t, slapd_etc_t, slapd_var_run_t;
+-		type slapd_initrc_exec_t;
++		type slapd_initrc_exec_t, slapd_exec_t;
+ 	')
+ 
+ 	allow $1 slapd_t:process { ptrace signal_perms };
+@@ -104,6 +104,9 @@
+ 	role_transition $2 slapd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
++	role $2 types slapd_t;
++	domtrans_pattern($1, slapd_exec_t, slapd_t)
++
+ 	files_list_etc($1)
+ 	admin_pattern($1, slapd_etc_t)
+ 
+--- refpolicy/policy/modules/contrib/ldap.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicypolicy/modules/contrib/ldap.fc	2012-05-05 16:11:27.043762613 +0200
+@@ -4,12 +4,16 @@
+ 
+ /usr/sbin/slapd		--	gen_context(system_u:object_r:slapd_exec_t,s0)
+ 
++/usr/lib/openldap/slapd	--	gen_context(system_u:object_r:slapd_exec_t,s0)
+ ifdef(`distro_debian',`
+ /usr/lib/slapd		--	gen_context(system_u:object_r:slapd_exec_t,s0)
+ ')
+ 
+ /var/lib/ldap(/.*)?		gen_context(system_u:object_r:slapd_db_t,s0)
+ /var/lib/ldap/replog(/.*)?	gen_context(system_u:object_r:slapd_replog_t,s0)
++/var/lib/openldap-data(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
++/var/lib/openldap-ldbm(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
++/var/lib/openldap-slurpd(/.*)?	gen_context(system_u:object_r:slapd_db_t,s0)
+ 
+ /var/run/ldapi		-s	gen_context(system_u:object_r:slapd_var_run_t,s0)
+ /var/run/openldap(/.*)?		gen_context(system_u:object_r:slapd_var_run_t,s0)

@@ -1,5 +1,6 @@
---- refpolicy/policy/modules/contrib/gpg.te	2012-02-15 20:32:44.000000000 +0100
-+++ refpolicy/policy/modules/contrib/gpg.te	2012-02-25 09:30:15.006302064 +0100
+diff -uNr refpolicy/policy/modules/contrib/gpg.te refpolicy/policy/modules/contrib/gpg.te
+--- refpolicy/policy/modules/contrib/gpg.te	2012-07-26 21:09:59.538963767 +0200
++++ refpolicy/policy/modules/contrib/gpg.te	2012-07-26 21:09:59.934963767 +0200
 @@ -340,6 +340,12 @@
  ')
  

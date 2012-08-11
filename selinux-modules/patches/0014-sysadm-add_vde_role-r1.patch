@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:01.818963771 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:02.294963773 +0200
+@@ -402,6 +402,10 @@
+ ')
+ 
+ optional_policy(`
++	vde_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	vmware_role(sysadm_r, sysadm_t)
+ ')
+ 

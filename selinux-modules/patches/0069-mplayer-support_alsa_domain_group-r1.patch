@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/mplayer.te	2012-07-27 20:20:15.777141814 +0200
++++ refpolicypolicy/modules/contrib/mplayer.te	2012-07-27 20:19:39.680141737 +0200
+@@ -297,6 +297,7 @@
+ ')
+ 
+ optional_policy(`
++	alsa_domain(mplayer_t, mplayer_tmpfs_t)
+ 	alsa_read_rw_config(mplayer_t)
+ ')
+ 

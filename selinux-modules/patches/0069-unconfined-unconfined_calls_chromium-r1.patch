@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/system/unconfined.te refpolicy/policy/modules/system/unconfined.te
+--- refpolicy/policy/modules/system/unconfined.te	2012-07-26 21:10:06.629963782 +0200
++++ refpolicy/policy/modules/system/unconfined.te	2012-07-26 21:10:09.253963788 +0200
+@@ -72,6 +72,10 @@
+ ')
+ 
+ optional_policy(`
++	chromium_role(unconfined_r, unconfined_t)
++')
++
++optional_policy(`
+ 	cron_unconfined_role(unconfined_r, unconfined_t)
+ ')
+ 

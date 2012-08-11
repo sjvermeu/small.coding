@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:10:05.178963779 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:05.247963779 +0200
+@@ -223,7 +223,7 @@
+ #
+ 
+ allow initrc_t self:process { getpgid setsched setpgid setrlimit getsched };
+-allow initrc_t self:capability ~{ sys_admin sys_module };
++allow initrc_t self:capability ~{ sys_module };
+ dontaudit initrc_t self:capability sys_module; # sysctl is triggering this
+ allow initrc_t self:passwd rootok;
+ allow initrc_t self:key manage_key_perms;

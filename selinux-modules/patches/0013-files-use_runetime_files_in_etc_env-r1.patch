@@ -1,0 +1,42 @@
+diff -uNr refpolicy/policy/modules/kernel/files.fc refpolicy/policy/modules/kernel/files.fc
+--- refpolicy/policy/modules/kernel/files.fc	2012-07-26 21:09:59.586963767 +0200
++++ refpolicy/policy/modules/kernel/files.fc	2012-07-26 21:10:02.090963773 +0200
+@@ -75,7 +75,7 @@
+ ifdef(`distro_gentoo', `
+ /etc/profile\.env	--	gen_context(system_u:object_r:etc_runtime_t,s0)
+ /etc/csh\.env		--	gen_context(system_u:object_r:etc_runtime_t,s0)
+-/etc/env\.d/.*		--	gen_context(system_u:object_r:etc_runtime_t,s0)
++/etc/env\.d(/.*)?		gen_context(system_u:object_r:etc_runtime_t,s0)
+ ')
+ 
+ ifdef(`distro_redhat',`
+diff -uNr refpolicy/policy/modules/kernel/files.if refpolicy/policy/modules/kernel/files.if
+--- refpolicy/policy/modules/kernel/files.if	2012-07-26 21:09:59.592963767 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-07-26 21:10:02.092963773 +0200
+@@ -3011,6 +3011,26 @@
+ 
+ ########################################
+ ## <summary>
++##	Create, read, write, and delete symbolic links in
++##	/etc that are dynamically created on boot.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`files_manage_etc_runtime_lnk_files',`
++	gen_require(`
++		type etc_t, etc_runtime_t;
++	')
++
++	manage_lnk_files_pattern($1, { etc_t etc_runtime_t }, etc_runtime_t)
++')
++
++########################################
++## <summary>
+ ##	Create, etc runtime objects with an automatic
+ ##	type transition.
+ ## </summary>

@@ -1,0 +1,24 @@
+diff -uNr refpolicy/policy/modules/contrib/telnet.te refpolicy/policy/modules/contrib/telnet.te
+--- refpolicy/policy/modules/contrib/telnet.te	2012-07-26 21:10:02.756963773 +0200
++++ refpolicy/policy/modules/contrib/telnet.te	2012-07-26 21:10:07.562963784 +0200
+@@ -7,7 +7,8 @@
+ 
+ type telnetd_t;
+ type telnetd_exec_t;
+-inetd_service_domain(telnetd_t, telnetd_exec_t)
++init_daemon_domain(telnetd_t, telnetd_exec_t)
++
+ role system_r types telnetd_t;
+ 
+ type telnetd_devpts_t; #, userpty_type;
+@@ -97,6 +98,10 @@
+ ')
+ 
+ optional_policy(`
++	inetd_service_domain(telnetd_t, telnetd_exec_t)
++')
++
++optional_policy(`
+ 	kerberos_keytab_template(telnetd, telnetd_t)
+ 	kerberos_manage_host_rcache(telnetd_t)
+ ')

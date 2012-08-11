@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/system/init.fc refpolicy/policy/modules/system/init.fc
+--- refpolicy/policy/modules/system/init.fc	2012-07-26 21:10:04.371963777 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-07-26 21:10:04.441963777 +0200
+@@ -26,6 +26,7 @@
+ #
+ ifdef(`distro_gentoo', `
+ /lib/rc/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/lib/rc/console(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ #

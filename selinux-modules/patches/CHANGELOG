@@ -1,3 +1,18 @@
+#429908		Correct postfix binary labels
+#428686		Allow admins to run postfix administration commands
+<no bug>	Allow postfix to create its initial queues
+<no bug>	Use "chromium" as module name, not "chromium-browser"
+<no bug>	Backport oident policy changes
+<no bug>	Backport mcelog policy changes
+<no bug>	Backport BIRD policy
+#427750		Allow init to change the attribute of the mysqld run dir
+<no bug>	Refactor code on init and /run 
+<no bug>	Use proper context substitutions for /usr and /etc/init.d
+
+** 2012-07-28 (20120725) Revision 1
+
+<no bug>	Large update on browser support: alsa, java, introduce flash, xdg
+<no bug>	Merge of 2.20120726 (bumping of module versions and coding style updates)
 <no bug>	Backport: rename epollwakeup to block_suspend to match naming in Linux 3.5
 <no bug>	Backport changes for nslcd
 #427750		Allow init to create /run/mysqld directoriy

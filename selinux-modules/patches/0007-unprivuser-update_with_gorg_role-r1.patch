@@ -1,5 +1,6 @@
---- refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:46:31.309304146 +0100
-+++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:45:01.908303956 +0100
+diff -uNr refpolicy/policy/modules/roles/unprivuser.te refpolicy/policy/modules/roles/unprivuser.te
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-07-26 21:10:01.418963771 +0200
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-07-26 21:10:01.622963771 +0200
 @@ -70,6 +70,10 @@
  	')
  

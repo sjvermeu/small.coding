@@ -1,0 +1,22 @@
+diff -uNr refpolicy/policy/modules/contrib/rpc.if refpolicy/policy/modules/contrib/rpc.if
+--- refpolicy/policy/modules/contrib/rpc.if	2012-07-26 21:09:59.554963767 +0200
++++ refpolicy/policy/modules/contrib/rpc.if	2012-07-26 21:10:03.159963775 +0200
+@@ -431,5 +431,6 @@
+ 	')
+ 
+ 	files_search_var_lib($1)
++	rw_dirs_pattern($1, var_lib_nfs_t, var_lib_nfs_t)
+ 	manage_files_pattern($1, var_lib_nfs_t, var_lib_nfs_t)
+ ')
+diff -uNr refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
+--- refpolicy/policy/modules/contrib/rpc.te	2012-07-26 21:09:59.538963767 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-07-26 21:10:03.160963775 +0200
+@@ -112,7 +112,7 @@
+ #
+ 
+ allow nfsd_t self:capability { dac_override dac_read_search sys_admin sys_resource };
+-
++allow nfsd_t self:udp_socket listen;
+ allow nfsd_t exports_t:file read_file_perms;
+ allow nfsd_t { nfsd_rw_t nfsd_ro_t }:dir list_dir_perms;
+ 

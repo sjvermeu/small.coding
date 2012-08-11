@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/system/mount.te refpolicy/policy/modules/system/mount.te
+--- refpolicy/policy/modules/system/mount.te	2012-07-26 21:10:02.021963771 +0200
++++ refpolicy/policy/modules/system/mount.te	2012-07-26 21:10:04.109963777 +0200
+@@ -107,6 +107,7 @@
+ mls_file_write_all_levels(mount_t)
+ 
+ selinux_get_enforce_mode(mount_t)
++selinux_get_fs_mount(mount_t)
+ 
+ storage_raw_read_fixed_disk(mount_t)
+ storage_raw_write_fixed_disk(mount_t)

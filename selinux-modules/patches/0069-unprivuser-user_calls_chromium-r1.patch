@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/roles/unprivuser.te refpolicy/policy/modules/roles/unprivuser.te
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-07-26 21:10:01.685963771 +0200
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-07-26 21:10:09.320963788 +0200
+@@ -17,6 +17,10 @@
+ ')
+ 
+ optional_policy(`
++	chromium_role(user_r, user_t)
++')
++
++optional_policy(`
+ 	git_role(user_r, user_t)
+ ')
+ 

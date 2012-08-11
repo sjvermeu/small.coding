@@ -1,5 +1,6 @@
---- refpolicy/policy/modules/system/udev.te	2012-02-15 20:32:44.000000000 +0100
-+++ refpolicy/policy/modules/system/udev.te	2012-02-24 20:34:44.675202746 +0100
+diff -uNr refpolicy/policy/modules/system/udev.te refpolicy/policy/modules/system/udev.te
+--- refpolicy/policy/modules/system/udev.te	2012-07-26 21:09:59.529963767 +0200
++++ refpolicy/policy/modules/system/udev.te	2012-07-26 21:09:59.600963767 +0200
 @@ -175,6 +175,7 @@
  	# during boot, init scripts use /dev/.rcsysinit
  	# existance to determine if we are in early booting

@@ -1,0 +1,62 @@
+diff -uNr refpolicy/policy/modules/system/init.fc refpolicy/policy/modules/system/init.fc
+--- refpolicy/policy/modules/system/init.fc	2012-07-26 21:09:59.528963767 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-07-26 21:10:02.759963773 +0200
+@@ -37,10 +37,6 @@
+ 
+ ifdef(`distro_gentoo', `
+ /sbin/rc		--	gen_context(system_u:object_r:rc_exec_t,s0)
+-/sbin/runscript		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/runscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/runsvcscript\.sh	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-/sbin/svcinit		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ ')
+ 
+ #
+@@ -69,6 +65,7 @@
+ 
+ ifdef(`distro_gentoo', `
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/var/lib/iptables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
+ ')
+ 
+diff -uNr refpolicy/policy/modules/system/init.if refpolicy/policy/modules/system/init.if
+--- refpolicy/policy/modules/system/init.if	2012-07-26 21:09:59.530963767 +0200
++++ refpolicy/policy/modules/system/init.if	2012-07-26 21:10:02.760963773 +0200
+@@ -788,6 +788,11 @@
+ 		type initrc_exec_t;
+ 	')
+ 
++	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
++	# wants to execute initrc_exec_t (no transition needed anymore) whereas
++	# runscript previously was a binary
++	# allow $1 initrc_exec_t:file execute_no_trans;
++
+ 	domain_entry_file($1, initrc_exec_t)
+ ')
+ 
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.690963773 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.760963773 +0200
+@@ -608,6 +608,10 @@
+ ')
+ 
+ optional_policy(`
++	courier_read_config(initrc_t)
++')
++
++optional_policy(`
+ 	cpucontrol_stub(initrc_t)
+ 	dev_getattr_cpu_dev(initrc_t)
+ ')
+@@ -821,6 +825,10 @@
+ optional_policy(`
+ 	# allow init scripts to su
+ 	su_restricted_domain_template(initrc, initrc_t, system_r)
++	# Allow initrc_su_t, now defined, to transition to postgresql_t
++	postgresql_domtrans(initrc_su_t)
++	# Allow initrc_su_t to use the initrc_devpts_t (needed for init script failure output)
++	allow initrc_su_t initrc_devpts_t:chr_file { read write };
+ ')
+ 
+ optional_policy(`

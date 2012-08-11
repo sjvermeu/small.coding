@@ -23,9 +23,9 @@ do
   else
     if [ "${REV}" != "" ];
     then
-      echo mv ${FILE} ${NEWFILE%%-r*.patch}-r1.patch; 
+      mv ${FILE} ${NEWFILE%%-r*.patch}-r${REV}.patch; 
     else
-      echo mv ${FILE} ${NEWFILE};
+      mv ${FILE} ${NEWFILE};
     fi
   fi
 done

@@ -1,0 +1,96 @@
+diff -uNr refpolicy/policy/modules/contrib/gnome.fc refpolicy/policy/modules/contrib/gnome.fc
+--- refpolicy/policy/modules/contrib/gnome.fc	2012-07-26 21:09:59.566963767 +0200
++++ refpolicy/policy/modules/contrib/gnome.fc	2012-07-26 21:10:07.831963784 +0200
+@@ -1,4 +1,4 @@
+-HOME_DIR/\.config/gtk-.*	gen_context(system_u:object_r:gnome_home_t,s0)
++HOME_DIR/\.config/gtk-.*	gen_context(system_u:object_r:gnome_xdg_config_t,s0)
+ HOME_DIR/\.gconf(d)?(/.*)?	gen_context(system_u:object_r:gconf_home_t,s0)
+ HOME_DIR/\.gnome2(/.*)?		gen_context(system_u:object_r:gnome_home_t,s0)
+ 
+diff -uNr refpolicy/policy/modules/contrib/gnome.if refpolicy/policy/modules/contrib/gnome.if
+--- refpolicy/policy/modules/contrib/gnome.if	2012-07-26 21:09:59.552963767 +0200
++++ refpolicy/policy/modules/contrib/gnome.if	2012-07-26 21:10:07.830963784 +0200
+@@ -19,6 +19,7 @@
+ 	gen_require(`
+ 		type gconfd_t, gconfd_exec_t;
+ 		type gconf_tmp_t;
++		type gconf_home_t;
+ 	')
+ 
+ 	role $1 types gconfd_t;
+@@ -28,11 +29,16 @@
+ 	allow gconfd_t $2:fifo_file write;
+ 	allow gconfd_t $2:unix_stream_socket connectto;
+ 
++	manage_dirs_pattern($2, gconf_home_t, gconf_home_t)
++	manage_files_pattern($2, gconf_home_t, gconf_home_t)
++
+ 	ps_process_pattern($2, gconfd_t)
+ 
+ 	#gnome_stream_connect_gconf_template($1, $2)
+ 	read_files_pattern($2, gconf_tmp_t, gconf_tmp_t)
+ 	allow $2 gconfd_t:unix_stream_socket connectto;
++
++	gnome_manage_config($2)
+ ')
+ 
+ ########################################
+@@ -143,9 +149,11 @@
+ interface(`gnome_setattr_config_dirs',`
+ 	gen_require(`
+ 		type gnome_home_t;
++		type gnome_xdg_config_t;
+ 	')
+ 
+ 	setattr_dirs_pattern($1, gnome_home_t, gnome_home_t)
++	setattr_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
+ 	files_search_home($1)
+ ')
+ 
+@@ -162,11 +170,16 @@
+ template(`gnome_read_config',`
+ 	gen_require(`
+ 		type gnome_home_t;
++		type gnome_xdg_config_t;
+ 	')
+ 
+ 	list_dirs_pattern($1, gnome_home_t, gnome_home_t)
+ 	read_files_pattern($1, gnome_home_t, gnome_home_t)
+ 	read_lnk_files_pattern($1, gnome_home_t, gnome_home_t)
++
++	list_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	read_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	read_lnk_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
+ ')
+ 
+ ########################################
+@@ -182,9 +195,14 @@
+ interface(`gnome_manage_config',`
+ 	gen_require(`
+ 		type gnome_home_t;
++		type gnome_xdg_config_t;
+ 	')
+ 
+-	allow $1 gnome_home_t:dir manage_dir_perms;
+-	allow $1 gnome_home_t:file manage_file_perms;
++	manage_dirs_pattern($1, gnome_home_t, gnome_home_t)
++	manage_files_pattern($1, gnome_home_t, gnome_home_t)
++
++	manage_dirs_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++	manage_files_pattern($1, gnome_xdg_config_t, gnome_xdg_config_t)
++
+ 	userdom_search_user_home_dirs($1)
+ ')
+diff -uNr refpolicy/policy/modules/contrib/gnome.te refpolicy/policy/modules/contrib/gnome.te
+--- refpolicy/policy/modules/contrib/gnome.te	2012-07-26 21:09:59.578963767 +0200
++++ refpolicy/policy/modules/contrib/gnome.te	2012-07-26 21:10:07.830963784 +0200
+@@ -34,6 +34,9 @@
+ typealias gnome_home_t alias unconfined_gnome_home_t;
+ userdom_user_home_content(gnome_home_t)
+ 
++type gnome_xdg_config_t;
++xdg_config_home_content(gnome_xdg_config_t)
++
+ ##############################
+ #
+ # Local Policy

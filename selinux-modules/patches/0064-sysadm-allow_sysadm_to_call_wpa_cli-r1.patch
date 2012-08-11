@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:08.098963784 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:08.169963786 +0200
+@@ -245,6 +245,10 @@
+ ')
+ 
+ optional_policy(`
++	networkmanager_run_wpa_cli(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	netutils_run(sysadm_t, sysadm_r)
+ 	netutils_run_ping(sysadm_t, sysadm_r)
+ 	netutils_run_traceroute(sysadm_t, sysadm_r)

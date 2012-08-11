@@ -1,0 +1,131 @@
+diff -uNr refpolicy/policy/modules/contrib/vde.fc refpolicy/policy/modules/contrib/vde.fc
+--- refpolicy/policy/modules/contrib/vde.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/vde.fc	2012-07-26 21:10:02.359963773 +0200
+@@ -0,0 +1,5 @@
++/etc/init.d/vde		--	gen_context(system_u:object_r:vde_initrc_exec_t,s0)
++/usr/bin/vde_switch	--	gen_context(system_u:object_r:vde_exec_t,s0)
++/usr/sbin/vde_tunctl	--	gen_context(system_u:object_r:vde_exec_t,s0)
++/var/run/vde\.ctl(/.*)?		gen_context(system_u:object_r:vde_var_run_t,s0)
++/tmp/vde.[0-9-]*	-s	gen_context(system_u:object_r:vde_tmp_t,s0)
+diff -uNr refpolicy/policy/modules/contrib/vde.if refpolicy/policy/modules/contrib/vde.if
+--- refpolicy/policy/modules/contrib/vde.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/vde.if	2012-07-26 21:10:02.360963773 +0200
+@@ -0,0 +1,65 @@
++## <summary>Virtual Distributed Ethernet switch service</summary>
++
++########################################
++## <summary>
++#    The rules needed to manage the VDE switches
++## </summary>
++## <param name="role">
++##	<summary>
++##	The role to be allowed to manage the vde domain.
++##	</summary>
++## </param>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`vde_role',`
++	gen_require(`
++		type vde_t, vde_tmp_t;
++		type vde_var_run_t;
++		type vde_initrc_exec_t, vde_exec_t;
++	')
++
++	role $1 types vde_t;
++
++	allow $2 vde_t:process { ptrace signal_perms };
++	allow vde_t $2:process { sigchld signull };
++	allow vde_t $2:fd use;
++	allow vde_t $2:tun_socket { relabelfrom };
++	allow vde_t self:tun_socket { relabelfrom relabelto };
++	ps_process_pattern($2, vde_t)
++
++	domain_auto_trans($2, vde_exec_t, vde_t)
++')
++
++########################################
++## <summary>
++#    Allow communication with the VDE service 
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`vde_connect',`
++	gen_require(`
++		type vde_t, vde_var_run_t, vde_tmp_t;
++	')
++	
++	allow $1 vde_var_run_t:sock_file write_sock_file_perms;
++	allow $1 vde_t:unix_stream_socket { connectto };
++	allow $1 vde_t:unix_dgram_socket { sendto };
++	allow vde_t $1:unix_dgram_socket { sendto };
++
++	allow $1 vde_tmp_t:sock_file manage_sock_file_perms;
++	files_tmp_filetrans($1, vde_tmp_t, sock_file)
++
++	tunable_policy(`gentoo_try_dontaudit',`
++		dontaudit $1 vde_var_run_t:sock_file { setattr };
++	')
++')
+diff -uNr refpolicy/policy/modules/contrib/vde.te refpolicy/policy/modules/contrib/vde.te
+--- refpolicy/policy/modules/contrib/vde.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/vde.te	2012-07-26 21:10:02.360963773 +0200
+@@ -0,0 +1,49 @@
++policy_module(vde, 0.0.1)
++
++########################################
++#
++# Declarations
++#
++
++type vde_t;
++type vde_exec_t;
++init_daemon_domain(vde_t, vde_exec_t)
++
++type vde_initrc_exec_t;
++init_script_file(vde_initrc_exec_t)
++
++type vde_var_lib_t;
++files_type(vde_var_lib_t)
++
++type vde_var_run_t;
++files_pid_file(vde_var_run_t)
++
++type vde_tmp_t;
++files_tmp_file(vde_tmp_t)
++
++########################################
++#
++# Local policy
++#
++
++allow vde_t self:process { signal_perms getcap setcap };
++allow vde_t self:capability { chown net_admin dac_override fowner fsetid };
++
++allow vde_t vde_tmp_t:sock_file manage_sock_file_perms;
++allow vde_t self:unix_stream_socket {  create_stream_socket_perms connectto };
++allow vde_t self:unix_dgram_socket create_socket_perms;
++files_tmp_filetrans(vde_t, vde_tmp_t, sock_file)
++
++manage_dirs_pattern(vde_t, vde_var_run_t, vde_var_run_t)
++manage_files_pattern(vde_t, vde_var_run_t, vde_var_run_t)
++manage_sock_files_pattern(vde_t, vde_var_run_t, vde_var_run_t)
++files_pid_filetrans(vde_t, vde_var_run_t, { dir file sock_file unix_dgram_socket })
++
++files_read_etc_files(vde_t)
++
++domain_use_interactive_fds(vde_t)
++userdom_use_user_terminals(vde_t)
++miscfiles_read_localization(vde_t)
++corenet_rw_tun_tap_dev(vde_t)
++
++logging_send_syslog_msg(vde_t)

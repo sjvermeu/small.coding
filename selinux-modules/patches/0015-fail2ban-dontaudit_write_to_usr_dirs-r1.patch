@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/contrib/fail2ban.te refpolicy/policy/modules/contrib/fail2ban.te
+--- refpolicy/policy/modules/contrib/fail2ban.te	2012-07-26 21:09:59.545963767 +0200
++++ refpolicy/policy/modules/contrib/fail2ban.te	2012-07-26 21:10:02.427963773 +0200
+@@ -72,6 +72,7 @@
+ files_read_usr_files(fail2ban_t)
+ files_list_var(fail2ban_t)
+ files_search_var_lib(fail2ban_t)
++files_dontaudit_write_usr_dirs(fail2ban_t)
+ 
+ fs_list_inotifyfs(fail2ban_t)
+ fs_getattr_all_fs(fail2ban_t)

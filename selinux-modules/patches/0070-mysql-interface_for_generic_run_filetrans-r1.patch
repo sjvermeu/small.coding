@@ -1,0 +1,58 @@
+diff -uNr refpolicy/policy/modules/contrib/mysql.if refpolicy/policy/modules/contrib/mysql.if
+--- refpolicy/policy/modules/contrib/mysql.if	2012-07-26 21:09:59.563963767 +0200
++++ refpolicy/policy/modules/contrib/mysql.if	2012-07-26 21:10:09.456963788 +0200
+@@ -311,6 +311,54 @@
+ 	search_dirs_pattern($1, mysqld_var_run_t, mysqld_var_run_t)
+ ')
+ 
++#######################################
++## <summary>
++##	Create MySQL run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`mysql_create_run_dirs',`
++	gen_require(`
++		type mysqld_var_run_t;
++	')
++
++	create_dirs_pattern($1, mysqld_var_run_t, mysqld_var_run_t)
++')
++
++#######################################
++## <summary>
++##	Automatically use the MySQL run label for created resources in generic
++##	run locations
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++## 	<summary>
++##	Type of the resource created for which the automatic file transition
++##	should occur
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++## 	<summary>
++##	The name of the resource being created
++##	</summary>
++## </param>
++#
++interface(`mysql_generic_run_filetrans_run',`
++	gen_require(`
++		type mysqld_var_run_t;
++	')
++
++	files_pid_filetrans($1, mysqld_var_run_t, $2, $3)
++')
++
+ ########################################
+ ## <summary>
+ ##	All of the rules required to administrate an mysql environment

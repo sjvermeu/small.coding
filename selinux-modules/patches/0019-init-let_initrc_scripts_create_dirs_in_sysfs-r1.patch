@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.824963773 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.895963773 +0200
+@@ -301,6 +301,7 @@
+ dev_write_rand(initrc_t)
+ dev_write_urand(initrc_t)
+ dev_rw_sysfs(initrc_t)
++dev_manage_sysfs_dirs(initrc_t)
+ dev_list_usbfs(initrc_t)
+ dev_read_framebuffer(initrc_t)
+ dev_write_framebuffer(initrc_t)

@@ -1,0 +1,35 @@
+--- refpolicy/policy/modules/system/authlogin.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/system/authlogin.te	2012-07-28 22:50:12.435345391 +0200
+@@ -405,7 +405,7 @@
+ 	xserver_rw_xdm_pipes(utempter_t)
+ ')
+ 
+-#######################################
++#########################################
+ #
+ # nsswitch_domain local policy
+ #
+@@ -426,7 +426,7 @@
+ 
+ optional_policy(`
+ 	tunable_policy(`authlogin_nsswitch_use_ldap',`
+-		ldap_stream_connect(nsswitch_domain)
++		 ldap_stream_connect(nsswitch_domain)
+ 	')
+ ')
+ 
+--- refpolicy/policy/modules/system/authlogin.if	2012-07-10 14:41:49.000000000 +0200
++++ refpolicy/policy/modules/system/authlogin.if	2012-07-17 17:30:26.460244640 +0200
+@@ -1717,9 +1717,9 @@
+ ## <infoflow type="both" weight="10"/>
+ #
+ interface(`auth_use_nsswitch',`
+-    gen_require(`
+-        attribute nsswitch_domain;
+-    ')
++	gen_require(`
++		attribute nsswitch_domain;
++	')
+ 
+ 	typeattribute $1 nsswitch_domain;
+ ')

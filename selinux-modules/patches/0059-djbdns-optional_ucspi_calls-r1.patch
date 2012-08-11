@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/contrib/djbdns.te refpolicy/policy/modules/contrib/djbdns.te
+--- refpolicy/policy/modules/contrib/djbdns.te	2012-07-26 21:09:59.535963767 +0200
++++ refpolicy/policy/modules/contrib/djbdns.te	2012-07-26 21:10:07.295963784 +0200
+@@ -39,7 +39,9 @@
+ 
+ files_search_var(djbdns_axfrdns_t)
+ 
+-ucspitcp_service_domain(djbdns_axfrdns_t, djbdns_axfrdns_exec_t)
++optional_policy(`
++	ucspitcp_service_domain(djbdns_axfrdns_t, djbdns_axfrdns_exec_t)
++')
+ 
+ ########################################
+ #

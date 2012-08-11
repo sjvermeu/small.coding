@@ -1,0 +1,22 @@
+diff -uNr refpolicy/policy/modules/contrib/cvs.te refpolicy/policy/modules/contrib/cvs.te
+--- refpolicy/policy/modules/contrib/cvs.te	2012-07-26 21:09:59.555963767 +0200
++++ refpolicy/policy/modules/contrib/cvs.te	2012-07-26 21:10:07.163963782 +0200
+@@ -14,7 +14,6 @@
+ 
+ type cvs_t;
+ type cvs_exec_t;
+-inetd_tcp_service_domain(cvs_t, cvs_exec_t)
+ application_executable_file(cvs_exec_t)
+ role system_r types cvs_t;
+ 
+@@ -96,6 +95,10 @@
+ ')
+ 
+ optional_policy(`
++	inetd_tcp_service_domain(cvs_t, cvs_exec_t)
++')
++
++optional_policy(`
+ 	kerberos_keytab_template(cvs, cvs_t)
+ 	kerberos_read_config(cvs_t)
+ 	kerberos_dontaudit_write_config(cvs_t)

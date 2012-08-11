@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/contrib/modemmanager.te refpolicy/policy/modules/contrib/modemmanager.te
+--- refpolicy/policy/modules/contrib/modemmanager.te	2012-07-26 21:09:59.581963767 +0200
++++ refpolicy/policy/modules/contrib/modemmanager.te	2012-07-26 21:10:07.428963784 +0200
+@@ -34,7 +34,9 @@
+ 
+ logging_send_syslog_msg(modemmanager_t)
+ 
+-networkmanager_dbus_chat(modemmanager_t)
++optional_policy(`
++	networkmanager_dbus_chat(modemmanager_t)
++')
+ 
+ optional_policy(`
+ 	udev_read_db(modemmanager_t)

@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/contrib/oident.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oident.te	2012-08-09 18:45:40.758030300 +0200
+@@ -34,6 +34,8 @@
+ 
+ allow oidentd_t oidentd_config_t:file read_file_perms;
+ 
++allow oidentd_t oidentd_home_t:file read_file_perms;
++
+ corenet_all_recvfrom_unlabeled(oidentd_t)
+ corenet_all_recvfrom_netlabel(oidentd_t)
+ corenet_tcp_sendrecv_generic_if(oidentd_t)
+@@ -58,7 +60,7 @@
+ 
+ sysnet_read_config(oidentd_t)
+ 
+-oident_read_user_content(oidentd_t)
++userdom_search_user_home_dirs(oidentd_t)
+ 
+ optional_policy(`
+ 	nis_use_ypbind(oidentd_t)
+--- refpolicy/policy/modules/contrib/oident.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oident.fc	2012-08-09 18:46:00.031031071 +0200
+@@ -1,4 +1,4 @@
+-HOME_DIR/\.oidentd.conf			gen_context(system_u:object_r:oidentd_home_t, s0)
++HOME_DIR/\.oidentd.conf		--	gen_context(system_u:object_r:oidentd_home_t, s0)
+ 
+ /etc/oidentd\.conf		--	gen_context(system_u:object_r:oidentd_config_t, s0)
+ /etc/oidentd_masq\.conf		--	gen_context(system_u:object_r:oidentd_config_t, s0)

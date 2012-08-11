@@ -31,114 +31,76 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0006 - add skype declaration
 0007 - add gorg declaration
 0008 - add nginx declaration
-0009 = add bacula declaration
-0010 = dontaudit set 1
-0012 ! various corecommands file contexts updates [mainly openrc stuff, review later, already quite outdated with newest changes]
-0014 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
-0015 . allow mount to read/write puppet tmp files (used to gather output of mount)
-0016 = mark portage_ebuild_t as a mountpoint
-0017 = mark debugfs_t as a mountpoint
-0018 - allow syslog to create /var/lib/syslog
-0019 = structured set of patches for asterisk
-0020 = mark glsa-check as portage entry file
-0021 = allow gcc_config_t to work with nfs-mounted portage tree
-0022 - use runtime files for gcc-config (+ tmp support for "tac" command)
-0023 . add vde declaration
-0024 = bootmisc wants to write (temporarily) to /var/log. Support logging_manage_generic_log_dirs
-0025 = Mark /dev/.tmp-block-.* as fixed_disk_device_t so that mdadm can work on it (file is created by udev as $tempnode)
-0026 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
-0027 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
-0028 = add virtualization context files
-0029 = allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
-0030 = ensure that initrc can connect to the virt sockets
-0031 = update virtualization so that sysadmin can use tools like virsh
-0032 - updates for init
-0033 = allow creation of user keys by sudo, needed for sudo with selinux integration
-0034 = do not have java-config be marked as a java_t entry point
-0036 . update on udev, later versions manage the udev_tbl_t more than just files
-0037 = lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
-0038 - allow initrc_t to create dirs in /sys (some init scripts do this), we might want to change to named filetrans later here
-0039 - allow portage_fetch_t to use portage_devpts_t, show progress of downloads for instance
-0040 = allow portage_sandbox_t to use git (git-2 eclass)
-0041 - update syslog file contexts for .persist- file
-0042 - allow exports (under initrc_t) to manage state data for NFS
-0043 = allow dhcp daemon to bind to generic udp ports
-0044 - update on puppet policy
-0045 - update on mozilla policy
-0046 - update on courier policy
-0047 - update on openldap policy
-0048 - update on postfix policy
-0049 - update on postgresql policy
-0050 - update on xserver policy
-0051 - make cron domains use interactive file descriptors (?)
-0052 = dhcpd can use ldap as backend
-0053 - allow mozilla plugin to read its configuration files (currently still very generic)
-0054 . introduce generic attributes for apache and web content handling [also 0102]
-0055 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
-0056 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
-0057 = expand selinux and usermanage role usage to include the proper type definitions
-0058 ! temporarily reintroduce gentoo booleans (remove on 01/07/2012)
-0059 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
-0060 = add port 3128 as http_cache_port_t (default port for squid cache)
-0061 - allow sysadmin to call qemu
-0062 = mark mozilla_plugin_t as part of the mozilla_roles
-0063 = use correct clamav_var_log_t call, not clamav_log_t
-0064 - mark /var/lib/ip6tables as initrc_tmp_t, needed by ip6tables init script
-0065 - allow nginx_t to list the contents of its configuration directories
-0066 - mark /lib/rc/console as initrc_state_t so that init script can clean stuff in there
-0067 - selinux-aware applications check for selinux file system on /selinux (security_t) but also inside /sys (sysfs_t)
-0068 - remove domtrans when calling rc_exec_t to initrc_t, gentoo init system already supports integrated run_init (runscript_selinux.so is a modified run_init), all it needs is execute rights on rc_exec_t and "wait" until initrc_exec_t is called.
-0069 - do not audit searches on unlabeled_t by kernel_t (during mount) right before the mount on that dir occurs (like with cgroups)
-0070 - allow mount to setsched kernel
-0071 = mark security_t (for /selinux and /sys/fs/selinux) as a mountpoint
-0072 - allow bootmisc init script to mkdir/rmdir in /var/lib
-0073 - allow initrc scripts to delete stale syslog control sockets in /var/run
-0074 - allow initrc script to clean up /tmp
-0077 - do not audit search/getattr on user_home_dir from within portage_fetch domain
-0078 - allow initscripts to manipulate sysctls (sys_admin capability)
-0079 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
-0080 = allow syslog-ng to getsched, needed for newer syslog-ng implementations
-0081 ! allow cronie (crond_t) to create cronjob_t keys (needed to run cronjobs by cronie) [3]
-0082 - mark pwd.lck as etc_t so that recent shadow utilities can work with it
-0083 - allow init scripts to manage cgroup files and directories (openrc requirement)
-0084 - support calling startx(fce4) from console for unconfined_t (transition to xserver_t)
-0085 = introduce tunable support for setrlimit within apache
-0086 = update whitespace issues with segenxml.py script to fix python3 issues
-0087 = switch to substituted file locations (subs_dist)
-0088 = allow shadow utils to read default context definitions
-0089 = Update symbol in clamav_append_log interface (backport)
-0090 = Eliminate "*_except_auth_files" expressions through new attribute
-0091 = Introduce named file transition support (backport)
-0092 = Remove duplicate context definition for firefox
-0093 - Mark kudzu call as optional in ddcprobe
-0094 - Allow kdevtmpfs to setattr on its device files
-0095 - Mark /etc/selinux/*/modules as semanage_store_t
-0097 - Update udev file contexts
-0098 = SEPostgresql changes (backport)
-0099 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
-0100 - fix build failures by marking stuff optional (inetd, apache, ...)
-0102 . support search on all web content in apache (part of 0054)
-0103 . introduce phpfpm_t domain
-0104 = support wake_alarm and epollwakeup capabilities in capability2 class
-0105 - Use gnome_xdg_config_t for gnome config in ~/.config
-0106 = Support python3 within doc generation
-0110 = Support /run directory for udev and init
-0111 - Introduce dracut domain
-0112 - wpa_cli is an interactive application
-0113 = packagekit context updates (backport)
-0114 = Backporting some support related commits
-0115 = allow udev init scripts to create data & rules.d with correct label
-0116 = Add in bcfg policy (backport)
-0117 = Add in blueman policy (backport)
-0118 = nss_domain attribute patch (backport)
-0119 - add gentoo_portage_eselect_module interface
-0120 . udevd new location since systemd
-0121 . allow dhcpc to create /var/run/dhcpc (done through dhcpcd-hooks)
-0122 . allow init to create dbus run dirs in /run
-0123 = allow nslcd to connect to LDAP
-0124 - add in policy for chromium
-0125 + culminated set of upstream patches
-0126 . mysql run dir creation by initrc
+0009 ! various corecommands file contexts updates [mainly openrc stuff, review later, already quite outdated with newest changes]
+0010 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
+0011 . allow mount to read/write puppet tmp files (used to gather output of mount)
+0012 - allow syslog to create /var/lib/syslog
+0013 - use runtime files for gcc-config (+ tmp support for "tac" command)
+0014 . add vde declaration
+0015 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
+0016 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
+0017 - updates for init
+0018 . update on udev, later versions manage the udev_tbl_t more than just files
+0019 - allow initrc_t to create dirs in /sys (some init scripts do this), we might want to change to named filetrans later here
+0020 - allow portage_fetch_t to use portage_devpts_t, show progress of downloads for instance
+0021 - update syslog file contexts for .persist- file
+0022 - allow exports (under initrc_t) to manage state data for NFS
+0023 - update on puppet policy
+0025 - update on courier policy
+0026 - update on openldap policy
+0028 - update on xserver policy
+0029 - make cron domains use interactive file descriptors (?)
+0030 - allow mozilla plugin to read its configuration files (currently still very generic)
+0031 . introduce generic attributes for apache and web content handling [also 0102]
+0032 - mark /dev/.lvm as the lvm lockdir dir (default in gentoo)
+0033 - add domtrans for rc_exec_t in init_domtrans_script (needed for init_t to rc)
+0034 ! temporarily reintroduce gentoo booleans (remove on 01/07/2012)
+0035 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
+0036 - allow sysadmin to call qemu
+0037 - mark /var/lib/ip6tables as initrc_tmp_t, needed by ip6tables init script
+0038 - allow nginx_t to list the contents of its configuration directories
+0039 - mark /lib/rc/console as initrc_state_t so that init script can clean stuff in there
+0040 - selinux-aware applications check for selinux file system on /selinux (security_t) but also inside /sys (sysfs_t)
+0041 - remove domtrans when calling rc_exec_t to initrc_t, gentoo init system already supports integrated run_init (runscript_selinux.so is a modified run_init), all it needs is execute rights on rc_exec_t and "wait" until initrc_exec_t is called.
+0042 - do not audit searches on unlabeled_t by kernel_t (during mount) right before the mount on that dir occurs (like with cgroups)
+0043 - allow mount to setsched kernel
+0044 - allow bootmisc init script to mkdir/rmdir in /var/lib
+0045 - allow initrc scripts to delete stale syslog control sockets in /var/run
+0046 - allow initrc script to clean up /tmp
+0047 - do not audit search/getattr on user_home_dir from within portage_fetch domain
+0048 - allow initscripts to manipulate sysctls (sys_admin capability)
+0049 - do not audit sys_admin capability for dhcpc (since kernel between 3.1.6 and 3.2.2)
+0050 ! allow cronie (crond_t) to create cronjob_t keys (needed to run cronjobs by cronie) [3]
+0051 - mark pwd.lck as etc_t so that recent shadow utilities can work with it
+0052 - allow init scripts to manage cgroup files and directories (openrc requirement)
+0053 - support calling startx(fce4) from console for unconfined_t (transition to xserver_t)
+0054 - Mark kudzu call as optional in ddcprobe
+0055 - Allow kdevtmpfs to setattr on its device files
+0056 - Mark /etc/selinux/*/modules as semanage_store_t
+0057 - Update udev file contexts
+0058 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
+0059 - fix build failures by marking stuff optional (inetd, apache, ...)
+0060 . support search on all web content in apache (part of 0054)
+0061 . introduce phpfpm_t domain
+0062 - Use gnome_xdg_config_t for gnome config in ~/.config
+0063 - Introduce dracut domain
+0064 - wpa_cli is an interactive application
+0065 - add gentoo_portage_eselect_module interface
+0066 . udevd new location since systemd
+0067 . allow dhcpc to create /var/run/dhcpc (done through dhcpcd-hooks)
+0068 . allow init to create dbus run dirs in /run
+0069 - support proper userspace confinement
+0070 . mysql run dir creation by initrc
+0072 . use file context substitution for /usr/local in a proper way
+0073 - allow init to create rules.d dir and udev to create his data dir (all runtime)
+0074 - various dontaudits
+0075 - merge set from 20120725
+0076 - mysql run dir attribute change
+0077 + add in bird policy (backport)
+0078 + backport changes for mcelog policy
+0079 + backport changes for oident policy
+0080 . postfix policy updates
+0081 - allow sysadmin to be postfix admin
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

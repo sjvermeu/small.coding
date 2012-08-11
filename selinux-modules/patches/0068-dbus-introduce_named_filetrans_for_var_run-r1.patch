@@ -1,0 +1,57 @@
+diff -uNr refpolicy/policy/modules/contrib/dbus.if refpolicy/policy/modules/contrib/dbus.if
+--- refpolicy/policy/modules/contrib/dbus.if	2012-07-26 21:09:59.729963767 +0200
++++ refpolicy/policy/modules/contrib/dbus.if	2012-07-26 21:10:08.508963786 +0200
+@@ -393,6 +393,53 @@
+ 
+ ########################################
+ ## <summary>
++##	Create resources in /run or /var/run with the system_dbusd_var_run_t
++##	label
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++##	<summary>
++##	Classes supported for the created resources
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Optional file name used for the resource
++##	</summary>
++## </param>
++#
++interface(`dbus_generic_pid_filetrans_system_dbusd_var_run',`
++	gen_require(`
++		type system_dbusd_var_run_t;
++	')
++
++	files_pid_filetrans($1, system_dbusd_var_run_t, $2, $3)
++')
++
++########################################
++## <summary>
++##	Create directories with the system_dbusd_var_run_t label
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`dbus_create_system_dbusd_var_run_dirs',`
++	gen_require(`
++		type system_dbusd_var_run_t;
++	')
++
++	create_dirs_pattern($1, system_dbusd_var_run_t, system_dbusd_var_run_t)
++')
++
++########################################
++## <summary>
+ ##	Allow unconfined access to the system DBUS.
+ ## </summary>
+ ## <param name="domain">

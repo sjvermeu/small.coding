@@ -1,0 +1,84 @@
+diff -uNr refpolicy/policy/modules/kernel/corecommands.fc refpolicy/policy/modules/kernel/corecommands.fc
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-07-26 21:09:59.586963767 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2012-07-26 21:10:01.822963771 +0200
+@@ -86,6 +86,8 @@
+ /etc/pm/power\.d(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ /etc/pm/sleep\.d(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
++/etc/portage/bin(/.*)?		--	gen_context(system_u:object_r:bin_t,s0)
++
+ /etc/ppp/ip-down\..*		--	gen_context(system_u:object_r:bin_t,s0)
+ /etc/ppp/ip-up\..*		--	gen_context(system_u:object_r:bin_t,s0)
+ /etc/ppp/ipv6-up\..*		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -112,6 +114,8 @@
+ 
+ /etc/vmware-tools(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
++/etc/wpa_supplicant/wpa_cli.sh	--	gen_context(system_u:object_r:bin_t,s0)
++
+ /etc/X11/xdm/GiveConsole	--	gen_context(system_u:object_r:bin_t,s0)
+ /etc/X11/xdm/TakeConsole	--	gen_context(system_u:object_r:bin_t,s0)
+ /etc/X11/xdm/Xsetup_0		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -142,6 +146,9 @@
+ /lib/rcscripts/sh(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/net\.modules\.d/helpers\.d/dhclient-.* -- gen_context(system_u:object_r:bin_t,s0)
+ /lib/rcscripts/net\.modules\.d/helpers\.d/udhcpc-.* -- gen_context(system_u:object_r:bin_t,s0)
++/lib/rc/bin/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/lib/rc/sbin/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/lib/rc/sh/.*			--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+ #
+@@ -198,6 +205,7 @@
+ /usr/lib/ConsoleKit/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/ConsoleKit/run-session.d(/.*)? gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/courier(/.*)?			gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/courier-imap/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/cups(/.*)? 			gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/cyrus/.*		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/cyrus-imapd/.*		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -208,6 +216,7 @@
+ /usr/lib/mailman/bin(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/mailman/mail(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/mediawiki/math/texvc.*		gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/misc/glibc/getconf/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/nagios/plugins(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/netsaint/plugins(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+@@ -241,7 +250,10 @@
+ /usr/lib/[^/]*thunderbird[^/]*/open-browser\.sh -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/[^/]*/run-mozilla\.sh --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/[^/]*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/thunderbird.*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/thunderbird.*/mozilla-xremote-client 		-- gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer.bin	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/xulrunner-.*/plugin-container			--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ /usr/lib/xen/bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+@@ -264,6 +276,7 @@
+ /usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/build-1/mkdir.sh	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/dayplanner/dayplanner --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/debconf/.+		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/denyhosts/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+@@ -277,6 +290,8 @@
+ /usr/share/gitolite/hooks/gitolite-admin/post-update -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/gnucash/finance-quote-check -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/gnucash/finance-quote-helper -- gen_context(system_u:object_r:bin_t,s0)
++/usr/share/GNUstep/Makefiles/*\.sh	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/GNUstep/Makefiles/mkinstalldirs	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/hal/device-manager/hal-device-manager -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/hal/scripts(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/mc/extfs/.*		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -295,6 +310,7 @@
+ /usr/share/shorewall-lite(/.*)? 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/shorewall6-lite(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/spamassassin/sa-update\.cron gen_context(system_u:object_r:bin_t,s0)
++/usr/share/texmf/web2c/mktexdir	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/turboprint/lib(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/vhostmd/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ 

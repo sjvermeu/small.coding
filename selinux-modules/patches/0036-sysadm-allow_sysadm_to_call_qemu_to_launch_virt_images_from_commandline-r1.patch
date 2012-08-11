@@ -1,0 +1,18 @@
+diff -uNr refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
+--- refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:02.357963773 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-07-26 21:10:04.243963777 +0200
+@@ -278,6 +278,14 @@
+ ')
+ 
+ optional_policy(`
++	qemu_read_state(sysadm_t)
++	qemu_signal(sysadm_t)
++	qemu_kill(sysadm_t)
++	qemu_setsched(sysadm_t)
++	qemu_run(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	quota_run(sysadm_t, sysadm_r)
+ ')
+ 

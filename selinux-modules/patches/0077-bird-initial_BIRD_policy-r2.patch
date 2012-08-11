@@ -1,0 +1,119 @@
+--- refpolicy/policy/modules/contrib/bird.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.te	2012-08-08 20:44:02.986852882 +0200
+@@ -0,0 +1,57 @@
++policy_module(bird, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type bird_t;
++type bird_exec_t;
++init_daemon_domain(bird_t, bird_exec_t)
++
++type bird_initrc_exec_t;
++init_script_file(bird_initrc_exec_t)
++
++type bird_etc_t;
++files_config_file(bird_etc_t)
++
++type bird_log_t;
++logging_log_file(bird_log_t)
++
++type bird_var_run_t;
++files_pid_file(bird_var_run_t)
++
++########################################
++#
++# Local policy
++#
++
++allow bird_t self:capability { net_admin net_bind_service };
++allow bird_t self:netlink_route_socket create_netlink_socket_perms;
++allow bird_t self:tcp_socket create_stream_socket_perms;
++
++allow bird_t bird_etc_t:file read_file_perms;
++
++allow bird_t bird_log_t:file { create_file_perms append_file_perms setattr_file_perms };
++logging_log_filetrans(bird_t, bird_log_t, file)
++
++allow bird_t bird_var_run_t:sock_file manage_sock_file_perms;
++files_pid_filetrans(bird_t, bird_var_run_t, sock_file)
++
++corenet_all_recvfrom_unlabeled(bird_t)
++corenet_all_recvfrom_netlabel(bird_t)
++corenet_tcp_sendrecv_generic_if(bird_t)
++corenet_tcp_bind_generic_node(bird_t)
++corenet_tcp_sendrecv_generic_node(bird_t)
++corenet_tcp_sendrecv_bgp_port(bird_t)
++corenet_sendrecv_bgp_client_packets(bird_t)
++corenet_tcp_connect_bgp_port(bird_t)
++corenet_sendrecv_bgp_server_packets(bird_t)
++corenet_tcp_bind_bgp_port(bird_t)
++
++# /etc/iproute2/rt_realms
++files_read_etc_files(bird_t)
++
++logging_send_syslog_msg(bird_t)
++
++miscfiles_read_localization(bird_t)
+--- refpolicy/policy/modules/contrib/bird.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.if	2012-08-08 20:44:02.985852882 +0200
+@@ -0,0 +1,42 @@
++## <summary>BIRD Internet Routing Daemon.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to administrate
++##	an bird environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access..
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`bird_admin',`
++	gen_require(`
++		type bird_t, bird_etc_t, bird_log_t;
++		type bird_var_run_t, bird_initrc_exec_t;
++	')
++
++	allow $1 bird_t:process { ptrace signal_perms };
++	ps_process_pattern($1, bird_t)
++
++	init_labeled_script_domtrans($1, bird_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 bird_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_list_etc($1)
++	admin_pattern($1, bird_etc_t)
++
++	logging_list_logs($1)
++	admin_pattern($1, bird_log_t)
++
++	files_list_pids($1)
++	admin_pattern($1, bird_var_run_t)
++')
+--- refpolicy/policy/modules/contrib/bird.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.fc	2012-08-08 20:44:02.974852881 +0200
+@@ -0,0 +1,11 @@
++/etc/bird\.conf	--	gen_context(system_u:object_r:bird_etc_t,s0)
++
++/etc/default/bird	--	gen_context(system_u:object_r:bird_etc_t,s0)
++
++/etc/rc\.d/init\.d/bird	--	gen_context(system_u:object_r:bird_initrc_exec_t,s0)
++
++/usr/sbin/bird	--	gen_context(system_u:object_r:bird_exec_t,s0)
++
++/var/log/bird\.log.*	--	gen_context(system_u:object_r:bird_log_t,s0)
++
++/var/run/bird\.ctl	-s	gen_context(system_u:object_r:bird_var_run_t,s0)

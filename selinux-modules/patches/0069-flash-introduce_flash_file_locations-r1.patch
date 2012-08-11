@@ -1,0 +1,60 @@
+--- refpolicy/policy/modules/contrib/flash.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/flash.te	2012-07-27 15:17:21.186103015 +0200
+@@ -0,0 +1,9 @@
++policy_module(flash, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type flash_home_t;
++userdom_user_home_content(flash_home_t)
+--- refpolicy/policy/modules/contrib/flash.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/flash.if	2012-07-27 15:26:19.255104170 +0200
+@@ -0,0 +1,40 @@
++## <summary>
++##	Flash player
++## </summary>
++
++#####################################
++## <summary>
++##	Manage the Flash player home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`flash_manage_home',`
++	gen_require(`
++		type flash_home_t;
++	')
++
++	manage_files_pattern($1, flash_home_t, flash_home_t)
++	manage_dirs_pattern($1, flash_home_t, flash_home_t)
++')
++####################################
++## <summary>
++##	Relabel the flash home resources
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`flash_relabel_home',`
++	gen_require(`
++		type flash_home_t;
++	')
++
++	relabel_files_pattern($1, flash_home_t, flash_home_t)
++	relabel_dirs_pattern($1, flash_home_t, flash_home_t)
++')
+--- refpolicy/policy/modules/contrib/flash.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicypolicy/modules/contrib/flash.fc	2012-07-27 15:56:29.471108033 +0200
+@@ -0,0 +1,2 @@
++HOME_DIR/\.adobe/Flash_Player(/.*)?	gen_context(system_u:object_r:flash_home_t,s0)
++HOME_DIR/\.macromedia(/.*)?		gen_context(system_u:object_r:flash_home_t,s0)

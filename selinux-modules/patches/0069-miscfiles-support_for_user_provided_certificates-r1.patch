@@ -1,0 +1,111 @@
+--- refpolicy/policy/modules/system/miscfiles.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicypolicy/modules/system/miscfiles.te	2012-07-26 22:11:18.306971619 +0200
+@@ -14,6 +14,13 @@
+ miscfiles_cert_type(cert_t)
+ 
+ #
++# cert_home_t is the type of files in the users' home directories.
++#
++type cert_home_t;
++miscfiles_cert_type(cert_home_t)
++userdom_user_home_content(cert_home_t)
++
++#
+ # fonts_t is the type of various font
+ # files in /usr
+ #
+--- refpolicy/policy/modules/system/miscfiles.if	2012-05-04 15:14:47.000000000 +0200
++++ refpolicypolicy/modules/system/miscfiles.if	2012-07-27 13:56:59.175092728 +0200
+@@ -86,6 +86,48 @@
+ 	read_lnk_files_pattern($1, cert_t, cert_t)
+ ')
+ 
++######################################
++## <summary>
++##	Manage user-managed SSL certificates
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`miscfiles_manage_user_certs',`
++	gen_require(`
++		type cert_home_t;
++	')
++
++	manage_dirs_pattern($1, cert_home_t, cert_home_t)
++	manage_files_pattern($1, cert_home_t, cert_home_t)
++	manage_lnk_files_pattern($1, cert_home_t, cert_home_t)
++
++	userdom_search_user_home_dirs($1)
++')
++
++########################################
++## <summary>
++##	Relabel from/to cert_home_t (user-managed SSL certificates)
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`miscfiles_relabel_user_certs',`
++	gen_require(`
++		type cert_home_t;
++	')
++
++	relabel_dirs_pattern($1, cert_home_t, cert_home_t)
++	relabel_files_pattern($1, cert_home_t, cert_home_t)
++	relabel_lnk_files_pattern($1, cert_home_t, cert_home_t)
++')
++
+ ########################################
+ ## <summary>
+ ##	Manage generic SSL certificates.
+@@ -170,6 +212,35 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Automatically use the cert_home_t label for selected resources created
++##	in a users home directory
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++##	<summary>
++##	Resource type(s) for which the label should be used
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Name of the resource that is being created
++##	</summary>
++## </param>
++#
++interface(`miscfiles_user_home_dir_filetrans_cert_home',`
++	gen_require(`
++		type cert_home_t;
++	')
++
++	userdom_user_home_dir_filetrans($1, cert_home_t, $2, $3)
++')
++
++########################################
+ ## <summary>
+ ##	Read fonts.
+ ## </summary>
+--- refpolicy/policy/modules/system/miscfiles.fc	2012-05-10 16:18:41.000000000 +0200
++++ refpolicypolicy/modules/system/miscfiles.fc	2012-07-27 14:08:33.655094212 +0200
+@@ -91,3 +91,5 @@
+ /var/empty/sshd/etc/localtime -- gen_context(system_u:object_r:locale_t,s0)
+ /var/spool/postfix/etc/localtime -- gen_context(system_u:object_r:locale_t,s0)
+ ')
++
++HOME_DIR/.pki(/.*)?		gen_context(system_u:object_r:cert_home_t)

@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:09:59.529963767 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.558963773 +0200
+@@ -651,6 +651,10 @@
+ ')
+ 
+ optional_policy(`
++	fail2ban_stream_connect(initrc_t)
++')
++
++optional_policy(`
+ 	ftp_read_config(initrc_t)
+ ')
+ 

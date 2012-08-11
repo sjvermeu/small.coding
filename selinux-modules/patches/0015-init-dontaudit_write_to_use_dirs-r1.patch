@@ -1,0 +1,11 @@
+diff -uNr refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.623963773 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-26 21:10:02.626963773 +0200
+@@ -280,6 +280,7 @@
+ files_pid_filetrans_lock_dir(initrc_t, "lock")
+ files_read_kernel_symbol_table(initrc_t)
+ files_setattr_lock_dirs(initrc_t)
++files_dontaudit_write_usr_dirs(initrc_t)
+ 
+ corecmd_exec_all_executables(initrc_t)
+ 

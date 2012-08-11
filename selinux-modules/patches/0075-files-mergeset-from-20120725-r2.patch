@@ -1,0 +1,255 @@
+--- refpolicy/policy/modules/kernel/files.if	2012-07-28 23:00:14.650346718 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-07-28 22:59:11.964346582 +0200
+@@ -1430,6 +1430,7 @@
+ 	seutil_relabelto_bin_policy($1)
+ ')
+ 
++
+ #############################################
+ ## <summary>
+ ##	Manage all configuration directories on filesystem
+@@ -1583,43 +1584,43 @@
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit attempts to set the attributes on all mount points.
++##	Search all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_setattr_all_mountpoints',`
++interface(`files_search_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir setattr;
++	allow $1 mountpoint:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Search all mount points.
++##	Do not audit searching of all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain allowed access.
++##	Domain to not audit.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_search_all_mountpoints',`
++interface(`files_dontaudit_search_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	allow $1 mountpoint:dir search_dir_perms;
++	dontaudit $1 mountpoint:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit searching of all mount points.
++##	Do not audit listing of all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -1627,48 +1628,48 @@
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_search_all_mountpoints',`
++interface(`files_dontaudit_list_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir search_dir_perms;
++	dontaudit $1 mountpoint:dir list_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit listing of all mount points.
++##	Do not audit write attempts on mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain to ignore write attempts from
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_list_all_mountpoints',`
++interface(`files_dontaudit_write_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir list_dir_perms;
++	dontaudit $1 mountpoint:dir write;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit attempts to write to mount points.
++##	Do not audit setattr attempts on mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain to ignore setattr attempts from
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_write_all_mountpoints',`
++interface(`files_dontaudit_setattr_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir write;
++	dontaudit $1 mountpoint:dir setattr;
+ ')
+ 
+ ########################################
+@@ -5607,24 +5608,6 @@
+ 
+ ########################################
+ ## <summary>
+-##	Set the attributes of the generic lock directories.
+-## </summary>
+-## <param name="domain">
+-##	<summary>
+-##	Domain allowed access.
+-##	</summary>
+-## </param>
+-#
+-interface(`files_setattr_lock_dirs',`
+-	gen_require(`
+-		type var_t, var_lock_t;
+-	')
+-
+-	setattr_dirs_pattern($1, var_t, var_lock_t)
+-')
+-
+-########################################
+-## <summary>
+ ##	Search the locks directory (/var/lock).
+ ## </summary>
+ ## <param name="domain">
+@@ -5703,11 +5686,11 @@
+ 
+ ########################################
+ ## <summary>
+-## 	Create lock directories
++##	Create lock directories.
+ ## </summary>
+ ## <param name="domain">
+-## 	<summary>
+-##	Domain allowed access
++##	<summary>
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+@@ -5721,6 +5704,7 @@
+ 	create_dirs_pattern($1, var_lock_t, var_lock_t)
+ ')
+ 
++
+ ########################################
+ ## <summary>
+ ##	Relabel to and from all lock directory types.
+@@ -5766,6 +5750,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Set the attributes of generic lock directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_setattr_lock_dirs',`
++	gen_require(`
++		type var_t, var_lock_t;
++	')
++
++	setattr_dirs_pattern($1, var_t, var_lock_t)
++')
++
++########################################
++## <summary>
+ ##	Delete generic lock files.
+ ## </summary>
+ ## <param name="domain">
+@@ -6046,6 +6048,29 @@
+ 	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+ 	allow $1 var_run_t:fifo_file write;
+ ')
++########################################
++## <summary>
++##	Write dirs in /var/run with the lock file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`files_pid_filetrans_lock_dir',`
++	gen_require(`
++		type var_t, var_run_t;
++	')
++
++	files_pid_filetrans($1, var_lock_t, dir, $2)
++')
++
+ 
+ ########################################
+ ## <summary>
+@@ -6110,29 +6135,6 @@
+ ')
+ 
+ ########################################
+-## <summary>
+-## 	Create a generic lock directory within the run directories
+-## </summary>
+-## <param name="domain">
+-## 	<summary>
+-##	Domain allowed access
+-##	</summary>
+-## </param>
+-## <param name="name" optional="true">
+-##	<summary>
+-##	The name of the object being created.
+-##	</summary>
+-## </param>
+-#
+-interface(`files_pid_filetrans_lock_dir',`
+-	gen_require(`
+-		type var_lock_t;
+-	')
+-
+-	files_pid_filetrans($1, var_lock_t, dir, $2)
+-')
+-
+-########################################
+ ## <summary>
+ ##	Read and write generic process ID files.
+ ## </summary>

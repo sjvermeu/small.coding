@@ -1,0 +1,17 @@
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-08-08 21:37:23.496981123 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2012-08-08 20:46:05.886857805 +0200
+@@ -72,8 +72,13 @@
+ /etc/kde/shutdown(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+ /etc/mail/make			--	gen_context(system_u:object_r:bin_t,s0)
+-/etc/mcelog/cache-error-trigger	--	gen_context(system_u:object_r:bin_t,s0)
++
++/etc/mcelog/.*-error-trigger	--	gen_context(system_u:object_r:bin_t,s0)
++/etc/mcelog/.*\.local		--	gen_context(system_u:object_r:bin_t,s0)
++
++ifdef(`distro_redhat',`
+ /etc/mcelog/triggers(/.*)?		gen_context(system_u:object_r:bin_t,s0)
++')
+ /etc/mgetty\+sendfax/new_fax	--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ /etc/netplug\.d(/.*)? 	 		gen_context(system_u:object_r:bin_t,s0)

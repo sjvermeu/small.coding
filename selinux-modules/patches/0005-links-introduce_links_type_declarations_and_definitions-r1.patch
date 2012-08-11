@@ -1,5 +1,62 @@
+diff -uNr refpolicy/policy/modules/contrib/links.fc refpolicy/policy/modules/contrib/links.fc
+--- refpolicy/policy/modules/contrib/links.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/links.fc	2012-07-26 21:10:01.022963769 +0200
+@@ -0,0 +1,2 @@
++/usr/bin/links         -- gen_context(system_u:object_r:links_exec_t,s0)
++HOME_DIR/\.links(/.*)?    gen_context(system_u:object_r:links_home_t,s0)
+diff -uNr refpolicy/policy/modules/contrib/links.if refpolicy/policy/modules/contrib/links.if
+--- refpolicy/policy/modules/contrib/links.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/links.if	2012-07-26 21:10:01.022963769 +0200
+@@ -0,0 +1,46 @@
++## <summary>Links web browser</summary>
++
++#######################################
++## <summary>
++##      The role interface for the links module.
++## </summary>
++## <param name="user_role">
++##      <summary>
++##      The role associated with the user domain.
++##      </summary>
++## </param>
++## <param name="user_domain">
++##      <summary>
++##      The type of the user domain.
++##      </summary>
++## </param>
++#
++interface(`links_role',`
++	gen_require(`
++		type links_t, links_exec_t, links_tmpfs_t, links_home_t;
++	')
++
++	#######################################
++	#
++	# Declarations
++	#
++	
++	role $1 types links_t;
++
++	############################
++	#
++	# Policy
++	#
++
++	manage_dirs_pattern($2, links_home_t, links_home_t)
++	manage_files_pattern($2, links_home_t, links_home_t)
++	manage_lnk_files_pattern($2, links_home_t, links_home_t)
++
++	relabel_dirs_pattern($2, links_home_t, links_home_t)
++	relabel_files_pattern($2, links_home_t, links_home_t)
++	relabel_lnk_files_pattern($2, links_home_t, links_home_t)
++
++	domtrans_pattern($2, links_exec_t, links_t)
++
++	ps_process_pattern($2, links_t)
++')	
+diff -uNr refpolicy/policy/modules/contrib/links.te refpolicy/policy/modules/contrib/links.te
 --- refpolicy/policy/modules/contrib/links.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/links.te	2012-02-25 09:38:44.862303152 +0100
++++ refpolicy/policy/modules/contrib/links.te	2012-07-26 21:10:01.022963769 +0200
 @@ -0,0 +1,67 @@
 +policy_module(links, 1.0.0)
 +
@@ -68,57 +125,3 @@
 +optional_policy(`
 +	xserver_user_x_domain_template(links, links_t, links_tmpfs_t)
 +')
---- refpolicy/policy/modules/contrib/links.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/links.if	2012-02-25 09:38:37.810303137 +0100
-@@ -0,0 +1,46 @@
-+## <summary>Links web browser</summary>
-+
-+#######################################
-+## <summary>
-+##      The role interface for the links module.
-+## </summary>
-+## <param name="user_role">
-+##      <summary>
-+##      The role associated with the user domain.
-+##      </summary>
-+## </param>
-+## <param name="user_domain">
-+##      <summary>
-+##      The type of the user domain.
-+##      </summary>
-+## </param>
-+#
-+interface(`links_role',`
-+	gen_require(`
-+		type links_t, links_exec_t, links_tmpfs_t, links_home_t;
-+	')
-+
-+	#######################################
-+	#
-+	# Declarations
-+	#
-+	
-+	role $1 types links_t;
-+
-+	############################
-+	#
-+	# Policy
-+	#
-+
-+	manage_dirs_pattern($2, links_home_t, links_home_t)
-+	manage_files_pattern($2, links_home_t, links_home_t)
-+	manage_lnk_files_pattern($2, links_home_t, links_home_t)
-+
-+	relabel_dirs_pattern($2, links_home_t, links_home_t)
-+	relabel_files_pattern($2, links_home_t, links_home_t)
-+	relabel_lnk_files_pattern($2, links_home_t, links_home_t)
-+
-+	domtrans_pattern($2, links_exec_t, links_t)
-+
-+	ps_process_pattern($2, links_t)
-+')	
---- refpolicy/policy/modules/contrib/links.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/links.fc	2012-02-25 09:38:37.811303137 +0100
-@@ -0,0 +1,2 @@
-+/usr/bin/links         -- gen_context(system_u:object_r:links_exec_t,s0)
-+HOME_DIR/\.links(/.*)?    gen_context(system_u:object_r:links_home_t,s0)

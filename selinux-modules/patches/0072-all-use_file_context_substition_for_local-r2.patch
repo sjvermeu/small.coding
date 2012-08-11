@@ -1,0 +1,461 @@
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/config/file_contexts.subs_dist refpolicy/config/file_contexts.subs_dist
+--- refpolicy/config/file_contexts.subs_dist	2012-03-30 14:48:20.000000000 +0200
++++ refpolicy/config/file_contexts.subs_dist	2012-08-09 17:19:34.055823273 +0200
+@@ -4,4 +4,7 @@
+ /run/lock /var/lock
+ /usr/lib32 /usr/lib
+ /usr/lib64 /usr/lib
++/usr/local/lib64 /usr/lib
++/usr/local/lib32 /usr/lib
++/usr/local/lib/ /usr/lib/
+ /var/run/lock /var/lock
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/inetd.fc refpolicy/policy/modules/contrib/inetd.fc
+--- refpolicy/policy/modules/contrib/inetd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/inetd.fc	2012-07-28 18:51:36.802314860 +0200
+@@ -1,7 +1,7 @@
++/usr/lib/pysieved/pysieved.*\.py -- gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ 
+ /usr/sbin/identd	--	gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ /usr/sbin/in\..*d	--	gen_context(system_u:object_r:inetd_child_exec_t,s0)
+-/usr/local/lib/pysieved/pysieved.*\.py -- gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ 
+ /usr/sbin/inetd		--	gen_context(system_u:object_r:inetd_exec_t,s0)
+ /usr/sbin/rlinetd	--	gen_context(system_u:object_r:inetd_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/java.fc refpolicy/policy/modules/contrib/java.fc
+--- refpolicy/policy/modules/contrib/java.fc	2012-07-13 16:46:37.000000000 +0200
++++ refpolicy/policy/modules/contrib/java.fc	2012-08-09 17:22:42.659830829 +0200
+@@ -3,7 +3,7 @@
+ #
+ /opt/(.*/)?bin/java[^/]*	--	gen_context(system_u:object_r:java_exec_t,s0)
+ /opt/ibm/java.*/(bin|javaws)(/.*)? --	gen_context(system_u:object_r:java_exec_t,s0)
+-/opt/local/matlab.*/bin.*/MATLAB.* --	gen_context(system_u:object_r:java_exec_t,s0)
++/opt/matlab.*/bin.*/MATLAB.*	--	gen_context(system_u:object_r:java_exec_t,s0)
+ /opt/matlab.*/bin.*/MATLAB.*	--	gen_context(system_u:object_r:java_exec_t,s0)
+ 
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/lpd.fc refpolicy/policy/modules/contrib/lpd.fc
+--- refpolicy/policy/modules/contrib/lpd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/lpd.fc	2012-08-09 17:23:42.237833218 +0200
+@@ -16,6 +16,8 @@
+ /usr/bin/lprm(\.cups)?	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/bin/lpstat(\.cups)? --	gen_context(system_u:object_r:lpr_exec_t,s0)
+ 
++/usr/local/linuxprinter/bin/l?lpr -- gen_context(system_u:object_r:lpr_exec_t,s0)
++
+ /usr/sbin/accept	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/sbin/checkpc	--	gen_context(system_u:object_r:checkpc_exec_t,s0)
+ /usr/sbin/lpd		--	gen_context(system_u:object_r:lpd_exec_t,s0)
+@@ -24,8 +26,6 @@
+ /usr/sbin/lpinfo	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/sbin/lpmove	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ 
+-/usr/local/linuxprinter/bin/l?lpr -- gen_context(system_u:object_r:lpr_exec_t,s0)
+-
+ /usr/share/printconf/.* --	gen_context(system_u:object_r:printconf_t,s0)
+ 
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/corecommands.fc refpolicy/policy/modules/kernel/corecommands.fc
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-08-09 17:32:12.333853656 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2012-08-09 17:25:10.897836769 +0200
+@@ -196,6 +196,7 @@
+ /usr/bin/scponly		--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/bin/tcsh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ 
++
+ /usr/lib(.*/)?bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+ /usr/(.*/)?sbin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+@@ -234,7 +235,7 @@
+ /usr/lib/rpm/rpmq		-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/rpm/rpmv		-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/sftp-server		--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/vte/gnome-pty-helper	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/vte/gnome-pty-helper 	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/exo-1/exo-compose-mail-1 -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/exo-1/exo-helper-1 --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/panel/migrate	--	gen_context(system_u:object_r:bin_t,s0)
+@@ -250,15 +251,15 @@
+ /usr/lib/debug/usr/bin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/debug/usr/sbin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
+ 
+-/usr/lib/[^/]*thunderbird[^/]*/thunderbird -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*thunderbird[^/]*/thunderbird-bin -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*thunderbird[^/]*/open-browser\.sh -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*/run-mozilla\.sh --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/thunderbird.*/mozilla-xremote-client 		-- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/nspluginwrapper/i386/linux/npviewer.bin	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/nspluginwrapper/i386/linux/npviewer		--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/xulrunner-.*/plugin-container			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/thunderbird	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/thunderbird-bin	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/open-browser\.sh --	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*/run-mozilla\.sh			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*/mozilla-xremote-client		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/thunderbird.*/mozilla-xremote-client	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer.bin --	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer	--	gen_context(system_u:object_r:shell_exec_t,s0)
++/usr/lib/xulrunner-.*/plugin-container		--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ /usr/lib/xen/bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+@@ -268,19 +269,19 @@
+ 
+ /usr/libexec/openssh/sftp-server --	gen_context(system_u:object_r:bin_t,s0)
+ 
+-/usr/local/lib(64)?/ipsec/.*	-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/Brother(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/Printer(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/linuxprinter/filters(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ 
++
+ /usr/sbin/scponlyc		--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/sbin/sesh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/sbin/smrsh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ 
+ /usr/share/ajaxterm/ajaxterm.py.* --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/ajaxterm/qweb.py.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/apr-0/build/libtool	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/build-1/mkdir.sh	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/dayplanner/dayplanner --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/debconf/.+		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -290,14 +291,14 @@
+ /usr/share/cluster/ocf-shellfuncs --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/cluster/svclib_nfslock --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/e16/misc(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gedit-2/plugins/externaltools/tools(/.*)? gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gitolite/hooks/common/update -- gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gedit-2/plugins/externaltools/tools(/.*)?	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gitolite/hooks/common/update		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/gitolite/hooks/gitolite-admin/post-update -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gnucash/finance-quote-check -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gnucash/finance-quote-helper -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/GNUstep/Makefiles/*\.sh	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gnucash/finance-quote-check		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gnucash/finance-quote-helper		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/GNUstep/Makefiles/*\.sh		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/GNUstep/Makefiles/mkinstalldirs	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/hal/device-manager/hal-device-manager -- gen_context(system_u:object_r:bin_t,s0)
++/usr/share/hal/device-manager/hal-device-manager --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/hal/scripts(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/mc/extfs/.*		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/Modules/init(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+@@ -322,7 +323,7 @@
+ /usr/X11R6/lib(64)?/X11/xkb/xkbcomp --	gen_context(system_u:object_r:bin_t,s0)
+ 
+ ifdef(`distro_debian',`
+-/usr/lib/ConsoleKit/.*		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/ConsoleKit/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+ ifdef(`distro_gentoo', `
+@@ -390,7 +391,7 @@
+ ifdef(`distro_suse', `
+ /usr/lib/cron/run-crons		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/samba/classic/.*	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/ssh/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/ssh/.*		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apache2/[^/]*	--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.fc refpolicy/policy/modules/kernel/files.fc
+--- refpolicy/policy/modules/kernel/files.fc	2012-08-09 17:32:12.163853650 +0200
++++ refpolicy/policy/modules/kernel/files.fc	2012-08-09 17:31:38.045852282 +0200
+@@ -75,7 +75,7 @@
+ ifdef(`distro_gentoo', `
+ /etc/profile\.env	--	gen_context(system_u:object_r:etc_runtime_t,s0)
+ /etc/csh\.env		--	gen_context(system_u:object_r:etc_runtime_t,s0)
+-/etc/env\.d(/.*)?		gen_context(system_u:object_r:etc_runtime_t,s0)
++/etc/env\.d/.*		--	gen_context(system_u:object_r:etc_runtime_t,s0)
+ ')
+ 
+ ifdef(`distro_redhat',`
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/ipsec.fc refpolicy/policy/modules/system/ipsec.fc
+--- refpolicy/policy/modules/system/ipsec.fc	2012-05-10 16:23:17.000000000 +0200
++++ refpolicy/policy/modules/system/ipsec.fc	2012-07-28 18:53:56.059315169 +0200
+@@ -14,9 +14,9 @@
+ 
+ /usr/lib/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ /usr/lib/ipsec/_plutorun	--	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+-/usr/lib/ipsec/eroute		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
++/usr/lib/ipsec/eroute	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/lib/ipsec/klipsdebug	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/lib/ipsec/pluto		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
++/usr/lib/ipsec/pluto	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/lib/ipsec/spi		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ 
+ /usr/libexec/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+@@ -27,11 +27,6 @@
+ /usr/libexec/ipsec/spi		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/libexec/nm-openswan-service -- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ 
+-/usr/local/lib(64)?/ipsec/eroute --	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/klipsdebug -- gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/pluto --	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/spi	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-
+ /usr/sbin/ipsec			-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ /usr/sbin/racoon		--	gen_context(system_u:object_r:racoon_exec_t,s0)
+ /usr/sbin/setkey		--	gen_context(system_u:object_r:setkey_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/libraries.fc refpolicy/policy/modules/system/libraries.fc
+--- refpolicy/policy/modules/system/libraries.fc	2012-05-10 16:26:34.000000000 +0200
++++ refpolicy/policy/modules/system/libraries.fc	2012-08-09 17:28:52.732845658 +0200
+@@ -33,7 +33,7 @@
+ /etc/ppp/plugins/rp-pppoe\.so 		--	gen_context(system_u:object_r:lib_t,s0)
+ 
+ #
+-# /lib(64)?
++# /lib
+ #
+ /lib					-d	gen_context(system_u:object_r:lib_t,s0)
+ /lib/.*						gen_context(system_u:object_r:lib_t,s0)
+@@ -113,7 +113,8 @@
+ /usr/(.*/)?lib(/.*)?				gen_context(system_u:object_r:lib_t,s0)
+ /usr/(.*/)?lib64(/.*)?				gen_context(system_u:object_r:lib_t,s0)
+ 
+-/usr/(.*/)?lib(64)?(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
++/usr/(.*/)?lib(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
++/usr/(.*/)?lib64(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
+ 
+ /usr/(.*/)?nvidia/.+\.so(\..*)?		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+@@ -123,43 +124,43 @@
+ /usr/lib/vlc/codec/librealvideo_plugin\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vlc/codec/libdmo_plugin\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vlc/codec/librealaudio_plugin\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libtfmessbsp\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libtfmessbsp\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/X11R6/lib/libGL\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libGL\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/catalyst/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/catalyst/libGL\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libADM5.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libatiadlxx\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/win32/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/win32/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/ADM_plugins/videoFilter/.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/(.*/)?lib(64)?(/.*)?/nvidia/.+\.so(\..*)? -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/nvidia/.+\.so(\..*)?	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libsipphoneapi\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(.*/)?lib(/.*)?/nvidia/.+\.so(\..*)? -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/nvidia/.+\.so(\..*)? --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libsipphoneapi\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/ati-fglrx/.+\.so(\..*)?	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/fglrx/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libjs\.so.*			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/sse2/libx264\.so(\.[^/]*)* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/libnvidia.+\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/nvidia_drv.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/nero/plug-ins/libMP3\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/fglrx/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libjs\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/sse2/libx264\.so(\.[^/]*)* 	-- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/libnvidia.+\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/nvidia_drv.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/nero/plug-ins/libMP3\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libGL(core)?\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libnvidia.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libXvMCNVIDIA\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/nvidia/libGL(core)?\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/xorg/modules/glesx\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/nvidia/libGL(core)?\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xorg/modules/glesx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/(local/)?.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:lib_t,s0)
+-/usr/(local/)?lib(64)?/wine/.+\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/(local/)?lib(64)?/(sse2/)?libfame-.*\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:lib_t,s0)
++/usr/lib/wine/.+\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/(sse2/)?libfame-.*\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/NX/lib/libXcomp\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/NX/lib/libjpeg\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/X11R6/lib/libXvMCNVIDIA\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/xorg/modules/drivers/fglrx_drv\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/xorg/modules/drivers/nvidia_drv\.o --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xorg/modules/drivers/nvidia_drv\.o -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/modules/extensions/nvidia(-[^/]*)?/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/modules/extensions/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/x11R6/lib/modules/extensions/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -180,11 +181,11 @@
+ 
+ # Fedora Core packages: gstreamer-plugins, compat-libstdc++, Glide3, libdv
+ # 	HelixPlayer, SDL, xorg-x11, xorg-x11-libs, Hermes, valgrind, openoffice.org-libs, httpd - php
+-HOME_DIR/.*/plugins/nppdf\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/allegro/(.*/)?alleg-vga\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++HOME_DIR/.*/plugins/nppdf\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/allegro/(.*/)?alleg-vga\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/firefox-[^/]*/extensions(/.*)?/libqfaservices.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/firefox-[^/]*/plugins/nppdf.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/firefox/plugins/libractrl\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/firefox/plugins/libractrl\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libFLAC\.so.*			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libfglrx_gamma\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/mozilla/plugins/nppdf\.so 	-- 	gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -193,66 +194,65 @@
+ /usr/lib/nx/libjpeg\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/VBoxVMM\.so			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/lib/libstdc\+\+\.so\.2\.7\.2\.8	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libstdc\+\+\.so\.2\.7\.2\.8 --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libg\+\+\.so\.2\.7\.2\.8	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libgpac\.so.* 			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libgpac\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libglide3\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libglide3-v[0-9]*\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/helix/plugins/[^/]*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/helix/codecs/[^/]*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/helix/plugins/[^/]*\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/helix/codecs/[^/]*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/X11R6/lib/libfglrx_gamma\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libHermes\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/valgrind/hp2ps			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/valgrind/hp2ps		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/valgrind/stage2		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/valgrind/vg.*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libicudata\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsts645li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libvclplug_gen645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libwrp645li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libswd680li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/librecentfile\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsvx680li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libcomphelp4gcc3\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsoffice\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libicudata\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsts645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libvclplug_gen645li\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libwrp645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libswd680li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/librecentfile\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsvx680li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libcomphelp4gcc3\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsoffice\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(.*/)?pcsc/drivers(/.*)?/lib(cm2020|cm4000|SCR24x)\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Fedora Extras packages: ladspa, imlib2, ocaml
+-/usr/lib/ladspa/analogue_osc_1416\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/bandpass_a_iir_1893\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/bandpass_iir_1892\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/butterworth_1902\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/fm_osc_1415\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/gsm_1215\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/gverb_1216\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/hermes_filter_1200\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/highpass_iir_1890\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/lowpass_iir_1891\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/analogue_osc_1416\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/bandpass_a_iir_1893\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/bandpass_iir_1892\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/butterworth_1902\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/fm_osc_1415\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/gsm_1215\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/gverb_1216\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/hermes_filter_1200\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/highpass_iir_1890\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/lowpass_iir_1891\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/ladspa/notch_iir_1894\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/pitch_scale_1193\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/pitch_scale_1194\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc1_1425\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc2_1426\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc3_1427\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc4_1882\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/se4_1883\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/sane/libsane-epkowa\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ocaml/stublibs/dllnums\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/pitch_scale_1193\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/pitch_scale_1194\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc1_1425\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc2_1426\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc3_1427\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc4_1882\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/se4_1883\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/sane/libsane-epkowa\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ocaml/stublibs/dllnums\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Livna.org packages: xmms-mp3, ffmpeg, xvidcore, xine-lib, gsm, lame
+-/usr/lib.*/libmpg123\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local(/.*)?/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib.*/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(/.*)?/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/codecs/drv[1-9c]\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/lib/codecs/drv[1-9c]\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-HOME_DIR/.*/plugins/nppdf\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++HOME_DIR/.*/plugins/nppdf\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ HOME_DIR/.mozilla/plugins/nprhapengine\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/nprhapengine\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/(.*/)?nprhapengine\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/nprhapengine\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/local/(.*/)?nprhapengine\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Jai, Sun Microsystems (Jpackage SPRM)
+ /usr/lib/libmlib_jai\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libdivxdecore\.so\.0		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libdivxencore\.so\.0		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libdivxdecore\.so\.0	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libdivxencore\.so\.0	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/libdvdcss\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+@@ -260,17 +260,16 @@
+ 
+ # vmware
+ /usr/lib/vmware/lib(/.*)?/libgdk-x11-.*\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/vmware/lib(/.*)?/HConfig\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/vmware/lib(/.*)?/HConfig\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vmware/(.*/)?VmPerl\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vmware/lib(/.*)?/libvmware-gksu.*\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/(virtualbox(-ose)?/)?(components/)?VBox.*\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/virtualbox/.*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/virtualbox/.*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Java, Sun Microsystems (JPackage SRPM)
+-/usr/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(.*/)?jre.*/.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/(.*/)?jre.*/.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/(local/)?Adobe/(.*/)?intellinux/nppdf\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?Adobe/(.*/)?intellinux/sidecars/* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -279,7 +278,7 @@
+ /usr/(local/)?Adobe/(.*/)?lib/[^/]*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?acroread/(.*/)?lib/[^/]*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?Adobe/.*\.api		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/(local/)?lib/xchat/plugins/systray\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xchat/plugins/systray\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/bin/glnx86/libmwlapack\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/bin/glnx86/(libmw(lapack|mathutil|services)|lapack|libmkl)\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/sys/os/glnx86/libtermcap\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -310,6 +309,6 @@
+ /var/lib/samba/bin/.+\.so(\.[^/]*)*	-l	gen_context(system_u:object_r:lib_t,s0)
+ ')
+ 
+-/var/spool/postfix/lib(64)?(/.*)? 		gen_context(system_u:object_r:lib_t,s0)
++/var/spool/postfix/lib(/.*)? 		gen_context(system_u:object_r:lib_t,s0)
+ /var/spool/postfix/usr(/.*)?			gen_context(system_u:object_r:lib_t,s0)
+-/var/spool/postfix/lib(64)?/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
++/var/spool/postfix/lib/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/miscfiles.fc refpolicy/policy/modules/system/miscfiles.fc
+--- refpolicy/policy/modules/system/miscfiles.fc	2012-08-09 17:32:12.302853654 +0200
++++ refpolicy/policy/modules/system/miscfiles.fc	2012-08-09 17:29:45.161847759 +0200
+@@ -39,7 +39,7 @@
+ /usr/local/man(/.*)?		gen_context(system_u:object_r:man_t,s0)
+ /usr/local/share/man(/.*)?	gen_context(system_u:object_r:man_t,s0)
+ 
+-/usr/local/share/fonts(/.*)?	gen_context(system_u:object_r:fonts_t,s0)
++/usr/local/share/fonts(/.*)?	gen_context(system_u:object_r:man_t,s0)
+ 
+ /usr/man(/.*)?			gen_context(system_u:object_r:man_t,s0)
+ 

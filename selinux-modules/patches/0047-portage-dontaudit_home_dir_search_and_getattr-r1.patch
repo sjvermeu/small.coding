@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/contrib/portage.te refpolicy/policy/modules/contrib/portage.te
+--- refpolicy/policy/modules/contrib/portage.te	2012-07-26 21:10:04.106963777 +0200
++++ refpolicy/policy/modules/contrib/portage.te	2012-07-26 21:10:05.181963779 +0200
+@@ -334,6 +334,8 @@
+ 
+ userdom_use_user_terminals(portage_fetch_t)
+ userdom_dontaudit_read_user_home_content_files(portage_fetch_t)
++userdom_dontaudit_getattr_user_home_dirs(portage_fetch_t)
++userdom_dontaudit_search_user_home_dirs(portage_fetch_t)
+ 
+ rsync_exec(portage_fetch_t)
+ 

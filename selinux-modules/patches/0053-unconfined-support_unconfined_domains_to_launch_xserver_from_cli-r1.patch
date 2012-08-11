@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/system/unconfined.te refpolicy/policy/modules/system/unconfined.te
+--- refpolicy/policy/modules/system/unconfined.te	2012-07-26 21:09:59.530963767 +0200
++++ refpolicy/policy/modules/system/unconfined.te	2012-07-26 21:10:06.565963782 +0200
+@@ -217,7 +217,7 @@
+ ')
+ 
+ optional_policy(`
+-	xserver_domtrans(unconfined_t)
++	xserver_role(unconfined_r, unconfined_t)
+ ')
+ 
+ ########################################

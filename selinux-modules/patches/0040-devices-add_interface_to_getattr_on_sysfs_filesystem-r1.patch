@@ -1,0 +1,46 @@
+diff -uNr refpolicy/policy/modules/kernel/devices.if refpolicy/policy/modules/kernel/devices.if
+--- refpolicy/policy/modules/kernel/devices.if	2012-07-26 21:09:59.592963767 +0200
++++ refpolicy/policy/modules/kernel/devices.if	2012-07-26 21:10:04.510963777 +0200
+@@ -3800,6 +3800,42 @@
+ 
+ ########################################
+ ## <summary>
++##	Get the attributes of sysfs filesystem
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`dev_getattr_sysfs_fs',`
++	gen_require(`
++		type sysfs_t;
++	')
++
++	allow $1 sysfs_t:filesystem getattr;
++')
++
++########################################
++## <summary>
++##	Do not audit getting the attributes of sysfs filesystem
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to dontaudit access from
++##	</summary>
++## </param>
++#
++interface(`dev_dontaudit_getattr_sysfs_fs',`
++	gen_require(`
++		type sysfs_t;
++	')
++
++	dontaudit $1 sysfs_t:filesystem getattr;
++')
++
++########################################
++## <summary>
+ ##	Associate a file to a sysfs filesystem.
+ ## </summary>
+ ## <param name="file_type">

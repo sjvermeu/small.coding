@@ -1,0 +1,44 @@
+diff -uNr refpolicy/policy/modules/kernel/selinux.if refpolicy/policy/modules/kernel/selinux.if
+--- refpolicy/policy/modules/kernel/selinux.if	2012-07-26 21:09:59.586963767 +0200
++++ refpolicy/policy/modules/kernel/selinux.if	2012-07-26 21:10:04.577963777 +0200
+@@ -63,6 +63,10 @@
+ 	# (/selinux) is already a selinuxfs
+ 	allow $1 security_t:filesystem getattr;
+ 
++	# Same for /sys/fs/selinux
++	dev_getattr_sysfs_fs($1)
++	dev_search_sysfs($1)
++
+ 	# read /proc/filesystems to see if selinuxfs is supported
+ 	# then read /proc/self/mount to see where selinuxfs is mounted
+ 	kernel_read_system_state($1)
+@@ -89,6 +93,10 @@
+ 	# (/selinux) is already a selinuxfs
+ 	dontaudit $1 security_t:filesystem getattr;
+ 
++	# Same for /sys/fs/selinux
++	dev_dontaudit_getattr_sysfs_fs($1)
++	dev_dontaudit_search_sysfs($1)
++
+ 	# read /proc/filesystems to see if selinuxfs is supported
+ 	# then read /proc/self/mount to see where selinuxfs is mounted
+ 	kernel_dontaudit_read_system_state($1)
+@@ -165,6 +173,8 @@
+ 	')
+ 
+ 	allow $1 security_t:filesystem getattr;
++	dev_getattr_sysfs_fs($1)
++	dev_search_sysfs($1)
+ ')
+ 
+ ########################################
+@@ -184,6 +194,9 @@
+ 	')
+ 
+ 	dontaudit $1 security_t:filesystem getattr;
++
++	dev_dontaudit_getattr_sysfs_fs($1)
++	dev_dontaudit_search_sysfs($1)
+ ')
+ 
+ ########################################

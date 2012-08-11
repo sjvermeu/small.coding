@@ -1,5 +1,6 @@
---- refpolicy/policy/modules/roles/staff.te	2012-02-25 09:37:05.774302939 +0100
-+++ refpolicy/policy/modules/roles/staff.te	2012-02-25 09:35:28.131302731 +0100
+diff -uNr refpolicy/policy/modules/roles/staff.te refpolicy/policy/modules/roles/staff.te
+--- refpolicy/policy/modules/roles/staff.te	2012-07-26 21:10:00.132963767 +0200
++++ refpolicy/policy/modules/roles/staff.te	2012-07-26 21:10:00.891963769 +0200
 @@ -133,6 +133,10 @@
  	')
  

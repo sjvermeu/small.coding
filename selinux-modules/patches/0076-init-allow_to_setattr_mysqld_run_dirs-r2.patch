@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/init.te	2012-07-31 19:34:20.192873595 +0200
++++ refpolicy/policy/modules/system/init.te	2012-07-31 19:33:48.107873526 +0200
+@@ -762,6 +762,7 @@
+ 	mysql_create_run_dirs(initrc_t)
+ 	mysql_generic_run_filetrans_run(initrc_t, dir, "mysqld")
+ 	mysql_read_config(initrc_t)
++	mysql_setattr_run_dirs(initrc_t)
+ 	mysql_stream_connect(initrc_t)
+ 	mysql_write_log(initrc_t)
+ ')

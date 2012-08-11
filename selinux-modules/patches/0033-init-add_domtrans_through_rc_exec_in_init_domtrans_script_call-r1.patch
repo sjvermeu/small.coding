@@ -1,0 +1,17 @@
+diff -uNr refpolicy/policy/modules/system/init.if refpolicy/policy/modules/system/init.if
+--- refpolicy/policy/modules/system/init.if	2012-07-26 21:10:02.824963773 +0200
++++ refpolicy/policy/modules/system/init.if	2012-07-26 21:10:03.975963777 +0200
+@@ -856,6 +856,13 @@
+ 	ifdef(`enable_mls',`
+ 		range_transition $1 initrc_exec_t:process s0 - mls_systemhigh;
+ 	')
++
++	ifdef(`distro_gentoo',`
++		gen_require(`
++			type rc_exec_t;
++		')
++		domtrans_pattern($1, rc_exec_t, initrc_t)
++	')
+ ')
+ 
+ ########################################

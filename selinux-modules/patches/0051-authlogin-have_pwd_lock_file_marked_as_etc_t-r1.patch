@@ -1,0 +1,13 @@
+diff -uNr refpolicy/policy/modules/system/authlogin.fc refpolicy/policy/modules/system/authlogin.fc
+--- refpolicy/policy/modules/system/authlogin.fc	2012-07-26 21:09:59.529963767 +0200
++++ refpolicy/policy/modules/system/authlogin.fc	2012-07-26 21:10:06.431963782 +0200
+@@ -1,7 +1,9 @@
+ 
+ /bin/login		--	gen_context(system_u:object_r:login_exec_t,s0)
+ 
++ifndef(`distro_gentoo',`
+ /etc/\.pwd\.lock	--	gen_context(system_u:object_r:shadow_t,s0)
++')
+ /etc/group\.lock	--	gen_context(system_u:object_r:shadow_t,s0)
+ /etc/gshadow.*		--	gen_context(system_u:object_r:shadow_t,s0)
+ /etc/passwd\.lock	--	gen_context(system_u:object_r:shadow_t,s0)

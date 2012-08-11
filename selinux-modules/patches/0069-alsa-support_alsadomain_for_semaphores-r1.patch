@@ -1,0 +1,65 @@
+--- refpolicy/policy/modules/contrib/alsa.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicypolicy/modules/contrib/alsa.te	2012-07-27 21:21:02.900149613 +0200
+@@ -5,7 +5,11 @@
+ # Declarations
+ #
+ 
+-type alsa_t;
++attribute alsadomain;
++
++attribute alsatmpfsfile;
++
++type alsa_t, alsadomain;
+ type alsa_exec_t;
+ init_system_domain(alsa_t, alsa_exec_t)
+ role system_r types alsa_t;
+@@ -82,3 +86,10 @@
+ 	hal_use_fds(alsa_t)
+ 	hal_write_log(alsa_t)
+ ')
++
++################################
++#
++# alsadomain policy
++#
++# Used by domains that link with alsa libaries
++allow alsadomain self:sem create_sem_perms;
+--- refpolicy/policy/modules/contrib/alsa.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicypolicy/modules/contrib/alsa.if	2012-07-27 20:49:12.267145520 +0200
+@@ -2,6 +2,36 @@
+ 
+ ########################################
+ ## <summary>
++##	Mark the selected domain as an alsa-capable domain
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain that links with alsa
++##	</summary>
++## </param>
++## <param name="tmpfstype">
++##	<summary>
++##	Tmpfs type used for shared memory of the given domain
++##	</summary>
++## </param>
++#
++interface(`alsa_domain',`
++	gen_require(`
++		attribute alsadomain;
++		attribute alsatmpfsfile;
++	')
++
++	typeattribute $1 alsadomain;
++	typeattribute $2 alsatmpfsfile;
++
++	# Perhaps we can introduce a tunable for the next?
++	allow $1 alsadomain:sem create_sem_perms;
++	allow $1 alsadomain:shm rw_shm_perms;
++	allow $1 alsatmpfsfile:file rw_file_perms;
++')
++
++########################################
++## <summary>
+ ##	Execute a domain transition to run Alsa.
+ ## </summary>
+ ## <param name="domain">

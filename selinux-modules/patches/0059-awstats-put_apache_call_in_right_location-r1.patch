@@ -1,0 +1,19 @@
+diff -uNr refpolicy/policy/modules/contrib/awstats.te refpolicy/policy/modules/contrib/awstats.te
+--- refpolicy/policy/modules/contrib/awstats.te	2012-07-26 21:09:59.573963767 +0200
++++ refpolicy/policy/modules/contrib/awstats.te	2012-07-26 21:10:07.032963782 +0200
+@@ -17,7 +17,6 @@
+ type awstats_var_lib_t;
+ files_type(awstats_var_lib_t)
+ 
+-apache_content_template(awstats)
+ 
+ ########################################
+ #
+@@ -59,6 +58,7 @@
+ 
+ sysnet_dns_name_resolve(awstats_t)
+ 
++apache_content_template(awstats)
+ apache_read_log(awstats_t)
+ 
+ optional_policy(`

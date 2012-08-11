@@ -1,0 +1,29 @@
+diff -uNr refpolicy/policy/modules/system/logging.if refpolicy/policy/modules/system/logging.if
+--- refpolicy/policy/modules/system/logging.if	2012-07-26 21:09:59.529963767 +0200
++++ refpolicy/policy/modules/system/logging.if	2012-07-26 21:10:05.046963779 +0200
+@@ -609,6 +609,25 @@
+ 
+ ########################################
+ ## <summary>
++##	Delete the syslog socket files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`logging_delete_devlog_socket',`
++	gen_require(`
++		type devlog_t;
++	')
++
++	allow $1 devlog_t:sock_file unlink;
++')
++
++########################################
++## <summary>
+ ##	Allows the domain to open a file in the
+ ##	log directory, but does not allow the listing
+ ##	of the contents of the log directory.

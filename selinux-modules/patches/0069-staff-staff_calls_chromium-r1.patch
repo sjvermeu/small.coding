@@ -1,0 +1,14 @@
+diff -uNr refpolicy/policy/modules/roles/staff.te refpolicy/policy/modules/roles/staff.te
+--- refpolicy/policy/modules/roles/staff.te	2012-07-26 21:10:01.550963771 +0200
++++ refpolicy/policy/modules/roles/staff.te	2012-07-26 21:10:09.187963788 +0200
+@@ -23,6 +23,10 @@
+ ')
+ 
+ optional_policy(`
++	chromium_role(staff_r, staff_t)
++')
++
++optional_policy(`
+ 	dbadm_role_change(staff_r)
+ ')
+ 

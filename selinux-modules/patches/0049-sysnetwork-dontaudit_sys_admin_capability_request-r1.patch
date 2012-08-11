@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/system/sysnetwork.te refpolicy/policy/modules/system/sysnetwork.te
+--- refpolicy/policy/modules/system/sysnetwork.te	2012-07-26 21:09:59.530963767 +0200
++++ refpolicy/policy/modules/system/sysnetwork.te	2012-07-26 21:10:06.299963780 +0200
+@@ -44,7 +44,7 @@
+ # DHCP client local policy
+ #
+ allow dhcpc_t self:capability { dac_override fsetid net_admin net_raw net_bind_service setpcap sys_nice sys_resource sys_tty_config };
+-dontaudit dhcpc_t self:capability { sys_tty_config sys_ptrace };
++dontaudit dhcpc_t self:capability { sys_tty_config sys_ptrace sys_admin };
+ # for access("/etc/bashrc", X_OK) on Red Hat
+ dontaudit dhcpc_t self:capability { dac_read_search sys_module };
+ allow dhcpc_t self:process { getsched getcap setcap setfscreate ptrace signal_perms };

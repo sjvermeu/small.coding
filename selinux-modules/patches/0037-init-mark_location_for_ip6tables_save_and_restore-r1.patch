@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/system/init.fc refpolicy/policy/modules/system/init.fc
+--- refpolicy/policy/modules/system/init.fc	2012-07-26 21:10:02.823963773 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-07-26 21:10:04.308963777 +0200
+@@ -65,7 +65,7 @@
+ 
+ ifdef(`distro_gentoo', `
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+-/var/lib/iptables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
++/var/lib/ip6?tables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
+ ')
+ 

@@ -1,0 +1,12 @@
+diff -uNr refpolicy/policy/modules/system/mount.te refpolicy/policy/modules/system/mount.te
+--- refpolicy/policy/modules/system/mount.te	2012-07-26 21:09:59.531963767 +0200
++++ refpolicy/policy/modules/system/mount.te	2012-07-26 21:10:01.889963771 +0200
+@@ -80,7 +80,7 @@
+ files_mounton_all_mountpoints(mount_t)
+ files_unmount_rootfs(mount_t)
+ # These rules need to be generalized.  Only admin, initrc should have it:
+-files_relabelto_all_file_type_fs(mount_t)
++files_relabel_all_file_type_fs(mount_t)
+ files_mount_all_file_type_fs(mount_t)
+ files_unmount_all_file_type_fs(mount_t)
+ # for when /etc/mtab loses its type

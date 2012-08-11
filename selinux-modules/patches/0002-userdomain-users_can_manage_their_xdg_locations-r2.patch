@@ -1,0 +1,37 @@
+--- refpolicy/policy/modules/system/userdomain.if	2012-05-10 15:25:34.000000000 +0200
++++ refpolicy/policy/modules/system/userdomain.if	2012-07-29 09:01:51.501423768 +0200
+@@ -243,6 +243,9 @@
+ 	filetrans_pattern($2, user_home_dir_t, user_home_t, { dir file lnk_file sock_file fifo_file })
+ 	files_list_home($2)
+ 
++	miscfiles_manage_user_certs($2)
++	miscfiles_relabel_user_certs($2)
++
+ 	# cjp: this should probably be removed:
+ 	allow $2 user_home_dir_t:dir { manage_dir_perms relabel_dir_perms };
+ 
+@@ -267,6 +270,24 @@
+ 		fs_dontaudit_manage_cifs_dirs($2)
+ 		fs_dontaudit_manage_cifs_files($2)
+ 	')
++
++	optional_policy(`
++		flash_manage_home($2)
++		flash_relabel_home($2)
++	')
++
++	optional_policy(`
++		xdg_manage_all_cache_home($2)
++		xdg_manage_all_config_home($2)
++		xdg_manage_all_data_home($2)
++		xdg_manage_all_runtime_home($2)
++		xdg_manage_downloads_home($2)
++		xdg_manage_videos_home($2)
++		xdg_relabel_all_cache_home($2)
++		xdg_relabel_all_config_home($2)
++		xdg_relabel_all_data_home($2)
++		xdg_relabel_all_runtime_home($2)
++	')	
+ ')
+ 
+ #######################################

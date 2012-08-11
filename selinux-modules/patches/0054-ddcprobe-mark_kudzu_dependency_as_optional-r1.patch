@@ -1,0 +1,13 @@
+diff -uNr refpolicy/policy/modules/contrib/ddcprobe.te refpolicy/policy/modules/contrib/ddcprobe.te
+--- refpolicy/policy/modules/contrib/ddcprobe.te	2012-07-26 21:09:59.546963767 +0200
++++ refpolicy/policy/modules/contrib/ddcprobe.te	2012-07-26 21:10:06.632963782 +0200
+@@ -47,5 +47,7 @@
+ userdom_use_user_terminals(ddcprobe_t)
+ userdom_use_all_users_fds(ddcprobe_t)
+ 
+-#reh why? this does not seem even necessary to function properly
+-kudzu_getattr_exec_files(ddcprobe_t)
++optional_policy(`
++	#reh why? this does not seem even necessary to function properly
++	kudzu_getattr_exec_files(ddcprobe_t)
++')

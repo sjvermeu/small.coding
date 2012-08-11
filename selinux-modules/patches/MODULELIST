@@ -59,6 +59,7 @@ exim;;
 fail2ban;;
 fetchmail;;
 finger;;
+flash;;
 fprintd;dbus;
 ftp;;
 games;;

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/mount.te	2012-02-27 20:33:01.218927590 +0100
++++ refpolicy/policy/modules/system/mount.te	2012-02-27 20:32:18.293925870 +0100
+@@ -107,6 +107,7 @@
+ mls_file_write_all_levels(mount_t)
+ 
+ selinux_get_enforce_mode(mount_t)
++selinux_get_fs_mount(mount_t)
+ 
+ storage_raw_read_fixed_disk(mount_t)
+ storage_raw_write_fixed_disk(mount_t)

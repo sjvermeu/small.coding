@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/init.te	2012-02-25 12:14:52.866323146 +0100
++++ refpolicy/policy/modules/system/init.te	2012-02-25 12:14:08.901323052 +0100
+@@ -838,6 +838,7 @@
+ ')
+ 
+ optional_policy(`
++	virt_stream_connect(initrc_t)
+ 	virt_manage_svirt_cache(initrc_t)
+ ')
+ 

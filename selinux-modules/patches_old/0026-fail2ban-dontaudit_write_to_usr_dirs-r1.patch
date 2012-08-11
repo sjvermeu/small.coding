@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/fail2ban.te	2011-10-25 19:20:00.000000000 +0200
++++ refpolicy/policy/modules/contrib/fail2ban.te	2012-02-25 11:57:56.702320978 +0100
+@@ -72,6 +72,7 @@
+ files_read_usr_files(fail2ban_t)
+ files_list_var(fail2ban_t)
+ files_search_var_lib(fail2ban_t)
++files_dontaudit_write_usr_dirs(fail2ban_t)
+ 
+ fs_list_inotifyfs(fail2ban_t)
+ fs_getattr_all_fs(fail2ban_t)

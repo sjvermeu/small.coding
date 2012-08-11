@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/init.te	2012-03-22 19:58:00.506027536 +0100
++++ refpolicy/policy/modules/system/init.te	2012-03-22 19:56:55.813027399 +0100
+@@ -847,6 +847,7 @@
+ 
+ optional_policy(`
+ 	udev_dontaudit_getattr_netlink_kobject_uevent_sockets(initrc_t)
++	udev_dontaudit_getattr_unix_stream_sockets(initrc_t)
+ 	udev_rw_db(initrc_t)
+ 	udev_manage_pid_files(initrc_t)
+ 	udev_manage_rules_files(initrc_t)

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/cvs.te	2012-06-17 19:20:50.776003422 +0200
++++ refpolicypolicy/modules/contrib/cvs.te	2012-06-08 21:04:09.841005567 +0200
+@@ -14,6 +14,7 @@
+ 
+ type cvs_t;
+ type cvs_exec_t;
++init_daemon_domain(cvs_t, cvs_exec_t)
+ application_executable_file(cvs_exec_t)
+ role system_r types cvs_t;
+ 

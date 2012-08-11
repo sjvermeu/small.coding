@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/portage.te	2012-03-22 20:08:51.010028924 +0100
++++ refpolicy/policy/modules/contrib/portage.te	2012-03-22 20:07:24.287028739 +0100
+@@ -332,6 +332,8 @@
+ 
+ userdom_use_user_terminals(portage_fetch_t)
+ userdom_dontaudit_read_user_home_content_files(portage_fetch_t)
++userdom_dontaudit_getattr_user_home_dirs(portage_fetch_t)
++userdom_dontaudit_search_user_home_dirs(portage_fetch_t)
+ 
+ rsync_exec(portage_fetch_t)
+ 

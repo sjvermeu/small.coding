@@ -1,0 +1,119 @@
+--- refpolicy/policy/modules/contrib/java.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicypolicy/modules/contrib/java.te	2012-07-25 11:34:06.263705598 +0200
+@@ -19,6 +19,9 @@
+ typealias java_t alias { auditadm_javaplugin_t secadm_javaplugin_t };
+ role system_r types java_t;
+ 
++type java_home_t;
++userdom_user_home_content(java_home_t)
++
+ type java_tmp_t;
+ userdom_user_tmp_file(java_tmp_t)
+ typealias java_tmp_t alias { staff_javaplugin_tmp_t user_javaplugin_tmp_t sysadm_javaplugin_tmp_t };
+@@ -39,9 +42,16 @@
+ 
+ allow java_t self:process { signal_perms getsched setsched execmem };
+ allow java_t self:fifo_file rw_fifo_file_perms;
++# For java browser plugin accessing internet resources?
++allow java_t self:netlink_route_socket create_netlink_socket_perms; 
++allow java_t self:sem create_sem_perms;
+ allow java_t self:tcp_socket create_socket_perms;
+ allow java_t self:udp_socket create_socket_perms;
+ 
++manage_dirs_pattern(java_t, java_home_t, java_home_t)
++manage_files_pattern(java_t, java_home_t, java_home_t)
++userdom_user_home_dir_filetrans(java_t, java_home_t, dir, ".icedtea")
++
+ manage_dirs_pattern(java_t, java_tmp_t, java_tmp_t)
+ manage_files_pattern(java_t, java_tmp_t, java_tmp_t)
+ files_tmp_filetrans(java_t, java_tmp_t, { file dir })
+@@ -97,7 +107,7 @@
+ 
+ sysnet_read_config(java_t)
+ 
+-userdom_dontaudit_use_user_terminals(java_t)
++userdom_use_user_terminals(java_t)
+ userdom_dontaudit_setattr_user_home_content_files(java_t)
+ userdom_dontaudit_exec_user_home_content_files(java_t)
+ userdom_manage_user_home_content_dirs(java_t)
+@@ -120,6 +130,20 @@
+ ')
+ 
+ optional_policy(`
++	alsa_read_rw_config(java_t)
++')
++
++optional_policy(`
++	# Plugin communication
++	chromium_rw_tmp_pipes(java_t)
++')
++
++optional_policy(`
++	# Plugin communication
++	mozilla_rw_tmp_pipes(java_t)
++')
++
++optional_policy(`
+ 	nis_use_ypbind(java_t)
+ ')
+ 
+--- refpolicy/policy/modules/contrib/java.if	2011-10-25 19:20:01.000000000 +0200
++++ refpolicypolicy/modules/contrib/java.if	2012-07-25 11:23:18.525704216 +0200
+@@ -18,6 +18,7 @@
+ interface(`java_role',`
+ 	gen_require(`
+ 		type java_t, java_exec_t;
++		type java_home_t;
+ 	')
+ 
+ 	role $1 types java_t;
+@@ -31,6 +32,9 @@
+ 	allow java_t $2:unix_stream_socket connectto;
+ 	allow java_t $2:unix_stream_socket { read write };
+ 	allow java_t $2:tcp_socket { read write };
++
++	manage_files_pattern($2, java_home_t, java_home_t)
++	manage_dirs_pattern($2, java_home_t, java_home_t)
+ ')
+ 
+ #######################################
+@@ -111,10 +115,39 @@
+ 	')
+ 
+ 	domtrans_pattern($1, java_exec_t, java_t)
++
++	# /usr/bin/java is a symlink
++	files_read_usr_symlinks($1)
+ ')
+ 
+ ########################################
+ ## <summary>
++##	Run java in javaplugin domain and
++##	do not clean the environment (atsecure)
++## </summary>
++## <desc>
++##	<p>
++##	This is needed when java is called by an application with library
++##	settings (such as is the case when invoked as a browser plugin)
++##	</p>
++## </desc>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++template(`java_noatsecure_domtrans',`
++	gen_require(`
++		type java_t;
++	')
++
++	allow $1 java_t:process noatsecure;
++
++	java_domtrans($1)
++')
++########################################
++## <summary>
+ ##	Execute java in the java domain, and
+ ##	allow the specified role the java domain.
+ ## </summary>

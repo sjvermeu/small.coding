@@ -1,0 +1,15 @@
+--- refpolicy/policy/modules/contrib/gpg.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/contrib/gpg.te	2012-02-25 09:30:15.006302064 +0100
+@@ -340,6 +340,12 @@
+ ')
+ 
+ optional_policy(`
++	mutt_read_home_files(gpg_t)
++	mutt_read_tmp_files(gpg_t)
++	mutt_rw_tmp_files(gpg_t)
++')
++
++optional_policy(`
+ 	pulseaudio_exec(gpg_pinentry_t)
+ 	pulseaudio_rw_home_files(gpg_pinentry_t)
+ 	pulseaudio_setattr_home_dir(gpg_pinentry_t)

@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/contrib/mplayer.te	2012-02-15 20:32:45.000000000 +0100
++++ refpolicypolicy/modules/contrib/mplayer.te	2012-06-01 19:08:53.015008308 +0200
+@@ -234,7 +234,6 @@
+ userdom_read_user_home_content_symlinks(mplayer_t)
+ userdom_write_user_tmp_sockets(mplayer_t)
+ 
+-xserver_user_x_domain_template(mplayer, mplayer_t, mplayer_tmpfs_t)
+ 
+ # Read songs
+ ifdef(`enable_mls',`',`
+@@ -309,3 +308,7 @@
+ 	pulseaudio_exec(mplayer_t)
+ 	pulseaudio_stream_connect(mplayer_t)
+ ')
++
++optional_policy(`
++	xserver_user_x_domain_template(mplayer, mplayer_t, mplayer_tmpfs_t)
++')

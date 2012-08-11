@@ -1,0 +1,129 @@
+<no bug>	Backport: rename epollwakeup to block_suspend to match naming in Linux 3.5
+<no bug>	Backport changes for nslcd
+#427750		Allow init to create /run/mysqld directoriy
+<no bug>	Add fifo_file access for mozilla_t to mozilla_tmp_t (needed for icedtea-appletviewer-to-plugin)
+#412637		Add in policy for chromium
+
+** 2012-07-21 Revision 15
+
+#426660		Allow nslcd to connect to LDAP
+#426960		Allow init to create dbus directories in /run
+#426958		Allow dhcpc to create /var/run/dhcpc (/run/dhcpc) through its dhcpcd-hooks
+#426954		New udevd since systemd integration needs to be labeled as udev executable
+<no bug>	Update xdg definition, use correct naming
+<no bug>	Rewrite eselect handling, now uses a SELinux attribute
+
+** 2012-07-10 Revision 14
+
+#410961		Get the descriptions for booleans properly displayed
+<no bug>	Backport nss_domain attribute patch
+<no bug>	Backport blueman policy
+<no bug>	Backport bcfg2 policy
+#424359		Allow udev init script to generate correct labels on data & rules.d (/run/udev)
+<no bug>	Backport support/ related commits
+<no bug>	Backport packagekit file contexts
+<no bug>	Refactor dracut domain policy
+<no bug>	Refactor fixes for udev and init support for /run directory
+
+** 2012-06-24 Revision 13
+
+<no bug>	Allow wpa_cli to read release files in /etc (find out which distribution it runs in)
+<no bug>	Allow udev_tbl_t managers to search through udev_var_run_t needed for /run/udev
+<no bug>	Update on python3 support within doc generation
+<no bug>	Use gnome_xdg_config_t for gnome ~/.config/gtk-* stuff
+<no bug>	Support wake_alarm and epollwakeup capabilities (backport)
+#379879		Support phpfpm_t domain
+<no bug>	Support search on all web content within apache (interface)
+
+** 2012-06-14 Revision 12
+
+<no bug>	Improve coding style on network manager
+<no bug>	Fix build failures on individual policy modules
+<no bug>	Correct backport of SEPostgresql changes (remove "execute" from a mlsconstrain)
+<no bug>	Fix typo in postgresql update
+
+** 2012-05-28 Revision 11
+
+#417937		Do not audit access to device_t:chr_file by dmesg
+#417857		Support dynamic /run directories
+#413719		Correct udev context in /run/udev
+<no bug>	Backporting SEPostgresql changes
+<no bug>	Update udev file contexts (udevadm and udevd binaries)
+#417821		Mark /etc/selinux/*/modules as semanage_store_t (fixes permission issue on .../modules/tmp)
+
+** 2012-05-26 Revision 10
+
+#412321		Allow kdevtmpfs to setattr on the device files (udev-180 requirement)
+#416323		Allow kdevtmpfs to setattr on the device files
+#416305		Mark kudzu privilege as optional in ddcprobe module
+#416303		Remove duplicate file context definition for firefox
+
+** 2012-05-15 Revision 9
+
+<no bug>	Introduce named file transition support in policies (backport)
+<no bug>	Eliminate "*_except_auth_files" expressions through new attribute (backport)
+<no bug>	Update symbol in clamav_append_log interface (backport)
+#411719		Update python scripts to further enhance support #python3
+#413065		Allow passwd_t to read default context definitions
+#413061		Allow groupadd_t to read default context definitions
+#410951		Use /usr/lib and /lib instead of the /usr/lib(64)? and similar calls
+
+** 2012-04-21 Revision 8
+
+#411719		Update whitespace in python scripts (support python3)
+#411149		Introduce httpd_setrlimit to support setrlimit/sys_resource on apache (for lighttpd)
+#411943		Allow unconfined users to start X (or XFCE) from the commandline
+
+** 2012-04-11 Revision 7
+
+#401595		Mark .pwd.lock as etc_t 
+#411193		Support init scripts working with cgroups (manage cgroup_t)
+#403293		Support SELinux-aware cronie and have it create cronjob_t keys
+
+** 2012-03-29 Revision 6
+
+#405425		Allow syslog-ng to getsched capability (needed for its new threading implementation)
+<no bug>	Do not audit sys_admin capability for dhcpc (in sysnetwork)
+<no bug>	Allow sys_admin capability for init scripts (modify sysctl settings)
+
+** 2012-03-22 Revision 5
+
+<no bug>	Do not audit getattr/search on user_home_dir_t stuff from within portage_fetch_t
+<no bug>	Do not audit getattr on udev netlink_kobject_uevent_sockets and unix_stream_sockets from within initrc (bootmisc)
+<no bug>	Allow init scripts (bootmisc) to clean up /tmp location
+<no bug>	Allow init scripts to delete stale syslog control sockets
+<no bug>	Allow bootmisc to mkdir/rmdir in /var/lib
+<no bug>	Allow mount to setsched on kernel_t
+<no bug>	Mark the selinuxfs mounts as mountpoints
+<no bug>	Do not audit searches by mount on unlabeled_t before it mounts on them
+#389425		Update patch for DHCP regarding binding to generic UDP ports
+<no bug>	Support integrated run_init properly again
+<no bug>	Add in references to sysfs where SELinux access is used (dev_getattr_sysfs_fs)
+<no bug>	Mark /lib/rc/console as initrc_state_t to allow bootup to remove stale files in there
+<no bug>	Do not attempt to update base in selinux-base, wait for selinux-base-policy
+<no bug>	Allow nginx_t to list the content of its configuration directories
+<no bug>	Mark /var/lib/ip6tables as initrc_tmp_t to allow init script to save/restore
+
+** 2012-03-01 Revision 4
+
+<no bug>	Update patch for DHCP LDAP support to use a tunable (dhcp_use_ldap)
+<no bug>	Correct clamav_var_log_t usage (instead of clamav_log_t, which doesn't exist)
+<no bug>	Allow gorg to signal itself
+<no bug>	Make sure mozilla_plugin_t is allowed for mozilla_roles (role attribute) as well
+
+** 2012-02-27 Revision 3
+
+<no bug>	Allow sysadm to call qemu directly to launch virtual guests from commandline
+<no bug>	Allow su to get the security file system attributes, needed for su calls
+#401857		Set /usr/share/GNUstep/Makefiles/*.sh (and mkinstalldirs) as #bin_t t allow building gnustep-base
+#403143		Add TCP 3128 as http_cache_port_t (default port for squid cache)
+<no bug>	Update usermanage/selinux util role attributes to include the proper types
+<no bug>	Allow mount to get the security file system attributes, needed for rootcontext mounts
+
+** 2012-02-26 Revision 2
+
+<no bug>	Fix file context for dracut (now in bin instead of sbin)
+<no bug>	Do not add unconfined to base for targeted. Instead use selinux-base for that
+<no bug>	Reintroduce gentoo booleans (so we do not break updates)
+
+** 2012-02-26 Revision 1

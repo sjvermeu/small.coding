@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/selinux.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/kernel/selinux.te	2012-03-07 22:55:50.542217509 +0100
+@@ -30,6 +30,7 @@
+ #
+ type security_t, boolean_type;
+ fs_type(security_t)
++files_mountpoint(security_t)
+ mls_trusted_object(security_t)
+ sid security gen_context(system_u:object_r:security_t,mls_systemhigh)
+ genfscon selinuxfs / gen_context(system_u:object_r:security_t,s0)

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/portage.fc	2011-10-25 19:20:03.000000000 +0200
++++ refpolicy/policy/modules/contrib/portage.fc	2012-02-25 11:30:06.680317413 +0100
+@@ -4,6 +4,7 @@
+ /etc/portage/gpg(/.*)?			gen_context(system_u:object_r:portage_gpg_t,s0)
+ 
+ /usr/bin/gcc-config		--	gen_context(system_u:object_r:gcc_config_exec_t,s0)
++/usr/bin/glsa-check		--	gen_context(system_u:object_r:portage_exec_t,s0)
+ /usr/bin/layman			--	gen_context(system_u:object_r:portage_fetch_exec_t,s0)
+ /usr/bin/sandbox		--	gen_context(system_u:object_r:portage_exec_t,s0)
+ 

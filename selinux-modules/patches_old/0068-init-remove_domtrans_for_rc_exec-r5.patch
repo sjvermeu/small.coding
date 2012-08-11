@@ -1,0 +1,17 @@
+--- refpolicy/policy/modules/system/init.if	2012-03-06 21:36:13.138022897 +0100
++++ refpolicy/policy/modules/system/init.if	2012-03-06 21:35:34.031022814 +0100
+@@ -814,14 +814,6 @@
+ 	files_list_etc($1)
+ 	spec_domtrans_pattern($1, initrc_exec_t, initrc_t)
+ 
+-	ifdef(`distro_gentoo',`
+-		gen_require(`
+-			type rc_exec_t;
+-		')
+-
+-		domtrans_pattern($1, rc_exec_t, initrc_t)
+-	')
+-
+ 	ifdef(`enable_mcs',`
+ 		range_transition $1 initrc_exec_t:process s0;
+ 	')

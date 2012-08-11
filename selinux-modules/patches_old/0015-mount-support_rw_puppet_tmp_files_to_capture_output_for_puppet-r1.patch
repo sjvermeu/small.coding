@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/mount.te	2012-02-25 11:13:34.982315296 +0100
++++ refpolicy/policy/modules/system/mount.te	2012-02-25 11:12:26.778315151 +0100
+@@ -193,6 +193,10 @@
+ 	')
+ ')
+ 
++optional_policy(`
++	puppet_rw_tmp(mount_t)
++')
++
+ # for kernel package installation
+ optional_policy(`
+ 	rpm_rw_pipes(mount_t)

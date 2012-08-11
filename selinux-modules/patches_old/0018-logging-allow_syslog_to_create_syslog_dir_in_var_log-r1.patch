@@ -1,0 +1,22 @@
+--- refpolicy/policy/modules/system/logging.te	2011-11-15 15:48:38.000000000 +0100
++++ refpolicy/policy/modules/system/logging.te	2012-02-25 11:19:09.447316010 +0100
+@@ -438,6 +438,8 @@
+ # /initrd is not umounted before minilog starts
+ files_dontaudit_search_isid_type_dirs(syslogd_t)
+ files_read_kernel_symbol_table(syslogd_t)
++files_rw_var_lib_dirs(syslogd_t)
++files_var_lib_filetrans(syslogd_t, syslogd_var_lib_t, file)
+ 
+ fs_getattr_all_fs(syslogd_t)
+ fs_search_auto_mountpoints(syslogd_t)
+--- refpolicy/policy/modules/system/logging.fc	2011-10-25 19:19:35.000000000 +0200
++++ refpolicy/policy/modules/system/logging.fc	2012-02-25 11:19:09.447316010 +0100
+@@ -69,7 +69,7 @@
+ 
+ /var/spool/audit(/.*)?		gen_context(system_u:object_r:audit_spool_t,mls_systemhigh)
+ /var/spool/bacula/log(/.*)? 	gen_context(system_u:object_r:var_log_t,s0)
+-/var/spool/postfix/pid	-d	gen_context(system_u:object_r:var_run_t,s0)
++#/var/spool/postfix/pid	-d	gen_context(system_u:object_r:var_run_t,s0)
+ /var/spool/plymouth/boot\.log	gen_context(system_u:object_r:var_log_t,mls_systemhigh)
+ /var/spool/rsyslog(/.*)? 	gen_context(system_u:object_r:var_log_t,s0)
+ 

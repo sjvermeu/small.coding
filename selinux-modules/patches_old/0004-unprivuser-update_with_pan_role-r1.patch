@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:36:54.653302916 +0100
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:35:48.641302776 +0100
+@@ -110,6 +110,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		pan_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		postgresql_role(user_r, user_t)
+ 	')
+ 

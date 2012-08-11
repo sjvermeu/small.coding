@@ -1,0 +1,20 @@
+--- refpolicy/policy/modules/admin/usermanage.te	2012-04-22 14:41:40.347353711 +0200
++++ refpolicypolicy/modules/admin/usermanage.te	2012-04-22 14:39:39.498353454 +0200
+@@ -241,6 +241,7 @@
+ auth_etc_filetrans_shadow(groupadd_t)
+ 
+ seutil_read_config(groupadd_t)
++seutil_read_file_contexts(groupadd_t)
+ 
+ userdom_use_unpriv_users_fds(groupadd_t)
+ # for when /root is the cwd
+@@ -336,7 +337,8 @@
+ 
+ miscfiles_read_localization(passwd_t)
+ 
+-seutil_dontaudit_search_config(passwd_t)
++seutil_read_config(groupadd_t)
++seutil_read_file_contexts(groupadd_t)
+ 
+ userdom_use_user_terminals(passwd_t)
+ userdom_use_unpriv_users_fds(passwd_t)

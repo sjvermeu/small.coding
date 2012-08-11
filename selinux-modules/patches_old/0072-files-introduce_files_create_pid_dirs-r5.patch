@@ -1,0 +1,29 @@
+--- refpolicy/policy/modules/kernel/files.if	2012-03-09 22:43:14.911017070 +0100
++++ refpolicy/policy/modules/kernel/files.if	2012-03-09 22:29:07.484015261 +0100
+@@ -5937,6 +5937,26 @@
+ 
+ ########################################
+ ## <summary>
++##	Create PID directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_create_pid_dirs',`
++	gen_require(`
++		type var_t, var_run_t;
++	')
++
++	allow $1 var_t:dir search_dir_perms;
++	allow $1 var_run_t:lnk_file read_lnk_file_perms;
++	create_dirs_pattern($1, var_run_t, var_run_t)
++')
++
++########################################
++## <summary>
+ ##	Delete all process IDs.
+ ## </summary>
+ ## <param name="domain">

@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:32:30.438302352 +0100
+@@ -106,6 +106,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		mutt_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		postgresql_role(user_r, user_t)
+ 	')
+ 

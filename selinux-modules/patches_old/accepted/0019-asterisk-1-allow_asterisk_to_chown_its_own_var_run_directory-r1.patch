@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/asterisk.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/contrib/asterisk.te	2012-02-25 11:20:55.634316238 +0100
+@@ -40,7 +40,7 @@
+ #
+ 
+ # dac_override for /var/run/asterisk
+-allow asterisk_t self:capability { dac_override setgid setuid sys_nice net_admin };
++allow asterisk_t self:capability { dac_override setgid setuid sys_nice net_admin chown };
+ dontaudit asterisk_t self:capability sys_tty_config;
+ allow asterisk_t self:process { getsched setsched signal_perms getcap setcap };
+ allow asterisk_t self:fifo_file rw_fifo_file_perms;

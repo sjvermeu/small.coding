@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/contrib/qemu.te	2012-02-25 11:36:34.566318240 +0100
++++ refpolicy/policy/modules/contrib/qemu.te	2012-02-25 11:35:44.846318136 +0100
+@@ -100,6 +100,10 @@
+ ')
+ 
+ optional_policy(`
++	vde_connect(qemu_t)
++')
++
++optional_policy(`
+ 	virt_manage_images(qemu_t)
+ 	virt_append_log(qemu_t)
+ ')

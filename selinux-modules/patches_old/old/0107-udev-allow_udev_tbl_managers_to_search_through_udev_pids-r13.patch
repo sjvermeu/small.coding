@@ -1,0 +1,48 @@
+--- refpolicy/policy/modules/system/udev.if	2012-06-24 15:33:44.802018423 +0200
++++ refpolicypolicy/modules/system/udev.if	2012-06-24 15:33:07.636017602 +0200
+@@ -249,6 +249,8 @@
+ 	allow $1 udev_tbl_t:dir list_dir_perms;
+ 	read_files_pattern($1, udev_tbl_t, udev_tbl_t)
+ 	read_lnk_files_pattern($1, udev_tbl_t, udev_tbl_t)
++	# Device table files are beneith /run/udev
++	udev_search_pids($1)
+ ')
+ 
+ ########################################
+@@ -295,6 +297,26 @@
+ 
+ ########################################
+ ## <summary>
++## 	Search through udev pid files and directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_search_pids',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_search_var_lib($1)
++	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++')
++
++
++########################################
++## <summary>
+ ##	Create, read, write, and delete
+ ##	udev pid files.
+ ## </summary>
+--- refpolicy/policy/modules/system/udev.fc	2012-06-24 15:33:44.805018423 +0200
++++ refpolicypolicy/modules/system/udev.fc	2012-06-24 15:29:51.794013321 +0200
+@@ -33,6 +33,7 @@
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)
+ /var/run/udev	-d	gen_context(system_u:object_r:udev_var_run_t,s0)
+ /var/run/udev/rules\.d(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev/data(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
+ 
+ ifdef(`distro_debian',`
+ /var/run/xen-hotplug -d	gen_context(system_u:object_r:udev_var_run_t,s0)

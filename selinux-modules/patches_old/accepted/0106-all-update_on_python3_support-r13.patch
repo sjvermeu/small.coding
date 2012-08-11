@@ -1,0 +1,28 @@
+diff -uNr -x '.git*' -x CVS refpolicy/support/pyplate.py refpolicy/support/pyplate.py
+--- refpolicy/support/pyplate.py	2012-06-24 11:16:54.172708215 +0200
++++ refpolicy/support/pyplate.py	2012-06-24 11:16:41.512708671 +0200
+@@ -82,7 +82,10 @@
+     file.close()
+ 
+   def parse_string(self, template):
+-    file = io.StringIO(template)
++    if sys.version_info >= (3,0):
++      file = io.StringIO(template)
++    else:
++      file = io.StringIO(template.decode('utf-8'))
+     self.parse(file)
+     file.close()
+ 
+@@ -288,7 +291,11 @@
+ 
+ class ExpressionTemplateNode(LeafTemplateNode):
+   def execute(self, stream, data):
+-    stream.write(str(eval(self.s, globals(), data)))
++    if sys.version_info >= (3,0):
++      stream.write(str(eval(self.s, globals(), data)))
++    else:
++      stream.write(str(eval(self.s, globals(), data)).decode('utf-8'))
++
+ 
+ class ExecTemplateNode(LeafTemplateNode):
+   def __init__(self, parent, s):

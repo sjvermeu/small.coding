@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/contrib/apache.te	2012-04-18 23:00:07.434345085 +0200
++++ refpolicy/policy/modules/contrib/apache.te	2012-04-18 22:59:21.397344987 +0200
+@@ -100,6 +100,13 @@
+ 
+ ## <desc>
+ ## <p>
++## Allow httpd daemon to change its resource limits
++## </p>
++## </desc>
++gen_tunable(httpd_setrlimit, false)
++
++## <desc>
++## <p>
+ ## Allow HTTPD to run SSI executables in the same domain as system CGI scripts.
+ ## </p>
+ ## </desc>
+@@ -489,6 +496,11 @@
+ 	mta_send_mail(httpd_t)
+ ')
+ 
++tunable_policy(`httpd_setrlimit',`
++	allow httpd_t self:process setrlimit;
++	allow httpd_t self:capability sys_resource;
++')
++
+ tunable_policy(`httpd_ssi_exec',`
+ 	corecmd_shell_domtrans(httpd_t, httpd_sys_script_t)
+ 	allow httpd_sys_script_t httpd_t:fd use;

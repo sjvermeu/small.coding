@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/contrib/mozilla.te	2012-02-15 20:32:45.000000000 +0100
++++ refpolicy/policy/modules/contrib/mozilla.te	2012-02-25 09:24:41.211301351 +0100
+@@ -167,6 +167,7 @@
+ 
+ mozilla_run_plugin(mozilla_t, mozilla_roles)
+ 
++
+ xserver_user_x_domain_template(mozilla, mozilla_t, mozilla_tmpfs_t)
+ xserver_dontaudit_read_xdm_tmp_files(mozilla_t)
+ xserver_dontaudit_getattr_xdm_tmp_sockets(mozilla_t)
+@@ -291,6 +292,10 @@
+ 	thunderbird_domtrans(mozilla_t)
+ ')
+ 
++optional_policy(`
++	xdg_read_generic_data_home_files(mozilla_t)
++')
++
+ ########################################
+ #
+ # mozilla_plugin local policy

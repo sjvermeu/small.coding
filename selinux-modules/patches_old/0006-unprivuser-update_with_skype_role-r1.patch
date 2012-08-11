@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:43:01.543303699 +0100
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-02-25 09:41:56.322303561 +0100
+@@ -134,6 +134,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		skype_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		spamassassin_role(user_r, user_t)
+ 	')
+ 

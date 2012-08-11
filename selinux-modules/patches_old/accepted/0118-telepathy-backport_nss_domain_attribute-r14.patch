@@ -1,0 +1,22 @@
+--- refpolicy/policy/modules/contrib/telepathy.te	2012-02-15 20:32:45.000000000 +0100
++++ refpolicypolicy/modules/contrib/telepathy.te	2012-07-10 18:55:32.778304971 +0200
+@@ -367,8 +367,6 @@
+ 
+ fs_search_auto_mountpoints(telepathy_domain)
+ 
+-auth_use_nsswitch(telepathy_domain)
+-
+ miscfiles_read_localization(telepathy_domain)
+ 
+ optional_policy(`
+--- refpolicy/policy/modules/contrib/telepathy.if	2011-10-25 19:20:07.000000000 +0200
++++ refpolicypolicy/modules/contrib/telepathy.if	2012-07-10 18:55:15.932305221 +0200
+@@ -24,6 +24,8 @@
+ 
+ 	type telepathy_$1_tmp_t;
+ 	userdom_user_tmp_file(telepathy_$1_tmp_t)
++
++	auth_use_nsswitch(telepathy_$1_t)
+ ')
+ 
+ #######################################

@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/contrib/finger.te	2011-10-25 19:20:00.000000000 +0200
++++ refpolicypolicy/modules/contrib/finger.te	2012-06-01 19:49:36.216013523 +0200
+@@ -8,7 +8,6 @@
+ type fingerd_t;
+ type fingerd_exec_t;
+ init_daemon_domain(fingerd_t, fingerd_exec_t)
+-inetd_tcp_service_domain(fingerd_t, fingerd_exec_t)
+ 
+ type fingerd_etc_t;
+ files_config_file(fingerd_etc_t)
+@@ -97,6 +96,10 @@
+ ')
+ 
+ optional_policy(`
++	inetd_tcp_service_domain(fingerd_t, fingerd_exec_t)
++')
++
++optional_policy(`
+ 	logrotate_exec(fingerd_t)
+ ')
+ 

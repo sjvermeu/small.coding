@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/contrib/bitlbee.te	2011-10-25 19:19:57.000000000 +0200
++++ refpolicypolicy/modules/contrib/bitlbee.te	2012-06-02 09:15:33.118116737 +0200
+@@ -8,7 +8,6 @@
+ type bitlbee_t;
+ type bitlbee_exec_t;
+ init_daemon_domain(bitlbee_t, bitlbee_exec_t)
+-inetd_tcp_service_domain(bitlbee_t, bitlbee_exec_t)
+ 
+ type bitlbee_conf_t;
+ files_config_file(bitlbee_conf_t)
+@@ -89,6 +88,10 @@
+ sysnet_dns_name_resolve(bitlbee_t)
+ 
+ optional_policy(`
++	inetd_tcp_service_domain(bitlbee_t, bitlbee_exec_t)
++')
++
++optional_policy(`
+ 	# normally started from inetd using tcpwrappers, so use those entry points
+ 	tcpd_wrapped_domain(bitlbee_t, bitlbee_exec_t)
+ ')

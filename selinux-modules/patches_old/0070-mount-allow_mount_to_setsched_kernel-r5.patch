@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/mount.te	2012-03-07 22:46:12.473216276 +0100
++++ refpolicy/policy/modules/system/mount.te	2012-03-07 22:45:41.434216209 +0100
+@@ -51,6 +51,7 @@
+ 
+ kernel_read_system_state(mount_t)
+ kernel_read_kernel_sysctls(mount_t)
++kernel_setsched(mount_t)
+ kernel_dontaudit_getattr_core_if(mount_t)
+ kernel_dontaudit_write_debugfs_dirs(mount_t)
+ kernel_dontaudit_write_proc_dirs(mount_t)

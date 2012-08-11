@@ -1,0 +1,60 @@
+--- refpolicy/policy/modules/contrib/asterisk.te	2012-02-25 11:25:02.458316763 +0100
++++ refpolicy/policy/modules/contrib/asterisk.te	2012-02-25 11:22:23.429316424 +0100
+@@ -46,7 +46,7 @@
+ allow asterisk_t self:fifo_file rw_fifo_file_perms;
+ allow asterisk_t self:sem create_sem_perms;
+ allow asterisk_t self:shm create_shm_perms;
+-allow asterisk_t self:unix_stream_socket { connectto listen };
++allow asterisk_t self:unix_stream_socket { connectto listen accept };
+ allow asterisk_t self:tcp_socket create_stream_socket_perms;
+ allow asterisk_t self:udp_socket create_socket_perms;
+ 
+--- refpolicy/policy/modules/contrib/asterisk.if	2011-10-25 19:19:57.000000000 +0200
++++ refpolicy/policy/modules/contrib/asterisk.if	2012-02-25 11:22:23.431316424 +0100
+@@ -90,3 +90,46 @@
+ 	files_list_pids($1)
+ 	admin_pattern($1, asterisk_var_run_t)
+ ')
++
++#######################################
++## <summary>
++##   Allow changing the attributes of the asterisk log files and directories
++## </summary>
++## <param name="domain">
++##   <summary>
++##     Domain allowed to change the attributes of the asterisk log files and
++##     directories
++##   </summary>
++## </param>
++#
++interface(`asterisk_setattr_logs',`
++	gen_require(`
++		type asterisk_log_t;
++	')
++
++	setattr_files_pattern($1, asterisk_log_t, asterisk_log_t)
++	setattr_dirs_pattern($1, asterisk_log_t, asterisk_log_t)
++
++	logging_search_logs($1)
++')
++
++#######################################
++## <summary>
++##   Allow changing the attributes of the asterisk PID files
++## </summary>
++## <param name="domain">
++##   <summary>
++##     Domain allowed to change the attributes of the asterisk PID files
++##   </summary>
++## </param>
++#
++interface(`asterisk_setattr_pid_files',`
++	gen_require(`
++		type asterisk_var_run_t;
++	')
++
++	setattr_files_pattern($1, asterisk_var_run_t, asterisk_var_run_t)
++	setattr_dirs_pattern($1, asterisk_var_run_t, asterisk_var_run_t)
++
++	files_search_pids($1)
++')

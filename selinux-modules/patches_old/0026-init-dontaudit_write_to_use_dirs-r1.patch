@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/init.te	2012-02-25 12:00:53.151321354 +0100
++++ refpolicy/policy/modules/system/init.te	2012-02-25 12:00:39.759321326 +0100
+@@ -276,6 +276,7 @@
+ kernel_dontaudit_getattr_message_if(initrc_t)
+ 
+ files_read_kernel_symbol_table(initrc_t)
++files_dontaudit_write_usr_dirs(initrc_t)
+ 
+ corecmd_exec_all_executables(initrc_t)
+ 

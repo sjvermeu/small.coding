@@ -1,0 +1,12 @@
+--- refpolicy/policy/modules/system/init.te	2012-04-07 22:38:02.248040968 +0200
++++ refpolicy/policy/modules/system/init.te	2012-04-07 22:34:34.557040526 +0200
+@@ -360,7 +360,8 @@
+ files_manage_generic_tmp_files(initrc_t)
+ files_manage_generic_tmp_dirs(initrc_t)
+ 
+-fs_write_cgroup_files(initrc_t)
++fs_manage_cgroup_dirs(initrc_t)
++fs_manage_cgroup_files(initrc_t)
+ fs_list_inotifyfs(initrc_t)
+ fs_register_binary_executable_type(initrc_t)
+ # rhgb-console writes to ramfs

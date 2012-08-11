@@ -1,0 +1,25 @@
+--- refpolicy/policy/modules/system/init.te	2012-07-10 20:27:38.375222996 +0200
++++ refpolicypolicy/modules/system/init.te	2012-07-10 19:49:43.991256739 +0200
+@@ -851,9 +851,11 @@
+ ')
+ 
+ optional_policy(`
++	udev_create_db_dirs(initrc_t)
+ 	udev_dontaudit_getattr_netlink_kobject_uevent_sockets(initrc_t)
+ 	udev_dontaudit_getattr_unix_stream_sockets(initrc_t)
+-	udev_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_generic_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_pid_filetrans_db(initrc_t, dir, "rules.d")
+ 	udev_manage_pid_files(initrc_t)
+ 	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)
+--- refpolicy/policy/modules/system/init.fc	2012-07-10 20:27:38.272222998 +0200
++++ refpolicypolicy/modules/system/init.fc	2012-07-10 20:27:07.177223459 +0200
+@@ -68,6 +68,7 @@
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ /var/lib/ip6?tables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/var/run/openrc(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ ifdef(`distro_suse', `

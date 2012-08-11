@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/nginx.te	2012-03-02 19:46:03.418556669 +0100
++++ refpolicy/policy/modules/contrib/nginx.te	2012-03-02 19:45:31.858556602 +0100
+@@ -122,6 +122,7 @@
+ allow nginx_t self:capability { setuid net_bind_service setgid chown };
+ 
+ # conf files
++list_dirs_pattern(nginx_t, nginx_conf_t, nginx_conf_t)
+ read_files_pattern(nginx_t, nginx_conf_t, nginx_conf_t)
+ 
+ # log files

@@ -1,0 +1,694 @@
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/dpkg.te refpolicy/policy/modules/contrib/dpkg.te
+--- refpolicy/policy/modules/contrib/dpkg.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/contrib/dpkg.te	2012-05-05 16:11:26.577762612 +0200
+@@ -143,8 +143,8 @@
+ # for installing kernel packages
+ storage_raw_read_fixed_disk(dpkg_t)
+ 
+-auth_relabel_all_files_except_auth_files(dpkg_t)
+-auth_manage_all_files_except_auth_files(dpkg_t)
++files_relabel_non_auth_files(dpkg_t)
++files_manage_non_auth_files(dpkg_t)
+ auth_dontaudit_read_shadow(dpkg_t)
+ 
+ files_exec_etc_files(dpkg_t)
+@@ -289,7 +289,7 @@
+ 
+ auth_dontaudit_getattr_shadow(dpkg_script_t)
+ # ideally we would not need this
+-auth_manage_all_files_except_auth_files(dpkg_script_t)
++files_manage_non_auth_files(dpkg_script_t)
+ 
+ init_domtrans_script(dpkg_script_t)
+ init_use_script_fds(dpkg_script_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/ftp.te refpolicy/policy/modules/contrib/ftp.te
+--- refpolicy/policy/modules/contrib/ftp.te	2011-10-25 19:20:00.000000000 +0200
++++ refpolicy/policy/modules/contrib/ftp.te	2012-05-05 16:11:26.671762612 +0200
+@@ -261,7 +261,7 @@
+ 
+ tunable_policy(`allow_ftpd_full_access',`
+ 	allow ftpd_t self:capability { dac_override dac_read_search };
+-	auth_manage_all_files_except_auth_files(ftpd_t)
++	files_manage_non_auth_files(ftpd_t)
+ ')
+ 
+ tunable_policy(`ftp_home_dir',`
+@@ -394,7 +394,7 @@
+ tunable_policy(`sftpd_full_access',`
+ 	allow sftpd_t self:capability { dac_override dac_read_search };
+ 	fs_read_noxattr_fs_files(sftpd_t)
+-	auth_manage_all_files_except_auth_files(sftpd_t)
++	files_manage_non_auth_files(sftpd_t)
+ ')
+ 
+ tunable_policy(`use_samba_home_dirs',`
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/portage.if refpolicy/policy/modules/contrib/portage.if
+--- refpolicy/policy/modules/contrib/portage.if	2012-05-05 16:14:15.201762972 +0200
++++ refpolicy/policy/modules/contrib/portage.if	2012-05-05 16:11:29.783762619 +0200
+@@ -175,9 +175,9 @@
+ 	# needed for merging dbus:
+ 	selinux_compute_access_vector($1)
+ 
+-	auth_read_all_dirs_except_auth_files($1)
+-	auth_read_all_files_except_auth_files($1)
+-	auth_read_all_symlinks_except_auth_files($1)
++	files_list_non_auth_dirs($1)
++	files_read_non_auth_files($1)
++	files_read_non_auth_symlinks($1)
+ 
+ 	libs_exec_lib_files($1)
+ 	# some config scripts use ldd
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/puppet.te refpolicy/policy/modules/contrib/puppet.te
+--- refpolicy/policy/modules/contrib/puppet.te	2012-05-05 16:14:15.216762972 +0200
++++ refpolicy/policy/modules/contrib/puppet.te	2012-05-05 16:11:30.594762620 +0200
+@@ -143,7 +143,7 @@
+ ')
+ 
+ tunable_policy(`puppet_manage_all_files',`
+-	auth_manage_all_files_except_auth_files(puppet_t)
++	files_manage_non_auth_files(puppet_t)
+ 
+ 	# We should use files_relabel_all_files here, but it calls
+ 	# seutil_relabelto_bin_policy which sets a "typeattribute type attr",
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/rgmanager.te refpolicy/policy/modules/contrib/rgmanager.te
+--- refpolicy/policy/modules/contrib/rgmanager.te	2011-10-25 19:20:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/rgmanager.te	2012-05-05 16:11:31.502762622 +0200
+@@ -92,7 +92,7 @@
+ #term_use_ptmx(rgmanager_t)
+ 
+ # needed by resources scripts
+-auth_read_all_files_except_auth_files(rgmanager_t)
++files_read_non_auth_files(rgmanager_t)
+ auth_dontaudit_getattr_shadow(rgmanager_t)
+ auth_use_nsswitch(rgmanager_t)
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
+--- refpolicy/policy/modules/contrib/rpc.te	2012-05-05 16:14:15.209762972 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-05-05 16:11:31.947762623 +0200
+@@ -158,7 +158,7 @@
+ 	dev_getattr_all_chr_files(nfsd_t)
+ 
+ 	fs_read_noxattr_fs_files(nfsd_t)
+-	auth_manage_all_files_except_auth_files(nfsd_t)
++	files_manage_non_auth_files(nfsd_t)
+ ')
+ 
+ tunable_policy(`nfs_export_all_ro',`
+@@ -170,8 +170,8 @@
+ 
+ 	fs_read_noxattr_fs_files(nfsd_t)
+ 
+-	auth_read_all_dirs_except_auth_files(nfsd_t)
+-	auth_read_all_files_except_auth_files(nfsd_t)
++	files_list_non_auth_dirs(nfsd_t)
++	files_read_non_auth_files(nfsd_t)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/rpm.te refpolicy/policy/modules/contrib/rpm.te
+--- refpolicy/policy/modules/contrib/rpm.te	2012-02-15 20:32:45.000000000 +0100
++++ refpolicy/policy/modules/contrib/rpm.te	2012-05-05 16:11:32.077762624 +0200
+@@ -158,8 +158,8 @@
+ 
+ term_list_ptys(rpm_t)
+ 
+-auth_relabel_all_files_except_auth_files(rpm_t)
+-auth_manage_all_files_except_auth_files(rpm_t)
++files_relabel_non_auth_files(rpm_t)
++files_manage_non_auth_files(rpm_t)
+ auth_dontaudit_read_shadow(rpm_t)
+ auth_use_nsswitch(rpm_t)
+ 
+@@ -308,7 +308,7 @@
+ auth_dontaudit_getattr_shadow(rpm_script_t)
+ auth_use_nsswitch(rpm_script_t)
+ # ideally we would not need this
+-auth_manage_all_files_except_auth_files(rpm_script_t)
++files_manage_non_auth_files(rpm_script_t)
+ auth_relabel_shadow(rpm_script_t)
+ 
+ corecmd_exec_all_executables(rpm_script_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/rsync.te refpolicy/policy/modules/contrib/rsync.te
+--- refpolicy/policy/modules/contrib/rsync.te	2011-10-25 19:20:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/rsync.te	2012-05-05 16:11:32.245762624 +0200
+@@ -125,9 +125,9 @@
+ 	fs_read_noxattr_fs_files(rsync_t)
+ 	fs_read_nfs_files(rsync_t)
+ 	fs_read_cifs_files(rsync_t)
+-	auth_read_all_dirs_except_auth_files(rsync_t)
+-	auth_read_all_files_except_auth_files(rsync_t)
+-	auth_read_all_symlinks_except_auth_files(rsync_t)
++	files_list_non_auth_dirs(rsync_t)
++	files_read_non_auth_files(rsync_t)
++	files_read_non_auth_symlinks(rsync_t)
+ 	auth_tunable_read_shadow(rsync_t)
+ ')
+ auth_can_read_shadow_passwords(rsync_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/samba.te refpolicy/policy/modules/contrib/samba.te
+--- refpolicy/policy/modules/contrib/samba.te	2011-10-25 19:20:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/samba.te	2012-05-05 16:11:32.456762624 +0200
+@@ -449,18 +449,18 @@
+ 
+ tunable_policy(`samba_export_all_ro',`
+ 	fs_read_noxattr_fs_files(smbd_t)
+-	auth_read_all_dirs_except_auth_files(smbd_t)
+-	auth_read_all_files_except_auth_files(smbd_t)
++	files_list_non_auth_dirs(smbd_t)
++	files_read_non_auth_files(smbd_t)
+ 	fs_read_noxattr_fs_files(nmbd_t)
+-	auth_read_all_dirs_except_auth_files(nmbd_t)
+-	auth_read_all_files_except_auth_files(nmbd_t)
++	files_list_non_auth_dirs(nmbd_t)
++	files_read_non_auth_files(nmbd_t)
+ ')
+ 
+ tunable_policy(`samba_export_all_rw',`
+ 	fs_read_noxattr_fs_files(smbd_t)
+-	auth_manage_all_files_except_auth_files(smbd_t)
++	files_manage_non_auth_files(smbd_t)
+ 	fs_read_noxattr_fs_files(nmbd_t)
+-	auth_manage_all_files_except_auth_files(nmbd_t)
++	files_manage_non_auth_files(nmbd_t)
+ 	userdom_user_home_dir_filetrans_user_home_content(nmbd_t, { file dir })
+ ')
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/snmp.te refpolicy/policy/modules/contrib/snmp.te
+--- refpolicy/policy/modules/contrib/snmp.te	2011-10-25 19:20:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/snmp.te	2012-05-05 16:11:33.357762626 +0200
+@@ -99,7 +99,7 @@
+ storage_dontaudit_read_removable_device(snmpd_t)
+ 
+ auth_use_nsswitch(snmpd_t)
+-auth_read_all_dirs_except_auth_files(snmpd_t)
++files_list_non_auth_dirs(snmpd_t)
+ 
+ init_read_utmp(snmpd_t)
+ init_dontaudit_write_utmp(snmpd_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/sosreport.te refpolicy/policy/modules/contrib/sosreport.te
+--- refpolicy/policy/modules/contrib/sosreport.te	2011-10-25 19:20:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/sosreport.te	2012-05-05 16:11:33.464762627 +0200
+@@ -80,7 +80,7 @@
+ 
+ # some config files do not have configfile attribute
+ # sosreport needs to read various files on system
+-auth_read_all_files_except_auth_files(sosreport_t)
++files_read_non_auth_files(sosreport_t)
+ auth_use_nsswitch(sosreport_t)
+ 
+ init_domtrans_script(sosreport_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/contrib/sxid.te refpolicy/policy/modules/contrib/sxid.te
+--- refpolicy/policy/modules/contrib/sxid.te	2011-10-25 19:20:06.000000000 +0200
++++ refpolicy/policy/modules/contrib/sxid.te	2012-05-05 16:11:33.814762627 +0200
+@@ -66,7 +66,7 @@
+ 
+ term_dontaudit_use_console(sxid_t)
+ 
+-auth_read_all_files_except_auth_files(sxid_t)
++files_read_non_auth_files(sxid_t)
+ auth_dontaudit_getattr_shadow(sxid_t)
+ 
+ init_use_fds(sxid_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/files.if refpolicy/policy/modules/kernel/files.if
+--- refpolicy/policy/modules/kernel/files.if	2012-05-05 16:14:15.320762972 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-05-05 16:00:27.409761205 +0200
+@@ -78,10 +78,10 @@
+ #
+ interface(`files_type',`
+ 	gen_require(`
+-		attribute file_type, non_security_file_type;
++		attribute file_type, non_security_file_type, non_auth_file_type;
+ 	')
+ 
+-	typeattribute $1 file_type, non_security_file_type;
++	typeattribute $1 file_type, non_security_file_type, non_auth_file_type;
+ ')
+ 
+ ########################################
+@@ -99,10 +99,10 @@
+ #
+ interface(`files_security_file',`
+ 	gen_require(`
+-		attribute file_type, security_file_type;
++		attribute file_type, security_file_type, non_auth_file_type;
+ 	')
+ 
+-	typeattribute $1 file_type, security_file_type;
++	typeattribute $1 file_type, security_file_type, non_auth_file_type;
+ ')
+ 
+ ########################################
+@@ -1275,6 +1275,161 @@
+ 	allow $1 file_type:filesystem unmount;
+ ')
+ 
++########################################
++## <summary>
++##	Mark the specified type as a file
++##  that is related to authentication.
++## </summary>
++## <param name="file_type">
++##	<summary>
++##	Type of the authentication-related
++##  file.
++##	</summary>
++## </param>
++#
++interface(`files_auth_file',`
++	gen_require(`
++		attribute file_type, security_file_type, auth_file_type;
++	')
++
++	typeattribute $1 file_type, security_file_type, auth_file_type;
++')
++
++########################################
++## <summary>
++##	Read all non-authentication related
++##  directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_list_non_auth_dirs',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	allow $1 non_auth_file_type:dir list_dir_perms;
++')
++
++########################################
++## <summary>
++##	Read all non-authentication related
++##  files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_read_non_auth_files',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	read_files_pattern($1, non_auth_file_type, non_auth_file_type)
++')
++
++########################################
++## <summary>
++##	Read all non-authentication related
++## symbolic links.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_read_non_auth_symlinks',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	read_lnk_files_pattern($1, non_auth_file_type, non_auth_file_type)
++')
++
++########################################
++## <summary>
++##	Relabel all non-authentication related
++##  files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`files_relabel_non_auth_files',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	allow $1 non_auth_file_type:dir list_dir_perms;
++	relabel_dirs_pattern($1, non_auth_file_type, non_auth_file_type)
++	relabel_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	relabel_lnk_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	relabel_fifo_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	relabel_sock_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	# this is only relabelfrom since there should be no
++	# device nodes with file types.
++	relabelfrom_blk_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	relabelfrom_chr_files_pattern($1, non_auth_file_type, non_auth_file_type)
++
++	# satisfy the assertions:
++	seutil_relabelto_bin_policy($1)
++')
++
++########################################
++## <summary>
++##	rw non-authentication related files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_rw_non_auth_files',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	rw_files_pattern($1, non_auth_file_type, non_auth_file_type)
++')
++
++########################################
++## <summary>
++##	Manage non-authentication related
++##  files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`files_manage_non_auth_files',`
++	gen_require(`
++		attribute non_auth_file_type;
++	')
++
++	manage_dirs_pattern($1, non_auth_file_type, non_auth_file_type)
++	manage_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	manage_lnk_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	manage_fifo_files_pattern($1, non_auth_file_type, non_auth_file_type)
++	manage_sock_files_pattern($1, non_auth_file_type, non_auth_file_type)
++
++	# satisfy the assertions:
++	seutil_create_bin_policy($1)
++	files_manage_kernel_modules($1)
++')
++
+ #############################################
+ ## <summary>
+ ##	Manage all configuration directories on filesystem
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/files.te refpolicy/policy/modules/kernel/files.te
+--- refpolicy/policy/modules/kernel/files.te	2012-02-15 20:32:44.000000000 +0100
++++ refpolicy/policy/modules/kernel/files.te	2012-05-05 16:00:27.410761205 +0200
+@@ -29,6 +29,12 @@
+ # and its opposite
+ attribute non_security_file_type;
+ 
++# sensitive authentication files whose accesses should
++# not be dontaudited for uses
++attribute auth_file_type;
++# and its opposite
++attribute non_auth_file_type;
++
+ attribute tmpfile;
+ attribute tmpfsfile;
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/kernel/kernel.te refpolicy/policy/modules/kernel/kernel.te
+--- refpolicy/policy/modules/kernel/kernel.te	2012-05-05 16:14:15.308762972 +0200
++++ refpolicy/policy/modules/kernel/kernel.te	2012-05-05 16:00:36.494761224 +0200
+@@ -344,9 +344,9 @@
+ 		fs_read_noxattr_fs_files(kernel_t)
+ 		fs_read_noxattr_fs_symlinks(kernel_t)
+ 
+-		auth_read_all_dirs_except_auth_files(kernel_t)
+-		auth_read_all_files_except_auth_files(kernel_t)
+-		auth_read_all_symlinks_except_auth_files(kernel_t)
++		files_list_non_auth_dirs(kernel_t)
++		files_read_non_auth_files(kernel_t)
++		files_read_non_auth_symlinks(kernel_t)
+ 	')
+ 
+ 	tunable_policy(`nfs_export_all_rw',`
+@@ -355,7 +355,7 @@
+ 		fs_read_noxattr_fs_files(kernel_t)
+ 		fs_read_noxattr_fs_symlinks(kernel_t)
+ 
+-		auth_manage_all_files_except_auth_files(kernel_t)
++		files_manage_non_auth_files(kernel_t)
+ 	')
+ ')
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/roles/secadm.te refpolicy/policy/modules/roles/secadm.te
+--- refpolicy/policy/modules/roles/secadm.te	2011-10-25 19:19:52.000000000 +0200
++++ refpolicy/policy/modules/roles/secadm.te	2012-05-05 16:00:36.495761224 +0200
+@@ -30,7 +30,7 @@
+ mls_file_downgrade(secadm_t)
+ 
+ auth_role(secadm_r, secadm_t)
+-auth_relabel_all_files_except_auth_files(secadm_t)
++files_relabel_non_auth_files(secadm_t)
+ auth_relabel_shadow(secadm_t)
+ 
+ init_exec(secadm_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/authlogin.if refpolicy/policy/modules/system/authlogin.if
+--- refpolicy/policy/modules/system/authlogin.if	2011-10-25 19:19:35.000000000 +0200
++++ refpolicy/policy/modules/system/authlogin.if	2012-05-05 16:00:32.861761217 +0200
+@@ -201,12 +201,8 @@
+ ## <infoflow type="none"/>
+ #
+ interface(`auth_file',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_security_file($1)
+-	typeattribute $1 auth_file_type;
++	refpolicywarn(`$0($*) has been deprecated, use files_auth_file() instead.')
++	files_auth_file($1)
+ ')
+ 
+ ########################################
+@@ -1201,11 +1197,8 @@
+ ## </param>
+ #
+ interface(`auth_read_all_dirs_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_read_all_dirs_except($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_list_non_auth_dirs() instead.')
++	files_list_non_auth_dirs($1)
+ ')
+ 
+ ########################################
+@@ -1226,8 +1219,8 @@
+ ## </param>
+ #
+ interface(`auth_read_all_dirs_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_read_all_dirs_except_auth_files() instead.')
+-	auth_read_all_dirs_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_list_non_auth_dirs() instead.')
++	files_list_non_auth_dirs($1)
+ ')
+ 
+ ########################################
+@@ -1249,11 +1242,8 @@
+ ## <rolecap/>
+ #
+ interface(`auth_read_all_files_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_read_all_files_except($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_read_non_auth_files() instead.')
++	files_read_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1275,8 +1265,8 @@
+ ## <rolecap/>
+ #
+ interface(`auth_read_all_files_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_read_all_files_except_auth_files() instead.')
+-	auth_read_all_files_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_read_non_auth_files() instead.')
++	files_read_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1297,11 +1287,8 @@
+ ## </param>
+ #
+ interface(`auth_read_all_symlinks_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_read_all_symlinks_except($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_read_non_auth_symlinks() instead.')
++	files_read_non_auth_symlinks($1)
+ ')
+ 
+ ########################################
+@@ -1322,8 +1309,8 @@
+ ## </param>
+ #
+ interface(`auth_read_all_symlinks_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_read_all_symlinks_except_auth_files() instead.')
+-	auth_read_all_symlinks_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_read_non_auth_symlinks() instead.')
++	files_read_non_auth_symlinks($1)
+ ')
+ 
+ #######################################
+@@ -1344,11 +1331,8 @@
+ ## </param>
+ #
+ interface(`auth_relabel_all_files_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_relabel_all_files($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_relabel_non_auth_files() instead.')
++	files_relabel_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1369,8 +1353,8 @@
+ ## </param>
+ #
+ interface(`auth_relabel_all_files_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_relabel_all_files_except_auth_files() instead.')
+-	auth_relabel_all_files_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_relabel_non_auth_files() instead.')
++	files_relabel_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1391,11 +1375,8 @@
+ ## </param>
+ #
+ interface(`auth_rw_all_files_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_rw_all_files($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_rw_non_auth_files() instead.')
++	files_rw_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1416,8 +1397,8 @@
+ ## </param>
+ #
+ interface(`auth_rw_all_files_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_rw_all_files_except_auth_files() instead.')
+-	auth_rw_all_files_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_rw_non_auth_files() instead.')
++	files_rw_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1438,11 +1419,8 @@
+ ## </param>
+ #
+ interface(`auth_manage_all_files_except_auth_files',`
+-	gen_require(`
+-		attribute auth_file_type;
+-	')
+-
+-	files_manage_all_files($1, $2 -auth_file_type)
++	refpolicywarn(`$0($*) has been deprecated, use files_manage_non_auth_files() instead.')
++	files_manage_non_auth_files($1)
+ ')
+ 
+ ########################################
+@@ -1463,8 +1441,8 @@
+ ## </param>
+ #
+ interface(`auth_manage_all_files_except_shadow',`
+-	refpolicywarn(`$0($*) has been deprecated, use auth_manage_all_files_except_auth_files() instead.')
+-	auth_manage_all_files_except_auth_files($1, $2)
++	refpolicywarn(`$0($*) has been deprecated, use files_manage_non_auth_files() instead.')
++	files_manage_non_auth_files($1)
+ ')
+ 
+ ########################################
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/authlogin.te refpolicy/policy/modules/system/authlogin.te
+--- refpolicy/policy/modules/system/authlogin.te	2011-10-25 19:19:35.000000000 +0200
++++ refpolicy/policy/modules/system/authlogin.te	2012-05-05 16:00:27.410761205 +0200
+@@ -5,7 +5,6 @@
+ # Declarations
+ #
+ 
+-attribute auth_file_type;
+ attribute can_read_shadow_passwords;
+ attribute can_write_shadow_passwords;
+ attribute can_relabelto_shadow_passwords;
+@@ -51,7 +50,7 @@
+ files_pid_file(pam_var_run_t)
+ 
+ type shadow_t;
+-auth_file(shadow_t)
++files_auth_file(shadow_t)
+ neverallow ~can_read_shadow_passwords shadow_t:file read;
+ neverallow ~can_write_shadow_passwords shadow_t:file { create write };
+ neverallow ~can_relabelto_shadow_passwords shadow_t:file relabelto;
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/mount.te refpolicy/policy/modules/system/mount.te
+--- refpolicy/policy/modules/system/mount.te	2012-05-05 16:14:15.311762972 +0200
++++ refpolicy/policy/modules/system/mount.te	2012-05-05 16:00:36.495761224 +0200
+@@ -149,8 +149,8 @@
+ ')
+ 
+ tunable_policy(`allow_mount_anyfile',`
+-	auth_read_all_dirs_except_auth_files(mount_t)
+-	auth_read_all_files_except_auth_files(mount_t)
++	files_list_non_auth_dirs(mount_t)
++	files_read_non_auth_files(mount_t)
+ 	files_mounton_non_security(mount_t)
+ ')
+ 
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/selinuxutil.te refpolicy/policy/modules/system/selinuxutil.te
+--- refpolicy/policy/modules/system/selinuxutil.te	2012-05-05 16:14:15.261762972 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2012-05-05 16:00:36.495761224 +0200
+@@ -341,8 +341,8 @@
+ selinux_compute_relabel_context(restorecond_t)
+ selinux_compute_user_contexts(restorecond_t)
+ 
+-auth_relabel_all_files_except_auth_files(restorecond_t )
+-auth_read_all_files_except_auth_files(restorecond_t)
++files_relabel_non_auth_files(restorecond_t )
++files_read_non_auth_files(restorecond_t)
+ auth_use_nsswitch(restorecond_t)
+ 
+ locallogin_dontaudit_use_fds(restorecond_t)
+diff -uNr -x '.git*' -x CVS refpolicy/policy/modules/system/userdomain.if refpolicy/policy/modules/system/userdomain.if
+--- refpolicy/policy/modules/system/userdomain.if	2012-05-05 16:14:14.922762971 +0200
++++ refpolicy/policy/modules/system/userdomain.if	2012-05-05 16:00:36.495761224 +0200
+@@ -1144,9 +1144,9 @@
+ 
+ 	auth_getattr_shadow($1_t)
+ 	# Manage almost all files
+-	auth_manage_all_files_except_auth_files($1_t)
++	files_manage_non_auth_files($1_t)
+ 	# Relabel almost all files
+-	auth_relabel_all_files_except_auth_files($1_t)
++	files_relabel_non_auth_files($1_t)
+ 
+ 	init_telinit($1_t)
+ 
+@@ -1234,7 +1234,7 @@
+ 	selinux_set_all_booleans($1)
+ 	selinux_set_parameters($1)
+ 
+-	auth_relabel_all_files_except_auth_files($1)
++	files_relabel_non_auth_files($1)
+ 	auth_relabel_shadow($1)
+ 
+ 	init_exec($1)

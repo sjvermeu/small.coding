@@ -1,0 +1,25 @@
+--- refpolicy/policy/modules/system/init.te	2012-05-28 10:17:54.634491900 +0200
++++ refpolicypolicy/modules/system/init.te	2012-05-28 10:17:42.973491874 +0200
+@@ -276,7 +276,11 @@
+ # for lsof which is used by alsa shutdown:
+ kernel_dontaudit_getattr_message_if(initrc_t)
+ 
++files_create_lock_dirs(initrc_t)
++files_pid_filetrans(initrc_t, initrc_state_t, dir, "openrc")
++files_pid_filetrans_generic_lock_dirs(initrc_t, "lock")
+ files_read_kernel_symbol_table(initrc_t)
++files_setattr_generic_dirs(initrc_t)
+ files_dontaudit_write_usr_dirs(initrc_t)
+ 
+ corecmd_exec_all_executables(initrc_t)
+@@ -849,8 +853,9 @@
+ optional_policy(`
+ 	udev_dontaudit_getattr_netlink_kobject_uevent_sockets(initrc_t)
+ 	udev_dontaudit_getattr_unix_stream_sockets(initrc_t)
+-	udev_rw_db(initrc_t)
++	udev_pid_filetrans_run_dirs(initrc_t, "udev")
+ 	udev_manage_pid_files(initrc_t)
++	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)
+ ')
+ 

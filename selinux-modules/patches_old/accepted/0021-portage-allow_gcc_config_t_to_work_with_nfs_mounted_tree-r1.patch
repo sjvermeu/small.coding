@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/contrib/portage.te	2012-02-25 11:31:04.548317537 +0100
++++ refpolicy/policy/modules/contrib/portage.te	2012-02-25 11:30:36.035317476 +0100
+@@ -132,6 +132,10 @@
+ 	init_exec_rc(gcc_config_t)
+ ')
+ 
++tunable_policy(`portage_use_nfs',`
++	fs_read_nfs_files(gcc_config_t)
++')
++
+ optional_policy(`
+ 	seutil_use_newrole_fds(gcc_config_t)
+ ')

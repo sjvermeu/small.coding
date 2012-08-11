@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:49:33.903304537 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:48:47.754304438 +0100
+@@ -247,6 +247,10 @@
+ ')
+ 
+ optional_policy(`
++	nginx_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	ntp_stub()
+ 	corenet_udp_bind_ntp_port(sysadm_t)
+ ')

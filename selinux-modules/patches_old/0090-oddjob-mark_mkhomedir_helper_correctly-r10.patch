@@ -1,9 +1,0 @@
---- refpolicy/policy/modules/services/oddjob.fc	2011-03-28 17:05:15.000000000 +0200
-+++ refpolicy/policy/modules/services/oddjob.fc	2011-12-28 20:27:58.829232618 +0100
-@@ -1,5 +1,6 @@
- /usr/lib(64)?/oddjob/mkhomedir	--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
- 
- /usr/sbin/oddjobd		--	gen_context(system_u:object_r:oddjob_exec_t,s0)
-+/sbin/mkhomedir_helper		--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
- 
- /var/run/oddjobd\.pid			gen_context(system_u:object_r:oddjob_var_run_t,s0)

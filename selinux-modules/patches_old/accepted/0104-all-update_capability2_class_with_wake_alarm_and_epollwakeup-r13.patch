@@ -1,0 +1,12 @@
+diff -uNr -x '.git*' -x CVS refpolicy/policy/flask/access_vectors refpolicy/policy/flask/access_vectors
+--- refpolicy/policy/flask/access_vectors	2012-06-24 09:39:53.987916583 +0200
++++ refpolicy/policy/flask/access_vectors	2012-06-24 09:39:10.912918130 +0200
+@@ -445,6 +445,8 @@
+ 	mac_override	# unused by SELinux
+ 	mac_admin	# unused by SELinux
+ 	syslog
++	wake_alarm
++	epollwakeup
+ }
+ 
+ #

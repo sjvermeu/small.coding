@@ -1,0 +1,129 @@
+--- refpolicy/policy/modules/contrib/mozilla.te	2012-07-25 11:05:25.227701926 +0200
++++ refpolicypolicy/modules/contrib/mozilla.te	2012-07-25 11:03:28.567701692 +0200
+@@ -10,7 +10,20 @@
+ ## Allow confined web browsers to read home directory content
+ ## </p>
+ ## </desc>
+-gen_tunable(mozilla_read_content, false)
++gen_tunable(mozilla_read_user_content, false)
++
++## <desc>
++## <p>
++## Allow mozilla to use java plugins
++## </p>
++## <p>
++## Some plugins use named pipes inside temporary directories created
++## by the browser to communicate with the java process. If other browsers
++## need to use java plugins as well, they will get search privileges within
++## the temporary directories of mozilla
++## </p>
++## </desc>
++gen_tunable(mozilla_use_java, false)
+ 
+ attribute_role mozilla_roles;
+ 
+@@ -82,6 +95,7 @@
+ allow mozilla_t mozilla_conf_t:file read_file_perms;
+ 
+ manage_files_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
++manage_fifo_files_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
+ manage_dirs_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
+ files_tmp_filetrans(mozilla_t, mozilla_tmp_t, { file dir })
+ 
+@@ -197,7 +211,7 @@
+ ')
+ 
+ # Uploads, local html
+-tunable_policy(`mozilla_read_content && use_nfs_home_dirs',`
++tunable_policy(`mozilla_read_user_content && use_nfs_home_dirs',`
+ 	fs_list_auto_mountpoints(mozilla_t)
+ 	files_list_home(mozilla_t)
+ 	fs_read_nfs_files(mozilla_t)
+@@ -210,7 +224,7 @@
+ 	fs_dontaudit_list_nfs(mozilla_t)
+ ')
+ 
+-tunable_policy(`mozilla_read_content && use_samba_home_dirs',`
++tunable_policy(`mozilla_read_user_content && use_samba_home_dirs',`
+ 	fs_list_auto_mountpoints(mozilla_t)
+ 	files_list_home(mozilla_t)
+ 	fs_read_cifs_files(mozilla_t)
+@@ -222,7 +236,7 @@
+ 	fs_dontaudit_list_cifs(mozilla_t)
+ ')
+ 
+-tunable_policy(`mozilla_read_content',`
++tunable_policy(`mozilla_read_user_content',`
+ 	userdom_list_user_tmp(mozilla_t)
+ 	userdom_read_user_tmp_files(mozilla_t)
+ 	userdom_read_user_tmp_symlinks(mozilla_t)
+@@ -274,7 +288,16 @@
+ ')
+ 
+ optional_policy(`
+-	java_domtrans(mozilla_t)
++	tunable_policy(`mozilla_use_java',`
++		java_noatsecure_domtrans(mozilla_t)
++	')
++
++	# Cannot handle optional_policy within tunable_policy
++	optional_policy(`
++		tunable_policy(`mozilla_use_java',`
++			chromium_tmp_filetrans(mozilla_t, mozilla_tmp_t, fifo_file)
++		')
++	')
+ ')
+ 
+ optional_policy(`
+--- refpolicy/policy/modules/contrib/mozilla.if	2012-07-25 11:05:25.226701926 +0200
++++ refpolicypolicy/modules/contrib/mozilla.if	2012-07-23 18:01:14.563386347 +0200
+@@ -60,6 +60,27 @@
+ ##	</summary>
+ ## </param>
+ #
++interface(`mozilla_read_user_home',`
++	gen_require(`
++		type mozilla_home_t;
++	')
++
++	list_dirs_pattern($1, mozilla_home_t, mozilla_home_t)
++	read_files_pattern($1, mozilla_home_t, mozilla_home_t)
++	userdom_search_user_home_dirs($1)
++')
++
++
++########################################
++## <summary>
++##	Read mozilla home directory files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
+ interface(`mozilla_read_user_home_files',`
+ 	gen_require(`
+ 		type mozilla_home_t;
+@@ -300,3 +321,21 @@
+ 
+ 	allow $1 mozilla_plugin_tmpfs_t:file unlink;
+ ')
++
++########################################
++## <summary>
++##	Read/write to mozilla's tmp fifo files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`mozilla_rw_tmp_pipes',`
++	gen_require(`
++		type mozilla_tmp_t;
++	')
++
++	rw_fifo_files_pattern($1, mozilla_tmp_t, mozilla_tmp_t)
++')

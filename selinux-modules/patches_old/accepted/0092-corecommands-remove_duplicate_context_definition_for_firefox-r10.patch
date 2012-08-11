@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-05-16 08:50:45.396256524 +0200
++++ refpolicypolicy/modules/kernel/corecommands.fc	2012-05-16 08:49:44.229256394 +0200
+@@ -200,7 +200,6 @@
+ /usr/lib/pgsql/test/regress/.*\.sh --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/qt.*/bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/wicd/monitor\.py 	-- 	gen_context(system_u:object_r:bin_t, s0)
+-/usr/lib/[^/]*firefox[^/]*/firefox -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/apt/methods.+	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/ConsoleKit/scripts(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/ConsoleKit/run-session.d(/.*)? gen_context(system_u:object_r:bin_t,s0)

@@ -1,0 +1,38 @@
+--- refpolicy/Makefile	2011-03-28 17:05:12.000000000 +0200
++++ refpolicy/Makefile	2011-12-25 19:04:46.648169940 +0100
+@@ -249,7 +249,7 @@
+ appdir := $(contextpath)
+ user_default_contexts := $(wildcard config/appconfig-$(TYPE)/*_default_contexts)
+ user_default_contexts_names := $(addprefix $(contextpath)/users/,$(subst _default_contexts,,$(notdir $(user_default_contexts))))
+-appfiles := $(addprefix $(appdir)/,default_contexts default_type initrc_context failsafe_context userhelper_context removable_context dbus_contexts sepgsql_contexts x_contexts customizable_types securetty_types) $(contextpath)/files/media $(fcsubspath) $(user_default_contexts_names)
++appfiles := $(addprefix $(appdir)/,default_contexts default_type initrc_context failsafe_context userhelper_context removable_context dbus_contexts sepgsql_contexts x_contexts customizable_types securetty_types virtual_domain_context virtual_image_context) $(contextpath)/files/media $(fcsubspath) $(user_default_contexts_names)
+ net_contexts := $(builddir)net_contexts
+ 
+ all_layers := $(shell find $(wildcard $(moddir)/*) -maxdepth 0 -type d)
+--- refpolicy/config/appconfig-mcs/virtual_domain_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-mcs/virtual_domain_context	2011-12-25 19:02:51.170169701 +0100
+@@ -0,0 +1 @@
++system_u:system_r:svirt_t:s0
+--- refpolicy/config/appconfig-mcs/virtual_image_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-mcs/virtual_image_context	2011-12-25 19:02:51.170169701 +0100
+@@ -0,0 +1,2 @@
++system_u:object_r:svirt_image_t:s0
++system_u:object_r:virt_content_t:s0
+--- refpolicy/config/appconfig-mls/virtual_domain_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-mls/virtual_domain_context	2011-12-25 19:02:42.484169683 +0100
+@@ -0,0 +1 @@
++system_u:system_r:svirt_t:s0
+--- refpolicy/config/appconfig-mls/virtual_image_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-mls/virtual_image_context	2011-12-25 19:02:46.360169696 +0100
+@@ -0,0 +1,2 @@
++system_u:object_r:svirt_image_t:s0
++system_u:object_r:virt_content_t:s0
+--- refpolicy/config/appconfig-standard/virtual_domain_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-standard/virtual_domain_context	2011-12-25 19:01:21.302169532 +0100
+@@ -0,0 +1 @@
++system_u:system_r:svirt_t
+--- refpolicy/config/appconfig-standard/virtual_image_context	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/config/appconfig-standard/virtual_image_context	2011-12-25 19:02:09.444169610 +0100
+@@ -0,0 +1,2 @@
++system_u:object_r:svirt_image_t
++system_u:object_r:virt_content_t

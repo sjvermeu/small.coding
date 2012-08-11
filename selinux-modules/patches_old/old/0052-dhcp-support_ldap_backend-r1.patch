@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/dhcp.te	2012-02-25 12:54:00.609328157 +0100
++++ refpolicy/policy/modules/contrib/dhcp.te	2012-02-25 12:53:32.707328098 +0100
+@@ -98,6 +98,7 @@
+ miscfiles_read_localization(dhcpd_t)
+ 
+ sysnet_read_dhcp_config(dhcpd_t)
++sysnet_use_ldap(dhcpd_t)
+ 
+ userdom_dontaudit_use_unpriv_user_fds(dhcpd_t)
+ userdom_dontaudit_search_user_home_dirs(dhcpd_t)

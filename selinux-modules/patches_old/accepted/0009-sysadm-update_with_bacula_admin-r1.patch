@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:52:30.449304914 +0100
++++ refpolicy/policy/modules/roles/sysadm.te	2012-02-25 09:51:05.811304733 +0100
+@@ -94,6 +94,10 @@
+ ')
+ 
+ optional_policy(`
++	bacula_run_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	backup_run(sysadm_t, sysadm_r)
+ ')
+ 

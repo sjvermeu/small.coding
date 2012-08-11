@@ -1,0 +1,14 @@
+--- refpolicy/policy/modules/contrib/bind.te	2011-10-25 19:19:57.000000000 +0200
++++ refpolicypolicy/modules/contrib/bind.te	2012-07-10 18:49:03.579310745 +0200
+@@ -171,6 +171,11 @@
+ ')
+ 
+ optional_policy(`
++	# needed by FreeIPA with DNS support
++	ldap_stream_connect(named_t)
++')
++
++optional_policy(`
+ 	# this seems like fds that arent being
+ 	# closed. these should probably be
+ 	# dontaudits instead.

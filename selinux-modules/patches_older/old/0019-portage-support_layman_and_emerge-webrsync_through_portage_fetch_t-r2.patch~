@@ -1,0 +1,181 @@
+--- refpolicy/policy/modules/admin/portage.te	2011-08-17 07:46:40.115350545 +0000
++++ refpolicy/policy/modules/admin/portage.te	2011-08-17 07:42:13.000000000 +0000
+@@ -50,7 +50,8 @@
+ 
+ # portage package fetching domain
+ type portage_fetch_t;
+-application_type(portage_fetch_t)
++type portage_fetch_exec_t;
++application_domain(portage_fetch_t, portage_fetch_exec_t)
+ corecmd_shell_entry_type(portage_fetch_t)
+ rsync_entry_type(portage_fetch_t)
+ 
+@@ -246,12 +247,17 @@
+ # - for rsync and distfile fetching
+ #
+ 
+-allow portage_fetch_t self:capability { dac_override fowner fsetid };
+ allow portage_fetch_t self:process signal;
+-allow portage_fetch_t self:unix_stream_socket create_socket_perms;
++allow portage_fetch_t self:capability { dac_override fowner fsetid };
++allow portage_fetch_t self:fifo_file rw_fifo_file_perms;
+ allow portage_fetch_t self:tcp_socket create_stream_socket_perms;
+-
++allow portage_fetch_t self:unix_stream_socket create_socket_perms;
++# portage makes home dir the portage tmp dir, so wget looks for .wgetrc there
++dontaudit portage_fetch_t portage_tmp_t:dir search_dir_perms;
++# rsync server timestamp check
++allow portage_fetch_t portage_tmp_t:file { read_file_perms delete_file_perms };
+ allow portage_fetch_t portage_conf_t:dir list_dir_perms;
++
+ read_files_pattern(portage_fetch_t, portage_conf_t, portage_conf_t)
+ 
+ manage_dirs_pattern(portage_fetch_t, portage_ebuild_t, portage_ebuild_t)
+@@ -261,19 +267,18 @@
+ manage_files_pattern(portage_fetch_t, portage_fetch_tmp_t, portage_fetch_tmp_t)
+ files_tmp_filetrans(portage_fetch_t, portage_fetch_tmp_t, { file dir })
+ 
+-# portage makes home dir the portage tmp dir, so
+-# wget looks for .wgetrc there
+-dontaudit portage_fetch_t portage_tmp_t:dir search_dir_perms;
+-# rsync server timestamp check
+-allow portage_fetch_t portage_tmp_t:file { read_file_perms delete_file_perms };
+-
+ kernel_read_system_state(portage_fetch_t)
+ kernel_read_kernel_sysctls(portage_fetch_t)
+ 
+ corecmd_exec_bin(portage_fetch_t)
++corecmd_exec_shell(portage_fetch_t)
+ 
+ corenet_all_recvfrom_unlabeled(portage_fetch_t)
+ corenet_all_recvfrom_netlabel(portage_fetch_t)
++corenet_sendrecv_http_client_packets(portage_fetch_t)
++corenet_sendrecv_http_cache_client_packets(portage_fetch_t)
++corenet_sendrecv_git_client_packets(portage_fetch_t)
++corenet_sendrecv_rsync_client_packets(portage_fetch_t)
+ corenet_tcp_sendrecv_generic_if(portage_fetch_t)
+ corenet_tcp_sendrecv_generic_node(portage_fetch_t)
+ corenet_tcp_sendrecv_all_ports(portage_fetch_t)
+@@ -282,6 +287,8 @@
+ corenet_tcp_connect_all_reserved_ports(portage_fetch_t)
+ corenet_tcp_connect_generic_port(portage_fetch_t)
+ corenet_tcp_connect_http_cache_port(portage_fetch_t)
++corenet_tcp_connect_git_port(portage_fetch_t) # TODO check if git isnt a reserved one
++corenet_tcp_connect_rsync_port(portage_fetch_t) # TODO Check if rsync isnt a reserved one
+ 
+ dev_dontaudit_read_rand(portage_fetch_t)
+ 
+@@ -289,11 +296,15 @@
+ 
+ files_read_etc_files(portage_fetch_t)
+ files_read_etc_runtime_files(portage_fetch_t)
+-files_search_var(portage_fetch_t)
++files_read_usr_files(portage_fetch_t)
++files_search_var_lib(portage_fetch_t)
+ files_dontaudit_search_pids(portage_fetch_t)
+ 
++logging_list_logs(portage_fetch_t)
++
+ term_search_ptys(portage_fetch_t)
+ 
++
+ miscfiles_read_localization(portage_fetch_t)
+ 
+ sysnet_read_config(portage_fetch_t)
+@@ -302,10 +313,17 @@
+ userdom_use_user_terminals(portage_fetch_t)
+ userdom_dontaudit_read_user_home_content_files(portage_fetch_t)
+ 
++rsync_exec(portage_fetch_t)
++
+ ifdef(`hide_broken_symptoms',`
+ 	dontaudit portage_fetch_t portage_cache_t:file read;
+ ')
+ 
++tunable_policy(`gentoo_wait_requests',`
++	# Gentoo bug #375835 - Support transitioning to portage_fetch_t for binpkgs
++	corenet_tcp_connect_http_cache_port(portage_t)
++')
++
+ tunable_policy(`portage_use_nfs',`
+ 	fs_getattr_nfs(portage_fetch_t)
+ 	fs_manage_nfs_dirs(portage_fetch_t)
+--- refpolicy/policy/modules/admin/portage.if	2011-08-17 07:46:40.090354370 +0000
++++ refpolicy/policy/modules/admin/portage.if	2011-08-17 07:42:30.000000000 +0000
+@@ -258,6 +258,24 @@
+ 
+ ########################################
+ ## <summary>
++##   Allow a domain search privileges through portage_conf_t
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain to allow search privileges
++##     </summary>
++## </param>
++#
++interface(`gentoo_portage_search_conf',`
++       gen_require(`
++               type portage_conf_t;
++       ')
++
++       allow $1 portage_conf_t:dir search_dir_perms;
++')
++
++########################################
++## <summary>
+ ##	Do not audit attempts to search the
+ ##	portage temporary directories.
+ ## </summary>
+@@ -277,6 +295,26 @@
+ 
+ ########################################
+ ## <summary>
++##   Allow a domain to read portage_tmp_t files
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain to allow search privileges
++##     </summary>
++## </param>
++#
++interface(`gentoo_portage_read_tmp_files',`
++       gen_require(`
++               type portage_tmp_t;
++       ')
++
++       allow $1 portage_tmp_t:dir list_dir_perms;
++       allow $1 portage_tmp_t:file read_file_perms;
++')
++
++
++########################################
++## <summary>
+ ##	Do not audit attempts to read and write
+ ##	the portage temporary files.
+ ## </summary>
+--- refpolicy/policy/modules/admin/portage.fc	2011-07-22 12:22:55.000000000 +0000
++++ refpolicy/policy/modules/admin/portage.fc	2011-08-17 07:27:02.000000000 +0000
+@@ -3,10 +3,12 @@
+ /etc/portage(/.*)?			gen_context(system_u:object_r:portage_conf_t,s0)
+ 
+ /usr/bin/gcc-config		--	gen_context(system_u:object_r:gcc_config_exec_t,s0)
++/usr/bin/layman			--	gen_context(system_u:object_r:portage_fetch_exec_t,s0)
+ /usr/bin/sandbox		--	gen_context(system_u:object_r:portage_exec_t,s0)
+ 
+ /usr/lib(64)?/portage/bin/ebuild --	gen_context(system_u:object_r:portage_exec_t,s0)
+ /usr/lib(64)?/portage/bin/emerge --	gen_context(system_u:object_r:portage_exec_t,s0)
++/usr/lib(64)?/portage/bin/emerge-webrsync	--	gen_context(system_u:object_r:portage_fetch_exec_t,s0)
+ /usr/lib(64)?/portage/bin/quickpkg --	gen_context(system_u:object_r:portage_exec_t,s0)
+ /usr/lib(64)?/portage/bin/ebuild\.sh --	gen_context(system_u:object_r:portage_exec_t,s0)
+ /usr/lib(64)?/portage/bin/regenworld --	gen_context(system_u:object_r:portage_exec_t,s0)
+@@ -22,6 +24,9 @@
+ /var/log/emerge\.log.*		--	gen_context(system_u:object_r:portage_log_t,s0)
+ /var/log/emerge-fetch.log	--	gen_context(system_u:object_r:portage_log_t,s0)
+ /var/log/portage(/.*)?			gen_context(system_u:object_r:portage_log_t,s0)
++/var/lib/layman(/.*)?			gen_context(system_u:object_r:portage_ebuild_t,s0)
+ /var/lib/portage(/.*)?			gen_context(system_u:object_r:portage_cache_t,s0)
++/var/tmp/binpkgs(/.*)?			gen_context(system_u:object_r:portage_tmp_t,s0)
++/var/tmp/emerge-webrsync(/.*)?		gen_context(system_u:object_r:portage_tmp_t,s0)
+ /var/tmp/portage(/.*)?			gen_context(system_u:object_r:portage_tmp_t,s0)
+ /var/tmp/portage-pkg(/.*)?		gen_context(system_u:object_r:portage_tmp_t,s0)

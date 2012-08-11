@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/admin/portage.te	2011-12-06 17:47:52.661077500 +0100
++++ refpolicy/policy/modules/admin/portage.te	2011-12-06 17:47:27.068077445 +0100
+@@ -59,7 +59,7 @@
+ term_pty(portage_devpts_t)
+ 
+ type portage_ebuild_t;
+-files_type(portage_ebuild_t)
++files_mountpoint(portage_ebuild_t)
+ 
+ type portage_fetch_tmp_t;
+ files_tmp_file(portage_fetch_tmp_t)

@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/apps/wireshark.te	2011-09-03 19:42:48.191002867 +0200
++++ refpolicy/policy/modules/apps/wireshark.te	2011-09-03 19:42:24.637002867 +0200
+@@ -46,7 +46,6 @@
+ 
+ # Re-execute itself (why?)
+ can_exec(wireshark_t, wireshark_exec_t)
+-corecmd_search_bin(wireshark_t)
+ 
+ # /home/.wireshark
+ manage_dirs_pattern(wireshark_t, wireshark_home_t, wireshark_home_t)
+@@ -70,6 +69,7 @@
+ kernel_read_system_state(wireshark_t)
+ kernel_read_sysctl(wireshark_t)
+ 
++corecmd_exec_bin(wireshark_t)
+ corecmd_search_bin(wireshark_t)
+ 
+ corenet_tcp_connect_generic_port(wireshark_t)

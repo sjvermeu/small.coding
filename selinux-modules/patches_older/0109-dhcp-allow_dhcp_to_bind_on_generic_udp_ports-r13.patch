@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/services/dhcp.te	2012-02-06 21:09:14.221752152 +0100
++++ refpolicy/policy/modules/services/dhcp.te	2012-02-06 21:08:45.710752091 +0100
+@@ -68,6 +68,7 @@
+ corenet_udp_bind_generic_node(dhcpd_t)
+ corenet_tcp_bind_dhcpd_port(dhcpd_t)
+ corenet_udp_bind_dhcpd_port(dhcpd_t)
++corenet_udp_bind_generic_port(dhcpd_t)
+ corenet_udp_bind_pxe_port(dhcpd_t)
+ corenet_tcp_connect_all_ports(dhcpd_t)
+ corenet_sendrecv_dhcpd_server_packets(dhcpd_t)

@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/apps/java.fc	2011-03-28 17:05:13.000000000 +0200
++++ refpolicy/policy/modules/apps/java.fc	2011-12-31 20:11:29.302783516 +0100
+@@ -9,7 +9,7 @@
+ #
+ # /usr
+ #
+-/usr/(.*/)?bin/java.* 	--	gen_context(system_u:object_r:java_exec_t,s0)
++/usr/(.*/)?bin/java 	--	gen_context(system_u:object_r:java_exec_t,s0)
+ /usr/bin/fastjar	--	gen_context(system_u:object_r:java_exec_t,s0)
+ /usr/bin/frysk		--	gen_context(system_u:object_r:java_exec_t,s0)
+ /usr/bin/gappletviewer	--	gen_context(system_u:object_r:java_exec_t,s0)

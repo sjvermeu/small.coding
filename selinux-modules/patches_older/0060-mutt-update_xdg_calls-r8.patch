@@ -1,0 +1,48 @@
+--- refpolicy/policy/modules/apps/mutt.te	2011-12-09 20:15:50.042001485 +0100
++++ refpolicy/policy/modules/apps/mutt.te	2011-12-09 19:05:52.690642348 +0100
+@@ -37,7 +37,6 @@
+ 
+ allow mutt_t self:process signal_perms;
+ allow mutt_t self:fifo_file rw_fifo_file_perms;
+-# TODO dgrift has self:unix_stream_socket create_socket_perms; here too?
+ 
+ manage_dirs_pattern(mutt_t, mutt_home_t, mutt_home_t)
+ manage_files_pattern(mutt_t, mutt_home_t, mutt_home_t)
+@@ -45,8 +44,6 @@
+ 
+ manage_dirs_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+ manage_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+-# TODO check if this is needed - where are these fifos created as mutt_tmp_t ? There is no filetrans defined for it.
+-#manage_fifo_files_pattern(mutt_t, mutt_tmp_t, mutt_tmp_t)
+ files_tmp_filetrans(mutt_t, mutt_tmp_t, { file dir })
+ 
+ read_files_pattern(mutt_t, mutt_etc_t, mutt_etc_t)
+@@ -54,7 +51,6 @@
+ read_files_pattern(mutt_t, mutt_conf_t, mutt_conf_t)
+ 
+ 
+-# TODO dgrift has kernel_read_crypto_sysctls(mutt_t)
+ kernel_read_system_state(mutt_t)
+ 
+ corecmd_exec_bin(mutt_t)
+@@ -84,8 +80,6 @@
+ 
+ miscfiles_read_localization(mutt_t)
+ 
+-userdom_manage_xdg_cache_home(mutt_t)
+-userdom_read_xdg_config_home(mutt_t)
+ userdom_search_user_home_content(mutt_t)
+ userdom_use_user_terminals(mutt_t)
+ 
+@@ -93,6 +87,11 @@
+ 	gpg_domtrans(mutt_t)
+ ')
+ 
++optional_policy(`
++	xdg_manage_generic_cache_home_content(mutt_t)
++	xdg_read_generic_config_home_files(mutt_t)
++')
++
+ tunable_policy(`mutt_manage_user_content',`
+ 	# Needed for handling attachments
+ 	userdom_manage_user_home_content_files(mutt_t)

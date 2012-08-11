@@ -1,0 +1,127 @@
+SELinux Policy Patches
+======================
+
+This directory contains the list of patches applied to the refpolicy. The
+patches are either in the form of "fix-<category>-<module>-r<revision>.patch"
+or "<changeset>-<module>-<description>-r<revision>.patch"
+
+The used <revision> helps identify in which patchbundle a patch(set) is
+included.
+
+Outstanding Issues
+------------------
+
+Support for named initrc_t domains (cfr http://dpaste.com/594913/)
+
+Change sets in this patch bundle
+--------------------------------
+
+The following is the list of changesets in the patch bundle. A "-" means that
+the patch is currently Gentoo-only. A "+" means that the patch is accepted
+upstream (refpolicy) and as such should not need to be re-applied if a new
+refpolicy release is made. A "." means that the patch is pending (submitted but
+not yet approved).
+
+0001 + fix labeling for iptables
+0004 - allow udev to call init scripts (gentoo hotplugging) [1]
+0005 + nagios fixes
+       + nrpe read config file
+       + diskcheck plugin needs getattr on mountpoint dirs
+0010 + hal is not a consolekit hard requirement
+0014 + fix labeling for xfce4
+0015 + allow unconfined users to call portage
+0016 - introduce support for gentoo eselect modules
+0018 + introduce rc_exec_t for the openrc-I-do-everything-through-one-command feature
+0019 + put layman in the portage_fetch_t domain
+0020 + support emerge-webrsync and run portage through cron and other unattended manners
+0021 . introduce support for mutt_t
+0022 . introduce support for links_t
+0023 + allow puppet to mount file systems
+0024 - introduce support for pan_t
+0025 - introduce gentoo booleans and dontaudits
+0026 - introduce support for skype_t
+0027 + wireshark updates
+0028 + dhcp client updates
+0030 . mount requires relabelfrom rights as well to support non-standard mounts like /usr/portage
+0031 - various puppet fixes
+0032 - various mozilla fixes
+0033 . allow mount to read/write puppet tmp files (used to gather output of mount)
+0034 - allow syslog to create /var/lib/syslog
+0035 - various init fixes
+0036 + correct zabbix_agentd context
+0037 + allow zabbix to call mysql over tcp/ip
+0038 - various corecommands (bin_t and such) updates
+0039 - various courier(-imap) updates
+0040 - introduce gorg domain
+0041 - various openldap updates
+0042 - various networkmanager updates to support wpa_cli
+0043 - introduce nginx domain
+0044 - various postfix updates
+0045 - various postgresql updates
+0046 - various xserver updates
+0047 - fixes for asterisk
+0048 + support LDAPS within nsswitch
+0049 + dontaudit on udp_socket listen - udp does not support listen() anyhow
+0050 + update courier file contexts for courier-imap installations
+0052 - allow initrc to manage asterisk log and pid file attributes (setattr)
+0053 - make cron domains use interactive file descriptors (?)
+0054 + dontaudit on portage leaked file descriptors
+0055 + support semanage permissive feature
+0056 + 0020 - Split up interfaces for portage domain and fetch domains
+0057 - mark glsa-check as portage entry file
+0058 + mark asterisk exec as an application exec type
+0059 + give sysadm connect access to the asterisk runtime
+0060 - use xdg locations in user home directories
+0061 - Allow gcc_config_t to work with nfs-mounted portage tree
+0062 - gcc-config needs to unlink files in etc/env.d which are marked as etc_runtime_t files
+0063 . introduce support for vde
+0064 - bootmisc wants to write (temporarily) to /var/log. Support logging_manage_generic_log_dirs
+0065 + fix amavisd.conf context
+0066 + allow nrpe (nagios) read access to /proc/mdstat
+0067 + inetd support for pam_limits needs cap_sys_resource and setrlimit
+0068 + make call to inetd_tcp_service_domain optional (otherwise we would need to depend on inetd)
+0069 . drop vde_conf_t from patches as etc_t is sufficient
+0070 . corrections on links policy with refpolicy feedback
+0071 . Mark /dev/.tmp-block-.* as fixed_disk_device_t so that mdadm can work on it (file is created by udev as $tempnode)
+0072 - wpa_cli is an interactive application
+0073 . dhcpd can use ldap as a backend
+0074 + inetd should also be allowed to bind/listen on pop port
+0075 - allow mozilla plugin to read its configuration files ($$$TODO currently still generic)
+0076 + support slim and lxdm contexts
+0077 - introduce dontaudit statements to clean up audit logs
+0078 - mark portage_ebuild_t as a mountpoint
+0079 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
+0080 - mark remotelogin_domtrans call in telnet as optional (no hard dependency)
+0081 - add virtualization context files
+0082 - allow virtd to read the selinux config (etc/selinux/config) as libselinux needs this to find out the correct SELINUXTYPE= value (cfr call to selinux_virtual_domain_context_path)
+0083 - ensure that libvirt can be started properly by initrc_t
+0084 - update virtualization so that sysadmin can use tools like virsh
+0085 - drop compatibility rules for baselayout versus openrc (cfr 0035)
+0086 - allow creation of user keys by sudo, needed for sudo with selinux integration
+0087 - dontaudit search activities on domain state information (/proc/*/) for xserver
+0088 - dontaudit use of unix_stream_socket for mail (mta_send_mail), like already supported through fifo
+0090 + have sshd use the mkhomedir_helper through the oddjob domains
+0091 - support generic attributes for apache
+0092 - dontaudit fd usage by dbus session users
+0093 - dontaudit getattr on filesystems by firefox (mozilla)
+0094 - dontaudit fd usage by ifconfig on wpa_cli descriptors
+0095 - dontaudit unix_stream_socket usage by hostname_t on dhcpc_t descriptors
+0096 - do not have java-config be marked as a java_t entry point
+0097 . adding dracut_t domain
+0098 - introduce bacula domain
+0099 - update on udev, later versions manage the udev_tbl_t more than just files
+0100 - lvm now uses setfscreate for tools like pvscan, vgscan, vgchange, probably through the libudev binding
+0101 - allow initrc_t to create dirs in /sys
+0102 - ensure gcc-config works (now uses "tac" which uses /tmp for temporary files)
+0103 - allow portage_fetch_t to use portage_devpts_t, show progress of downloads for instance
+0104 - allow portage_sandbox_t to use git (git-2 eclass)
+0105 - update mutt to allow encrypted mail reading
+0106 - update syslog file contexts for .persist- file
+0107 - mark debugfs_t as a mountpoint
+0108 - allow exports (under initrc_t) to manage state data for NFS
+0109 - allow dhcp daemon to bind to generic udp ports
+0110 - update eselect with runtime file handling
+
+[1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
+    has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.
+    However, the patch is, imo (SwifT) fairly simple as-is so I suggest to keep it this way.

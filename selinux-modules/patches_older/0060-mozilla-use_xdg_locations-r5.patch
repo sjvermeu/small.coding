@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/apps/mozilla.te	2011-10-09 15:29:19.313569993 +0200
++++ refpolicy/policy/modules/apps/mozilla.te	2011-10-09 15:28:03.578569993 +0200
+@@ -174,6 +174,7 @@
+ 
+ userdom_use_user_ptys(mozilla_t)
+ 
++
+ xserver_user_x_domain_template(mozilla, mozilla_t, mozilla_tmpfs_t)
+ xserver_dontaudit_read_xdm_tmp_files(mozilla_t)
+ xserver_dontaudit_getattr_xdm_tmp_sockets(mozilla_t)
+@@ -298,6 +299,10 @@
+ 	thunderbird_domtrans(mozilla_t)
+ ')
+ 
++optional_policy(`
++	xdg_read_generic_data_home_files(mozilla_t)
++')
++
+ ########################################
+ #
+ # mozilla_plugin local policy

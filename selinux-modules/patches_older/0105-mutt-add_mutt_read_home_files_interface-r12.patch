@@ -1,0 +1,45 @@
+--- refpolicy/policy/modules/apps/mutt.if	2012-01-28 17:45:14.101055296 +0100
++++ refpolicy/policy/modules/apps/mutt.if	2012-01-28 17:44:30.779055198 +0100
+@@ -47,6 +47,42 @@
+ 
+ #######################################
+ ## <summary>
++##      Allow other domains to read mutt's home files 
++## </summary>
++## <param name="domain">
++##      <summary>
++##      The domain that is allowed read access to the mutt_home_t files
++##      </summary>
++## </param>
++#
++interface(`mutt_read_home_files',`
++	gen_require(`
++		type mutt_home_t;
++	')
++
++	read_files_pattern($1, mutt_home_t, mutt_home_t)
++')
++
++#######################################
++## <summary>
++##      Allow other domains to read mutt's temporary files
++## </summary>
++## <param name="domain">
++##      <summary>
++##      The domain that is allowed read access to the temporary files
++##      </summary>
++## </param>
++#
++interface(`mutt_read_tmp_files',`
++	gen_require(`
++		type mutt_tmp_t;
++	')
++
++	read_files_pattern($1, mutt_tmp_t, mutt_tmp_t)
++')
++
++#######################################
++## <summary>
+ ##      Allow other domains to handle mutt's temporary files (used for instance
+ ##      for e-mail drafts)
+ ## </summary>

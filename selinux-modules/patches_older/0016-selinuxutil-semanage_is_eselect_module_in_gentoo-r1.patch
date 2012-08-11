@@ -1,0 +1,13 @@
+--- refpolicy-20110726/policy/modules/system/selinuxutil.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/system/selinuxutil.te	2011-07-27 08:26:40.201004817 +0200
+@@ -493,6 +498,10 @@
+ 	')
+ ')
+ 
++optional_policy(`
++	gentoo_portage_eselect_module(semanage_t)
++')
++
+ ########################################
+ #
+ # Setfiles local policy

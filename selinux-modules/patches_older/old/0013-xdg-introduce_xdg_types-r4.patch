@@ -1,0 +1,199 @@
+--- refpolicy/policy/modules/system/xdg.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.te	2011-09-04 13:32:41.463000511 +0200
+@@ -0,0 +1,15 @@
++policy_module(xdg, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++type xdg_data_home_t;
++userdom_user_home_content(xdg_data_home_t)
++
++type xdg_config_home_t;
++userdom_user_home_content(xdg_config_home_t)
++
++type xdg_cache_home_t;
++userdom_user_home_content(xdg_cache_home_t)
++
+--- refpolicy/policy/modules/system/xdg.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.if	2011-09-04 13:38:44.945000520 +0200
+@@ -0,0 +1,172 @@
++## <summary>Policy for xdg desktop standard</summary>
++
++#######################################
++## <summary>
++##   Allow the userdomain full administrative rights on the xdg_* locations
++## </summary>
++## <param name="userdomain">
++##	<summary>
++##	The user domain
++##	</summary>
++## </param>
++## <rolebase/>
++#
++interface(`xdg_admin',`
++	gen_require(`
++		type xdg_cache_home_t, xdg_config_home_t, xdg_data_home_t;
++	')
++
++	# full control over the xdg_* directories
++	manage_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_lnk_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_sock_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_fifo_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_lnk_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_sock_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	relabel_fifo_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++
++	manage_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_lnk_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_sock_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_fifo_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_lnk_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_sock_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	relabel_fifo_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++
++	manage_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_lnk_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_sock_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_fifo_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_lnk_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_sock_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	relabel_fifo_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++')
++
++########################################
++## <summary>
++##	Manage the xdg cache home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_cache_home',`
++	gen_require(`
++		type xdg_cache_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++	manage_dirs_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++')
++
++########################################
++## <summary>
++##	Read the xdg cache home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_cache_home',`
++	gen_require(`
++		type xdg_cache_home_t;	
++		type user_home_dir_t;
++	')
++
++	list_dirs_pattern($1, user_home_dir_t, xdg_cache_home_t)
++	read_files_pattern($1, xdg_cache_home_t, xdg_cache_home_t)
++')
++
++########################################
++## <summary>
++##	Manage the xdg config home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_config_home',`
++	gen_require(`
++		type xdg_config_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++	manage_dirs_pattern($1, xdg_config_home_t, xdg_config_home_t)
++')
++
++########################################
++## <summary>
++##	Read the xdg config home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_config_home',`
++	gen_require(`
++		type xdg_config_home_t;	
++		type user_home_dir_t;
++	')
++
++	list_dirs_pattern($1, user_home_dir_t, xdg_config_home_t)
++	read_files_pattern($1, xdg_config_home_t, xdg_config_home_t)
++')
++
++########################################
++## <summary>
++##	Manage the xdg data home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_manage_data_home',`
++	gen_require(`
++		type xdg_data_home_t;	
++	')
++
++	manage_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++	manage_dirs_pattern($1, xdg_data_home_t, xdg_data_home_t)
++')
++
++########################################
++## <summary>
++##	Read the xdg data home files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`xdg_read_data_home',`
++	gen_require(`
++		type xdg_data_home_t;	
++		type user_home_dir_t;
++		type user_home_t;
++	')
++
++	search_dirs_pattern($1, user_home_dir_t, user_home_t)
++	list_dirs_pattern($1, user_home_t, xdg_data_home_t)
++	read_files_pattern($1, xdg_data_home_t, xdg_data_home_t)
++')
++
+--- refpolicy/policy/modules/system/xdg.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/system/xdg.fc	2011-09-04 13:32:58.155000508 +0200
+@@ -0,0 +1,3 @@
++HOME_DIR/\.cache(/.*)?		gen_context(system_u:object_r:xdg_cache_home_t,s0)
++HOME_DIR/\.config(/.*)?		gen_context(system_u:object_r:xdg_config_home_t,s0)
++HOME_DIR/\.local/share(/.*)?	gen_context(system_u:object_r:xdg_data_home_t,s0)

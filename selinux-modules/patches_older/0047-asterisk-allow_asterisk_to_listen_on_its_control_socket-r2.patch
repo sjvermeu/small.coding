@@ -1,0 +1,11 @@
+--- refpolicy.orig/policy/modules/services/asterisk.te	2011-08-15 17:21:12.010000783 +0200
++++ refpolicy/policy/modules/services/asterisk.te	2011-08-15 17:20:08.057000781 +0200
+@@ -45,7 +45,7 @@
+ allow asterisk_t self:fifo_file rw_fifo_file_perms;
+ allow asterisk_t self:sem create_sem_perms;
+ allow asterisk_t self:shm create_shm_perms;
+-allow asterisk_t self:unix_stream_socket connectto;
++allow asterisk_t self:unix_stream_socket { connectto listen };
+ allow asterisk_t self:tcp_socket create_stream_socket_perms;
+ allow asterisk_t self:udp_socket create_socket_perms;
+ 

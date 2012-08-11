@@ -1,0 +1,19 @@
+--- refpolicy/policy/modules/services/asterisk.if	2011-03-28 17:05:13.000000000 +0200
++++ refpolicy/policy/modules/services/asterisk.if	2011-08-22 19:41:34.283000311 +0200
+@@ -62,6 +62,7 @@
+ 		type asterisk_etc_t, asterisk_tmp_t, asterisk_log_t;
+ 		type asterisk_var_lib_t;
+ 		type asterisk_initrc_exec_t;
++		type asterisk_exec_t;
+ 	')
+ 
+ 	allow $1 asterisk_t:process { ptrace signal_perms getattr };
+@@ -89,4 +90,8 @@
+ 
+ 	files_list_pids($1)
+ 	admin_pattern($1, asterisk_var_run_t)
++
++	# Allow connecting to the asterisk daemon through "asterisk -r"
++	can_exec($1, asterisk_exec_t)
++	asterisk_stream_connect($1)
+ ')

@@ -1,0 +1,11 @@
+--- refpolicy-20110726/policy/modules/system/unconfined.te	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/unconfined.te	2011-07-27 08:37:18.469004862 +0200
+@@ -52,6 +52,8 @@
+ ifdef(`distro_gentoo',`
+ 	seutil_run_runinit(unconfined_t, unconfined_r)
+ 	seutil_init_script_run_runinit(unconfined_t, unconfined_r)
++	portage_run(unconfined_t, unconfined_r)
++	portage_run_gcc_config(unconfined_t, unconfined_r)
+ ')
+ 
+ optional_policy(`

@@ -1,0 +1,21 @@
+--- refpolicy-20110726/policy/modules/services/consolekit.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/services/consolekit.te	2011-08-13 18:58:01.008001037 +0200
+@@ -72,7 +72,6 @@
+ userdom_dontaudit_read_user_home_content_files(consolekit_t)
+ userdom_read_user_tmp_files(consolekit_t)
+ 
+-hal_ptrace(consolekit_t)
+ 
+ tunable_policy(`use_nfs_home_dirs',`
+ 	fs_read_nfs_files(consolekit_t)
+@@ -84,6 +83,10 @@
+ 
+ optional_policy(`
+ 	dbus_system_domain(consolekit_t, consolekit_exec_t)
++	
++	optional_policy(`
++		hal_ptrace(consolekit_t)
++	')
+ 
+ 	optional_policy(`
+ 		hal_dbus_chat(consolekit_t)

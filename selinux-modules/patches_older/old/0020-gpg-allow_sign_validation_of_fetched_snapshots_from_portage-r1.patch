@@ -1,0 +1,14 @@
+--- refpolicy-20110726/policy/modules/apps/gpg.te	2011-03-28 17:05:13.000000000 +0200
++++ refpolicy/policy/modules/apps/gpg.te	2011-07-27 15:01:08.692005504 +0200
+@@ -147,6 +147,11 @@
+ ')
+ 
+ optional_policy(`
++	gentoo_portage_search_conf(gpg_t)
++	gentoo_portage_read_tmp_files(gpg_t)
++')
++
++optional_policy(`
+ 	xserver_use_xdm_fds(gpg_t)
+ 	xserver_rw_xdm_pipes(gpg_t)
+ ')

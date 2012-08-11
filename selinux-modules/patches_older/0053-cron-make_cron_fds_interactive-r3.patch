@@ -1,0 +1,18 @@
+--- refpolicy-20110726/policy/modules/services/cron.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/services/cron.te	2011-07-26 23:42:49.662003897 +0200
+@@ -49,6 +49,7 @@
+ typealias cronjob_t alias { auditadm_crond_t secadm_crond_t };
+ domain_type(cronjob_t)
+ domain_cron_exemption_target(cronjob_t)
++domain_interactive_fd(cronjob_t)
+ corecmd_shell_entry_type(cronjob_t)
+ ubac_constrained(cronjob_t)
+ 
+@@ -86,6 +87,7 @@
+ type system_cronjob_t alias system_crond_t;
+ init_daemon_domain(system_cronjob_t, anacron_exec_t)
+ corecmd_shell_entry_type(system_cronjob_t)
++domain_interactive_fd(system_cronjob_t)
+ role system_r types system_cronjob_t;
+ 
+ type system_cronjob_lock_t alias system_crond_lock_t;

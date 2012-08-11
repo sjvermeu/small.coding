@@ -1,0 +1,48 @@
+--- refpolicy-20110726/policy/modules/system/init.te	2011-07-26 14:10:41.000000000 +0200
++++ refpolicy/policy/modules/system/init.te	2011-07-27 08:04:19.042004793 +0200
+@@ -584,6 +587,10 @@
+ ')
+ 
+ optional_policy(`
++	courier_read_config(initrc_t)
++')
++
++optional_policy(`
+ 	cpucontrol_stub(initrc_t)
+ 	dev_getattr_cpu_dev(initrc_t)
+ ')
+@@ -793,6 +800,10 @@
+ optional_policy(`
+ 	# allow init scripts to su
+ 	su_restricted_domain_template(initrc, initrc_t, system_r)
++	# Allow initrc_su_t, now defined, to transition to postgresql_t
++	postgresql_domtrans(initrc_su_t)
++	# Allow initrc_su_t to use the initrc_devpts_t (needed for init script failure output)
++	allow initrc_su_t initrc_devpts_t:chr_file { read write };
+ ')
+ 
+ optional_policy(`
+--- refpolicy-20110726/policy/modules/system/init.if	2011-04-27 16:41:49.000000000 +0200
++++ refpolicy/policy/modules/system/init.if	2011-07-27 08:06:08.437004759 +0200
+@@ -758,6 +780,11 @@
+ 		type initrc_exec_t;
+ 	')
+ 
++	# /sbin/runscript is a wrapper for /sbin/rc, so run_init_t
++	# wants to execute initrc_exec_t (no transition needed anymore) whereas
++	# runscript previously was a binary
++	allow $1 initrc_exec_t:file execute_no_trans;
++
+ 	domain_entry_file($1, initrc_exec_t)
+ ')
+ 
+--- refpolicy-20110726/policy/modules/system/init.fc	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/init.fc	2011-07-27 11:23:48.040005131 +0200
+@@ -66,6 +66,7 @@
+ 
+ ifdef(`distro_gentoo', `
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
++/var/lib/iptables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
+ ')
+ 

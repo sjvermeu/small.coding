@@ -1,0 +1,27 @@
+--- refpolicy/policy/modules/admin/portage.if	2011-08-23 14:29:31.664999971 +0200
++++ refpolicy/policy/modules/admin/portage.if	2011-08-23 14:28:05.076999970 +0200
+@@ -334,6 +334,24 @@
+ 
+ ########################################
+ ## <summary>
++##     Do not audit attempts to use a portage file descriptor.
++## </summary>
++## <param name="domain">
++##     <summary>
++##     Domain to not audit.
++##     </summary>
++## </param>
++#
++interface(`portage_dontaudit_use_fds',`
++       gen_require(`
++               type portage_t;
++       ')
++
++       dontaudit $1 portage_t:fd use;
++')
++
++########################################
++## <summary>
+ ##   Allow the domain to run within an eselect module script. 
+ ## </summary>
+ ## <param name="domain">

@@ -1,0 +1,11 @@
+--- refpolicy-20110726/policy/modules/admin/portage.te	2011-07-26 14:10:39.000000000 +0200
++++ refpolicy/policy/modules/admin/portage.te	2011-08-14 21:04:18.389001234 +0200
+@@ -105,6 +131,8 @@
+ 
+ # seems to be ok without this
+ init_dontaudit_read_script_status_files(gcc_config_t)
++# Allow gcc-config to call rc (without transitioning)
++gentoo_init_rc_exec(gcc_config_t)
+ 
+ libs_read_lib_files(gcc_config_t)
+ libs_domtrans_ldconfig(gcc_config_t)

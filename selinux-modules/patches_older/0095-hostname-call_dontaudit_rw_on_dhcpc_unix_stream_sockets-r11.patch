@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/hostname.te	2011-03-28 17:05:16.000000000 +0200
++++ refpolicy/policy/modules/system/hostname.te	2011-12-31 15:59:51.118751527 +0100
+@@ -51,6 +51,7 @@
+ 
+ miscfiles_read_localization(hostname_t)
+ 
++sysnet_dontaudit_rw_dhcpc_unix_stream_sockets(hostname_t)
+ sysnet_read_config(hostname_t)
+ sysnet_dns_name_resolve(hostname_t)
+ 

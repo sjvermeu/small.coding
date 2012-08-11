@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/services/asterisk.te	2011-10-02 18:47:43.165145057 +0200
++++ refpolicy/policy/modules/services/asterisk.te	2011-10-02 18:46:31.483145055 +0200
+@@ -8,6 +8,7 @@
+ type asterisk_t;
+ type asterisk_exec_t;
+ init_daemon_domain(asterisk_t, asterisk_exec_t)
++application_executable_file(asterisk_exec_t)
+ 
+ type asterisk_etc_t;
+ files_config_file(asterisk_etc_t)

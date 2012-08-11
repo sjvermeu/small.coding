@@ -1,0 +1,11 @@
+--- refpolicy-20110726/policy/modules/services/nagios.te	2011-03-28 17:05:14.000000000 +0200
++++ refpolicy/policy/modules/services/nagios.te	2011-08-10 19:35:57.002000087 +0200
+@@ -187,7 +187,7 @@
+ 
+ domtrans_pattern(nrpe_t, nagios_checkdisk_plugin_exec_t, nagios_checkdisk_plugin_t)
+ 
+-read_files_pattern(nrpe_t, nagios_etc_t, nagios_etc_t)
++read_files_pattern(nrpe_t, nagios_etc_t, nrpe_etc_t)
+ files_search_etc(nrpe_t)
+ 
+ manage_files_pattern(nrpe_t, nrpe_var_run_t, nrpe_var_run_t)

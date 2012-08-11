@@ -1,0 +1,12 @@
+--- refpolicy/policy/modules/system/userdomain.if	2011-07-25 17:47:01.000000000 +0200
++++ refpolicy/policy/modules/system/userdomain.if	2011-09-04 13:39:41.941000482 +0200
+@@ -243,6 +243,9 @@
+ 	filetrans_pattern($2, user_home_dir_t, user_home_t, { dir file lnk_file sock_file fifo_file })
+ 	files_list_home($2)
+ 
++	# manage user xdg locations
++	xdg_admin($2)
++
+ 	# cjp: this should probably be removed:
+ 	allow $2 user_home_dir_t:dir { manage_dir_perms relabel_dir_perms };
+ 

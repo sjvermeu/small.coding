@@ -1,0 +1,21 @@
+--- refpolicy-20110726/policy/modules/system/raid.te	2011-07-26 14:10:41.000000000 +0200
++++ refpolicy/policy/modules/system/raid.te	2011-07-27 08:22:16.553004861 +0200
+@@ -70,6 +73,7 @@
+ storage_read_scsi_generic(mdadm_t)
+ 
+ term_dontaudit_list_ptys(mdadm_t)
++term_dontaudit_use_unallocated_ttys(mdadm_t)
+ 
+ init_dontaudit_getattr_initctl(mdadm_t)
+ 
+@@ -83,6 +87,10 @@
+ 
+ mta_send_mail(mdadm_t)
+ 
++tunable_policy(`gentoo_try_dontaudit',`
++	files_dontaudit_getattr_all_files(mdadm_t)
++')
++
+ optional_policy(`
+ 	gpm_dontaudit_getattr_gpmctl(mdadm_t)
+ ')

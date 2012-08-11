@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/system/selinuxutil.te	2011-12-06 10:16:24.691019682 +0100
++++ refpolicy/policy/modules/system/selinuxutil.te	2011-12-06 10:15:49.742019607 +0100
+@@ -226,6 +226,8 @@
+ allow newrole_t self:unix_stream_socket { create_stream_socket_perms connectto };
+ allow newrole_t self:netlink_audit_socket { create_netlink_socket_perms nlmsg_relay };
+ 
++dontaudit newrole_t self:capability dac_read_search;
++
+ read_files_pattern(newrole_t, default_context_t, default_context_t)
+ read_lnk_files_pattern(newrole_t, default_context_t, default_context_t)
+ 

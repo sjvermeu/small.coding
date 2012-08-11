@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/admin/sudo.if	2011-12-26 17:48:49.384030471 +0100
++++ refpolicy/policy/modules/admin/sudo.if	2011-12-26 17:48:11.619030392 +0100
+@@ -130,6 +130,7 @@
+ 	seutil_libselinux_linked($1_sudo_t)
+ 
+ 	userdom_spec_domtrans_all_users($1_sudo_t)
++	userdom_create_all_users_keys($1_sudo_t)
+ 	userdom_manage_user_home_content_files($1_sudo_t)
+ 	userdom_manage_user_home_content_symlinks($1_sudo_t)
+ 	userdom_manage_user_tmp_files($1_sudo_t)

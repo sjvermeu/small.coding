@@ -1,0 +1,106 @@
+--- refpolicy-20110726/policy/modules/roles/sysadm.te	2011-07-26 14:10:40.000000000 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2011-07-26 23:29:11.576003873 +0200
+@@ -148,6 +149,10 @@
+ ')
+ 
+ optional_policy(`
++	gorg_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	hostname_run(sysadm_t, sysadm_r)
+ ')
+ 
+@@ -174,10 +179,18 @@
+ ')
+ 
+ optional_policy(`
++	ldap_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	libs_run_ldconfig(sysadm_t, sysadm_r)
+ ')
+ 
+ optional_policy(`
++	links_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	lockdev_role(sysadm_r, sysadm_t)
+ ')
+ 
+@@ -224,13 +234,21 @@
+ 	mysql_stream_connect(sysadm_t)
+ ')
+ 
+ optional_policy(`
++	networkmanager_run_wpa_cli(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	netutils_run(sysadm_t, sysadm_r)
+ 	netutils_run_ping(sysadm_t, sysadm_r)
+ 	netutils_run_traceroute(sysadm_t, sysadm_r)
+ ')
+ 
+ optional_policy(`
++	nginx_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	ntp_stub()
+ 	corenet_udp_bind_ntp_port(sysadm_t)
+ ')
+@@ -240,6 +265,10 @@
+ ')
+ 
+ optional_policy(`
++	pan_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	pcmcia_run_cardctl(sysadm_t, sysadm_r)
+ ')
+ 
+@@ -253,10 +282,29 @@
+ ')
+ 
+ optional_policy(`
++	postfix_run(master, sysadm_t, sysadm_r)
++	postfix_run(postqueue, sysadm_t, sysadm_r)
++')
++
++optional_policy(`
++	postgresql_admin(sysadm_t, sysadm_r)
++	postgresql_domtrans(sysadm_t)
++')
++
++optional_policy(`
+ 	pyzor_role(sysadm_r, sysadm_t)
+ ')
+ 
+ optional_policy(`
++	qemu_domtrans(sysadm_t)
++	qemu_read_state(sysadm_t)
++	qemu_signal(sysadm_t)
++	qemu_kill(sysadm_t)
++	qemu_setsched(sysadm_t)
++	qemu_run(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	quota_run(sysadm_t, sysadm_r)
+ ')
+ 
+@@ -307,6 +355,10 @@
+ ')
+ 
+ optional_policy(`
++	skype_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	spamassassin_role(sysadm_r, sysadm_t)
+ ')
+ 

@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/services/dbus.if	2011-03-28 17:05:14.000000000 +0200
++++ refpolicy/policy/modules/services/dbus.if	2011-09-04 13:42:13.277000503 +0200
+@@ -151,6 +151,8 @@
+ 
+ 	userdom_read_user_home_content_files($1_dbusd_t)
+ 
++	xdg_read_data_home($1_dbusd_t)
++
+ 	ifdef(`hide_broken_symptoms', `
+ 		dontaudit $3 $1_dbusd_t:netlink_selinux_socket { read write };
+ 	')

@@ -77,7 +77,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0054 - Mark kudzu call as optional in ddcprobe
 0055 - Allow kdevtmpfs to setattr on its device files
 0056 - Mark /etc/selinux/*/modules as semanage_store_t
-0057 - Update udev file contexts
+0057 ! Update udev file contexts (already outdated)
 0058 - dontaudit dmesg accessing generic device_t chr_file (/dev/console when not relabeled yet)
 0059 - fix build failures by marking stuff optional (inetd, apache, ...)
 0060 . support search on all web content in apache (part of 0054)
@@ -86,21 +86,20 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0063 - Introduce dracut domain
 0064 - wpa_cli is an interactive application
 0065 - add gentoo_portage_eselect_module interface
-0066 . udevd new location since systemd
+0066 + udevd new location since systemd
 0067 . allow dhcpc to create /var/run/dhcpc (done through dhcpcd-hooks)
-0068 . allow init to create dbus run dirs in /run
 0069 - support proper userspace confinement
-0070 . mysql run dir creation by initrc
 0072 . use file context substitution for /usr/local in a proper way
-0073 - allow init to create rules.d dir and udev to create his data dir (all runtime)
 0074 - various dontaudits
 0075 - merge set from 20120725
-0076 - mysql run dir attribute change
 0077 + add in bird policy (backport)
 0078 + backport changes for mcelog policy
 0079 + backport changes for oident policy
 0080 . postfix policy updates
 0081 - allow sysadmin to be postfix admin
+0082 - use init_daemon_run_dir for /run support
+0083 - mark tor_var_run_t as a rundir for initrc_t
+0084 - update file context for publicfile daemons
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

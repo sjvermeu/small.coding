@@ -1,3 +1,6 @@
+#248485		Update publicfile daemon binary contexts
+#429486		Support initrc_t creating /run/tor for the tor daemon
+<no bug>	Use an init_daemon_run_dir call for /run support
 #429908		Correct postfix binary labels
 #428686		Allow admins to run postfix administration commands
 <no bug>	Allow postfix to create its initial queues

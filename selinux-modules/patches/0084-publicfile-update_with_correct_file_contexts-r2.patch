@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/publicfile.fc	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/publicfile.fc	2012-08-14 18:44:00.319299017 +0200
+@@ -1,6 +1,5 @@
+-
+-/usr/bin/ftpd		--	gen_context(system_u:object_r:publicfile_exec_t,s0)
+-/usr/bin/httpd		--	gen_context(system_u:object_r:publicfile_exec_t,s0)
++/usr/bin/publicfile-ftpd		--	gen_context(system_u:object_r:publicfile_exec_t,s0)
++/usr/bin/publicfile-httpd		--	gen_context(system_u:object_r:publicfile_exec_t,s0)
+ 
+ # this is the place where online content located
+ # set this to suit your needs

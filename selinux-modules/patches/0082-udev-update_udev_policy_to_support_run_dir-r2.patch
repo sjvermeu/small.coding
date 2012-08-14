@@ -1,0 +1,210 @@
+--- refpolicy/policy/modules/system/udev.te	2012-08-14 18:39:47.452288885 +0200
++++ refpolicy/policy/modules/system/udev.te	2012-08-14 18:34:54.254277137 +0200
+@@ -25,6 +25,7 @@
+ 
+ type udev_var_run_t;
+ files_pid_file(udev_var_run_t)
++init_daemon_run_dir(udev_var_run_t, "udev")
+ 
+ ifdef(`enable_mcs',`
+ 	kernel_ranged_domtrans_to(udev_t, udev_exec_t, s0 - mcs_systemhigh)
+@@ -74,6 +75,7 @@
+ manage_dirs_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_lnk_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
++manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ files_pid_filetrans(udev_t, udev_var_run_t, { dir file })
+ 
+ kernel_read_system_state(udev_t)
+@@ -173,6 +175,8 @@
+ 
+ userdom_dontaudit_search_user_home_content(udev_t)
+ 
++udev_pid_filetrans_db(udev_t, dir, "data")
++
+ ifdef(`distro_gentoo',`
+ 	# during boot, init scripts use /dev/.rcsysinit
+ 	# existance to determine if we are in early booting
+--- refpolicy/policy/modules/system/udev.if	2012-07-24 14:49:22.000000000 +0200
++++ refpolicy/policy/modules/system/udev.if	2012-08-14 18:34:54.254277137 +0200
+@@ -132,6 +132,27 @@
+ 
+ ########################################
+ ## <summary>
++##	Read udev rules files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_read_rules_files',`
++	gen_require(`
++		type udev_rules_t;
++	')
++
++	files_search_etc($1) # /etc/udev/rules.d
++	udev_search_pids($1) # /run/udev/rules.d
++	read_files_pattern($1, udev_rules_t, udev_rules_t)
++')
++
++
++########################################
++## <summary>
+ ##	Manage udev rules files
+ ## </summary>
+ ## <param name="domain">
+@@ -200,6 +221,7 @@
+ 
+ 	files_search_etc($1)
+ 
++	# Device table files are beneith /run/udev
+ 	udev_search_pids($1)
+ ')
+ 
+@@ -224,7 +246,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Search through udev pid content
++##	Create udev database directories
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -232,38 +254,50 @@
+ ##	</summary>
+ ## </param>
+ #
+-interface(`udev_search_pids',`
++interface(`udev_create_db_dirs',`
+ 	gen_require(`
++		type udev_tbl_t;
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_search_pids($1)
+-	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++	create_dirs_pattern($1, udev_var_run_t, udev_tbl_t)
+ ')
+ 
++
++
+ ########################################
+ ## <summary>
+-##	Create, read, write, and delete
+-##	udev pid directories
++##	Write in /var/run/udev with the udev_tbl_t (udev database) file type
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="class">
++## 	<summary>
++##	Classes on which the file transition should occur
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
+ #
+-interface(`udev_manage_pid_dirs',`
++interface(`udev_pid_filetrans_db',`
+ 	gen_require(`
++		type udev_tbl_t;
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_search_var($1)
+-	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++	filetrans_pattern($1, udev_var_run_t, udev_tbl_t, $2, $3)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create directories in the run location with udev_var_run_t type
++##	Write dirs in /var/run with the udev_var_run file type.
++##	This method is deprecated in favor of the init_daemon_run_dir call.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -271,19 +305,35 @@
+ ##	</summary>
+ ## </param>
+ ## <param name="name" optional="true">
+-## 	<summary>
+-##	Name of the directory that is created
++##	<summary>
++##	Name of the directory that the file transition will work on
+ ##	</summary>
+ ## </param>
+ #
+ interface(`udev_generic_pid_filetrans_run_dirs',`
++	refpolicywarn(`$0($*) has been deprecated.')
++')
++
++########################################
++## <summary>
++## 	Search through udev pid files and directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_search_pids',`
+ 	gen_require(`
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_pid_filetrans($1, udev_var_run_t, dir, $2)
++	files_search_var_lib($1)
++	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
+ ')
+ 
++
+ ########################################
+ ## <summary>
+ ##	Create, read, write, and delete
+@@ -303,3 +353,23 @@
+ 	files_search_var_lib($1)
+ 	manage_files_pattern($1, udev_var_run_t, udev_var_run_t)
+ ')
++
++########################################
++## <summary>
++##	Create, read, write, and delete
++##	udev run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_manage_pid_dirs',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_search_var_lib($1)
++	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++')
+--- refpolicy/policy/modules/system/udev.fc	2012-08-14 18:39:47.552288890 +0200
++++ refpolicy/policy/modules/system/udev.fc	2012-07-17 17:31:55.765243315 +0200
+@@ -33,7 +33,9 @@
+ /usr/lib/systemd/systemd-udevd	--	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)
+-/var/run/udev(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev(/.*)?		gen_context(system_u:object_r:udev_var_run_t,s0)
++/var/run/udev/rules\.d(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev/data(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
+ 
+ ifdef(`distro_debian',`
+ /var/run/xen-hotplug -d	gen_context(system_u:object_r:udev_var_run_t,s0)

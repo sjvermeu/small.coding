@@ -1,0 +1,90 @@
+--- refpolicy/policy/modules/system/init.te	2012-08-14 18:37:50.517284199 +0200
++++ refpolicy/policy/modules/system/init.te	2012-08-14 18:35:14.543277951 +0200
+@@ -29,6 +29,9 @@
+ # Mark process types as daemons
+ attribute daemon;
+ 
++# Mark file as daemon run dir
++attribute daemonrundir;
++
+ #
+ # init_t is the domain of the init process.
+ #
+@@ -243,6 +246,8 @@
+ 
+ can_exec(initrc_t, init_script_file_type)
+ 
++create_dirs_pattern(initrc_t, daemonrundir, daemonrundir)
++
+ domtrans_pattern(init_run_all_scripts_domain, initrc_exec_t, initrc_t)
+ 
+ manage_dirs_pattern(initrc_t, initrc_state_t, initrc_state_t)
+@@ -757,10 +762,10 @@
+ 	ifdef(`distro_redhat',`
+ 		mysql_manage_db_dirs(initrc_t)
+ 	')
+-
++	mysql_read_config(initrc_t)
++	mysql_setattr_run_dirs(initrc_t)
+ 	mysql_stream_connect(initrc_t)
+ 	mysql_write_log(initrc_t)
+-	mysql_read_config(initrc_t)
+ ')
+ 
+ optional_policy(`
+@@ -852,8 +857,8 @@
+ ')
+ 
+ optional_policy(`
+-	udev_rw_db(initrc_t)
+-	udev_generic_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_create_db_dirs(initrc_t)
++	udev_pid_filetrans_db(initrc_t, dir, "rules.d")
+ 	udev_manage_pid_files(initrc_t)
+ 	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)
+--- refpolicy/policy/modules/system/init.if	2012-08-14 18:37:50.497284199 +0200
++++ refpolicy/policy/modules/system/init.if	2012-08-14 18:16:23.272232621 +0200
+@@ -417,6 +417,32 @@
+ 
+ ########################################
+ ## <summary>
++##	Mark the type as a daemon run dir
++## </summary>
++## <param name="rundirtype">
++##	<summary>
++##	Type to mark as a daemon run dir
++##	</summary>
++## </param>
++## <param name="filename">
++##	<summary>
++##	Name of the run dir directory
++##	</summary>
++## </param>
++#
++interface(`init_daemon_run_dir',`
++	gen_require(`
++		type daemonrundir;
++		type initrc_t;
++	')
++
++	typeattribute $1 daemonrundir;
++
++	files_pid_filetrans(initrc_t, $1, dir, $2)
++')
++
++########################################
++## <summary>
+ ##	Execute init (/sbin/init) with a domain transition.
+ ## </summary>
+ ## <param name="domain">
+--- refpolicy/policy/modules/system/init.fc	2012-08-14 18:37:50.589284202 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-08-09 17:40:24.593873380 +0200
+@@ -66,6 +66,7 @@
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ /var/lib/ip6?tables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/var/run/openrc(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ ifdef(`distro_suse', `

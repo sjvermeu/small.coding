@@ -12,7 +12,7 @@ MODLIST=${BASE}/small.coding/selinux-modules/patches/MODULELIST;
 if [ $# -ne 2 ] || ( [ "$1" != "-l" ] );
 then
   echo "$0 - Create modules into gentoo.overlay";
-  echo "Usage: $0 -l <revnum>";
+  echo "Usage: $0 -l <pkgversion>";
   exit 1;
 fi
 

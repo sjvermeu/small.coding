@@ -6,7 +6,7 @@ simple:
 
 ifgen:
 	echo "[audit2allow] generating interface info (sepolgen-ifgen, needed for next test)"
-	sepolgen-ifgen > /dev/null 2>&1;
+	-sepolgen-ifgen > /dev/null 2>&1;
 
 refpolicy:
 	echo "[audit2allow] generating refpolicy style test module based on AVC denial"

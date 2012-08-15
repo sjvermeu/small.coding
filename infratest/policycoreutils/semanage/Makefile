@@ -28,4 +28,4 @@ seuser: seuser_list
 
 seuser_list:
 	echo "[semanage] listing SELinux users" && \
-	semanage user -l
+	semanage user -l | grep user_u | grep user_r > /dev/null

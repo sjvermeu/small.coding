@@ -1,0 +1,48 @@
+--- refpolicy/policy/modules/contrib/mta.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/mta.if	2012-08-15 15:33:32.913303130 +0200
+@@ -492,10 +492,12 @@
+ interface(`mta_read_aliases',`
+ 	gen_require(`
+ 		type etc_aliases_t;
++		type etc_mail_t;
+ 	')
+ 
+ 	files_search_etc($1)
+-	allow $1 etc_aliases_t:file read_file_perms;
++	search_dirs_pattern($1, etc_mail_t, etc_aliases_t)
++	read_files_pattern($1, etc_mail_t, etc_aliases_t)
+ ')
+ 
+ ########################################
+@@ -511,11 +513,14 @@
+ interface(`mta_manage_aliases',`
+ 	gen_require(`
+ 		type etc_aliases_t;
++		type etc_mail_t;
+ 	')
+ 
+ 	files_search_etc($1)
+-	manage_files_pattern($1, etc_aliases_t, etc_aliases_t)
+-	manage_lnk_files_pattern($1, etc_aliases_t, etc_aliases_t)
++	
++	search_dirs_pattern($1, etc_mail_t, etc_aliases_t)
++	manage_files_pattern($1, etc_mail_t, etc_aliases_t)
++	manage_lnk_files_pattern($1, etc_mail_t, etc_aliases_t)
+ ')
+ 
+ ########################################
+@@ -551,10 +556,13 @@
+ interface(`mta_rw_aliases',`
+ 	gen_require(`
+ 		type etc_aliases_t;
++		type etc_mail_t;
+ 	')
+ 
+ 	files_search_etc($1)
+-	allow $1 etc_aliases_t:file { rw_file_perms setattr };
++	search_dirs_pattern($1, etc_mail_t, etc_aliases_t)
++	rw_files_pattern($1, etc_mail_t, etc_aliases_t)
++	setattr_files_pattern($1, etc_mail_t, etc_aliases_t)
+ ')
+ 
+ #######################################

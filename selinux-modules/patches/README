@@ -99,7 +99,10 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0081 - allow sysadmin to be postfix admin
 0082 - use init_daemon_run_dir for /run support
 0083 - mark tor_var_run_t as a rundir for initrc_t
-0084 - update file context for publicfile daemons
+0085 + backport ntp fixes
+0087 - label kmod as insmod_exec_t
+0088 - allow udev to load kernel modules
+0089 - update contexts for publicfile
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

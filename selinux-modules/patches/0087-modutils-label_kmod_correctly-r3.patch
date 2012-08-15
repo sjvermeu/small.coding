@@ -1,0 +1,8 @@
+--- refpolicy/policy/modules/system/modutils.fc	2012-05-10 16:18:41.000000000 +0200
++++ refpolicy/policy/modules/system/modutils.fc	2012-08-15 10:38:43.208594312 +0200
+@@ -20,3 +20,5 @@
+ /sbin/modules-update	--	gen_context(system_u:object_r:update_modules_exec_t,s0)
+ /sbin/rmmod.*		--	gen_context(system_u:object_r:insmod_exec_t,s0)
+ /sbin/update-modules	--	gen_context(system_u:object_r:update_modules_exec_t,s0)
++
++/usr/bin/kmod		--	gen_context(system_u:object_r:insmod_exec_t,s0)

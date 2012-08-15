@@ -1,3 +1,11 @@
+#428322		Label kmod appropriately (insmod-like)
+#427660		Allow udev to load kernel modules
+<no bug>	Undo file_contexts.subs_dist changes
+
+** 2012-08-14 Revision 2
+
+<no bug>	Backport file_contexts.subs_dist changes
+<no bug>	Backport ntp policy changes
 #248485		Update publicfile daemon binary contexts
 #429486		Support initrc_t creating /run/tor for the tor daemon
 <no bug>	Use an init_daemon_run_dir call for /run support

@@ -1,0 +1,64 @@
+--- refpolicy/policy/modules/system/udev.te	2012-08-15 10:40:16.700598058 +0200
++++ refpolicy/policy/modules/system/udev.te	2012-08-15 10:36:10.483588192 +0200
+@@ -78,24 +78,24 @@
+ manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ files_pid_filetrans(udev_t, udev_var_run_t, { dir file })
+ 
+-kernel_read_system_state(udev_t)
+-kernel_request_load_module(udev_t)
++kernel_dgram_send(udev_t)
+ kernel_getattr_core_if(udev_t)
+-kernel_use_fds(udev_t)
++kernel_load_module(udev_t)
+ kernel_read_device_sysctls(udev_t)
+ kernel_read_hotplug_sysctls(udev_t)
+-kernel_read_modprobe_sysctls(udev_t)
+ kernel_read_kernel_sysctls(udev_t)
++kernel_read_modprobe_sysctls(udev_t)
++kernel_read_network_state(udev_t)
++kernel_read_software_raid_state(udev_t)
++kernel_read_system_state(udev_t)
++kernel_request_load_module(udev_t)
+ kernel_rw_hotplug_sysctls(udev_t)
+-kernel_rw_unix_dgram_sockets(udev_t)
+-kernel_dgram_send(udev_t)
+-kernel_signal(udev_t)
+-kernel_search_debugfs(udev_t)
+-
+ #https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=235182
+ kernel_rw_net_sysctls(udev_t)
+-kernel_read_network_state(udev_t)
+-kernel_read_software_raid_state(udev_t)
++kernel_rw_unix_dgram_sockets(udev_t)
++kernel_search_debugfs(udev_t)
++kernel_signal(udev_t)
++kernel_use_fds(udev_t)
+ 
+ corecmd_exec_all_executables(udev_t)
+ 
+@@ -113,12 +113,13 @@
+ domain_read_all_domains_state(udev_t)
+ domain_dontaudit_ptrace_all_domains(udev_t) #pidof triggers these
+ 
+-files_read_usr_files(udev_t)
+-files_read_etc_runtime_files(udev_t)
+-files_read_etc_files(udev_t)
+ files_exec_etc_files(udev_t)
+-files_dontaudit_search_isid_type_dirs(udev_t)
+ files_getattr_generic_locks(udev_t)
++files_read_etc_files(udev_t)
++files_read_etc_runtime_files(udev_t)
++files_read_kernel_modules(udev_t)
++files_read_usr_files(udev_t)
++files_dontaudit_search_isid_type_dirs(udev_t)
+ files_search_mnt(udev_t)
+ 
+ fs_getattr_all_fs(udev_t)
+@@ -156,6 +157,7 @@
+ miscfiles_read_hwdata(udev_t)
+ 
+ modutils_domtrans_insmod(udev_t)
++modutils_read_module_config(udev_t)
+ # read modules.inputmap:
+ modutils_read_module_deps(udev_t)
+ 

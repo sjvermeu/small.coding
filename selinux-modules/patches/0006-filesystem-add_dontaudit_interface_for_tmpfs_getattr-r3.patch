@@ -1,0 +1,27 @@
+--- refpolicy/policy/modules/kernel/filesystem.if	2012-05-10 15:25:34.000000000 +0200
++++ refpolicy/policy/modules/kernel/filesystem.if	2012-08-15 14:23:00.997133559 +0200
+@@ -3815,6 +3815,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Do not audit getting the attributes of a tmpfs filesystem
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit
++##	</summary>
++## </param>
++#
++interface(`fs_dontaudit_getattr_tmpfs',`
++	gen_require(`
++		type tmpfs_t;
++	')
++
++	dontaudit $1 tmpfs_t:filesystem getattr;
++')
++
++########################################
++## <summary>
+ ##	Get the attributes of a tmpfs
+ ##	filesystem.
+ ## </summary>

@@ -1,0 +1,84 @@
+--- refpolicy/policy/modules/contrib/ntp.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.te	2012-08-14 19:03:14.554345268 +0200
+@@ -1,4 +1,4 @@
+-policy_module(ntp, 1.10.0)
++policy_module(ntp, 1.10.1)
+ 
+ ########################################
+ #
+@@ -15,6 +15,9 @@
+ type ntpd_initrc_exec_t;
+ init_script_file(ntpd_initrc_exec_t)
+ 
++type ntp_conf_t;
++files_config_file(ntp_conf_t)
++
+ type ntpd_key_t;
+ files_type(ntpd_key_t)
+ 
+@@ -54,10 +57,12 @@
+ 
+ can_exec(ntpd_t, ntpd_exec_t)
+ 
++allow ntpd_t ntp_conf_t:file read_file_perms;
++
+ read_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
+ read_lnk_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
+ 
+-allow ntpd_t ntpd_log_t:dir setattr;
++allow ntpd_t ntpd_log_t:dir setattr_dir_perms;
+ manage_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
+ logging_log_filetrans(ntpd_t, ntpd_log_t, { file dir })
+ 
+--- refpolicy/policy/modules/contrib/ntp.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.if	2012-08-14 19:02:23.706343231 +0200
+@@ -132,7 +132,7 @@
+ ## </param>
+ ## <param name="role">
+ ##	<summary>
+-##	The role to be allowed to manage the ntp domain.
++##	Role allowed access
+ ##	</summary>
+ ## </param>
+ ## <rolecap/>
+@@ -140,11 +140,11 @@
+ interface(`ntp_admin',`
+ 	gen_require(`
+ 		type ntpd_t, ntpd_tmp_t, ntpd_log_t;
+-		type ntpd_key_t, ntpd_var_run_t;
+-		type ntpd_initrc_exec_t;
++		type ntpd_key_t, ntpd_var_run_t, ntp_conf_t;
++		type ntpd_initrc_exec_t, ntp_drift_t;
+ 	')
+ 
+-	allow $1 ntpd_t:process { ptrace signal_perms getattr };
++	allow $1 ntpd_t:process { ptrace signal_perms };
+ 	ps_process_pattern($1, ntpd_t)
+ 
+ 	init_labeled_script_domtrans($1, ntpd_initrc_exec_t)
+@@ -152,7 +152,8 @@
+ 	role_transition $2 ntpd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
+-	admin_pattern($1, ntpd_key_t)
++	files_list_etc($1)
++	admin_pattern($1, { ntpd_key_t ntp_conf_t ntp_drift_t })
+ 
+ 	logging_list_logs($1)
+ 	admin_pattern($1, ntpd_log_t)
+--- refpolicy/policy/modules/contrib/ntp.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.fc	2012-08-14 19:01:02.720339985 +0200
+@@ -2,11 +2,11 @@
+ /etc/cron\.(daily|weekly)/ntp-simple -- gen_context(system_u:object_r:ntpd_exec_t,s0)
+ /etc/cron\.(daily|weekly)/ntp-server -- gen_context(system_u:object_r:ntpd_exec_t,s0)
+ 
+-/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:net_conf_t,s0)
++/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
+ /etc/ntp/crypto(/.*)?			gen_context(system_u:object_r:ntpd_key_t,s0)
+ /etc/ntp/data(/.*)?			gen_context(system_u:object_r:ntp_drift_t,s0)
+ /etc/ntp/keys			--	gen_context(system_u:object_r:ntpd_key_t,s0)
+-/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:net_conf_t,s0)
++/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
+ 
+ /etc/rc\.d/init\.d/ntpd		--	gen_context(system_u:object_r:ntpd_initrc_exec_t,s0)
+ 

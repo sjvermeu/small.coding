@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/contrib/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/skype.te	2012-07-27 11:59:30.769077684 +0200
-@@ -0,0 +1,111 @@
++++ refpolicy/policy/modules/contrib/skype.te	2012-08-15 14:50:46.962200315 +0200
+@@ -0,0 +1,122 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -24,6 +24,10 @@
 +type skype_home_t;
 +userdom_user_home_dir_filetrans(skype_t, skype_home_t, dir)
 +userdom_user_home_content(skype_home_t)
++
++type skype_tmp_t;
++files_tmp_file(skype_tmp_t)
++ubac_constrained(skype_tmp_t)
 +
 +type skype_tmpfs_t;
 +files_tmpfs_file(skype_tmpfs_t)
@@ -52,7 +56,12 @@
 +manage_sock_files_pattern(skype_t, skype_tmpfs_t, skype_tmpfs_t)
 +fs_tmpfs_filetrans(skype_t, skype_tmpfs_t, { file lnk_file sock_file fifo_file })
 +
++manage_files_pattern(skype_t, skype_tmp_t, skype_tmp_t)
++manage_sock_files_pattern(skype_t, skype_tmp_t, skype_tmp_t)
++files_tmp_filetrans(skype_t, skype_tmp_t, sock_file)
++
 +kernel_dontaudit_search_sysctl(skype_t)
++kernel_dontaudit_read_kernel_sysctls(skype_t)
 +kernel_read_network_state(skype_t)
 +kernel_read_system_state(skype_t)
 +
@@ -66,6 +75,7 @@
 +corenet_sendrecv_http_client_packets(skype_t)
 +corenet_tcp_bind_generic_node(skype_t)
 +corenet_tcp_bind_generic_port(skype_t) 
++corenet_tcp_connect_all_unreserved_ports(skype_t)
 +corenet_tcp_connect_generic_port(skype_t)
 +corenet_tcp_connect_http_port(skype_t)
 +corenet_tcp_sendrecv_http_port(skype_t)
@@ -83,6 +93,7 @@
 +files_read_etc_files(skype_t)
 +files_read_usr_files(skype_t)
 +
++fs_dontaudit_getattr_tmpfs(skype_t)
 +fs_dontaudit_getattr_xattr_fs(skype_t)
 +
 +auth_use_nsswitch(skype_t)
@@ -113,7 +124,7 @@
 +	xdg_manage_generic_config_home(skype_t)
 +')
 --- refpolicy/policy/modules/contrib/skype.if	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/skype.if	2012-05-05 16:11:33.052762626 +0200
++++ refpolicy/policy/modules/contrib/skype.if	2012-05-05 16:11:33.052762626 +0200
 @@ -0,0 +1,39 @@
 +## <summary>Skype softphone.</summary>
 +
@@ -155,16 +166,17 @@
 +	ps_process_pattern($2, skype_t)
 +')	
 --- refpolicy/policy/modules/contrib/skype.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicypolicy/modules/contrib/skype.fc	2012-05-05 16:11:33.036762626 +0200
-@@ -0,0 +1,11 @@
-+HOME_DIR/\.Skype(/.*)?    gen_context(system_u:object_r:skype_home_t,s0)
++++ refpolicy/policy/modules/contrib/skype.fc	2012-08-15 11:12:04.923674520 +0200
+@@ -0,0 +1,12 @@
++HOME_DIR/\.Skype(/.*)?		gen_context(system_u:object_r:skype_home_t,s0)
 +
 +#
 +# /opt
 +#
-+/opt/skype/skype       -- gen_context(system_u:object_r:skype_exec_t,s0)
++/opt/skype/skype	--	gen_context(system_u:object_r:skype_exec_t,s0)
++/opt/bin/skype		--	gen_context(system_u:object_r:skype_exec_t,s0)
 +
 +#
 +# /usr
 +#
-+/usr/bin/skype         -- gen_context(system_u:object_r:skype_exec_t,s0)
++/usr/bin/skype		--	gen_context(system_u:object_r:skype_exec_t,s0)

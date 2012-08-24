@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/kernel/devices.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/kernel/devices.te	2012-08-24 18:34:12.817739990 +0200
+@@ -1,4 +1,4 @@
+-policy_module(devices, 1.14.0)
++policy_module(devices, 1.14.2)
+ 
+ ########################################
+ #
+@@ -121,6 +121,9 @@
+ type lvm_control_t;
+ dev_node(lvm_control_t)
+ 
++type mei_device_t;
++dev_node(mei_device_t)
++
+ #
+ # memory_device_t is the type of /dev/kmem,
+ # /dev/mem and /dev/port.
+--- refpolicy/policy/modules/kernel/devices.fc	2012-05-04 15:14:47.000000000 +0200
++++ refpolicy/policy/modules/kernel/devices.fc	2012-08-24 18:33:45.278739931 +0200
+@@ -59,6 +59,7 @@
+ /dev/logibm		-c	gen_context(system_u:object_r:mouse_device_t,s0)
+ /dev/lp.*		-c	gen_context(system_u:object_r:printer_device_t,s0)
+ /dev/mcelog		-c	gen_context(system_u:object_r:kmsg_device_t,mls_systemhigh)
++/dev/mei		-c	gen_context(system_u:object_r:mei_device_t,s0)
+ /dev/mem		-c	gen_context(system_u:object_r:memory_device_t,mls_systemhigh)
+ /dev/mergemem		-c	gen_context(system_u:object_r:memory_device_t,mls_systemhigh)
+ /dev/mga_vid.*		-c	gen_context(system_u:object_r:xserver_misc_device_t,s0)

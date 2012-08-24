@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-16 20:45:20.204514721 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-16 20:43:36.196510553 +0200
+@@ -86,6 +86,7 @@
+ ')
+ 
+ optional_policy(`
++	asterisk_admin(sysadm_t, sysadm_r)
+ 	asterisk_stream_connect(sysadm_t)
+ ')
+ 

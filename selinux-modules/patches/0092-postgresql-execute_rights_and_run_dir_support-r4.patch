@@ -1,0 +1,37 @@
+--- refpolicy/policy/modules/services/postgresql.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/services/postgresql.te	2012-08-16 20:19:15.680452031 +0200
+@@ -63,6 +63,7 @@
+ 
+ type postgresql_var_run_t;
+ files_pid_file(postgresql_var_run_t)
++init_daemon_run_dir(postgresql_var_run_t, "postgresql")
+ 
+ # database clients attribute
+ attribute sepgsql_admin_type;
+--- refpolicy/policy/modules/services/postgresql.if	2012-05-18 19:59:12.000000000 +0200
++++ refpolicy/policy/modules/services/postgresql.if	2012-08-16 20:18:26.824450073 +0200
+@@ -334,6 +334,24 @@
+ 	allow $1 postgresql_db_t:lnk_file { getattr read };
+ ')
+ 
++#######################################
++## <summary>
++##	Execute postgresql in the calling domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`postgresql_exec',`
++	gen_require(`
++		type postgresql_exec_t;
++	')
++
++	can_exec($1, postgresql_exec_t);
++')
++
+ ########################################
+ ## <summary>
+ ##	Execute postgresql in the postgresql domain.

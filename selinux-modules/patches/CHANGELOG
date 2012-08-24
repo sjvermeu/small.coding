@@ -1,3 +1,18 @@
+** 2012-08-24 Revision 4
+
+<no bug>	Mark /etc/env.d in its entirety as etc_runtime_t
+<no bug>	Backport device driver context fixes
+<no bug>	Backport mei device driver support
+#430990		Update skype policy for skype version 4 
+<no bug>	Remove named_var_lib_t reference
+#431654		Allow sysadm to manage asterisk service
+#431654		Support postgresql (named init for sysadmin, /run/postgresql)
+<no bug>	Remove duplicate file context in java module
+<no bug>	Remove ~/.config/chromium context within mozilla
+<no bug>	Allow initrc_t to also setattr on the /run dirs he creates
+
+** 2012-08-15 Revision 3
+
 #431448		Reading etc_aliases_t requires search on etc_mail_t
 #248485		Update publicfile daemon binary contexts
 #428322		Label kmod appropriately (insmod-like)

@@ -1,0 +1,21 @@
+--- refpolicy/policy/modules/contrib/bind.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/bind.if	2012-08-17 20:13:26.825443230 +0200
+@@ -359,7 +359,7 @@
+ interface(`bind_admin',`
+ 	gen_require(`
+ 		type named_t, named_tmp_t, named_log_t;
+-		type named_conf_t, named_var_lib_t, named_var_run_t;
++		type named_conf_t, named_var_run_t;
+ 		type named_cache_t, named_zone_t;
+ 		type dnssec_t, ndc_t;
+ 		type named_initrc_exec_t;
+@@ -391,9 +391,6 @@
+ 	admin_pattern($1, named_zone_t)
+ 	admin_pattern($1, dnssec_t)
+ 
+-	files_list_var_lib($1)
+-	admin_pattern($1, named_var_lib_t)
+-
+ 	files_list_pids($1)
+ 	admin_pattern($1, named_var_run_t)
+ ')

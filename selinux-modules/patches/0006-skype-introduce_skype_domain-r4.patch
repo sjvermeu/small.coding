@@ -1,5 +1,5 @@
 --- refpolicy/policy/modules/contrib/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/skype.te	2012-08-15 14:50:46.962200315 +0200
++++ refpolicy/policy/modules/contrib/skype.te	2012-08-20 18:31:34.505002293 +0200
 @@ -0,0 +1,122 @@
 +policy_module(skype, 0.0.2)
 +
@@ -58,7 +58,7 @@
 +
 +manage_files_pattern(skype_t, skype_tmp_t, skype_tmp_t)
 +manage_sock_files_pattern(skype_t, skype_tmp_t, skype_tmp_t)
-+files_tmp_filetrans(skype_t, skype_tmp_t, sock_file)
++files_tmp_filetrans(skype_t, skype_tmp_t, { file sock_file })
 +
 +kernel_dontaudit_search_sysctl(skype_t)
 +kernel_dontaudit_read_kernel_sysctls(skype_t)

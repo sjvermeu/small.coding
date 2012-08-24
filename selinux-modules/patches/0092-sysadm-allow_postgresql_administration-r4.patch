@@ -1,0 +1,14 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-16 20:22:59.083460983 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-16 20:17:03.292446726 +0200
+@@ -292,6 +292,11 @@
+ ')
+ 
+ optional_policy(`
++	postgresql_admin(sysadm_t, sysadm_r)
++	postgresql_exec(sysadm_t)
++')
++
++optional_policy(`
+ 	pyzor_role(sysadm_r, sysadm_t)
+ ')
+ 

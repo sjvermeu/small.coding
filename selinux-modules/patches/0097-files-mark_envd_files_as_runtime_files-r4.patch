@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/kernel/files.fc	2012-08-24 19:00:55.819743411 +0200
++++ refpolicy/policy/modules/kernel/files.fc	2012-08-24 18:57:14.256742939 +0200
+@@ -75,7 +75,7 @@
+ ifdef(`distro_gentoo', `
+ /etc/profile\.env	--	gen_context(system_u:object_r:etc_runtime_t,s0)
+ /etc/csh\.env		--	gen_context(system_u:object_r:etc_runtime_t,s0)
+-/etc/env\.d/.*		--	gen_context(system_u:object_r:etc_runtime_t,s0)
++/etc/env\.d(/.*)?		gen_context(system_u:object_r:etc_runtime_t,s0)
+ ')
+ 
+ ifdef(`distro_redhat',`

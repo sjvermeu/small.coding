@@ -1,4 +1,4 @@
---- refpolicy/policy/modules/contrib/mozilla.te	2012-07-29 10:04:34.706431796 +0200
+--- refpolicy/policy/modules/contrib/mozilla.te	2012-08-16 14:54:54.284672224 +0200
 +++ refpolicy/policy/modules/contrib/mozilla.te	2012-07-29 10:04:24.283431775 +0200
 @@ -7,10 +7,30 @@
  
@@ -33,7 +33,18 @@
  
  attribute_role mozilla_roles;
  
-@@ -75,13 +95,13 @@
+@@ -63,6 +83,10 @@
+ # Browse the web, connect to printer
+ allow mozilla_t self:tcp_socket create_socket_perms;
+ allow mozilla_t self:netlink_route_socket r_netlink_socket_perms;
++# Make sure plugin works
++allow mozilla_t mozilla_plugin_t:process { rlimitinh siginh noatsecure };
++allow mozilla_t mozilla_plugin_t:fd { use };
++allow mozilla_t mozilla_plugin_t:unix_stream_socket { read write };
+ 
+ # for bash - old mozilla binary
+ can_exec(mozilla_t, mozilla_exec_t)
+@@ -71,13 +95,13 @@
  manage_dirs_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
  manage_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
  manage_lnk_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
@@ -49,7 +60,7 @@
  manage_dirs_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
  files_tmp_filetrans(mozilla_t, mozilla_tmp_t, { file dir })
  
-@@ -92,93 +112,95 @@
+@@ -88,90 +112,95 @@
  fs_tmpfs_filetrans(mozilla_t, mozilla_tmpfs_t, { file lnk_file sock_file fifo_file })
  
  kernel_read_kernel_sysctls(mozilla_t)
@@ -84,36 +95,33 @@
 -corenet_tcp_sendrecv_squid_port(mozilla_t)
 -corenet_tcp_sendrecv_ftp_port(mozilla_t)
 -corenet_tcp_sendrecv_ipp_port(mozilla_t)
--corenet_tcp_sendrecv_tor_port(mozilla_t)
 -corenet_tcp_connect_http_port(mozilla_t)
 -corenet_tcp_connect_http_cache_port(mozilla_t)
 -corenet_tcp_connect_squid_port(mozilla_t)
--corenet_tcp_connect_ftp_port(mozilla_t)
--corenet_tcp_connect_ipp_port(mozilla_t)
--corenet_tcp_connect_tor_port(mozilla_t)
--corenet_tcp_connect_generic_port(mozilla_t)
--corenet_tcp_connect_soundd_port(mozilla_t)
--corenet_sendrecv_http_client_packets(mozilla_t)
--corenet_sendrecv_http_cache_client_packets(mozilla_t)
--corenet_sendrecv_squid_client_packets(mozilla_t)
- corenet_sendrecv_ftp_client_packets(mozilla_t)
++corenet_sendrecv_ftp_client_packets(mozilla_t)
 +corenet_sendrecv_generic_client_packets(mozilla_t)
 +corenet_sendrecv_http_cache_client_packets(mozilla_t)
 +corenet_sendrecv_http_client_packets(mozilla_t)
- corenet_sendrecv_ipp_client_packets(mozilla_t)
++corenet_sendrecv_ipp_client_packets(mozilla_t)
 +corenet_sendrecv_squid_client_packets(mozilla_t)
 +corenet_sendrecv_speech_client_packets(mozilla_t)
- corenet_sendrecv_tor_client_packets(mozilla_t)
++corenet_sendrecv_tor_client_packets(mozilla_t)
+ corenet_tcp_connect_ftp_port(mozilla_t)
+-corenet_tcp_connect_ipp_port(mozilla_t)
+ corenet_tcp_connect_generic_port(mozilla_t)
++corenet_tcp_connect_http_cache_port(mozilla_t)
++corenet_tcp_connect_http_port(mozilla_t)
++corenet_tcp_connect_ipp_port(mozilla_t)
+ corenet_tcp_connect_soundd_port(mozilla_t)
+-corenet_sendrecv_http_client_packets(mozilla_t)
+-corenet_sendrecv_http_cache_client_packets(mozilla_t)
+-corenet_sendrecv_squid_client_packets(mozilla_t)
+-corenet_sendrecv_ftp_client_packets(mozilla_t)
+-corenet_sendrecv_ipp_client_packets(mozilla_t)
 -corenet_sendrecv_generic_client_packets(mozilla_t)
 -# Should not need other ports
 -corenet_dontaudit_tcp_sendrecv_generic_port(mozilla_t)
 -corenet_dontaudit_tcp_bind_generic_port(mozilla_t)
-+corenet_tcp_connect_ftp_port(mozilla_t)
-+corenet_tcp_connect_generic_port(mozilla_t)
-+corenet_tcp_connect_http_cache_port(mozilla_t)
-+corenet_tcp_connect_http_port(mozilla_t)
-+corenet_tcp_connect_ipp_port(mozilla_t)
-+corenet_tcp_connect_soundd_port(mozilla_t)
  corenet_tcp_connect_speech_port(mozilla_t)
 +corenet_tcp_connect_squid_port(mozilla_t)
 +corenet_tcp_connect_tor_port(mozilla_t)
@@ -186,7 +194,7 @@
  
  tunable_policy(`allow_execmem',`
  	allow mozilla_t self:process { execmem execstack };
-@@ -197,57 +219,62 @@
+@@ -190,57 +219,62 @@
  ')
  
  # Uploads, local html
@@ -264,7 +272,7 @@
  ')
  
  optional_policy(`
-@@ -255,13 +282,13 @@
+@@ -248,13 +282,13 @@
  ')
  
  optional_policy(`
@@ -280,7 +288,7 @@
  
  	optional_policy(`
  		networkmanager_dbus_chat(mozilla_t)
-@@ -269,12 +296,21 @@
+@@ -262,12 +296,21 @@
  ')
  
  optional_policy(`
@@ -304,7 +312,7 @@
  ')
  
  optional_policy(`
-@@ -291,9 +327,9 @@
+@@ -284,9 +327,9 @@
  ')
  
  optional_policy(`
@@ -315,7 +323,37 @@
  ')
  
  optional_policy(`
-@@ -339,11 +375,12 @@
+@@ -294,6 +337,7 @@
+ ')
+ 
+ optional_policy(`
++	xdg_read_generic_config_home_files(mozilla_t)
+ 	xdg_read_generic_data_home_files(mozilla_t)
+ ')
+ 
+@@ -303,7 +347,7 @@
+ #
+ 
+ dontaudit mozilla_plugin_t self:capability { sys_ptrace };
+-allow mozilla_plugin_t self:process { setsched signal_perms execmem };
++allow mozilla_plugin_t self:process { getsched setsched signal_perms execmem };
+ allow mozilla_plugin_t self:fifo_file manage_fifo_file_perms;
+ allow mozilla_plugin_t self:unix_stream_socket { connectto create_stream_socket_perms };
+ allow mozilla_plugin_t self:tcp_socket create_stream_socket_perms;
+@@ -313,8 +357,11 @@
+ allow mozilla_plugin_t self:sem create_sem_perms;
+ allow mozilla_plugin_t self:shm create_shm_perms;
+ 
++allow mozilla_plugin_t mozilla_t:unix_stream_socket { read write };
++
+ can_exec(mozilla_plugin_t, mozilla_home_t)
+-read_files_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
++manage_dirs_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
++manage_files_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
+ 
+ manage_dirs_pattern(mozilla_plugin_t, mozilla_plugin_tmp_t, mozilla_plugin_tmp_t)
+ manage_files_pattern(mozilla_plugin_t, mozilla_plugin_tmp_t, mozilla_plugin_tmp_t)
+@@ -328,11 +375,12 @@
  manage_sock_files_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t)
  fs_tmpfs_filetrans(mozilla_plugin_t, mozilla_plugin_tmpfs_t, { file lnk_file sock_file fifo_file })
  
@@ -329,7 +367,7 @@
  kernel_request_load_module(mozilla_plugin_t)
  
  corecmd_exec_bin(mozilla_plugin_t)
-@@ -351,64 +388,81 @@
+@@ -340,64 +388,83 @@
  
  corenet_all_recvfrom_netlabel(mozilla_plugin_t)
  corenet_all_recvfrom_unlabeled(mozilla_plugin_t)
@@ -430,10 +468,12 @@
 +userdom_read_user_tmp_symlinks(mozilla_plugin_t)
 +userdom_rw_user_tmpfs_files(mozilla_plugin_t)
 +
++
++xserver_user_x_domain_template(mozilla_plugin, mozilla_plugin_t, mozilla_plugin_tmpfs_t)
  
- xserver_user_x_domain_template(mozilla_plugin, mozilla_plugin_t, mozilla_plugin_tmpfs_t)
- 
-@@ -433,14 +487,19 @@
+ tunable_policy(`allow_execmem',`
+ 	allow mozilla_plugin_t self:process { execmem execstack };
+@@ -420,14 +487,19 @@
  ')
  
  optional_policy(`
@@ -456,7 +496,7 @@
  ')
  
  optional_policy(`
-@@ -462,9 +521,9 @@
+@@ -449,9 +521,13 @@
  
  optional_policy(`
  	pulseaudio_exec(mozilla_plugin_t)
@@ -465,6 +505,10 @@
  	pulseaudio_manage_home_files(mozilla_plugin_t)
 +	pulseaudio_setattr_home_dir(mozilla_plugin_t)
 +	pulseaudio_stream_connect(mozilla_plugin_t)
++')
++
++optional_policy(`
++	xdg_read_generic_config_home_files(mozilla_plugin_t)
  ')
  
  optional_policy(`
@@ -520,3 +564,32 @@
 +
 +	rw_fifo_files_pattern($1, mozilla_tmp_t, mozilla_tmp_t)
 +')
+--- refpolicy/policy/modules/contrib/mozilla.fc	2012-05-04 16:18:26.000000000 +0200
++++ refpolicy/policy/modules/contrib/mozilla.fc	2012-08-16 14:32:59.460619539 +0200
+@@ -1,4 +1,3 @@
+-HOME_DIR/\.config/chromium(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
+ HOME_DIR/\.galeon(/.*)?			gen_context(system_u:object_r:mozilla_home_t,s0)
+ HOME_DIR/\.java(/.*)?			gen_context(system_u:object_r:mozilla_home_t,s0)
+ HOME_DIR/\.mozilla(/.*)?		gen_context(system_u:object_r:mozilla_home_t,s0)
+@@ -13,6 +12,7 @@
+ /usr/bin/mozilla-snapshot	--	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/bin/epiphany-bin		--	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/bin/epiphany		--	gen_context(system_u:object_r:mozilla_exec_t,s0)
++/usr/bin/firefox-bin		--	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/bin/mozilla-[0-9].*	--	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/bin/mozilla-bin-[0-9].*	--	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ 
+@@ -31,3 +31,13 @@
+ /usr/lib/firefox[^/]*/mozilla-.* --	gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/lib/[^/]*firefox[^/]*/firefox-bin -- gen_context(system_u:object_r:mozilla_exec_t,s0)
+ /usr/lib/[^/]*firefox[^/]*/firefox --	gen_context(system_u:object_r:mozilla_exec_t,s0)
++/usr/lib/[^/]*firefox[^/]*/plugin-container	--	gen_context(system_u:object_r:mozilla_plugin_exec_t,s0)
++
++#
++# /opt
++#
++/opt/firefox/libxul\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/opt/firefox/firefox		--	gen_context(system_u:object_r:mozilla_exec_t,s0)
++/opt/firefox/run-mozilla\.sh	--	gen_context(system_u:object_r:mozilla_exec_t,s0)
++/opt/firefox/firefox-bin	--	gen_context(system_u:object_r:mozilla_exec_t,s0)
++/opt/firefox/plugin-container	--	gen_context(system_u:object_r:mozilla_plugin_exec_t,s0)

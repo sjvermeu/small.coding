@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:50:48.915934216 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:48:24.716933908 +0200
+@@ -103,6 +103,7 @@
+ ')
+ 
+ optional_policy(`
++	bind_admin(sysadm_t, sysadm_r)
+ 	bind_run_ndc(sysadm_t, sysadm_r)
+ ')
+ 

@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:50:48.915934216 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:48:24.716933908 +0200
+@@ -269,6 +270,10 @@
+ ')
+ 
+ optional_policy(`
++	ntp_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	oav_run_update(sysadm_t, sysadm_r)
+ ')
+ 

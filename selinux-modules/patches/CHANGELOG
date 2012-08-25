@@ -1,3 +1,10 @@
+#431654		Allow initrc_t to create /run/nscd
+#431654		Allow initrc_t to create /run/ConsoleKit
+#431654		Allow sysadmin to manage ntp
+#431654		Allow sysadmin to manage bind (named)
+#431654		Allow sysadmin to manage openvpn
+#431654		Allow initrc_t to create /run/asterisk
+
 ** 2012-08-24 Revision 4
 
 <no bug>	Mark /etc/env.d in its entirety as etc_runtime_t

@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/asterisk.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/asterisk.te	2012-08-25 19:30:36.586931629 +0200
+@@ -33,6 +33,7 @@
+ 
+ type asterisk_var_run_t;
+ files_pid_file(asterisk_var_run_t)
++init_daemon_run_dir(asterisk_var_run_t, "asterisk")
+ 
+ ########################################
+ #

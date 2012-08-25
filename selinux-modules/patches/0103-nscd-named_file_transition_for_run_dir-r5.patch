@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/nscd.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/nscd.te	2012-08-25 20:15:34.238937386 +0200
+@@ -13,6 +13,7 @@
+ # ordering problem with loadable modules
+ type nscd_var_run_t;
+ files_pid_file(nscd_var_run_t)
++init_daemon_run_dir(nscd_var_run_t, "nscd")
+ 
+ # nscd is both the client program and the daemon.
+ type nscd_t;

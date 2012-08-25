@@ -90,26 +90,33 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0069 - support proper userspace confinement
 0072 + use file context substitution for /usr/local in a proper way
 0074 - various dontaudits
-0075 - merge set from 20120725
+0075 = merge set from 20120725
 0077 + add in bird policy (backport)
 0078 + backport changes for mcelog policy
 0079 + backport changes for oident policy
 0080 + postfix policy updates
 0081 - allow sysadmin to be postfix admin
-0082 - use init_daemon_run_dir for /run support
-0083 - mark tor_var_run_t as a rundir for initrc_t
+0082 . use init_daemon_run_dir for /run support
+0083 . mark tor_var_run_t as a rundir for initrc_t
 0085 + backport ntp fixes
 0087 - label kmod as insmod_exec_t
 0088 - allow udev to load kernel modules
 0089 - update contexts for publicfile
 0090 - reading mail alias files requires search in etc_mail_t
 0091 - remove duplicate context for java
-0092 - simple set of postgresql updates (support sysadm operations, /run/postgresql)
+0092 . simple set of postgresql updates (/run/postgresql)
+     - simple set of postgresql updates (support sysadm operations)
 0093 - allow sysadm to manage asterisk service
 0094 - remove named_var_lib_t reference
 0095 + backport mei device driver support
 0096 + backport device driver context fixes
 0097 - mark /etc/env.d generally as runtime files (gcc-config needed)
+0098 . allow init to create /run/asterisk
+0099 - allow sysadm to manage openvpn
+0100 - allow sysadm to manage bind
+0101 - allow sysadm to manage ntp
+0102 . named file transition for /run/ConsoleKit
+0103 . named file transition for /run/nscd
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

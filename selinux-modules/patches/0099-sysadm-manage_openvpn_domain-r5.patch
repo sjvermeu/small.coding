@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:44:34.266933416 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-25 19:42:55.282933205 +0200
+@@ -273,6 +273,10 @@
+ ')
+ 
+ optional_policy(`
++	openvpn_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	pcmcia_run_cardctl(sysadm_t, sysadm_r)
+ ')
+ 

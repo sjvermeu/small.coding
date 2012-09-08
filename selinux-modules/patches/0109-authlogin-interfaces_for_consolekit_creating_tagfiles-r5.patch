@@ -1,0 +1,64 @@
+--- refpolicy/policy/modules/system/authlogin.if	2012-08-29 20:15:52.304675088 +0200
++++ refpolicy/policy/modules/system/authlogin.if	2012-08-29 19:43:01.040670881 +0200
+@@ -1102,6 +1102,36 @@
+ 
+ ########################################
+ ## <summary>
++##	Automatically transition when a resource is created in the generic run
++##	location (/var/run or /run) to the pam console data label
++##	(pam_var_console_t).
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++##	<summary>
++##	Class of the resource created
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Name of the resource created (optional).
++##	</summary>
++## </param>
++#
++interface(`auth_generic_run_filetrans_pam_console_data',`
++	gen_require(`
++		type pam_var_console_t;
++	')
++
++	files_pid_filetrans($1, pam_var_console_t, $2, $3)
++')
++
++########################################
++## <summary>
+ ##	Relabel pam_console data directories.
+ ## </summary>
+ ## <param name="domain">
+@@ -1139,6 +1169,24 @@
+ ')
+ 
+ ########################################
++## <summary>
++##	Create pam console data directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`auth_create_pam_console_data_dirs',`
++	gen_require(`
++		type pam_var_console_t;
++	')
++
++	allow $1 pam_var_console_t:dir create_dir_perms;
++')
++
++########################################
+ ## <summary>
+ ##	Create, read, write, and delete
+ ##	pam_console data files.

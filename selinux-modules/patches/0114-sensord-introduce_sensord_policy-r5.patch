@@ -1,0 +1,84 @@
+--- refpolicy/policy/modules/contrib/sensord.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.te	2012-09-08 18:06:09.090552067 +0200
+@@ -0,0 +1,35 @@
++policy_module(sensord, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type sensord_t;
++type sensord_exec_t;
++init_daemon_domain(sensord_t, sensord_exec_t)
++
++type sensord_initrc_exec_t;
++init_script_file(sensord_initrc_exec_t)
++
++type sensord_var_run_t;
++files_pid_file(sensord_var_run_t)
++
++########################################
++#
++# Local policy
++#
++
++allow sensord_t self:fifo_file rw_fifo_file_perms;
++allow sensord_t self:unix_stream_socket create_stream_socket_perms;
++
++manage_files_pattern(sensord_t, sensord_var_run_t, sensord_var_run_t)
++files_pid_filetrans(sensord_t, sensord_var_run_t, file)
++
++dev_read_sysfs(sensord_t)
++
++files_read_etc_files(sensord_t)
++
++logging_send_syslog_msg(sensord_t)
++
++miscfiles_read_localization(sensord_t)
+--- refpolicy/policy/modules/contrib/sensord.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.if	2012-09-08 18:06:09.089552067 +0200
+@@ -0,0 +1,35 @@
++## <summary>Sensor information logging daemon.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an sensord environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`sensord_admin',`
++	gen_require(`
++		type sensord_t, sensord_initrc_exec_t, sensord_var_run_t;
++	')
++
++	allow $1 sensord_t:process { ptrace signal_perms };
++	ps_process_pattern($1, sensord_t)
++
++	init_labeled_script_domtrans($1, sensord_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 sensord_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_pids($1)
++	admin_pattern($1, sensord_var_run_t)
++')
+--- refpolicy/policy/modules/contrib/sensord.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.fc	2012-09-08 18:06:09.089552067 +0200
+@@ -0,0 +1,5 @@
++/etc/rc\.d/init\.d/sensord	--	gen_context(system_u:object_r:sensord_initrc_exec_t,s0)
++
++/usr/sbin/sensord	--	gen_context(system_u:object_r:sensord_exec_t,s0)
++
++/var/run/sensord\.pid	--	gen_context(system_u:object_r:sensord_var_run_t,s0)

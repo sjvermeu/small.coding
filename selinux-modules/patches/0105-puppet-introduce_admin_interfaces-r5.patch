@@ -1,0 +1,87 @@
+--- refpolicy/policy/modules/contrib/puppet.if	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/puppet.if	2012-08-27 18:43:59.410294490 +0200
+@@ -10,6 +10,84 @@
+ 
+ ################################################
+ ## <summary>
++##	All of the rules required to manage a puppet (client) domain
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access
++##	</summary>
++## </param>
++#
++interface(`puppet_admin',`
++	gen_require(`
++		type puppet_t;
++		type puppet_initrc_exec_t;
++		type puppet_etc_t;
++		type puppet_log_t;
++		type puppet_var_run_t;
++	')
++
++	allow $1 puppet_t:process { getattr signal_perms };
++	ps_process_pattern($1, puppet_t)
++
++	init_labeled_script_domtrans($1, puppet_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 puppet_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_etc($1)
++	admin_pattern($1, puppet_etc_t)
++
++	logging_search_logs($1)
++	admin_pattern($1, puppet_log_t)
++
++	admin_pattern($1, puppet_var_run_t)
++
++	kernel_search_proc($1)
++	allow $1 puppet_t:dir list_dir_perms;
++
++	read_lnk_files_pattern($1, puppet_t, puppet_t)
++')
++
++################################################
++## <summary>
++##	All of the rules required to manage a puppetmaster domain
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access
++##	</summary>
++## </param>
++#
++interface(`puppet_admin_puppetmaster',`
++	gen_require(`
++		type puppetmaster_t;
++		type puppetmaster_initrc_exec_t;
++	')
++
++	allow $1 puppetmaster_t:process { getattr signal_perms };
++	ps_process_pattern($1, puppetmaster_t)
++
++	init_labeled_script_domtrans($1, puppetmaster_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 puppetmaster_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	puppet_admin($1, $2)
++')
++
++################################################
++## <summary>
+ ##	Read / Write to Puppet temp files.  Puppet uses
+ ##	some system binaries (groupadd, etc) that run in
+ ##	a non-puppet domain and redirects output into temp

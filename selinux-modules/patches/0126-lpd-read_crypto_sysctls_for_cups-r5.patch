@@ -1,0 +1,16 @@
+--- refpolicy/policy/modules/contrib/lpd.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/lpd.te	2012-09-08 19:09:41.995560209 +0200
+@@ -1,4 +1,4 @@
+-policy_module(lpd, 1.13.0)
++policy_module(lpd, 1.13.1)
+ 
+ ########################################
+ #
+@@ -236,6 +236,7 @@
+ # Allow lpd to read, rename, and unlink spool files.
+ allow lpd_t print_spool_t:file { read_file_perms rename_file_perms delete_file_perms };
+ 
++kernel_read_crypto_sysctls(lpr_t)
+ kernel_read_kernel_sysctls(lpr_t)
+ 
+ corenet_all_recvfrom_unlabeled(lpr_t)

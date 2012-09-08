@@ -1,0 +1,18 @@
+--- refpolicy/policy/modules/contrib/clamav.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/clamav.te	2012-09-08 18:54:38.035558282 +0200
+@@ -1,4 +1,4 @@
+-policy_module(clamav, 1.10.0)
++policy_module(clamav, 1.10.1)
+ 
+ ## <desc>
+ ## <p>
+@@ -182,6 +182,9 @@
+ allow freshclam_t clamd_var_log_t:dir search_dir_perms;
+ logging_log_filetrans(freshclam_t, freshclam_var_log_t, file)
+ 
++kernel_read_network_state(freshclam_t)
++kernel_read_system_state(freshclam_t)
++
+ corenet_all_recvfrom_unlabeled(freshclam_t)
+ corenet_all_recvfrom_netlabel(freshclam_t)
+ corenet_tcp_sendrecv_generic_if(freshclam_t)

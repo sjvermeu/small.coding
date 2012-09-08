@@ -1,0 +1,20 @@
+--- refpolicy/policy/modules/contrib/djbdns.te	2012-09-08 18:49:10.427557582 +0200
++++ refpolicy/policy/modules/contrib/djbdns.te	2012-09-08 18:48:45.382557526 +0200
+@@ -1,4 +1,4 @@
+-policy_module(djbdns, 1.5.0)
++policy_module(djbdns, 1.5.1)
+ 
+ ########################################
+ #
+--- refpolicy/policy/modules/contrib/djbdns.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/djbdns.if	2012-09-08 18:48:38.780557513 +0200
+@@ -45,7 +45,9 @@
+ 	corenet_tcp_bind_generic_node(djbdns_$1_t)
+ 	corenet_udp_bind_generic_node(djbdns_$1_t)
+ 	corenet_tcp_bind_dns_port(djbdns_$1_t)
++	corenet_tcp_connect_dns_port(djbdns_$1_t)
+ 	corenet_udp_bind_dns_port(djbdns_$1_t)
++	corenet_tcp_bind_generic_port(djbdns_$1_t)
+ 	corenet_udp_bind_generic_port(djbdns_$1_t)
+ 	corenet_sendrecv_dns_server_packets(djbdns_$1_t)
+ 	corenet_sendrecv_generic_server_packets(djbdns_$1_t)

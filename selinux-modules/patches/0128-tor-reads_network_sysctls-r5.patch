@@ -1,0 +1,16 @@
+--- refpolicy/policy/modules/contrib/tor.te	2012-09-08 19:27:19.444562468 +0200
++++ refpolicy/policy/modules/contrib/tor.te	2012-09-08 19:26:11.795562366 +0200
+@@ -1,4 +1,4 @@
+-policy_module(tor, 1.8.0)
++policy_module(tor, 1.8.2)
+ 
+ ########################################
+ #
+@@ -73,6 +73,7 @@
+ manage_sock_files_pattern(tor_t, tor_var_run_t, tor_var_run_t)
+ files_pid_filetrans(tor_t, tor_var_run_t, { dir file sock_file })
+ 
++kernel_read_net_sysctls(tor_t)
+ kernel_read_system_state(tor_t)
+ 
+ # networking basics

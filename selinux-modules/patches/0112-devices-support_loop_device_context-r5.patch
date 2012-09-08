@@ -1,0 +1,28 @@
+--- refpolicy/policy/modules/kernel/devices.te	2012-09-08 17:55:30.493550709 +0200
++++ refpolicy/policy/modules/kernel/devices.te	2012-09-08 17:52:54.196550377 +0200
+@@ -1,4 +1,4 @@
+-policy_module(devices, 1.14.2)
++policy_module(devices, 1.14.3)
+ 
+ ########################################
+ #
+@@ -115,6 +115,9 @@
+ type lirc_device_t;
+ dev_node(lirc_device_t)
+ 
++type loop_control_device_t;
++dev_node(loop_control_device_t)
++
+ #
+ # Type for /dev/mapper/control
+ #
+--- refpolicy/policy/modules/kernel/devices.fc	2012-09-08 17:55:30.493550709 +0200
++++ refpolicy/policy/modules/kernel/devices.fc	2012-09-08 17:52:18.305550319 +0200
+@@ -57,6 +57,7 @@
+ /dev/lirc[0-9]+		-c	gen_context(system_u:object_r:lirc_device_t,s0)
+ /dev/lircm		-c	gen_context(system_u:object_r:mouse_device_t,s0)
+ /dev/logibm		-c	gen_context(system_u:object_r:mouse_device_t,s0)
++/dev/loop-control	-c	gen_context(system_u:object_r:loop_control_device_t,s0)
+ /dev/lp.*		-c	gen_context(system_u:object_r:printer_device_t,s0)
+ /dev/mcelog		-c	gen_context(system_u:object_r:kmsg_device_t,mls_systemhigh)
+ /dev/mei		-c	gen_context(system_u:object_r:mei_device_t,s0)

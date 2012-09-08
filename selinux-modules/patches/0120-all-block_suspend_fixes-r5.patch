@@ -1,0 +1,107 @@
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/cups.te refpolicy/policy/modules/contrib/cups.te
+--- refpolicy/policy/modules/contrib/cups.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/cups.te	2012-09-08 18:57:47.783558684 +0200
+@@ -1,4 +1,4 @@
+-policy_module(cups, 1.15.0)
++policy_module(cups, 1.15.1)
+ 
+ ########################################
+ #
+@@ -104,6 +104,7 @@
+ # /usr/lib/cups/backend/serial needs sys_admin(?!)
+ allow cupsd_t self:capability { ipc_lock sys_admin dac_override dac_read_search kill setgid setuid fsetid net_bind_service fowner chown dac_override sys_rawio sys_resource sys_tty_config };
+ dontaudit cupsd_t self:capability { sys_tty_config net_admin };
++allow cupsd_t self:capability2 block_suspend;
+ allow cupsd_t self:process { getpgid setpgid setsched signal_perms };
+ allow cupsd_t self:fifo_file rw_fifo_file_perms;
+ allow cupsd_t self:unix_stream_socket { create_stream_socket_perms connectto };
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/dovecot.te refpolicy/policy/modules/contrib/dovecot.te
+--- refpolicy/policy/modules/contrib/dovecot.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/dovecot.te	2012-09-08 18:58:12.915558740 +0200
+@@ -1,4 +1,4 @@
+-policy_module(dovecot, 1.14.0)
++policy_module(dovecot, 1.14.2)
+ 
+ ########################################
+ #
+@@ -58,6 +58,7 @@
+ 
+ allow dovecot_t self:capability { dac_override dac_read_search chown kill net_bind_service setgid setuid sys_chroot };
+ dontaudit dovecot_t self:capability sys_tty_config;
++allow dovecot_t self:capability2 block_suspend;
+ allow dovecot_t self:process { setrlimit signal_perms getcap setcap };
+ allow dovecot_t self:fifo_file rw_fifo_file_perms;
+ allow dovecot_t self:tcp_socket create_stream_socket_perms;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/plymouthd.te refpolicy/policy/modules/contrib/plymouthd.te
+--- refpolicy/policy/modules/contrib/plymouthd.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/plymouthd.te	2012-09-08 18:59:27.475558901 +0200
+@@ -1,4 +1,4 @@
+-policy_module(plymouthd, 1.1.0)
++policy_module(plymouthd, 1.1.1)
+ 
+ ########################################
+ #
+@@ -60,6 +60,10 @@
+ files_read_etc_files(plymouthd_t)
+ files_read_usr_files(plymouthd_t)
+ 
++term_getattr_pty_fs(plymouthd_t)
++term_use_all_terms(plymouthd_t)
++term_use_ptmx(plymouthd_t)
++
+ miscfiles_read_localization(plymouthd_t)
+ miscfiles_read_fonts(plymouthd_t)
+ miscfiles_manage_fonts_cache(plymouthd_t)
+@@ -69,6 +73,7 @@
+ # Plymouth private policy
+ #
+ 
++allow plymouth_t self:capability2 block_suspend;
+ allow plymouth_t self:process signal;
+ allow plymouth_t self:fifo_file rw_file_perms;
+ allow plymouth_t self:unix_stream_socket create_stream_socket_perms;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/postfix.te refpolicy/policy/modules/contrib/postfix.te
+--- refpolicy/policy/modules/contrib/postfix.te	2012-09-08 19:02:04.324559234 +0200
++++ refpolicy/policy/modules/contrib/postfix.te	2012-09-08 19:00:04.715558982 +0200
+@@ -1,4 +1,4 @@
+-policy_module(postfix, 1.14.0)
++policy_module(postfix, 1.14.2)
+ 
+ ########################################
+ #
+@@ -94,6 +94,7 @@
+ 
+ # chown is to set the correct ownership of queue dirs
+ allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config fowner };
++allow postfix_master_t self:capability2 block_suspend;
+ allow postfix_master_t self:fifo_file rw_fifo_file_perms;
+ allow postfix_master_t self:tcp_socket create_stream_socket_perms;
+ allow postfix_master_t self:udp_socket create_socket_perms;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
+--- refpolicy/policy/modules/contrib/rpc.te	2012-09-08 19:02:04.348559234 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-09-08 19:00:27.127559027 +0200
+@@ -1,4 +1,4 @@
+-policy_module(rpc, 1.14.1)
++policy_module(rpc, 1.14.2)
+ 
+ ########################################
+ #
+@@ -59,6 +59,7 @@
+ #
+ 
+ allow rpcd_t self:capability { sys_admin chown dac_override setgid setuid };
++allow rpcd_t self:capability2 block_suspend;
+ allow rpcd_t self:process { getcap setcap };
+ allow rpcd_t self:fifo_file rw_fifo_file_perms;
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sssd.te refpolicy/policy/modules/contrib/sssd.te
+--- refpolicy/policy/modules/contrib/sssd.te	2012-07-10 14:45:57.000000000 +0200
++++ refpolicy/policy/modules/contrib/sssd.te	2012-09-08 19:00:51.973559070 +0200
+@@ -29,6 +29,7 @@
+ # sssd local policy
+ #
+ allow sssd_t self:capability { dac_read_search dac_override kill sys_nice setgid setuid };
++allow sssd_t self:capability2 block_suspend;
+ allow sssd_t self:process { setfscreate setsched sigkill signal getsched };
+ allow sssd_t self:fifo_file rw_file_perms;
+ allow sssd_t self:unix_stream_socket { create_stream_socket_perms connectto };

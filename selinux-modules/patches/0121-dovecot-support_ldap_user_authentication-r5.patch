@@ -1,0 +1,11 @@
+--- refpolicy/policy/modules/contrib/dovecot.te	2012-09-08 19:04:04.024559490 +0200
++++ refpolicy/policy/modules/contrib/dovecot.te	2012-09-08 19:03:03.493559358 +0200
+@@ -225,6 +225,8 @@
+ 
+ seutil_dontaudit_search_config(dovecot_auth_t)
+ 
++sysnet_use_ldap(dovecot_auth_t)
++
+ optional_policy(`
+ 	kerberos_use(dovecot_auth_t)
+ 

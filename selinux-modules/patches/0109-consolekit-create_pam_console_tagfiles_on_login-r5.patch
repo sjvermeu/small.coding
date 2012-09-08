@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/contrib/consolekit.te	2012-08-29 20:16:21.034675149 +0200
++++ refpolicy/policy/modules/contrib/consolekit.te	2012-08-29 20:09:43.108674300 +0200
+@@ -58,7 +58,10 @@
+ 
+ term_use_all_terms(consolekit_t)
+ 
++# consolekit daemon creates /var/run/console for tagfiles
++auth_generic_run_filetrans_pam_console_data(consolekit_t, dir, "console")
+ auth_use_nsswitch(consolekit_t)
++auth_create_pam_console_data_dirs(consolekit_t)
+ auth_manage_pam_console_data(consolekit_t)
+ auth_write_login_records(consolekit_t)
+ 

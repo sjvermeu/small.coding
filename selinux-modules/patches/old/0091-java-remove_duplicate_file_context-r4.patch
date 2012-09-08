@@ -1,10 +1,10 @@
---- refpolicy/policy/modules/contrib/java.fc	2012-07-13 16:46:37.000000000 +0200
+--- refpolicy/policy/modules/contrib/java.fc	2012-08-16 15:03:18.393692424 +0200
 +++ refpolicy/policy/modules/contrib/java.fc	2012-08-16 15:02:05.662689509 +0200
-@@ -3,7 +3,6 @@
- #
+@@ -4,7 +4,6 @@
  /opt/(.*/)?bin/java[^/]*	--	gen_context(system_u:object_r:java_exec_t,s0)
  /opt/ibm/java.*/(bin|javaws)(/.*)? --	gen_context(system_u:object_r:java_exec_t,s0)
--/opt/local/matlab.*/bin.*/MATLAB.* --	gen_context(system_u:object_r:java_exec_t,s0)
  /opt/matlab.*/bin.*/MATLAB.*	--	gen_context(system_u:object_r:java_exec_t,s0)
+-/opt/matlab.*/bin.*/MATLAB.*	--	gen_context(system_u:object_r:java_exec_t,s0)
  
  #
+ # /usr

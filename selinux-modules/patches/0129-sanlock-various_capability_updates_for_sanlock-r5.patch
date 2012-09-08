@@ -1,0 +1,17 @@
+--- refpolicy/policy/modules/contrib/sanlock.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/sanlock.te	2012-09-08 19:23:26.744561966 +0200
+@@ -1,4 +1,4 @@
+-policy_module(sanlock, 1.0.0)
++policy_module(sanlock, 1.0.1)
+ 
+ ########################################
+ #
+@@ -44,7 +44,7 @@
+ #
+ # sanlock local policy
+ #
+-allow sanlock_t self:capability { sys_nice ipc_lock };
++allow sanlock_t self:capability { chown dac_override ipc_lock kill setgid setuid sys_nice sys_resource };
+ allow sanlock_t self:process { setsched signull };
+ allow sanlock_t self:fifo_file rw_fifo_file_perms;
+ allow sanlock_t self:unix_stream_socket create_stream_socket_perms;

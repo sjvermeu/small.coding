@@ -1,0 +1,16 @@
+--- refpolicy/policy/modules/contrib/sasl.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/sasl.te	2012-09-08 18:09:45.176552520 +0200
+@@ -1,4 +1,4 @@
+-policy_module(sasl, 1.14.0)
++policy_module(sasl, 1.14.1)
+ 
+ ########################################
+ #
+@@ -99,6 +99,7 @@
+ optional_policy(`
+ 	mysql_search_db(saslauthd_t)
+ 	mysql_stream_connect(saslauthd_t)
++	mysql_tcp_connect(saslauthd_t)
+ ')
+ 
+ optional_policy(`

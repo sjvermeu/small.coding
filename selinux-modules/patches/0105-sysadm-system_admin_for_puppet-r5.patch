@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-08-27 19:44:34.871302250 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-27 19:44:19.629302218 +0200
+@@ -307,6 +307,10 @@
+ ')
+ 
+ optional_policy(`
++	puppet_admin_puppetmaster(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	pyzor_role(sysadm_r, sysadm_t)
+ ')
+ 

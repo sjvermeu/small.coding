@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/dbus.if	2012-08-29 20:30:54.159677013 +0200
++++ refpolicy/policy/modules/contrib/dbus.if	2012-08-29 20:27:24.427676567 +0200
+@@ -282,6 +282,7 @@
+ 
+ 	files_search_var_lib($1)
+ 	read_files_pattern($1, system_dbusd_var_lib_t, system_dbusd_var_lib_t)
++	read_lnk_files_pattern($1, system_dbusd_var_lib_t, system_dbusd_var_lib_t)
+ ')
+ 
+ ########################################

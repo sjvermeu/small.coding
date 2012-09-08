@@ -1,0 +1,16 @@
+--- refpolicy/policy/modules/contrib/gpg.te	2012-09-08 19:08:26.117560050 +0200
++++ refpolicy/policy/modules/contrib/gpg.te	2012-09-08 19:07:29.072559932 +0200
+@@ -1,4 +1,4 @@
+-policy_module(gpg, 2.6.0)
++policy_module(gpg, 2.6.1)
+ 
+ ########################################
+ #
+@@ -223,6 +223,7 @@
+ corecmd_search_bin(gpg_agent_t)
+ corecmd_exec_shell(gpg_agent_t)
+ 
++dev_read_rand(gpg_agent_t)
+ dev_read_urand(gpg_agent_t)
+ 
+ domain_use_interactive_fds(gpg_agent_t)

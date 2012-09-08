@@ -1,0 +1,16 @@
+--- refpolicy/policy/modules/contrib/quota.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/quota.te	2012-09-08 18:12:05.332552821 +0200
+@@ -1,4 +1,4 @@
+-policy_module(quota, 1.5.0)
++policy_module(quota, 1.5.1)
+ 
+ ########################################
+ #
+@@ -35,6 +35,7 @@
+ files_var_filetrans(quota_t, quota_db_t, file)
+ files_spool_filetrans(quota_t, quota_db_t, file)
+ 
++kernel_request_load_module(quota_t)
+ kernel_list_proc(quota_t)
+ kernel_read_proc_symlinks(quota_t)
+ kernel_read_kernel_sysctls(quota_t)

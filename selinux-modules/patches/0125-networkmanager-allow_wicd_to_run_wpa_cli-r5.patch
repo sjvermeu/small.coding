@@ -1,0 +1,17 @@
+--- refpolicy/policy/modules/contrib/networkmanager.te	2012-09-08 19:18:21.519561320 +0200
++++ refpolicy/policy/modules/contrib/networkmanager.te	2012-09-08 19:15:13.275560905 +0200
+@@ -1,4 +1,4 @@
+-policy_module(networkmanager, 1.14.0)
++policy_module(networkmanager, 1.14.1)
+ 
+ ########################################
+ #
+@@ -53,7 +53,7 @@
+ 
+ allow NetworkManager_t wpa_cli_t:unix_dgram_socket sendto;
+ 
+-can_exec(NetworkManager_t, NetworkManager_exec_t)
++can_exec(NetworkManager_t, { NetworkManager_exec_t wpa_cli_exec_t })
+ 
+ manage_files_pattern(NetworkManager_t, NetworkManager_log_t, NetworkManager_log_t)
+ logging_log_filetrans(NetworkManager_t, NetworkManager_log_t, file)

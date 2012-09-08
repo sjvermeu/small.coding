@@ -1,0 +1,58 @@
+--- refpolicy/policy/modules/contrib/milter.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/milter.te	2012-09-08 19:13:42.697560727 +0200
+@@ -1,4 +1,4 @@
+-policy_module(milter, 1.4.0)
++policy_module(milter, 1.4.2)
+ 
+ ########################################
+ #
+@@ -38,6 +38,10 @@
+ 
+ kernel_read_kernel_sysctls(greylist_milter_t)
+ 
++dev_read_rand(greylist_milter_t)
++dev_read_urand(greylist_milter_t)
++
++files_read_etc_files(greylist_milter_t)
+ # Allow the milter to read a GeoIP database in /usr/share
+ files_read_usr_files(greylist_milter_t)
+ # The milter runs from /var/lib/milter-greylist and maintains files there
+@@ -46,9 +50,17 @@
+ # Look up username for dropping privs
+ auth_use_nsswitch(greylist_milter_t)
+ 
++miscfiles_read_localization(greylist_milter_t)
++
++sysnet_read_config(greylist_milter_t)
++
+ # Config is in /etc/mail/greylist.conf
+ mta_read_config(greylist_milter_t)
+ 
++optional_policy(`
++	mysql_stream_connect(greylist_milter_t)
++')
++
+ ########################################
+ #
+ # milter-regex local policy
+--- refpolicy/policy/modules/contrib/milter.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/milter.fc	2012-09-08 19:12:02.186560511 +0200
+@@ -1,15 +1,18 @@
+ /usr/sbin/milter-greylist	--	gen_context(system_u:object_r:greylist_milter_exec_t,s0)
+ /usr/sbin/milter-regex		--	gen_context(system_u:object_r:regex_milter_exec_t,s0)
+ /usr/sbin/spamass-milter	--	gen_context(system_u:object_r:spamass_milter_exec_t,s0)
++/usr/sbin/sqlgrey		--	gen_context(system_u:object_r:greylist_milter_exec_t,s0)
+ 
+ /var/lib/milter-greylist(/.*)?		gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/lib/spamass-milter(/.*)?		gen_context(system_u:object_r:spamass_milter_state_t,s0)
++/var/lib/sqlgrey(/.*)?			gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ 
+ /var/run/milter-greylist(/.*)?		gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/run/milter-greylist\.pid	--	gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/run/spamass(/.*)?			gen_context(system_u:object_r:spamass_milter_data_t,s0)
+ /var/run/spamass-milter(/.*)?		gen_context(system_u:object_r:spamass_milter_data_t,s0)
+ /var/run/spamass-milter\.pid	--	gen_context(system_u:object_r:spamass_milter_data_t,s0)
++/var/run/sqlgrey\.pid		--	gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ 
+ /var/spool/milter-regex(/.*)?		gen_context(system_u:object_r:regex_milter_data_t,s0)
+ /var/spool/postfix/spamass(/.*)?	gen_context(system_u:object_r:spamass_milter_data_t,s0)

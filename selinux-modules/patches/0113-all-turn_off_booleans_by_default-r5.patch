@@ -1,0 +1,207 @@
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mcelog.te refpolicy/policy/modules/contrib/mcelog.te
+--- refpolicy/policy/modules/contrib/mcelog.te	2012-09-08 18:05:59.374552052 +0200
++++ refpolicy/policy/modules/contrib/mcelog.te	2012-09-08 18:01:25.298551468 +0200
+@@ -21,7 +21,7 @@
+ ## and/or local scripts.
+ ## </p>
+ ## </desc>
+-gen_tunable(mcelog_exec_scripts, true)
++gen_tunable(mcelog_exec_scripts, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -30,7 +30,7 @@
+ ## print out usage and version information.
+ ## </p>
+ ## </desc>
+-gen_tunable(mcelog_foreground, true)
++gen_tunable(mcelog_foreground, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -48,7 +48,7 @@
+ ## syslog option.
+ ## </p>
+ ## </desc>
+-gen_tunable(mcelog_syslog, true)
++gen_tunable(mcelog_syslog, false)
+ 
+ type mcelog_t;
+ type mcelog_exec_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/qemu.te refpolicy/policy/modules/contrib/qemu.te
+--- refpolicy/policy/modules/contrib/qemu.te	2012-09-08 18:05:59.208552052 +0200
++++ refpolicy/policy/modules/contrib/qemu.te	2012-09-08 18:02:15.972551573 +0200
+@@ -1,4 +1,4 @@
+-policy_module(qemu, 1.7.0)
++policy_module(qemu, 1.7.1)
+ 
+ ########################################
+ #
+@@ -17,7 +17,7 @@
+ ## Allow qemu to use cifs/Samba file systems
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_cifs, true)
++gen_tunable(qemu_use_cifs, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -31,14 +31,14 @@
+ ## Allow qemu to use nfs file systems
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_nfs, true)
++gen_tunable(qemu_use_nfs, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow qemu to use usb devices
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_usb, true)
++gen_tunable(qemu_use_usb, false)
+ 
+ type qemu_exec_t;
+ virt_domain_template(qemu)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
+--- refpolicy/policy/modules/contrib/rpc.te	2012-09-08 18:05:59.229552052 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-09-08 18:02:10.653551544 +0200
+@@ -1,4 +1,4 @@
+-policy_module(rpc, 1.14.0)
++policy_module(rpc, 1.14.1)
+ 
+ ########################################
+ #
+@@ -10,7 +10,7 @@
+ ## Allow gssd to read temp directory.  For access to kerberos tgt.
+ ## </p>
+ ## </desc>
+-gen_tunable(allow_gssd_read_tmp, true)
++gen_tunable(allow_gssd_read_tmp, false)
+ 
+ ## <desc>
+ ## <p>
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/spamassassin.te refpolicy/policy/modules/contrib/spamassassin.te
+--- refpolicy/policy/modules/contrib/spamassassin.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/spamassassin.te	2012-09-08 18:02:32.519551601 +0200
+@@ -1,4 +1,4 @@
+-policy_module(spamassassin, 2.5.0)
++policy_module(spamassassin, 2.5.1)
+ 
+ ########################################
+ #
+@@ -17,7 +17,7 @@
+ ## Allow spamd to read/write user home directories.
+ ## </p>
+ ## </desc>
+-gen_tunable(spamd_enable_home_dirs, true)
++gen_tunable(spamd_enable_home_dirs, false)
+ 
+ type spamassassin_t;
+ type spamassassin_exec_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/virt.te refpolicy/policy/modules/contrib/virt.te
+--- refpolicy/policy/modules/contrib/virt.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/virt.te	2012-09-08 18:02:44.581551640 +0200
+@@ -1,4 +1,4 @@
+-policy_module(virt, 1.5.0)
++policy_module(virt, 1.5.1)
+ 
+ ########################################
+ #
+@@ -45,7 +45,7 @@
+ ## Allow virt to use usb devices
+ ## </p>
+ ## </desc>
+-gen_tunable(virt_use_usb, true)
++gen_tunable(virt_use_usb, false)
+ 
+ virt_domain_template(svirt)
+ role system_r types svirt_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/xen.te refpolicy/policy/modules/contrib/xen.te
+--- refpolicy/policy/modules/contrib/xen.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/xen.te	2012-09-08 18:03:03.462551675 +0200
+@@ -1,4 +1,4 @@
+-policy_module(xen, 1.12.0)
++policy_module(xen, 1.12.1)
+ 
+ ########################################
+ #
+@@ -11,7 +11,7 @@
+ ## Not required if using dedicated logical volumes for disk images.
+ ## </p>
+ ## </desc>
+-gen_tunable(xend_run_blktap, true)
++gen_tunable(xend_run_blktap, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -19,7 +19,7 @@
+ ## Not required if using paravirt and no vfb.
+ ## </p>
+ ## </desc>
+-gen_tunable(xend_run_qemu, true)
++gen_tunable(xend_run_qemu, false)
+ 
+ ## <desc>
+ ## <p>
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/xguest.te refpolicy/policy/modules/contrib/xguest.te
+--- refpolicy/policy/modules/contrib/xguest.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/xguest.te	2012-09-08 18:03:21.058551703 +0200
+@@ -1,4 +1,4 @@
+-policy_module(xguest, 1.1.0)
++policy_module(xguest, 1.1.1)
+ 
+ ########################################
+ #
+@@ -10,21 +10,21 @@
+ ## Allow xguest users to mount removable media
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_mount_media, true)
++gen_tunable(xguest_mount_media, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow xguest to configure Network Manager
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_connect_network, true)
++gen_tunable(xguest_connect_network, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow xguest to use blue tooth devices
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_use_bluetooth, true)
++gen_tunable(xguest_use_bluetooth, false)
+ 
+ role xguest_r;
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.te refpolicy/policy/modules/services/postgresql.te
+--- refpolicy/policy/modules/services/postgresql.te	2012-09-08 18:05:59.359552052 +0200
++++ refpolicy/policy/modules/services/postgresql.te	2012-09-08 18:00:46.973551386 +0200
+@@ -1,4 +1,4 @@
+-policy_module(postgresql, 1.15.0)
++policy_module(postgresql, 1.15.2)
+ 
+ gen_require(`
+ 	class db_database all_db_database_perms;
+@@ -23,7 +23,7 @@
+ ## Allow unprived users to execute DDL statement
+ ## </p>
+ ## </desc>
+-gen_tunable(sepgsql_enable_users_ddl, true)
++gen_tunable(sepgsql_enable_users_ddl, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -37,7 +37,7 @@
+ ## Allow database admins to execute DML statement
+ ## </p>
+ ## </desc>
+-gen_tunable(sepgsql_unconfined_dbadm, true)
++gen_tunable(sepgsql_unconfined_dbadm, false)
+ 
+ type postgresql_t;
+ type postgresql_exec_t;

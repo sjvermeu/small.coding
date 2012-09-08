@@ -1,3 +1,27 @@
+<no bug>	Various capability updates for sanlock (backport)
+<no bug>	Tor reads network sysctls (backport)
+<no bug>	Support minimal polkit (backport)
+<no bug>	Allow CUPS to read crypto sysctls (backport)
+<no bug>	Allow wicd to execute wpa_cli within its own domain (networkmanager_t) (backport)
+<no bug>	Add in milter greylist enhancements (backport)
+<no bug>	GPG agent reads /dev/random (backport)
+<no bug>	Support gitolite3 (backport)
+<no bug>	Support LDAP-based user authentication for dovecot (backport)
+<no bug>	Various block_suspend fixes (backport)
+<no bug>	Freshclam reads system/network state (backport)
+<no bug>	Introduce systemtap policy (backport)
+<no bug>	Fix ports usage for djbdns (backport)
+<no bug>	Allow quota to request loading kernel modules (backport)
+<no bug>	Allow sasl to talk with mysql over tcp (backport)
+<no bug>	Introduce sensord policy (backport)
+<no bug>	Turn all booleans off by default (backport)
+<no bug>	Support loop device file context (backport)
+<no bug>	Mark the syslog-ng.persist file as syslogd_var_lib_t so it survives relabeling
+<no bug>	ConsoleKit creates /var/run/console and tagfiles
+<no bug>	Backport lost+found changes from refpolicy
+<no bug>	Set resource limits for dbus system daemon
+<no bug>	Allow lvm_t (cryptsetup) to request loading a crypto-related kernel module
+#432990		Introduce puppet_admin and puppet_admin_puppetmaster interfaces
 #431654		Allow initrc_t to create /run/nscd
 #431654		Allow initrc_t to create /run/ConsoleKit
 #431654		Allow sysadmin to manage ntp

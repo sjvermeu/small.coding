@@ -1,0 +1,23 @@
+--- refpolicy/policy/modules/kernel/files.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/kernel/files.te	2012-08-29 20:02:26.448673369 +0200
+@@ -1,4 +1,4 @@
+-policy_module(files, 1.17.0)
++policy_module(files, 1.17.2)
+ 
+ ########################################
+ #
+--- refpolicy/policy/modules/kernel/files.fc	2012-08-29 20:03:38.026673521 +0200
++++ refpolicy/policy/modules/kernel/files.fc	2012-08-29 20:02:12.313673338 +0200
+@@ -243,6 +243,12 @@
+ 
+ /var/lock(/.*)?			gen_context(system_u:object_r:var_lock_t,s0)
+ 
++/var/log/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
++/var/log/lost\+found/.*		<<none>>
++
++/var/log/audit/lost\+found -d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
++/var/log/audit/lost\+found/.*	<<none>>
++
+ /var/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
+ /var/lost\+found/.*		<<none>>
+ 

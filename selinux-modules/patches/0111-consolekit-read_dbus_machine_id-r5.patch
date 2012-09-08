@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/contrib/consolekit.te	2012-08-29 20:31:06.593677040 +0200
++++ refpolicy/policy/modules/contrib/consolekit.te	2012-08-29 20:26:55.988676505 +0200
+@@ -86,6 +86,7 @@
+ 
+ optional_policy(`
+ 	dbus_system_domain(consolekit_t, consolekit_exec_t)
++	dbus_read_lib_files(consolekit_t)
+ 
+ 	optional_policy(`
+ 		hal_dbus_chat(consolekit_t)

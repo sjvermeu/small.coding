@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/system/lvm.te	2012-08-29 18:49:13.445663992 +0200
++++ refpolicy/policy/modules/system/lvm.te	2012-08-29 18:27:02.703661152 +0200
+@@ -216,6 +216,7 @@
+ kernel_read_system_state(lvm_t)
+ # Read system variables in /proc/sys
+ kernel_read_kernel_sysctls(lvm_t)
++kernel_request_load_module(lvm_t)
+ # it has no reason to need this
+ kernel_dontaudit_getattr_core_if(lvm_t)
+ kernel_use_fds(lvm_t)

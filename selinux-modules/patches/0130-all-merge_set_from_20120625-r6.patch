@@ -1,0 +1,2889 @@
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/config/file_contexts.subs_dist refpolicy/config/file_contexts.subs_dist
+--- refpolicy/config/file_contexts.subs_dist	2012-03-30 14:48:20.000000000 +0200
++++ refpolicy/config/file_contexts.subs_dist	2012-08-15 10:07:50.028520056 +0200
+@@ -1,7 +1,11 @@
++/etc/init.d /etc/rc.d/init.d
+ /lib32 /lib
+ /lib64 /lib
+ /run /var/run
+ /run/lock /var/lock
+ /usr/lib32 /usr/lib
+ /usr/lib64 /usr/lib
++/usr/local/lib64 /usr/lib
++/usr/local/lib32 /usr/lib
++/usr/local/lib/ /usr/lib/
+ /var/run/lock /var/lock
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/asterisk.te refpolicy/policy/modules/contrib/asterisk.te
+--- refpolicy/policy/modules/contrib/asterisk.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/asterisk.te	2012-08-25 19:30:36.586931629 +0200
+@@ -33,6 +33,7 @@
+ 
+ type asterisk_var_run_t;
+ files_pid_file(asterisk_var_run_t)
++init_daemon_run_dir(asterisk_var_run_t, "asterisk")
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/bird.fc refpolicy/policy/modules/contrib/bird.fc
+--- refpolicy/policy/modules/contrib/bird.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.fc	2012-08-08 20:44:02.974852881 +0200
+@@ -0,0 +1,11 @@
++/etc/bird\.conf	--	gen_context(system_u:object_r:bird_etc_t,s0)
++
++/etc/default/bird	--	gen_context(system_u:object_r:bird_etc_t,s0)
++
++/etc/rc\.d/init\.d/bird	--	gen_context(system_u:object_r:bird_initrc_exec_t,s0)
++
++/usr/sbin/bird	--	gen_context(system_u:object_r:bird_exec_t,s0)
++
++/var/log/bird\.log.*	--	gen_context(system_u:object_r:bird_log_t,s0)
++
++/var/run/bird\.ctl	-s	gen_context(system_u:object_r:bird_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/bird.if refpolicy/policy/modules/contrib/bird.if
+--- refpolicy/policy/modules/contrib/bird.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.if	2012-08-08 20:44:02.985852882 +0200
+@@ -0,0 +1,42 @@
++## <summary>BIRD Internet Routing Daemon.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to administrate
++##	an bird environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access..
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`bird_admin',`
++	gen_require(`
++		type bird_t, bird_etc_t, bird_log_t;
++		type bird_var_run_t, bird_initrc_exec_t;
++	')
++
++	allow $1 bird_t:process { ptrace signal_perms };
++	ps_process_pattern($1, bird_t)
++
++	init_labeled_script_domtrans($1, bird_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 bird_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_list_etc($1)
++	admin_pattern($1, bird_etc_t)
++
++	logging_list_logs($1)
++	admin_pattern($1, bird_log_t)
++
++	files_list_pids($1)
++	admin_pattern($1, bird_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/bird.te refpolicy/policy/modules/contrib/bird.te
+--- refpolicy/policy/modules/contrib/bird.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/bird.te	2012-08-08 20:44:02.986852882 +0200
+@@ -0,0 +1,57 @@
++policy_module(bird, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type bird_t;
++type bird_exec_t;
++init_daemon_domain(bird_t, bird_exec_t)
++
++type bird_initrc_exec_t;
++init_script_file(bird_initrc_exec_t)
++
++type bird_etc_t;
++files_config_file(bird_etc_t)
++
++type bird_log_t;
++logging_log_file(bird_log_t)
++
++type bird_var_run_t;
++files_pid_file(bird_var_run_t)
++
++########################################
++#
++# Local policy
++#
++
++allow bird_t self:capability { net_admin net_bind_service };
++allow bird_t self:netlink_route_socket create_netlink_socket_perms;
++allow bird_t self:tcp_socket create_stream_socket_perms;
++
++allow bird_t bird_etc_t:file read_file_perms;
++
++allow bird_t bird_log_t:file { create_file_perms append_file_perms setattr_file_perms };
++logging_log_filetrans(bird_t, bird_log_t, file)
++
++allow bird_t bird_var_run_t:sock_file manage_sock_file_perms;
++files_pid_filetrans(bird_t, bird_var_run_t, sock_file)
++
++corenet_all_recvfrom_unlabeled(bird_t)
++corenet_all_recvfrom_netlabel(bird_t)
++corenet_tcp_sendrecv_generic_if(bird_t)
++corenet_tcp_bind_generic_node(bird_t)
++corenet_tcp_sendrecv_generic_node(bird_t)
++corenet_tcp_sendrecv_bgp_port(bird_t)
++corenet_sendrecv_bgp_client_packets(bird_t)
++corenet_tcp_connect_bgp_port(bird_t)
++corenet_sendrecv_bgp_server_packets(bird_t)
++corenet_tcp_bind_bgp_port(bird_t)
++
++# /etc/iproute2/rt_realms
++files_read_etc_files(bird_t)
++
++logging_send_syslog_msg(bird_t)
++
++miscfiles_read_localization(bird_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/clamav.te refpolicy/policy/modules/contrib/clamav.te
+--- refpolicy/policy/modules/contrib/clamav.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/clamav.te	2012-09-08 18:54:38.035558282 +0200
+@@ -1,4 +1,4 @@
+-policy_module(clamav, 1.10.0)
++policy_module(clamav, 1.10.1)
+ 
+ ## <desc>
+ ## <p>
+@@ -182,6 +182,9 @@
+ allow freshclam_t clamd_var_log_t:dir search_dir_perms;
+ logging_log_filetrans(freshclam_t, freshclam_var_log_t, file)
+ 
++kernel_read_network_state(freshclam_t)
++kernel_read_system_state(freshclam_t)
++
+ corenet_all_recvfrom_unlabeled(freshclam_t)
+ corenet_all_recvfrom_netlabel(freshclam_t)
+ corenet_tcp_sendrecv_generic_if(freshclam_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/consolekit.te refpolicy/policy/modules/contrib/consolekit.te
+--- refpolicy/policy/modules/contrib/consolekit.te	2012-09-08 20:48:28.104572860 +0200
++++ refpolicy/policy/modules/contrib/consolekit.te	2012-08-29 20:26:55.988676505 +0200
+@@ -14,6 +14,7 @@
+ 
+ type consolekit_var_run_t;
+ files_pid_file(consolekit_var_run_t)
++init_daemon_run_dir(consolekit_var_run_t, "ConsoleKit")
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/cups.te refpolicy/policy/modules/contrib/cups.te
+--- refpolicy/policy/modules/contrib/cups.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/contrib/cups.te	2012-09-08 18:57:47.783558684 +0200
+@@ -1,4 +1,4 @@
+-policy_module(cups, 1.15.0)
++policy_module(cups, 1.15.1)
+ 
+ ########################################
+ #
+@@ -104,6 +104,7 @@
+ # /usr/lib/cups/backend/serial needs sys_admin(?!)
+ allow cupsd_t self:capability { ipc_lock sys_admin dac_override dac_read_search kill setgid setuid fsetid net_bind_service fowner chown dac_override sys_rawio sys_resource sys_tty_config };
+ dontaudit cupsd_t self:capability { sys_tty_config net_admin };
++allow cupsd_t self:capability2 block_suspend;
+ allow cupsd_t self:process { getpgid setpgid setsched signal_perms };
+ allow cupsd_t self:fifo_file rw_fifo_file_perms;
+ allow cupsd_t self:unix_stream_socket { create_stream_socket_perms connectto };
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/dbus.if refpolicy/policy/modules/contrib/dbus.if
+--- refpolicy/policy/modules/contrib/dbus.if	2012-09-08 20:48:28.105572860 +0200
++++ refpolicy/policy/modules/contrib/dbus.if	2012-08-29 20:27:24.427676567 +0200
+@@ -394,6 +394,50 @@
+ 
+ ########################################
+ ## <summary>
++##	Create resources in /run or /var/run with the system_dbusd_var_run_t
++##	label. This method is deprecated in favor of the init_daemon_run_dir
++##	call.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++##	<summary>
++##	Classes supported for the created resources
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++##	<summary>
++##	Optional file name used for the resource
++##	</summary>
++## </param>
++#
++interface(`dbus_generic_pid_filetrans_system_dbusd_var_run',`
++	refpolicywarn(`$0($*) has been deprecated.')
++')
++
++########################################
++## <summary>
++##	Create directories with the system_dbusd_var_run_t label
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`dbus_create_system_dbusd_var_run_dirs',`
++	gen_require(`
++		type system_dbusd_var_run_t;
++	')
++
++	create_dirs_pattern($1, system_dbusd_var_run_t, system_dbusd_var_run_t)
++')
++
++########################################
++## <summary>
+ ##	Allow unconfined access to the system DBUS.
+ ## </summary>
+ ## <param name="domain">
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/dbus.te refpolicy/policy/modules/contrib/dbus.te
+--- refpolicy/policy/modules/contrib/dbus.te	2012-09-08 20:48:28.098572860 +0200
++++ refpolicy/policy/modules/contrib/dbus.te	2012-08-29 18:57:10.708665012 +0200
+@@ -35,6 +35,7 @@
+ 
+ type system_dbusd_var_run_t;
+ files_pid_file(system_dbusd_var_run_t)
++init_daemon_run_dir(system_dbusd_var_run_t, "dbus")
+ 
+ ifdef(`enable_mcs',`
+ 	init_ranged_system_domain(system_dbusd_t, dbusd_exec_t, s0 - mcs_systemhigh)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/djbdns.if refpolicy/policy/modules/contrib/djbdns.if
+--- refpolicy/policy/modules/contrib/djbdns.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/djbdns.if	2012-09-08 18:48:38.780557513 +0200
+@@ -45,7 +45,9 @@
+ 	corenet_tcp_bind_generic_node(djbdns_$1_t)
+ 	corenet_udp_bind_generic_node(djbdns_$1_t)
+ 	corenet_tcp_bind_dns_port(djbdns_$1_t)
++	corenet_tcp_connect_dns_port(djbdns_$1_t)
+ 	corenet_udp_bind_dns_port(djbdns_$1_t)
++	corenet_tcp_bind_generic_port(djbdns_$1_t)
+ 	corenet_udp_bind_generic_port(djbdns_$1_t)
+ 	corenet_sendrecv_dns_server_packets(djbdns_$1_t)
+ 	corenet_sendrecv_generic_server_packets(djbdns_$1_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/djbdns.te refpolicy/policy/modules/contrib/djbdns.te
+--- refpolicy/policy/modules/contrib/djbdns.te	2012-09-08 20:48:28.026572860 +0200
++++ refpolicy/policy/modules/contrib/djbdns.te	2012-09-08 18:48:45.382557526 +0200
+@@ -1,4 +1,4 @@
+-policy_module(djbdns, 1.5.0)
++policy_module(djbdns, 1.5.1)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/dovecot.te refpolicy/policy/modules/contrib/dovecot.te
+--- refpolicy/policy/modules/contrib/dovecot.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/dovecot.te	2012-09-08 19:03:03.493559358 +0200
+@@ -1,4 +1,4 @@
+-policy_module(dovecot, 1.14.0)
++policy_module(dovecot, 1.14.2)
+ 
+ ########################################
+ #
+@@ -58,6 +58,7 @@
+ 
+ allow dovecot_t self:capability { dac_override dac_read_search chown kill net_bind_service setgid setuid sys_chroot };
+ dontaudit dovecot_t self:capability sys_tty_config;
++allow dovecot_t self:capability2 block_suspend;
+ allow dovecot_t self:process { setrlimit signal_perms getcap setcap };
+ allow dovecot_t self:fifo_file rw_fifo_file_perms;
+ allow dovecot_t self:tcp_socket create_stream_socket_perms;
+@@ -224,6 +225,8 @@
+ 
+ seutil_dontaudit_search_config(dovecot_auth_t)
+ 
++sysnet_use_ldap(dovecot_auth_t)
++
+ optional_policy(`
+ 	kerberos_use(dovecot_auth_t)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/gitosis.fc refpolicy/policy/modules/contrib/gitosis.fc
+--- refpolicy/policy/modules/contrib/gitosis.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/gitosis.fc	2012-09-08 19:05:36.701559689 +0200
+@@ -6,4 +6,4 @@
+ /usr/bin/gl-auth-command		--	gen_context(system_u:object_r:gitosis_exec_t,s0)
+ 
+ /var/lib/gitosis(/.*)?				gen_context(system_u:object_r:gitosis_var_lib_t,s0)
+-/var/lib/gitolite(/.*)?				gen_context(system_u:object_r:gitosis_var_lib_t,s0)
++/var/lib/gitolite(3)?(/.*)?			gen_context(system_u:object_r:gitosis_var_lib_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/gitosis.te refpolicy/policy/modules/contrib/gitosis.te
+--- refpolicy/policy/modules/contrib/gitosis.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/gitosis.te	2012-09-08 19:05:42.839559699 +0200
+@@ -1,4 +1,4 @@
+-policy_module(gitosis, 1.3.0)
++policy_module(gitosis, 1.3.1)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/gpg.te refpolicy/policy/modules/contrib/gpg.te
+--- refpolicy/policy/modules/contrib/gpg.te	2012-09-08 20:48:27.901572860 +0200
++++ refpolicy/policy/modules/contrib/gpg.te	2012-09-08 19:07:29.072559932 +0200
+@@ -1,4 +1,4 @@
+-policy_module(gpg, 2.6.0)
++policy_module(gpg, 2.6.1)
+ 
+ ########################################
+ #
+@@ -223,6 +223,7 @@
+ corecmd_search_bin(gpg_agent_t)
+ corecmd_exec_shell(gpg_agent_t)
+ 
++dev_read_rand(gpg_agent_t)
+ dev_read_urand(gpg_agent_t)
+ 
+ domain_use_interactive_fds(gpg_agent_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/hadoop.fc refpolicy/policy/modules/contrib/hadoop.fc
+--- refpolicy/policy/modules/contrib/hadoop.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/hadoop.fc	2012-08-09 17:44:03.801882165 +0200
+@@ -1,12 +1,5 @@
+ /etc/hadoop.*							gen_context(system_u:object_r:hadoop_etc_t,s0)
+ 
+-/etc/init\.d/hadoop-(.*-)?datanode			--	gen_context(system_u:object_r:hadoop_datanode_initrc_exec_t,s0)
+-/etc/init\.d/hadoop-(.*-)?jobtracker			--	gen_context(system_u:object_r:hadoop_jobtracker_initrc_exec_t,s0)
+-/etc/init\.d/hadoop-(.*-)?namenode			--	gen_context(system_u:object_r:hadoop_namenode_initrc_exec_t,s0)
+-/etc/init\.d/hadoop-(.*-)?secondarynamenode		--	gen_context(system_u:object_r:hadoop_secondarynamenode_initrc_exec_t,s0)
+-/etc/init\.d/hadoop-(.*-)?tasktracker			--	gen_context(system_u:object_r:hadoop_tasktracker_initrc_exec_t,s0)
+-/etc/init\.d/zookeeper					--	gen_context(system_u:object_r:zookeeper_server_initrc_exec_t,s0)
+-
+ /etc/rc\.d/init\.d/hadoop-(.*-)?datanode		--	gen_context(system_u:object_r:hadoop_datanode_initrc_exec_t,s0)
+ /etc/rc\.d/init\.d/hadoop-(.*-)?jobtracker		--	gen_context(system_u:object_r:hadoop_jobtracker_initrc_exec_t,s0)
+ /etc/rc\.d/init\.d/hadoop-(.*-)?namenode		--	gen_context(system_u:object_r:hadoop_namenode_initrc_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/inetd.fc refpolicy/policy/modules/contrib/inetd.fc
+--- refpolicy/policy/modules/contrib/inetd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/inetd.fc	2012-07-28 18:51:36.802314860 +0200
+@@ -1,7 +1,7 @@
++/usr/lib/pysieved/pysieved.*\.py -- gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ 
+ /usr/sbin/identd	--	gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ /usr/sbin/in\..*d	--	gen_context(system_u:object_r:inetd_child_exec_t,s0)
+-/usr/local/lib/pysieved/pysieved.*\.py -- gen_context(system_u:object_r:inetd_child_exec_t,s0)
+ 
+ /usr/sbin/inetd		--	gen_context(system_u:object_r:inetd_exec_t,s0)
+ /usr/sbin/rlinetd	--	gen_context(system_u:object_r:inetd_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/lpd.fc refpolicy/policy/modules/contrib/lpd.fc
+--- refpolicy/policy/modules/contrib/lpd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/lpd.fc	2012-08-09 17:23:42.237833218 +0200
+@@ -16,6 +16,8 @@
+ /usr/bin/lprm(\.cups)?	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/bin/lpstat(\.cups)? --	gen_context(system_u:object_r:lpr_exec_t,s0)
+ 
++/usr/local/linuxprinter/bin/l?lpr -- gen_context(system_u:object_r:lpr_exec_t,s0)
++
+ /usr/sbin/accept	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/sbin/checkpc	--	gen_context(system_u:object_r:checkpc_exec_t,s0)
+ /usr/sbin/lpd		--	gen_context(system_u:object_r:lpd_exec_t,s0)
+@@ -24,8 +26,6 @@
+ /usr/sbin/lpinfo	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ /usr/sbin/lpmove	--	gen_context(system_u:object_r:lpr_exec_t,s0)
+ 
+-/usr/local/linuxprinter/bin/l?lpr -- gen_context(system_u:object_r:lpr_exec_t,s0)
+-
+ /usr/share/printconf/.* --	gen_context(system_u:object_r:printconf_t,s0)
+ 
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/lpd.te refpolicy/policy/modules/contrib/lpd.te
+--- refpolicy/policy/modules/contrib/lpd.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/lpd.te	2012-09-08 19:09:41.995560209 +0200
+@@ -1,4 +1,4 @@
+-policy_module(lpd, 1.13.0)
++policy_module(lpd, 1.13.1)
+ 
+ ########################################
+ #
+@@ -236,6 +236,7 @@
+ # Allow lpd to read, rename, and unlink spool files.
+ allow lpd_t print_spool_t:file { read_file_perms rename_file_perms delete_file_perms };
+ 
++kernel_read_crypto_sysctls(lpr_t)
+ kernel_read_kernel_sysctls(lpr_t)
+ 
+ corenet_all_recvfrom_unlabeled(lpr_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mcelog.fc refpolicy/policy/modules/contrib/mcelog.fc
+--- refpolicy/policy/modules/contrib/mcelog.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/mcelog.fc	2012-08-08 20:50:37.535868689 +0200
+@@ -1 +1,13 @@
++/etc/mcelog(/.*)?		gen_context(system_u:object_r:mcelog_etc_t,s0)
++
++ifdef(`distro_redhat',`
++/etc/mcelog/triggers	-d	gen_context(system_u:object_r:mcelog_etc_t,s0)
++')
++
++/etc/rc\.d/init\.d/mcelog --	gen_context(system_u:object_r:mcelog_initrc_exec_t,s0)
++
+ /usr/sbin/mcelog	--	gen_context(system_u:object_r:mcelog_exec_t,s0)
++
++/var/log/mcelog.*	--	gen_context(system_u:object_r:mcelog_log_t,s0)
++/var/run/mcelog\.pid	--	gen_context(system_u:object_r:mcelog_var_run_t,s0)
++/var/run/mcelog-client	-s	gen_context(system_u:object_r:mcelog_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mcelog.te refpolicy/policy/modules/contrib/mcelog.te
+--- refpolicy/policy/modules/contrib/mcelog.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/mcelog.te	2012-09-08 18:01:25.298551468 +0200
+@@ -1,14 +1,70 @@
+-policy_module(mcelog, 1.1.0)
++policy_module(mcelog, 1.1.1)
+ 
+ ########################################
+ #
+ # Declarations
+ #
+ 
++## <desc>
++## <p>
++## Allow mcelog to run in client mode.
++## Required to run mcelog in client
++## mode.
++## </p>
++## </desc>
++gen_tunable(mcelog_client, false)
++
++## <desc>
++## <p>
++## Allow mcelog to execute scripts.
++## Required to execute optional triggers
++## and/or local scripts.
++## </p>
++## </desc>
++gen_tunable(mcelog_exec_scripts, false)
++
++## <desc>
++## <p>
++## Allow mcelog to use all the user ttys.
++## Required in foreground mode and to
++## print out usage and version information.
++## </p>
++## </desc>
++gen_tunable(mcelog_foreground, false)
++
++## <desc>
++## <p>
++## Allow mcelog to run a server.
++## Required to enable the optional configurable
++## Unix stream socket server functionality.
++## </p>
++## </desc>
++gen_tunable(mcelog_server, false)
++
++## <desc>
++## <p>
++## Allow mcelog to use syslog.
++## Required to use the configurable
++## syslog option.
++## </p>
++## </desc>
++gen_tunable(mcelog_syslog, false)
++
+ type mcelog_t;
+ type mcelog_exec_t;
+-application_domain(mcelog_t, mcelog_exec_t)
+-cron_system_entry(mcelog_t, mcelog_exec_t)
++init_daemon_domain(mcelog_t, mcelog_exec_t)
++
++type mcelog_initrc_exec_t;
++init_script_file(mcelog_initrc_exec_t)
++
++type mcelog_etc_t;
++files_config_file(mcelog_etc_t)
++
++type mcelog_log_t;
++logging_log_file(mcelog_log_t)
++
++type mcelog_var_run_t;
++files_pid_file(mcelog_var_run_t)
+ 
+ ########################################
+ #
+@@ -16,17 +72,64 @@
+ #
+ 
+ allow mcelog_t self:capability sys_admin;
++allow mcelog_t self:unix_stream_socket connected_socket_perms;
++allow mcelog_t mcelog_etc_t:dir list_dir_perms;
++
++read_files_pattern(mcelog_t, mcelog_etc_t, mcelog_etc_t)
++
++# manage a logfile in a generic or private log directory
++manage_dirs_pattern(mcelog_t, mcelog_log_t, mcelog_log_t)
++manage_files_pattern(mcelog_t, mcelog_log_t, mcelog_log_t)
++logging_log_filetrans(mcelog_t, mcelog_log_t, file)
++
++manage_files_pattern(mcelog_t, mcelog_var_run_t, mcelog_var_run_t)
++manage_sock_files_pattern(mcelog_t, mcelog_var_run_t, mcelog_var_run_t)
++files_pid_filetrans(mcelog_t, mcelog_var_run_t, { file sock_file })
+ 
+ kernel_read_system_state(mcelog_t)
+ 
+ dev_read_raw_memory(mcelog_t)
+ dev_read_kmsg(mcelog_t)
++dev_rw_sysfs(mcelog_t)
+ 
+ files_read_etc_files(mcelog_t)
+ 
+ # for /dev/mem access
+ mls_file_read_all_levels(mcelog_t)
+ 
+-logging_send_syslog_msg(mcelog_t)
++locallogin_use_fds(mcelog_t)
+ 
+ miscfiles_read_localization(mcelog_t)
++
++# needed in client-mode
++tunable_policy(`mcelog_client',`
++	allow mcelog_t self:unix_stream_socket connectto;
++')
++
++# required for executing optional triggers and scripts
++tunable_policy(`mcelog_exec_scripts',`
++	allow mcelog_t self:fifo_file { read getattr write };
++	corecmd_exec_bin(mcelog_t)
++	corecmd_exec_shell(mcelog_t)
++')
++
++# required for optional foreground mode and
++# console output
++tunable_policy(`mcelog_foreground',`
++	userdom_use_user_terminals(mcelog_t)
++')
++
++# required for the optional server functionality
++tunable_policy(`mcelog_server',`
++	allow mcelog_t self:unix_stream_socket { listen accept };
++')
++
++# use syslog functionality (optional, configurable)
++tunable_policy(`mcelog_syslog',`
++	logging_send_syslog_msg(mcelog_t)
++')
++
++# optional support for running it as a cron job
++optional_policy(`
++	cron_system_entry(mcelog_t, mcelog_exec_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/milter.fc refpolicy/policy/modules/contrib/milter.fc
+--- refpolicy/policy/modules/contrib/milter.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/milter.fc	2012-09-08 19:12:02.186560511 +0200
+@@ -1,15 +1,18 @@
+ /usr/sbin/milter-greylist	--	gen_context(system_u:object_r:greylist_milter_exec_t,s0)
+ /usr/sbin/milter-regex		--	gen_context(system_u:object_r:regex_milter_exec_t,s0)
+ /usr/sbin/spamass-milter	--	gen_context(system_u:object_r:spamass_milter_exec_t,s0)
++/usr/sbin/sqlgrey		--	gen_context(system_u:object_r:greylist_milter_exec_t,s0)
+ 
+ /var/lib/milter-greylist(/.*)?		gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/lib/spamass-milter(/.*)?		gen_context(system_u:object_r:spamass_milter_state_t,s0)
++/var/lib/sqlgrey(/.*)?			gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ 
+ /var/run/milter-greylist(/.*)?		gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/run/milter-greylist\.pid	--	gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ /var/run/spamass(/.*)?			gen_context(system_u:object_r:spamass_milter_data_t,s0)
+ /var/run/spamass-milter(/.*)?		gen_context(system_u:object_r:spamass_milter_data_t,s0)
+ /var/run/spamass-milter\.pid	--	gen_context(system_u:object_r:spamass_milter_data_t,s0)
++/var/run/sqlgrey\.pid		--	gen_context(system_u:object_r:greylist_milter_data_t,s0)
+ 
+ /var/spool/milter-regex(/.*)?		gen_context(system_u:object_r:regex_milter_data_t,s0)
+ /var/spool/postfix/spamass(/.*)?	gen_context(system_u:object_r:spamass_milter_data_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/milter.te refpolicy/policy/modules/contrib/milter.te
+--- refpolicy/policy/modules/contrib/milter.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/milter.te	2012-09-08 19:13:42.697560727 +0200
+@@ -1,4 +1,4 @@
+-policy_module(milter, 1.4.0)
++policy_module(milter, 1.4.2)
+ 
+ ########################################
+ #
+@@ -38,6 +38,10 @@
+ 
+ kernel_read_kernel_sysctls(greylist_milter_t)
+ 
++dev_read_rand(greylist_milter_t)
++dev_read_urand(greylist_milter_t)
++
++files_read_etc_files(greylist_milter_t)
+ # Allow the milter to read a GeoIP database in /usr/share
+ files_read_usr_files(greylist_milter_t)
+ # The milter runs from /var/lib/milter-greylist and maintains files there
+@@ -46,9 +50,17 @@
+ # Look up username for dropping privs
+ auth_use_nsswitch(greylist_milter_t)
+ 
++miscfiles_read_localization(greylist_milter_t)
++
++sysnet_read_config(greylist_milter_t)
++
+ # Config is in /etc/mail/greylist.conf
+ mta_read_config(greylist_milter_t)
+ 
++optional_policy(`
++	mysql_stream_connect(greylist_milter_t)
++')
++
+ ########################################
+ #
+ # milter-regex local policy
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mta.te refpolicy/policy/modules/contrib/mta.te
+--- refpolicy/policy/modules/contrib/mta.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/mta.te	2012-08-13 21:20:18.579212799 +0200
+@@ -214,9 +214,7 @@
+ #
+ 
+ allow mailserver_delivery mail_spool_t:dir list_dir_perms;
+-create_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+-read_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+-append_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
++manage_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+ create_lnk_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+ read_lnk_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mysql.if refpolicy/policy/modules/contrib/mysql.if
+--- refpolicy/policy/modules/contrib/mysql.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/mysql.if	2012-08-14 19:31:16.864412676 +0200
+@@ -311,6 +311,69 @@
+ 	search_dirs_pattern($1, mysqld_var_run_t, mysqld_var_run_t)
+ ')
+ 
++#######################################
++## <summary>
++##	Set the attributes of the MySQL run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`mysql_setattr_run_dirs',`
++	gen_require(`
++		type mysqld_var_run_t;
++	')
++
++	setattr_dirs_pattern($1, mysqld_var_run_t, mysqld_var_run_t)
++')
++
++#######################################
++## <summary>
++##	Create MySQL run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`mysql_create_run_dirs',`
++	gen_require(`
++		type mysqld_var_run_t;
++	')
++
++	create_dirs_pattern($1, mysqld_var_run_t, mysqld_var_run_t)
++')
++
++#######################################
++## <summary>
++##	Automatically use the MySQL run label for created resources in generic
++##	run locations. This method is deprecated in favor of the
++##	init_daemon_run_dir call.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++## <param name="class">
++## 	<summary>
++##	Type of the resource created for which the automatic file transition
++##	should occur
++##	</summary>
++## </param>
++## <param name="filename" optional="true">
++## 	<summary>
++##	The name of the resource being created
++##	</summary>
++## </param>
++#
++interface(`mysql_generic_run_filetrans_run',`
++	refpolicywarn(`$0($*) has been deprecated.')
++')
++
+ ########################################
+ ## <summary>
+ ##	All of the rules required to administrate an mysql environment
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mysql.te refpolicy/policy/modules/contrib/mysql.te
+--- refpolicy/policy/modules/contrib/mysql.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/mysql.te	2012-08-14 19:31:16.864412676 +0200
+@@ -22,6 +22,7 @@
+ 
+ type mysqld_var_run_t;
+ files_pid_file(mysqld_var_run_t)
++init_daemon_run_dir(mysqld_var_run_t, "mysqld")
+ 
+ type mysqld_db_t;
+ files_type(mysqld_db_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nagios.te refpolicy/policy/modules/contrib/nagios.te
+--- refpolicy/policy/modules/contrib/nagios.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/nagios.te	2012-08-13 21:20:18.142212781 +0200
+@@ -300,7 +300,7 @@
+ 
+ optional_policy(`
+ 	postfix_stream_connect_master(nagios_mail_plugin_t)
+-	posftix_exec_postqueue(nagios_mail_plugin_t)
++	postfix_exec_postqueue(nagios_mail_plugin_t)
+ ')
+ 
+ ######################################
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/networkmanager.te refpolicy/policy/modules/contrib/networkmanager.te
+--- refpolicy/policy/modules/contrib/networkmanager.te	2012-09-08 20:48:28.045572860 +0200
++++ refpolicy/policy/modules/contrib/networkmanager.te	2012-09-08 19:15:13.275560905 +0200
+@@ -1,4 +1,4 @@
+-policy_module(networkmanager, 1.14.0)
++policy_module(networkmanager, 1.14.1)
+ 
+ ########################################
+ #
+@@ -53,7 +53,7 @@
+ 
+ allow NetworkManager_t wpa_cli_t:unix_dgram_socket sendto;
+ 
+-can_exec(NetworkManager_t, NetworkManager_exec_t)
++can_exec(NetworkManager_t, { NetworkManager_exec_t wpa_cli_exec_t })
+ 
+ manage_files_pattern(NetworkManager_t, NetworkManager_log_t, NetworkManager_log_t)
+ logging_log_filetrans(NetworkManager_t, NetworkManager_log_t, file)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nscd.te refpolicy/policy/modules/contrib/nscd.te
+--- refpolicy/policy/modules/contrib/nscd.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/nscd.te	2012-08-25 20:15:34.238937386 +0200
+@@ -13,6 +13,7 @@
+ # ordering problem with loadable modules
+ type nscd_var_run_t;
+ files_pid_file(nscd_var_run_t)
++init_daemon_run_dir(nscd_var_run_t, "nscd")
+ 
+ # nscd is both the client program and the daemon.
+ type nscd_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.fc refpolicy/policy/modules/contrib/ntp.fc
+--- refpolicy/policy/modules/contrib/ntp.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.fc	2012-08-15 10:07:50.063520057 +0200
+@@ -2,11 +2,11 @@
+ /etc/cron\.(daily|weekly)/ntp-simple -- gen_context(system_u:object_r:ntpd_exec_t,s0)
+ /etc/cron\.(daily|weekly)/ntp-server -- gen_context(system_u:object_r:ntpd_exec_t,s0)
+ 
+-/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:net_conf_t,s0)
++/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
+ /etc/ntp/crypto(/.*)?			gen_context(system_u:object_r:ntpd_key_t,s0)
+ /etc/ntp/data(/.*)?			gen_context(system_u:object_r:ntp_drift_t,s0)
+ /etc/ntp/keys			--	gen_context(system_u:object_r:ntpd_key_t,s0)
+-/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:net_conf_t,s0)
++/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
+ 
+ /etc/rc\.d/init\.d/ntpd		--	gen_context(system_u:object_r:ntpd_initrc_exec_t,s0)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.if refpolicy/policy/modules/contrib/ntp.if
+--- refpolicy/policy/modules/contrib/ntp.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.if	2012-08-15 10:07:50.063520057 +0200
+@@ -132,7 +132,7 @@
+ ## </param>
+ ## <param name="role">
+ ##	<summary>
+-##	The role to be allowed to manage the ntp domain.
++##	Role allowed access
+ ##	</summary>
+ ## </param>
+ ## <rolecap/>
+@@ -140,11 +140,11 @@
+ interface(`ntp_admin',`
+ 	gen_require(`
+ 		type ntpd_t, ntpd_tmp_t, ntpd_log_t;
+-		type ntpd_key_t, ntpd_var_run_t;
+-		type ntpd_initrc_exec_t;
++		type ntpd_key_t, ntpd_var_run_t, ntp_conf_t;
++		type ntpd_initrc_exec_t, ntp_drift_t;
+ 	')
+ 
+-	allow $1 ntpd_t:process { ptrace signal_perms getattr };
++	allow $1 ntpd_t:process { ptrace signal_perms };
+ 	ps_process_pattern($1, ntpd_t)
+ 
+ 	init_labeled_script_domtrans($1, ntpd_initrc_exec_t)
+@@ -152,7 +152,8 @@
+ 	role_transition $2 ntpd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
+-	admin_pattern($1, ntpd_key_t)
++	files_list_etc($1)
++	admin_pattern($1, { ntpd_key_t ntp_conf_t ntp_drift_t })
+ 
+ 	logging_list_logs($1)
+ 	admin_pattern($1, ntpd_log_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.te refpolicy/policy/modules/contrib/ntp.te
+--- refpolicy/policy/modules/contrib/ntp.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntp.te	2012-08-15 10:07:50.063520057 +0200
+@@ -1,4 +1,4 @@
+-policy_module(ntp, 1.10.0)
++policy_module(ntp, 1.10.1)
+ 
+ ########################################
+ #
+@@ -15,6 +15,9 @@
+ type ntpd_initrc_exec_t;
+ init_script_file(ntpd_initrc_exec_t)
+ 
++type ntp_conf_t;
++files_config_file(ntp_conf_t)
++
+ type ntpd_key_t;
+ files_type(ntpd_key_t)
+ 
+@@ -54,10 +57,12 @@
+ 
+ can_exec(ntpd_t, ntpd_exec_t)
+ 
++allow ntpd_t ntp_conf_t:file read_file_perms;
++
+ read_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
+ read_lnk_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
+ 
+-allow ntpd_t ntpd_log_t:dir setattr;
++allow ntpd_t ntpd_log_t:dir setattr_dir_perms;
+ manage_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
+ logging_log_filetrans(ntpd_t, ntpd_log_t, { file dir })
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oident.fc refpolicy/policy/modules/contrib/oident.fc
+--- refpolicy/policy/modules/contrib/oident.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oident.fc	2012-08-09 18:46:00.031031071 +0200
+@@ -1,4 +1,4 @@
+-HOME_DIR/\.oidentd.conf			gen_context(system_u:object_r:oidentd_home_t, s0)
++HOME_DIR/\.oidentd.conf		--	gen_context(system_u:object_r:oidentd_home_t, s0)
+ 
+ /etc/oidentd\.conf		--	gen_context(system_u:object_r:oidentd_config_t, s0)
+ /etc/oidentd_masq\.conf		--	gen_context(system_u:object_r:oidentd_config_t, s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oident.te refpolicy/policy/modules/contrib/oident.te
+--- refpolicy/policy/modules/contrib/oident.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oident.te	2012-08-09 18:45:40.758030300 +0200
+@@ -34,6 +34,8 @@
+ 
+ allow oidentd_t oidentd_config_t:file read_file_perms;
+ 
++allow oidentd_t oidentd_home_t:file read_file_perms;
++
+ corenet_all_recvfrom_unlabeled(oidentd_t)
+ corenet_all_recvfrom_netlabel(oidentd_t)
+ corenet_tcp_sendrecv_generic_if(oidentd_t)
+@@ -58,7 +60,7 @@
+ 
+ sysnet_read_config(oidentd_t)
+ 
+-oident_read_user_content(oidentd_t)
++userdom_search_user_home_dirs(oidentd_t)
+ 
+ optional_policy(`
+ 	nis_use_ypbind(oidentd_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/plymouthd.te refpolicy/policy/modules/contrib/plymouthd.te
+--- refpolicy/policy/modules/contrib/plymouthd.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/plymouthd.te	2012-09-08 18:59:27.475558901 +0200
+@@ -1,4 +1,4 @@
+-policy_module(plymouthd, 1.1.0)
++policy_module(plymouthd, 1.1.1)
+ 
+ ########################################
+ #
+@@ -60,6 +60,10 @@
+ files_read_etc_files(plymouthd_t)
+ files_read_usr_files(plymouthd_t)
+ 
++term_getattr_pty_fs(plymouthd_t)
++term_use_all_terms(plymouthd_t)
++term_use_ptmx(plymouthd_t)
++
+ miscfiles_read_localization(plymouthd_t)
+ miscfiles_read_fonts(plymouthd_t)
+ miscfiles_manage_fonts_cache(plymouthd_t)
+@@ -69,6 +73,7 @@
+ # Plymouth private policy
+ #
+ 
++allow plymouth_t self:capability2 block_suspend;
+ allow plymouth_t self:process signal;
+ allow plymouth_t self:fifo_file rw_file_perms;
+ allow plymouth_t self:unix_stream_socket create_stream_socket_perms;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/policykit.fc refpolicy/policy/modules/contrib/policykit.fc
+--- refpolicy/policy/modules/contrib/policykit.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/policykit.fc	2012-09-08 19:21:03.900561680 +0200
+@@ -1,3 +1,6 @@
++/usr/lib/polkit-1/polkitd		--	gen_context(system_u:object_r:policykit_exec_t,s0)
++/usr/lib/polkit-1/polkit-agent-helper-1	--	gen_context(system_u:object_r:policykit_auth_exec_t,s0)
++
+ /usr/lib/policykit/polkit-read-auth-helper --	gen_context(system_u:object_r:policykit_auth_exec_t,s0)
+ /usr/lib/policykit/polkit-grant-helper.* --	gen_context(system_u:object_r:policykit_grant_exec_t,s0)
+ /usr/lib/policykit/polkit-resolve-exe-helper.* -- gen_context(system_u:object_r:policykit_resolve_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/policykit.te refpolicy/policy/modules/contrib/policykit.te
+--- refpolicy/policy/modules/contrib/policykit.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/policykit.te	2012-09-08 19:21:10.406561687 +0200
+@@ -1,4 +1,4 @@
+-policy_module(policykit, 1.2.0)
++policy_module(policykit, 1.2.1)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/postfix.fc refpolicy/policy/modules/contrib/postfix.fc
+--- refpolicy/policy/modules/contrib/postfix.fc	2012-05-04 16:21:45.000000000 +0200
++++ refpolicy/policy/modules/contrib/postfix.fc	2012-08-13 21:19:14.127210215 +0200
+@@ -1,6 +1,5 @@
+ # postfix
+ /etc/postfix(/.*)?		gen_context(system_u:object_r:postfix_etc_t,s0)
+-ifdef(`distro_redhat', `
+ /usr/libexec/postfix/.*	--	gen_context(system_u:object_r:postfix_exec_t,s0)
+ /usr/libexec/postfix/cleanup --	gen_context(system_u:object_r:postfix_cleanup_exec_t,s0)
+ /usr/libexec/postfix/lmtp --	gen_context(system_u:object_r:postfix_smtp_exec_t,s0)
+@@ -15,7 +14,6 @@
+ /usr/libexec/postfix/bounce --	gen_context(system_u:object_r:postfix_bounce_exec_t,s0)
+ /usr/libexec/postfix/pipe --	gen_context(system_u:object_r:postfix_pipe_exec_t,s0)
+ /usr/libexec/postfix/virtual --	gen_context(system_u:object_r:postfix_virtual_exec_t,s0)
+-', `
+ /usr/lib/postfix/.*	--	gen_context(system_u:object_r:postfix_exec_t,s0)
+ /usr/lib/postfix/cleanup --	gen_context(system_u:object_r:postfix_cleanup_exec_t,s0)
+ /usr/lib/postfix/local	--	gen_context(system_u:object_r:postfix_local_exec_t,s0)
+@@ -29,7 +27,7 @@
+ /usr/lib/postfix/bounce	--	gen_context(system_u:object_r:postfix_bounce_exec_t,s0)
+ /usr/lib/postfix/pipe	--	gen_context(system_u:object_r:postfix_pipe_exec_t,s0)
+ /usr/lib/postfix/virtual --	gen_context(system_u:object_r:postfix_virtual_exec_t,s0)
+-')
++
+ /etc/postfix/postfix-script.* -- gen_context(system_u:object_r:postfix_exec_t,s0)
+ /etc/postfix/prng_exch	--	gen_context(system_u:object_r:postfix_prng_t,s0)
+ /usr/sbin/postcat	--	gen_context(system_u:object_r:postfix_master_exec_t,s0)
+@@ -46,7 +44,7 @@
+ 
+ /var/spool/postfix(/.*)?	gen_context(system_u:object_r:postfix_spool_t,s0)
+ /var/spool/postfix/maildrop(/.*)? gen_context(system_u:object_r:postfix_spool_maildrop_t,s0)
+-/var/spool/postfix/pid/.*	gen_context(system_u:object_r:postfix_var_run_t,s0)
++/var/spool/postfix/pid(/.*)?	gen_context(system_u:object_r:postfix_var_run_t,s0)
+ /var/spool/postfix/private(/.*)? gen_context(system_u:object_r:postfix_private_t,s0)
+ /var/spool/postfix/public(/.*)? gen_context(system_u:object_r:postfix_public_t,s0)
+ /var/spool/postfix/bounce(/.*)? gen_context(system_u:object_r:postfix_spool_bounce_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/postfix.if refpolicy/policy/modules/contrib/postfix.if
+--- refpolicy/policy/modules/contrib/postfix.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/postfix.if	2012-08-13 21:20:18.156212781 +0200
+@@ -56,7 +56,7 @@
+ 
+ 	allow postfix_$1_t postfix_spool_t:dir list_dir_perms;
+ 
+-	allow postfix_$1_t postfix_var_run_t:file manage_file_perms;
++	manage_files_pattern(postfix_$1_t, postfix_var_run_t, postfix_var_run_t)	
+ 	files_pid_filetrans(postfix_$1_t, postfix_var_run_t, file)
+ 
+ 	kernel_read_system_state(postfix_$1_t)
+@@ -454,7 +454,8 @@
+ 
+ #######################################
+ ## <summary>
+-##	Execute the master postqueue in the caller domain.
++##	Execute the master postqueue in the caller domain. (Deprecated)
++##	Please use postfix_exec_postqueue instead.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -463,6 +464,21 @@
+ ## </param>
+ #
+ interface(`posftix_exec_postqueue',`
++	refpolicywarn(`$0($*) has been deprecated.')
++	postfix_exec_postqueue($1)
++')
++
++#######################################
++## <summary>
++##	Execute the master postqueue in the caller domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`postfix_exec_postqueue',`
+ 	gen_require(`
+ 		type postfix_postqueue_exec_t;
+ 	')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/postfix.te refpolicy/policy/modules/contrib/postfix.te
+--- refpolicy/policy/modules/contrib/postfix.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/postfix.te	2012-09-08 19:00:04.715558982 +0200
+@@ -1,4 +1,4 @@
+-policy_module(postfix, 1.14.0)
++policy_module(postfix, 1.14.2)
+ 
+ ########################################
+ #
+@@ -93,7 +93,8 @@
+ #
+ 
+ # chown is to set the correct ownership of queue dirs
+-allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config };
++allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config fowner };
++allow postfix_master_t self:capability2 block_suspend;
+ allow postfix_master_t self:fifo_file rw_fifo_file_perms;
+ allow postfix_master_t self:tcp_socket create_stream_socket_perms;
+ allow postfix_master_t self:udp_socket create_socket_perms;
+@@ -112,15 +113,19 @@
+ 
+ allow postfix_master_t postfix_postqueue_exec_t:file getattr;
+ 
++create_dirs_pattern(postfix_master_t, postfix_spool_t, postfix_private_t)
+ manage_fifo_files_pattern(postfix_master_t, postfix_private_t, postfix_private_t)
+ manage_sock_files_pattern(postfix_master_t, postfix_private_t, postfix_private_t)
++setattr_dirs_pattern(postfix_master_t, postfix_private_t, postfix_private_t)
+ 
+ domtrans_pattern(postfix_master_t, postfix_postqueue_exec_t, postfix_postqueue_t)
+ 
+ allow postfix_master_t postfix_prng_t:file rw_file_perms;
+ 
++create_dirs_pattern(postfix_master_t, postfix_spool_t, postfix_public_t)
+ manage_fifo_files_pattern(postfix_master_t, postfix_public_t, postfix_public_t)
+ manage_sock_files_pattern(postfix_master_t, postfix_public_t, postfix_public_t)
++setattr_dirs_pattern(postfix_master_t, postfix_public_t, postfix_public_t)
+ 
+ domtrans_pattern(postfix_master_t, postfix_showq_exec_t, postfix_showq_t)
+ 
+@@ -128,6 +133,13 @@
+ manage_dirs_pattern(postfix_master_t, postfix_spool_t, postfix_spool_t)
+ manage_files_pattern(postfix_master_t, postfix_spool_t, postfix_spool_t)
+ files_spool_filetrans(postfix_master_t, postfix_spool_t, dir)
++# Initial seed of postfix queues
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_private_t, dir, "private")
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_public_t, dir, "public")
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_spool_bounce_t, dir, "bounce")
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_spool_maildrop_t, dir, "maildrop")
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_var_run_t, dir, "pid")
++filetrans_pattern(postfix_master_t, postfix_spool_t, postfix_spool_flush_t, dir, "flush")
+ 
+ allow postfix_master_t postfix_spool_bounce_t:dir manage_dir_perms;
+ allow postfix_master_t postfix_spool_bounce_t:file getattr;
+@@ -136,10 +148,14 @@
+ manage_files_pattern(postfix_master_t, postfix_spool_flush_t, postfix_spool_flush_t)
+ manage_lnk_files_pattern(postfix_master_t, postfix_spool_flush_t, postfix_spool_flush_t)
+ 
++create_dirs_pattern(postfix_master_t, postfix_spool_t, postfix_spool_maildrop_t)
+ delete_files_pattern(postfix_master_t, postfix_spool_maildrop_t, postfix_spool_maildrop_t)
+ rename_files_pattern(postfix_master_t, postfix_spool_maildrop_t, postfix_spool_maildrop_t)
+ setattr_dirs_pattern(postfix_master_t, postfix_spool_maildrop_t, postfix_spool_maildrop_t)
+ 
++create_dirs_pattern(postfix_master_t, postfix_spool_t, postfix_var_run_t)
++setattr_dirs_pattern(postfix_master_t, postfix_var_run_t, postfix_var_run_t)
++
+ kernel_read_all_sysctls(postfix_master_t)
+ 
+ corenet_all_recvfrom_unlabeled(postfix_master_t)
+@@ -264,6 +280,7 @@
+ # Postfix local local policy
+ #
+ 
++allow postfix_local_t self:capability chown;
+ allow postfix_local_t self:fifo_file rw_fifo_file_perms;
+ allow postfix_local_t self:process { setsched setrlimit };
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/qemu.te refpolicy/policy/modules/contrib/qemu.te
+--- refpolicy/policy/modules/contrib/qemu.te	2012-09-08 20:48:27.942572860 +0200
++++ refpolicy/policy/modules/contrib/qemu.te	2012-09-08 18:02:15.972551573 +0200
+@@ -1,4 +1,4 @@
+-policy_module(qemu, 1.7.0)
++policy_module(qemu, 1.7.1)
+ 
+ ########################################
+ #
+@@ -17,7 +17,7 @@
+ ## Allow qemu to use cifs/Samba file systems
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_cifs, true)
++gen_tunable(qemu_use_cifs, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -31,14 +31,14 @@
+ ## Allow qemu to use nfs file systems
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_nfs, true)
++gen_tunable(qemu_use_nfs, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow qemu to use usb devices
+ ## </p>
+ ## </desc>
+-gen_tunable(qemu_use_usb, true)
++gen_tunable(qemu_use_usb, false)
+ 
+ type qemu_exec_t;
+ virt_domain_template(qemu)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/quota.te refpolicy/policy/modules/contrib/quota.te
+--- refpolicy/policy/modules/contrib/quota.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/quota.te	2012-09-08 18:12:05.332552821 +0200
+@@ -1,4 +1,4 @@
+-policy_module(quota, 1.5.0)
++policy_module(quota, 1.5.1)
+ 
+ ########################################
+ #
+@@ -35,6 +35,7 @@
+ files_var_filetrans(quota_t, quota_db_t, file)
+ files_spool_filetrans(quota_t, quota_db_t, file)
+ 
++kernel_request_load_module(quota_t)
+ kernel_list_proc(quota_t)
+ kernel_read_proc_symlinks(quota_t)
+ kernel_read_kernel_sysctls(quota_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpc.te refpolicy/policy/modules/contrib/rpc.te
+--- refpolicy/policy/modules/contrib/rpc.te	2012-09-08 20:48:27.961572860 +0200
++++ refpolicy/policy/modules/contrib/rpc.te	2012-09-08 19:00:27.127559027 +0200
+@@ -1,4 +1,4 @@
+-policy_module(rpc, 1.14.0)
++policy_module(rpc, 1.14.2)
+ 
+ ########################################
+ #
+@@ -10,7 +10,7 @@
+ ## Allow gssd to read temp directory.  For access to kerberos tgt.
+ ## </p>
+ ## </desc>
+-gen_tunable(allow_gssd_read_tmp, true)
++gen_tunable(allow_gssd_read_tmp, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -59,6 +59,7 @@
+ #
+ 
+ allow rpcd_t self:capability { sys_admin chown dac_override setgid setuid };
++allow rpcd_t self:capability2 block_suspend;
+ allow rpcd_t self:process { getcap setcap };
+ allow rpcd_t self:fifo_file rw_fifo_file_perms;
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sanlock.te refpolicy/policy/modules/contrib/sanlock.te
+--- refpolicy/policy/modules/contrib/sanlock.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/sanlock.te	2012-09-08 19:23:26.744561966 +0200
+@@ -1,4 +1,4 @@
+-policy_module(sanlock, 1.0.0)
++policy_module(sanlock, 1.0.1)
+ 
+ ########################################
+ #
+@@ -44,7 +44,7 @@
+ #
+ # sanlock local policy
+ #
+-allow sanlock_t self:capability { sys_nice ipc_lock };
++allow sanlock_t self:capability { chown dac_override ipc_lock kill setgid setuid sys_nice sys_resource };
+ allow sanlock_t self:process { setsched signull };
+ allow sanlock_t self:fifo_file rw_fifo_file_perms;
+ allow sanlock_t self:unix_stream_socket create_stream_socket_perms;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sasl.te refpolicy/policy/modules/contrib/sasl.te
+--- refpolicy/policy/modules/contrib/sasl.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/sasl.te	2012-09-08 18:09:45.176552520 +0200
+@@ -1,4 +1,4 @@
+-policy_module(sasl, 1.14.0)
++policy_module(sasl, 1.14.1)
+ 
+ ########################################
+ #
+@@ -99,6 +99,7 @@
+ optional_policy(`
+ 	mysql_search_db(saslauthd_t)
+ 	mysql_stream_connect(saslauthd_t)
++	mysql_tcp_connect(saslauthd_t)
+ ')
+ 
+ optional_policy(`
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sensord.fc refpolicy/policy/modules/contrib/sensord.fc
+--- refpolicy/policy/modules/contrib/sensord.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.fc	2012-09-08 18:06:09.089552067 +0200
+@@ -0,0 +1,5 @@
++/etc/rc\.d/init\.d/sensord	--	gen_context(system_u:object_r:sensord_initrc_exec_t,s0)
++
++/usr/sbin/sensord	--	gen_context(system_u:object_r:sensord_exec_t,s0)
++
++/var/run/sensord\.pid	--	gen_context(system_u:object_r:sensord_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sensord.if refpolicy/policy/modules/contrib/sensord.if
+--- refpolicy/policy/modules/contrib/sensord.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.if	2012-09-08 18:06:09.089552067 +0200
+@@ -0,0 +1,35 @@
++## <summary>Sensor information logging daemon.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an sensord environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`sensord_admin',`
++	gen_require(`
++		type sensord_t, sensord_initrc_exec_t, sensord_var_run_t;
++	')
++
++	allow $1 sensord_t:process { ptrace signal_perms };
++	ps_process_pattern($1, sensord_t)
++
++	init_labeled_script_domtrans($1, sensord_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 sensord_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_pids($1)
++	admin_pattern($1, sensord_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sensord.te refpolicy/policy/modules/contrib/sensord.te
+--- refpolicy/policy/modules/contrib/sensord.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/sensord.te	2012-09-08 18:06:09.090552067 +0200
+@@ -0,0 +1,35 @@
++policy_module(sensord, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type sensord_t;
++type sensord_exec_t;
++init_daemon_domain(sensord_t, sensord_exec_t)
++
++type sensord_initrc_exec_t;
++init_script_file(sensord_initrc_exec_t)
++
++type sensord_var_run_t;
++files_pid_file(sensord_var_run_t)
++
++########################################
++#
++# Local policy
++#
++
++allow sensord_t self:fifo_file rw_fifo_file_perms;
++allow sensord_t self:unix_stream_socket create_stream_socket_perms;
++
++manage_files_pattern(sensord_t, sensord_var_run_t, sensord_var_run_t)
++files_pid_filetrans(sensord_t, sensord_var_run_t, file)
++
++dev_read_sysfs(sensord_t)
++
++files_read_etc_files(sensord_t)
++
++logging_send_syslog_msg(sensord_t)
++
++miscfiles_read_localization(sensord_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/spamassassin.te refpolicy/policy/modules/contrib/spamassassin.te
+--- refpolicy/policy/modules/contrib/spamassassin.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/spamassassin.te	2012-09-08 18:02:32.519551601 +0200
+@@ -1,4 +1,4 @@
+-policy_module(spamassassin, 2.5.0)
++policy_module(spamassassin, 2.5.1)
+ 
+ ########################################
+ #
+@@ -17,7 +17,7 @@
+ ## Allow spamd to read/write user home directories.
+ ## </p>
+ ## </desc>
+-gen_tunable(spamd_enable_home_dirs, true)
++gen_tunable(spamd_enable_home_dirs, false)
+ 
+ type spamassassin_t;
+ type spamassassin_exec_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/sssd.te refpolicy/policy/modules/contrib/sssd.te
+--- refpolicy/policy/modules/contrib/sssd.te	2012-07-10 14:45:57.000000000 +0200
++++ refpolicy/policy/modules/contrib/sssd.te	2012-09-08 19:00:51.973559070 +0200
+@@ -29,6 +29,7 @@
+ # sssd local policy
+ #
+ allow sssd_t self:capability { dac_read_search dac_override kill sys_nice setgid setuid };
++allow sssd_t self:capability2 block_suspend;
+ allow sssd_t self:process { setfscreate setsched sigkill signal getsched };
+ allow sssd_t self:fifo_file rw_file_perms;
+ allow sssd_t self:unix_stream_socket { create_stream_socket_perms connectto };
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/systemtap.fc refpolicy/policy/modules/contrib/systemtap.fc
+--- refpolicy/policy/modules/contrib/systemtap.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/systemtap.fc	2012-09-08 18:51:23.395557869 +0200
+@@ -0,0 +1,11 @@
++/etc/stap-server(/.*)?	--	gen_context(system_u:object_r:stapserver_conf_t,s0)
++
++/etc/rc\.d/init\.d/stap-server	--	gen_context(system_u:object_r:stapserver_initrc_exec_t,s0)
++
++/usr/bin/stap-server	--	gen_context(system_u:object_r:stapserver_exec_t,s0)
++
++/var/lib/stap-server(/.*)?	gen_context(system_u:object_r:stapserver_var_lib_t,s0)
++
++/var/log/stap-server(/.*)?	gen_context(system_u:object_r:stapserver_log_t,s0)
++
++/var/run/stap-server(/.*)?	gen_context(system_u:object_r:stapserver_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/systemtap.if refpolicy/policy/modules/contrib/systemtap.if
+--- refpolicy/policy/modules/contrib/systemtap.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/systemtap.if	2012-09-08 18:51:23.395557869 +0200
+@@ -0,0 +1,42 @@
++## <summary>instrumentation system for Linux.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an stapserver environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`stapserver_admin',`
++	gen_require(`
++		type stapserver_t, stapserver_conf_t, stapserver_log_t;
++		type stap_server_var_run_t, stapserver_initrc_exec_t;
++	')
++
++	allow $1 stapserver_t:process { ptrace signal_perms };
++	ps_process_pattern($1, stapserver_t)
++
++	init_labeled_script_domtrans($1, stapserver_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 stapserver_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_etc($1)
++	admin_pattern($1, stapserver_conf_t)
++
++	logging_search_logs($1)
++	admin_pattern($1, stapserver_log_t)
++
++	files_search_pids($1)
++	admin_pattern($1, stapserver_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/systemtap.te refpolicy/policy/modules/contrib/systemtap.te
+--- refpolicy/policy/modules/contrib/systemtap.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/systemtap.te	2012-09-08 18:51:23.396557867 +0200
+@@ -0,0 +1,99 @@
++policy_module(systemtap, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type stapserver_t;
++type stapserver_exec_t;
++init_daemon_domain(stapserver_t, stapserver_exec_t)
++
++type stapserver_initrc_exec_t;
++init_script_file(stapserver_initrc_exec_t)
++
++type stapserver_conf_t;
++files_config_file(stapserver_conf_t)
++
++type stapserver_var_lib_t;
++files_type(stapserver_var_lib_t)
++
++type stapserver_log_t;
++logging_log_file(stapserver_log_t)
++
++type stapserver_var_run_t;
++files_pid_file(stapserver_var_run_t)
++
++########################################
++#
++# Local policy
++#
++
++allow stapserver_t self:capability { dac_override kill setuid setgid };
++allow stapserver_t self:process { setrlimit setsched signal };
++allow stapserver_t self:fifo_file rw_fifo_file_perms;
++allow stapserver_t self:key write;
++allow stapserver_t self:unix_stream_socket { accept listen };
++allow stapserver_t self:tcp_socket create_stream_socket_perms;
++
++allow stapserver_t stapserver_conf_t:file read_file_perms;
++
++manage_dirs_pattern(stapserver_t, stapserver_var_lib_t, stapserver_var_lib_t)
++manage_files_pattern(stapserver_t, stapserver_var_lib_t, stapserver_var_lib_t)
++files_var_lib_filetrans(stapserver_t, stapserver_var_lib_t, dir)
++
++manage_dirs_pattern(stapserver_t, stapserver_log_t, stapserver_log_t)
++manage_files_pattern(stapserver_t, stapserver_log_t, stapserver_log_t)
++logging_log_filetrans(stapserver_t, stapserver_log_t, dir )
++
++manage_dirs_pattern(stapserver_t, stapserver_var_run_t, stapserver_var_run_t)
++manage_files_pattern(stapserver_t, stapserver_var_run_t, stapserver_var_run_t)
++files_pid_filetrans(stapserver_t, stapserver_var_run_t, dir )
++
++kernel_read_kernel_sysctls(stapserver_t)
++kernel_read_system_state(stapserver_t)
++
++corecmd_exec_bin(stapserver_t)
++corecmd_exec_shell(stapserver_t)
++
++domain_read_all_domains_state(stapserver_t)
++
++dev_read_rand(stapserver_t)
++dev_read_sysfs(stapserver_t)
++dev_read_urand(stapserver_t)
++
++files_list_tmp(stapserver_t)
++files_read_usr_files(stapserver_t)
++files_search_kernel_modules(stapserver_t)
++
++auth_use_nsswitch(stapserver_t)
++
++init_read_utmp(stapserver_t)
++
++logging_send_audit_msgs(stapserver_t)
++logging_send_syslog_msg(stapserver_t)
++
++miscfiles_read_localization(stapserver_t)
++miscfiles_read_hwdata(stapserver_t)
++
++userdom_use_user_terminals(stapserver_t)
++
++optional_policy(`
++	consoletype_exec(stapserver_t)
++')
++
++optional_policy(`
++	dbus_system_bus_client(stapserver_t)
++')
++
++optional_policy(`
++	hostname_exec(stapserver_t)
++')
++
++optional_policy(`
++	plymouthd_exec_plymouth(stapserver_t)
++')
++
++optional_policy(`
++	rpm_exec(stapserver_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/telnet.te refpolicy/policy/modules/contrib/telnet.te
+--- refpolicy/policy/modules/contrib/telnet.te	2012-09-08 20:48:28.032572860 +0200
++++ refpolicy/policy/modules/contrib/telnet.te	2012-07-26 22:23:04.299973125 +0200
+@@ -82,11 +82,13 @@
+ 
+ seutil_read_config(telnetd_t)
+ 
+-remotelogin_domtrans(telnetd_t)
+-
+ userdom_search_user_home_dirs(telnetd_t)
+ userdom_setattr_user_ptys(telnetd_t)
+ 
++optional_policy(`
++	remotelogin_domtrans(telnetd_t)
++')
++
+ tunable_policy(`use_nfs_home_dirs',`
+ 	fs_search_nfs(telnetd_t)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/tmpreaper.fc refpolicy/policy/modules/contrib/tmpreaper.fc
+--- refpolicy/policy/modules/contrib/tmpreaper.fc	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/tmpreaper.fc	2012-08-09 17:44:28.531883156 +0200
+@@ -1,6 +1,6 @@
+ ifdef(`distro_debian',`
+-/etc/init\.d/mountall-bootclean.sh --	gen_context(system_u:object_r:tmpreaper_exec_t,s0)
+-/etc/init\.d/mountnfs-bootclean.sh --	gen_context(system_u:object_r:tmpreaper_exec_t,s0)
++/etc/rc\.d/init\.d/mountall-bootclean.sh --	gen_context(system_u:object_r:tmpreaper_exec_t,s0)
++/etc/rc\.d/init\.d/mountnfs-bootclean.sh --	gen_context(system_u:object_r:tmpreaper_exec_t,s0)
+ ')
+ 
+ /usr/sbin/tmpreaper		--	gen_context(system_u:object_r:tmpreaper_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/tor.te refpolicy/policy/modules/contrib/tor.te
+--- refpolicy/policy/modules/contrib/tor.te	2012-05-04 15:15:22.000000000 +0200
++++ refpolicy/policy/modules/contrib/tor.te	2012-09-08 19:26:11.795562366 +0200
+@@ -1,4 +1,4 @@
+-policy_module(tor, 1.8.0)
++policy_module(tor, 1.8.2)
+ 
+ ########################################
+ #
+@@ -35,6 +35,7 @@
+ # pid files
+ type tor_var_run_t;
+ files_pid_file(tor_var_run_t)
++init_daemon_run_dir(tor_var_run_t, "tor")
+ 
+ ########################################
+ #
+@@ -72,6 +73,7 @@
+ manage_sock_files_pattern(tor_t, tor_var_run_t, tor_var_run_t)
+ files_pid_filetrans(tor_t, tor_var_run_t, { dir file sock_file })
+ 
++kernel_read_net_sysctls(tor_t)
+ kernel_read_system_state(tor_t)
+ 
+ # networking basics
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/vde.fc refpolicy/policy/modules/contrib/vde.fc
+--- refpolicy/policy/modules/contrib/vde.fc	2012-09-08 20:48:27.944572860 +0200
++++ refpolicy/policy/modules/contrib/vde.fc	2012-08-09 17:44:46.118883860 +0200
+@@ -1,4 +1,4 @@
+-/etc/init.d/vde		--	gen_context(system_u:object_r:vde_initrc_exec_t,s0)
++/etc/rc\.d/init\.d/vde	--	gen_context(system_u:object_r:vde_initrc_exec_t,s0)
+ /usr/bin/vde_switch	--	gen_context(system_u:object_r:vde_exec_t,s0)
+ /usr/sbin/vde_tunctl	--	gen_context(system_u:object_r:vde_exec_t,s0)
+ /var/run/vde\.ctl(/.*)?		gen_context(system_u:object_r:vde_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/virt.te refpolicy/policy/modules/contrib/virt.te
+--- refpolicy/policy/modules/contrib/virt.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/virt.te	2012-09-08 18:02:44.581551640 +0200
+@@ -1,4 +1,4 @@
+-policy_module(virt, 1.5.0)
++policy_module(virt, 1.5.1)
+ 
+ ########################################
+ #
+@@ -45,7 +45,7 @@
+ ## Allow virt to use usb devices
+ ## </p>
+ ## </desc>
+-gen_tunable(virt_use_usb, true)
++gen_tunable(virt_use_usb, false)
+ 
+ virt_domain_template(svirt)
+ role system_r types svirt_t;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/xen.te refpolicy/policy/modules/contrib/xen.te
+--- refpolicy/policy/modules/contrib/xen.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/xen.te	2012-09-08 18:03:03.462551675 +0200
+@@ -1,4 +1,4 @@
+-policy_module(xen, 1.12.0)
++policy_module(xen, 1.12.1)
+ 
+ ########################################
+ #
+@@ -11,7 +11,7 @@
+ ## Not required if using dedicated logical volumes for disk images.
+ ## </p>
+ ## </desc>
+-gen_tunable(xend_run_blktap, true)
++gen_tunable(xend_run_blktap, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -19,7 +19,7 @@
+ ## Not required if using paravirt and no vfb.
+ ## </p>
+ ## </desc>
+-gen_tunable(xend_run_qemu, true)
++gen_tunable(xend_run_qemu, false)
+ 
+ ## <desc>
+ ## <p>
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/xguest.te refpolicy/policy/modules/contrib/xguest.te
+--- refpolicy/policy/modules/contrib/xguest.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/xguest.te	2012-09-08 18:03:21.058551703 +0200
+@@ -1,4 +1,4 @@
+-policy_module(xguest, 1.1.0)
++policy_module(xguest, 1.1.1)
+ 
+ ########################################
+ #
+@@ -10,21 +10,21 @@
+ ## Allow xguest users to mount removable media
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_mount_media, true)
++gen_tunable(xguest_mount_media, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow xguest to configure Network Manager
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_connect_network, true)
++gen_tunable(xguest_connect_network, false)
+ 
+ ## <desc>
+ ## <p>
+ ## Allow xguest to use blue tooth devices
+ ## </p>
+ ## </desc>
+-gen_tunable(xguest_use_bluetooth, true)
++gen_tunable(xguest_use_bluetooth, false)
+ 
+ role xguest_r;
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/corecommands.fc refpolicy/policy/modules/kernel/corecommands.fc
+--- refpolicy/policy/modules/kernel/corecommands.fc	2012-09-08 20:48:27.932572860 +0200
++++ refpolicy/policy/modules/kernel/corecommands.fc	2012-08-09 17:41:47.860876717 +0200
+@@ -66,14 +66,17 @@
+ /etc/hotplug/hotplug\.functions --	gen_context(system_u:object_r:bin_t,s0)
+ /etc/hotplug\.d/default/default.*	gen_context(system_u:object_r:bin_t,s0)
+ 
+-/etc/init\.d/functions		--	gen_context(system_u:object_r:bin_t,s0)
+-
+ /etc/kde/env(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ /etc/kde/shutdown(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+ /etc/mail/make			--	gen_context(system_u:object_r:bin_t,s0)
+-/etc/mcelog/cache-error-trigger	--	gen_context(system_u:object_r:bin_t,s0)
++
++/etc/mcelog/.*-error-trigger	--	gen_context(system_u:object_r:bin_t,s0)
++/etc/mcelog/.*\.local		--	gen_context(system_u:object_r:bin_t,s0)
++
++ifdef(`distro_redhat',`
+ /etc/mcelog/triggers(/.*)?		gen_context(system_u:object_r:bin_t,s0)
++')
+ /etc/mgetty\+sendfax/new_fax	--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ /etc/netplug\.d(/.*)? 	 		gen_context(system_u:object_r:bin_t,s0)
+@@ -191,6 +194,7 @@
+ /usr/bin/scponly		--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/bin/tcsh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ 
++
+ /usr/lib(.*/)?bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+ /usr/(.*/)?sbin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+@@ -229,7 +233,7 @@
+ /usr/lib/rpm/rpmq		-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/rpm/rpmv		-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/sftp-server		--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/vte/gnome-pty-helper	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/vte/gnome-pty-helper 	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/exo-1/exo-compose-mail-1 -- gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/exo-1/exo-helper-1 --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/xfce4/panel/migrate	--	gen_context(system_u:object_r:bin_t,s0)
+@@ -245,15 +249,15 @@
+ /usr/lib/debug/usr/bin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/debug/usr/sbin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
+ 
+-/usr/lib/[^/]*thunderbird[^/]*/thunderbird -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*thunderbird[^/]*/thunderbird-bin -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*thunderbird[^/]*/open-browser\.sh -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*/run-mozilla\.sh --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/[^/]*/mozilla-xremote-client -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/thunderbird.*/mozilla-xremote-client 		-- gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/nspluginwrapper/i386/linux/npviewer.bin	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/nspluginwrapper/i386/linux/npviewer		--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/xulrunner-.*/plugin-container			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/thunderbird	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/thunderbird-bin	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*thunderbird[^/]*/open-browser\.sh --	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*/run-mozilla\.sh			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/[^/]*/mozilla-xremote-client		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/thunderbird.*/mozilla-xremote-client	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer.bin --	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/nspluginwrapper/i386/linux/npviewer	--	gen_context(system_u:object_r:shell_exec_t,s0)
++/usr/lib/xulrunner-.*/plugin-container		--	gen_context(system_u:object_r:bin_t,s0)
+ 
+ /usr/lib/xen/bin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
+ 
+@@ -263,19 +267,19 @@
+ 
+ /usr/libexec/openssh/sftp-server --	gen_context(system_u:object_r:bin_t,s0)
+ 
+-/usr/local/lib(64)?/ipsec/.*	-- 	gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/Brother(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/Printer(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/local/linuxprinter/filters(/.*)?	gen_context(system_u:object_r:bin_t,s0)
+ 
++
+ /usr/sbin/scponlyc		--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/sbin/sesh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ /usr/sbin/smrsh			--	gen_context(system_u:object_r:shell_exec_t,s0)
+ 
+ /usr/share/ajaxterm/ajaxterm.py.* --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/ajaxterm/qweb.py.* --	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/ajaxterm/qweb.py.*	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apr-0/build/[^/]+\.sh --	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/apr-0/build/libtool --	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/apr-0/build/libtool	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/build-1/mkdir.sh	--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/dayplanner/dayplanner --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/debconf/.+		--	gen_context(system_u:object_r:bin_t,s0)
+@@ -285,14 +289,14 @@
+ /usr/share/cluster/ocf-shellfuncs --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/cluster/svclib_nfslock --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/e16/misc(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gedit-2/plugins/externaltools/tools(/.*)? gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gitolite/hooks/common/update -- gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gedit-2/plugins/externaltools/tools(/.*)?	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gitolite/hooks/common/update		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/gitolite/hooks/gitolite-admin/post-update -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gnucash/finance-quote-check -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/gnucash/finance-quote-helper -- gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/GNUstep/Makefiles/*\.sh	--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gnucash/finance-quote-check		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/gnucash/finance-quote-helper		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/share/GNUstep/Makefiles/*\.sh		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/GNUstep/Makefiles/mkinstalldirs	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/share/hal/device-manager/hal-device-manager -- gen_context(system_u:object_r:bin_t,s0)
++/usr/share/hal/device-manager/hal-device-manager --	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/hal/scripts(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/mc/extfs/.*		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/Modules/init(/.*)?		gen_context(system_u:object_r:bin_t,s0)
+@@ -317,7 +321,7 @@
+ /usr/X11R6/lib(64)?/X11/xkb/xkbcomp --	gen_context(system_u:object_r:bin_t,s0)
+ 
+ ifdef(`distro_debian',`
+-/usr/lib/ConsoleKit/.*		--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/ConsoleKit/.*	--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+ ifdef(`distro_gentoo', `
+@@ -385,7 +389,7 @@
+ ifdef(`distro_suse', `
+ /usr/lib/cron/run-crons		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/lib/samba/classic/.*	--	gen_context(system_u:object_r:bin_t,s0)
+-/usr/lib/ssh/.*			--	gen_context(system_u:object_r:bin_t,s0)
++/usr/lib/ssh/.*		--	gen_context(system_u:object_r:bin_t,s0)
+ /usr/share/apache2/[^/]*	--	gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/devices.fc refpolicy/policy/modules/kernel/devices.fc
+--- refpolicy/policy/modules/kernel/devices.fc	2012-05-04 15:14:47.000000000 +0200
++++ refpolicy/policy/modules/kernel/devices.fc	2012-09-08 17:52:18.305550319 +0200
+@@ -57,8 +57,10 @@
+ /dev/lirc[0-9]+		-c	gen_context(system_u:object_r:lirc_device_t,s0)
+ /dev/lircm		-c	gen_context(system_u:object_r:mouse_device_t,s0)
+ /dev/logibm		-c	gen_context(system_u:object_r:mouse_device_t,s0)
++/dev/loop-control	-c	gen_context(system_u:object_r:loop_control_device_t,s0)
+ /dev/lp.*		-c	gen_context(system_u:object_r:printer_device_t,s0)
+ /dev/mcelog		-c	gen_context(system_u:object_r:kmsg_device_t,mls_systemhigh)
++/dev/mei		-c	gen_context(system_u:object_r:mei_device_t,s0)
+ /dev/mem		-c	gen_context(system_u:object_r:memory_device_t,mls_systemhigh)
+ /dev/mergemem		-c	gen_context(system_u:object_r:memory_device_t,mls_systemhigh)
+ /dev/mga_vid.*		-c	gen_context(system_u:object_r:xserver_misc_device_t,s0)
+@@ -125,8 +127,8 @@
+ /dev/vrtpanel		-c	gen_context(system_u:object_r:mouse_device_t,s0)
+ /dev/vttuner		-c	gen_context(system_u:object_r:v4l_device_t,s0)
+ /dev/vtx.*		-c	gen_context(system_u:object_r:v4l_device_t,s0)
+-/dev/watchdog		-c	gen_context(system_u:object_r:watchdog_device_t,s0)
+-/dev/winradio.		-c	gen_context(system_u:object_r:v4l_device_t,s0)
++/dev/watchdog.*		-c	gen_context(system_u:object_r:watchdog_device_t,s0)
++/dev/winradio.*		-c	gen_context(system_u:object_r:v4l_device_t,s0)
+ /dev/z90crypt		-c	gen_context(system_u:object_r:crypt_device_t,s0)
+ /dev/zero		-c	gen_context(system_u:object_r:zero_device_t,s0)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/devices.te refpolicy/policy/modules/kernel/devices.te
+--- refpolicy/policy/modules/kernel/devices.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/kernel/devices.te	2012-09-08 17:52:54.196550377 +0200
+@@ -1,4 +1,4 @@
+-policy_module(devices, 1.14.0)
++policy_module(devices, 1.14.3)
+ 
+ ########################################
+ #
+@@ -115,12 +115,18 @@
+ type lirc_device_t;
+ dev_node(lirc_device_t)
+ 
++type loop_control_device_t;
++dev_node(loop_control_device_t)
++
+ #
+ # Type for /dev/mapper/control
+ #
+ type lvm_control_t;
+ dev_node(lvm_control_t)
+ 
++type mei_device_t;
++dev_node(mei_device_t)
++
+ #
+ # memory_device_t is the type of /dev/kmem,
+ # /dev/mem and /dev/port.
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.fc refpolicy/policy/modules/kernel/files.fc
+--- refpolicy/policy/modules/kernel/files.fc	2012-09-08 20:48:27.937572860 +0200
++++ refpolicy/policy/modules/kernel/files.fc	2012-08-29 20:02:12.313673338 +0200
+@@ -84,7 +84,7 @@
+ 
+ ifdef(`distro_suse',`
+ /etc/defkeymap\.map	--	gen_context(system_u:object_r:etc_runtime_t,s0)
+-/etc/init\.d/\.depend.*	--	gen_context(system_u:object_r:etc_runtime_t,s0)
++/etc/rc\.d/init\.d/\.depend.* -- gen_context(system_u:object_r:etc_runtime_t,s0)
+ ')
+ 
+ #
+@@ -243,6 +243,12 @@
+ 
+ /var/lock(/.*)?			gen_context(system_u:object_r:var_lock_t,s0)
+ 
++/var/log/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
++/var/log/lost\+found/.*		<<none>>
++
++/var/log/audit/lost\+found -d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
++/var/log/audit/lost\+found/.*	<<none>>
++
+ /var/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
+ /var/lost\+found/.*		<<none>>
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.if refpolicy/policy/modules/kernel/files.if
+--- refpolicy/policy/modules/kernel/files.if	2012-09-08 20:48:28.058572860 +0200
++++ refpolicy/policy/modules/kernel/files.if	2012-07-28 22:59:11.964346582 +0200
+@@ -1430,6 +1430,7 @@
+ 	seutil_relabelto_bin_policy($1)
+ ')
+ 
++
+ #############################################
+ ## <summary>
+ ##	Manage all configuration directories on filesystem
+@@ -1583,43 +1584,43 @@
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit attempts to set the attributes on all mount points.
++##	Search all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_setattr_all_mountpoints',`
++interface(`files_search_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir setattr;
++	allow $1 mountpoint:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Search all mount points.
++##	Do not audit searching of all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain allowed access.
++##	Domain to not audit.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_search_all_mountpoints',`
++interface(`files_dontaudit_search_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	allow $1 mountpoint:dir search_dir_perms;
++	dontaudit $1 mountpoint:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit searching of all mount points.
++##	Do not audit listing of all mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -1627,48 +1628,48 @@
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_search_all_mountpoints',`
++interface(`files_dontaudit_list_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir search_dir_perms;
++	dontaudit $1 mountpoint:dir list_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit listing of all mount points.
++##	Do not audit write attempts on mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain to ignore write attempts from
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_list_all_mountpoints',`
++interface(`files_dontaudit_write_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir list_dir_perms;
++	dontaudit $1 mountpoint:dir write;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit attempts to write to mount points.
++##	Do not audit setattr attempts on mount points.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain to ignore setattr attempts from
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_dontaudit_write_all_mountpoints',`
++interface(`files_dontaudit_setattr_all_mountpoints',`
+ 	gen_require(`
+ 		attribute mountpoint;
+ 	')
+ 
+-	dontaudit $1 mountpoint:dir write;
++	dontaudit $1 mountpoint:dir setattr;
+ ')
+ 
+ ########################################
+@@ -5607,24 +5608,6 @@
+ 
+ ########################################
+ ## <summary>
+-##	Set the attributes of the generic lock directories.
+-## </summary>
+-## <param name="domain">
+-##	<summary>
+-##	Domain allowed access.
+-##	</summary>
+-## </param>
+-#
+-interface(`files_setattr_lock_dirs',`
+-	gen_require(`
+-		type var_t, var_lock_t;
+-	')
+-
+-	setattr_dirs_pattern($1, var_t, var_lock_t)
+-')
+-
+-########################################
+-## <summary>
+ ##	Search the locks directory (/var/lock).
+ ## </summary>
+ ## <param name="domain">
+@@ -5703,11 +5686,11 @@
+ 
+ ########################################
+ ## <summary>
+-## 	Create lock directories
++##	Create lock directories.
+ ## </summary>
+ ## <param name="domain">
+-## 	<summary>
+-##	Domain allowed access
++##	<summary>
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+@@ -5721,6 +5704,7 @@
+ 	create_dirs_pattern($1, var_lock_t, var_lock_t)
+ ')
+ 
++
+ ########################################
+ ## <summary>
+ ##	Relabel to and from all lock directory types.
+@@ -5766,6 +5750,24 @@
+ 
+ ########################################
+ ## <summary>
++##	Set the attributes of generic lock directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`files_setattr_lock_dirs',`
++	gen_require(`
++		type var_t, var_lock_t;
++	')
++
++	setattr_dirs_pattern($1, var_t, var_lock_t)
++')
++
++########################################
++## <summary>
+ ##	Delete generic lock files.
+ ## </summary>
+ ## <param name="domain">
+@@ -6046,6 +6048,29 @@
+ 	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+ 	allow $1 var_run_t:fifo_file write;
+ ')
++########################################
++## <summary>
++##	Write dirs in /var/run with the lock file type
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
++#
++interface(`files_pid_filetrans_lock_dir',`
++	gen_require(`
++		type var_t, var_run_t;
++	')
++
++	files_pid_filetrans($1, var_lock_t, dir, $2)
++')
++
+ 
+ ########################################
+ ## <summary>
+@@ -6110,29 +6135,6 @@
+ ')
+ 
+ ########################################
+-## <summary>
+-## 	Create a generic lock directory within the run directories
+-## </summary>
+-## <param name="domain">
+-## 	<summary>
+-##	Domain allowed access
+-##	</summary>
+-## </param>
+-## <param name="name" optional="true">
+-##	<summary>
+-##	The name of the object being created.
+-##	</summary>
+-## </param>
+-#
+-interface(`files_pid_filetrans_lock_dir',`
+-	gen_require(`
+-		type var_lock_t;
+-	')
+-
+-	files_pid_filetrans($1, var_lock_t, dir, $2)
+-')
+-
+-########################################
+ ## <summary>
+ ##	Read and write generic process ID files.
+ ## </summary>
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/files.te refpolicy/policy/modules/kernel/files.te
+--- refpolicy/policy/modules/kernel/files.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/kernel/files.te	2012-08-29 20:02:26.448673369 +0200
+@@ -1,4 +1,4 @@
+-policy_module(files, 1.17.0)
++policy_module(files, 1.17.2)
+ 
+ ########################################
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/roles/sysadm.te refpolicy/policy/modules/roles/sysadm.te
+--- refpolicy/policy/modules/roles/sysadm.te	2012-09-08 20:48:28.095572860 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-08-27 19:44:19.629302218 +0200
+@@ -243,6 +243,10 @@
+ ')
+ 
+ optional_policy(`
++	mutt_role(sysadm_r, sysadm_t)
++')
++
++optional_policy(`
+ 	mysql_stream_connect(sysadm_t)
+ ')
+ 
+@@ -439,11 +443,11 @@
+ ')
+ 
+ optional_policy(`
+-	virt_stream_connect(sysadm_t)
++	vde_role(sysadm_r, sysadm_t)
+ ')
+ 
+ optional_policy(`
+-	vde_role(sysadm_r, sysadm_t)
++	virt_stream_connect(sysadm_t)
+ ')
+ 
+ optional_policy(`
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.fc refpolicy/policy/modules/services/postgresql.fc
+--- refpolicy/policy/modules/services/postgresql.fc	2012-05-10 16:22:40.000000000 +0200
++++ refpolicy/policy/modules/services/postgresql.fc	2012-04-22 14:08:14.677349430 +0200
+@@ -2,6 +2,9 @@
+ # /etc
+ #
+ /etc/postgresql(/.*)?			gen_context(system_u:object_r:postgresql_etc_t,s0)
++ifdef(`distro_gentoo',`
++/etc/postgresql-.*(/.*)?		gen_context(system_u:object_r:postgresql_etc_t,s0)
++')
+ /etc/rc\.d/init\.d/(se)?postgresql --	gen_context(system_u:object_r:postgresql_initrc_exec_t,s0)
+ /etc/sysconfig/pgsql(/.*)? 		gen_context(system_u:object_r:postgresql_etc_t,s0)
+ 
+@@ -13,7 +16,7 @@
+ 
+ /usr/lib/pgsql/test/regress(/.*)?	gen_context(system_u:object_r:postgresql_db_t,s0)
+ /usr/lib/pgsql/test/regress/pg_regress -- gen_context(system_u:object_r:postgresql_exec_t,s0)
+-/usr/lib/postgresql/bin/.*	--	gen_context(system_u:object_r:postgresql_exec_t,s0)
++/usr/lib/postgresql/bin/.* --	gen_context(system_u:object_r:postgresql_exec_t,s0)
+ 
+ ifdef(`distro_debian', `
+ /usr/lib/postgresql/.*/bin/.*	--	gen_context(system_u:object_r:postgresql_exec_t,s0)
+@@ -23,6 +26,10 @@
+ /usr/share/jonas/pgsql(/.*)?		gen_context(system_u:object_r:postgresql_db_t,s0)
+ ')
+ 
++ifdef(`distro_gentoo',`
++/usr/lib/postgresql-.*/bin/.*	--	gen_context(system_u:object_r:postgresql_exec_t,s0)
++')
++
+ #
+ # /var
+ #
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.if refpolicy/policy/modules/services/postgresql.if
+--- refpolicy/policy/modules/services/postgresql.if	2012-05-18 19:59:12.000000000 +0200
++++ refpolicy/policy/modules/services/postgresql.if	2012-08-16 20:18:26.824450073 +0200
+@@ -334,6 +334,24 @@
+ 	allow $1 postgresql_db_t:lnk_file { getattr read };
+ ')
+ 
++#######################################
++## <summary>
++##	Execute postgresql in the calling domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access
++##	</summary>
++## </param>
++#
++interface(`postgresql_exec',`
++	gen_require(`
++		type postgresql_exec_t;
++	')
++
++	can_exec($1, postgresql_exec_t);
++')
++
+ ########################################
+ ## <summary>
+ ##	Execute postgresql in the postgresql domain.
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/postgresql.te refpolicy/policy/modules/services/postgresql.te
+--- refpolicy/policy/modules/services/postgresql.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/services/postgresql.te	2012-09-08 18:00:46.973551386 +0200
+@@ -1,4 +1,4 @@
+-policy_module(postgresql, 1.15.0)
++policy_module(postgresql, 1.15.2)
+ 
+ gen_require(`
+ 	class db_database all_db_database_perms;
+@@ -23,7 +23,7 @@
+ ## Allow unprived users to execute DDL statement
+ ## </p>
+ ## </desc>
+-gen_tunable(sepgsql_enable_users_ddl, true)
++gen_tunable(sepgsql_enable_users_ddl, false)
+ 
+ ## <desc>
+ ## <p>
+@@ -37,7 +37,7 @@
+ ## Allow database admins to execute DML statement
+ ## </p>
+ ## </desc>
+-gen_tunable(sepgsql_unconfined_dbadm, true)
++gen_tunable(sepgsql_unconfined_dbadm, false)
+ 
+ type postgresql_t;
+ type postgresql_exec_t;
+@@ -63,6 +63,7 @@
+ 
+ type postgresql_var_run_t;
+ files_pid_file(postgresql_var_run_t)
++init_daemon_run_dir(postgresql_var_run_t, "postgresql")
+ 
+ # database clients attribute
+ attribute sepgsql_admin_type;
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/services/xserver.fc refpolicy/policy/modules/services/xserver.fc
+--- refpolicy/policy/modules/services/xserver.fc	2012-09-08 20:48:27.968572860 +0200
++++ refpolicy/policy/modules/services/xserver.fc	2012-08-09 17:44:57.371884310 +0200
+@@ -23,7 +23,7 @@
+ /etc/gdm/PreSession/.*	--	gen_context(system_u:object_r:xsession_exec_t,s0)
+ /etc/gdm/Xsession	--	gen_context(system_u:object_r:xsession_exec_t,s0)
+ 
+-/etc/init\.d/xfree86-common --	gen_context(system_u:object_r:xserver_exec_t,s0)
++/etc/rc\.d/init\.d/xfree86-common --	gen_context(system_u:object_r:xserver_exec_t,s0)
+ 
+ /etc/kde[34]?/kdm/Xstartup --	gen_context(system_u:object_r:xsession_exec_t,s0)
+ /etc/kde[34]?/kdm/Xreset --	gen_context(system_u:object_r:xsession_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/authlogin.if refpolicy/policy/modules/system/authlogin.if
+--- refpolicy/policy/modules/system/authlogin.if	2012-09-08 20:48:28.100572860 +0200
++++ refpolicy/policy/modules/system/authlogin.if	2012-08-29 19:43:01.040670881 +0200
+@@ -1765,9 +1765,9 @@
+ ## <infoflow type="both" weight="10"/>
+ #
+ interface(`auth_use_nsswitch',`
+-    gen_require(`
+-        attribute nsswitch_domain;
+-    ')
++	gen_require(`
++		attribute nsswitch_domain;
++	')
+ 
+ 	typeattribute $1 nsswitch_domain;
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/authlogin.te refpolicy/policy/modules/system/authlogin.te
+--- refpolicy/policy/modules/system/authlogin.te	2012-07-25 20:33:04.000000000 +0200
++++ refpolicy/policy/modules/system/authlogin.te	2012-07-28 22:50:12.435345391 +0200
+@@ -405,7 +405,7 @@
+ 	xserver_rw_xdm_pipes(utempter_t)
+ ')
+ 
+-#######################################
++#########################################
+ #
+ # nsswitch_domain local policy
+ #
+@@ -426,7 +426,7 @@
+ 
+ optional_policy(`
+ 	tunable_policy(`authlogin_nsswitch_use_ldap',`
+-		ldap_stream_connect(nsswitch_domain)
++		 ldap_stream_connect(nsswitch_domain)
+ 	')
+ ')
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.fc refpolicy/policy/modules/system/init.fc
+--- refpolicy/policy/modules/system/init.fc	2012-09-08 20:48:27.984572860 +0200
++++ refpolicy/policy/modules/system/init.fc	2012-08-09 17:40:24.593873380 +0200
+@@ -1,8 +1,6 @@
+ #
+ # /etc
+ #
+-/etc/init\.d/.*		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+-
+ /etc/rc\.d/rc		--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ /etc/rc\.d/rc\.[^/]+	--	gen_context(system_u:object_r:initrc_exec_t,s0)
+ 
+@@ -68,6 +66,7 @@
+ /var/lib/init\.d(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ /var/lib/ip6?tables(/.*)?		gen_context(system_u:object_r:initrc_tmp_t,s0)
+ /var/run/svscan\.pid	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
++/var/run/openrc(/.*)?		gen_context(system_u:object_r:initrc_state_t,s0)
+ ')
+ 
+ ifdef(`distro_suse', `
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.if refpolicy/policy/modules/system/init.if
+--- refpolicy/policy/modules/system/init.if	2012-09-08 20:48:27.990572860 +0200
++++ refpolicy/policy/modules/system/init.if	2012-08-14 19:31:06.389412257 +0200
+@@ -417,6 +417,32 @@
+ 
+ ########################################
+ ## <summary>
++##	Mark the type as a daemon run dir
++## </summary>
++## <param name="rundirtype">
++##	<summary>
++##	Type to mark as a daemon run dir
++##	</summary>
++## </param>
++## <param name="filename">
++##	<summary>
++##	Name of the run dir directory
++##	</summary>
++## </param>
++#
++interface(`init_daemon_run_dir',`
++	gen_require(`
++		attribute daemonrundir;
++		type initrc_t;
++	')
++
++	typeattribute $1 daemonrundir;
++
++	files_pid_filetrans(initrc_t, $1, dir, $2)
++')
++
++########################################
++## <summary>
+ ##	Execute init (/sbin/init) with a domain transition.
+ ## </summary>
+ ## <param name="domain">
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/init.te refpolicy/policy/modules/system/init.te
+--- refpolicy/policy/modules/system/init.te	2012-09-08 20:48:28.010572860 +0200
++++ refpolicy/policy/modules/system/init.te	2012-08-16 13:12:40.311426439 +0200
+@@ -29,6 +29,9 @@
+ # Mark process types as daemons
+ attribute daemon;
+ 
++# Mark file as daemon run dir
++attribute daemonrundir;
++
+ #
+ # init_t is the domain of the init process.
+ #
+@@ -243,6 +246,9 @@
+ 
+ can_exec(initrc_t, init_script_file_type)
+ 
++create_dirs_pattern(initrc_t, daemonrundir, daemonrundir)
++setattr_dirs_pattern(initrc_t, daemonrundir, daemonrundir)
++
+ domtrans_pattern(init_run_all_scripts_domain, initrc_exec_t, initrc_t)
+ 
+ manage_dirs_pattern(initrc_t, initrc_state_t, initrc_state_t)
+@@ -757,10 +763,10 @@
+ 	ifdef(`distro_redhat',`
+ 		mysql_manage_db_dirs(initrc_t)
+ 	')
+-
++	mysql_read_config(initrc_t)
++	mysql_setattr_run_dirs(initrc_t)
+ 	mysql_stream_connect(initrc_t)
+ 	mysql_write_log(initrc_t)
+-	mysql_read_config(initrc_t)
+ ')
+ 
+ optional_policy(`
+@@ -852,8 +858,8 @@
+ ')
+ 
+ optional_policy(`
+-	udev_rw_db(initrc_t)
+-	udev_generic_pid_filetrans_run_dirs(initrc_t, "udev")
++	udev_create_db_dirs(initrc_t)
++	udev_pid_filetrans_db(initrc_t, dir, "rules.d")
+ 	udev_manage_pid_files(initrc_t)
+ 	udev_manage_pid_dirs(initrc_t)
+ 	udev_manage_rules_files(initrc_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/ipsec.fc refpolicy/policy/modules/system/ipsec.fc
+--- refpolicy/policy/modules/system/ipsec.fc	2012-05-10 16:23:17.000000000 +0200
++++ refpolicy/policy/modules/system/ipsec.fc	2012-07-28 18:53:56.059315169 +0200
+@@ -14,9 +14,9 @@
+ 
+ /usr/lib/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ /usr/lib/ipsec/_plutorun	--	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+-/usr/lib/ipsec/eroute		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
++/usr/lib/ipsec/eroute	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/lib/ipsec/klipsdebug	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/lib/ipsec/pluto		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
++/usr/lib/ipsec/pluto	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/lib/ipsec/spi		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ 
+ /usr/libexec/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+@@ -27,11 +27,6 @@
+ /usr/libexec/ipsec/spi		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+ /usr/libexec/nm-openswan-service -- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ 
+-/usr/local/lib(64)?/ipsec/eroute --	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/klipsdebug -- gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/pluto --	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-/usr/local/lib(64)?/ipsec/spi	--	gen_context(system_u:object_r:ipsec_exec_t,s0)
+-
+ /usr/sbin/ipsec			-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+ /usr/sbin/racoon		--	gen_context(system_u:object_r:racoon_exec_t,s0)
+ /usr/sbin/setkey		--	gen_context(system_u:object_r:setkey_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/libraries.fc refpolicy/policy/modules/system/libraries.fc
+--- refpolicy/policy/modules/system/libraries.fc	2012-05-10 16:26:34.000000000 +0200
++++ refpolicy/policy/modules/system/libraries.fc	2012-08-15 17:21:24.046562423 +0200
+@@ -33,7 +33,7 @@
+ /etc/ppp/plugins/rp-pppoe\.so 		--	gen_context(system_u:object_r:lib_t,s0)
+ 
+ #
+-# /lib(64)?
++# /lib
+ #
+ /lib					-d	gen_context(system_u:object_r:lib_t,s0)
+ /lib/.*						gen_context(system_u:object_r:lib_t,s0)
+@@ -113,7 +113,8 @@
+ /usr/(.*/)?lib(/.*)?				gen_context(system_u:object_r:lib_t,s0)
+ /usr/(.*/)?lib64(/.*)?				gen_context(system_u:object_r:lib_t,s0)
+ 
+-/usr/(.*/)?lib(64)?(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
++/usr/(.*/)?lib(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
++/usr/(.*/)?lib64(/.*)?/ld-[^/]*\.so(\.[^/]*)* gen_context(system_u:object_r:ld_so_t,s0)
+ 
+ /usr/(.*/)?nvidia/.+\.so(\..*)?		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+@@ -123,43 +124,43 @@
+ /usr/lib/vlc/codec/librealvideo_plugin\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vlc/codec/libdmo_plugin\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vlc/codec/librealaudio_plugin\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libtfmessbsp\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libtfmessbsp\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/X11R6/lib/libGL\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libGL\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/catalyst/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libGL\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/catalyst/libGL\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libADM5.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libatiadlxx\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/win32/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/win32/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/ADM_plugins/videoFilter/.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/(.*/)?lib(64)?(/.*)?/nvidia/.+\.so(\..*)? -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/nvidia/.+\.so(\..*)?	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libsipphoneapi\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(.*/)?lib(/.*)?/nvidia/.+\.so(\..*)? -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/nvidia/.+\.so(\..*)? --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libsipphoneapi\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/ati-fglrx/.+\.so(\..*)?	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/fglrx/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libjs\.so.*			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/sse2/libx264\.so(\.[^/]*)* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/libnvidia.+\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib(/.*)?/nvidia_drv.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/nero/plug-ins/libMP3\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/fglrx/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libjs\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/sse2/libx264\.so(\.[^/]*)* 	-- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/libnvidia.+\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib(/.*)?/nvidia_drv.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/nero/plug-ins/libMP3\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libGL(core)?\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libnvidia.*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/nvidia-graphics(-[^/]*/)?libXvMCNVIDIA\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/nvidia/libGL(core)?\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/xorg/modules/glesx\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/nvidia/libGL(core)?\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xorg/modules/glesx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/(local/)?.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:lib_t,s0)
+-/usr/(local/)?lib(64)?/wine/.+\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/(local/)?lib(64)?/(sse2/)?libfame-.*\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:lib_t,s0)
++/usr/lib/wine/.+\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/(sse2/)?libfame-.*\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/NX/lib/libXcomp\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/NX/lib/libjpeg\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/X11R6/lib/libXvMCNVIDIA\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/xorg/modules/drivers/fglrx_drv\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/xorg/modules/drivers/nvidia_drv\.o --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xorg/modules/drivers/nvidia_drv\.o -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/modules/extensions/nvidia(-[^/]*)?/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/xorg/modules/extensions/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/x11R6/lib/modules/extensions/libglx\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -180,11 +181,11 @@
+ 
+ # Fedora Core packages: gstreamer-plugins, compat-libstdc++, Glide3, libdv
+ # 	HelixPlayer, SDL, xorg-x11, xorg-x11-libs, Hermes, valgrind, openoffice.org-libs, httpd - php
+-HOME_DIR/.*/plugins/nppdf\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/allegro/(.*/)?alleg-vga\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++HOME_DIR/.*/plugins/nppdf\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/allegro/(.*/)?alleg-vga\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/firefox-[^/]*/extensions(/.*)?/libqfaservices.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/firefox-[^/]*/plugins/nppdf.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/firefox/plugins/libractrl\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/firefox/plugins/libractrl\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libFLAC\.so.*			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libfglrx_gamma\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/mozilla/plugins/nppdf\.so 	-- 	gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -193,66 +194,65 @@
+ /usr/lib/nx/libjpeg\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/VBoxVMM\.so			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-/usr/lib/libstdc\+\+\.so\.2\.7\.2\.8	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libstdc\+\+\.so\.2\.7\.2\.8 --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libg\+\+\.so\.2\.7\.2\.8	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libgpac\.so.* 			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libgpac\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libglide3\.so.* 		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libglide3-v[0-9]*\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/helix/plugins/[^/]*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/helix/codecs/[^/]*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/helix/plugins/[^/]*\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/helix/codecs/[^/]*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/X11R6/lib/libfglrx_gamma\.so.* 	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/libHermes\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/valgrind/hp2ps			--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/valgrind/hp2ps		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/valgrind/stage2		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/valgrind/vg.*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libicudata\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsts645li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libvclplug_gen645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libwrp645li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libswd680li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/librecentfile\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsvx680li\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libcomphelp4gcc3\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/program/libsoffice\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libicudata\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsts645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libvclplug_gen645li\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libwrp645li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libswd680li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/librecentfile\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsvx680li\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libcomphelp4gcc3\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/program/libsoffice\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(.*/)?pcsc/drivers(/.*)?/lib(cm2020|cm4000|SCR24x)\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Fedora Extras packages: ladspa, imlib2, ocaml
+-/usr/lib/ladspa/analogue_osc_1416\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/bandpass_a_iir_1893\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/bandpass_iir_1892\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/butterworth_1902\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/fm_osc_1415\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/gsm_1215\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/gverb_1216\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/hermes_filter_1200\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/highpass_iir_1890\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/lowpass_iir_1891\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/analogue_osc_1416\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/bandpass_a_iir_1893\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/bandpass_iir_1892\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/butterworth_1902\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/fm_osc_1415\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/gsm_1215\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/gverb_1216\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/hermes_filter_1200\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/highpass_iir_1890\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/lowpass_iir_1891\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/ladspa/notch_iir_1894\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/pitch_scale_1193\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/pitch_scale_1194\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc1_1425\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc2_1426\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc3_1427\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/sc4_1882\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ladspa/se4_1883\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/sane/libsane-epkowa\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/ocaml/stublibs/dllnums\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/pitch_scale_1193\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/pitch_scale_1194\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc1_1425\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc2_1426\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc3_1427\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/sc4_1882\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ladspa/se4_1883\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/sane/libsane-epkowa\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/ocaml/stublibs/dllnums\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Livna.org packages: xmms-mp3, ffmpeg, xvidcore, xine-lib, gsm, lame
+-/usr/lib.*/libmpg123\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local(/.*)?/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib.*/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(/.*)?/libmpg123\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/codecs/drv[1-9c]\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/lib/codecs/drv[1-9c]\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+-HOME_DIR/.*/plugins/nppdf\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++HOME_DIR/.*/plugins/nppdf\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ HOME_DIR/.mozilla/plugins/nprhapengine\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/.*/nprhapengine\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/(.*/)?nprhapengine\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/.*/nprhapengine\.so.*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/local/(.*/)?nprhapengine\.so.* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Jai, Sun Microsystems (Jpackage SPRM)
+ /usr/lib/libmlib_jai\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libdivxdecore\.so\.0		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/libdivxencore\.so\.0		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libdivxdecore\.so\.0	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/libdivxencore\.so\.0	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/libdvdcss\.so.*		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+@@ -260,17 +260,16 @@
+ 
+ # vmware
+ /usr/lib/vmware/lib(/.*)?/libgdk-x11-.*\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/vmware/lib(/.*)?/HConfig\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/vmware/lib(/.*)?/HConfig\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vmware/(.*/)?VmPerl\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/lib/vmware/lib(/.*)?/libvmware-gksu.*\.so.* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/lib/(virtualbox(-ose)?/)?(components/)?VBox.*\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/virtualbox/.*\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/virtualbox/.*\.so	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ # Java, Sun Microsystems (JPackage SRPM)
+-/usr/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/local/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/lib/(.*/)?jre.*/.*\.so(\.[^/]*)*	--	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/(.*/)?jre.*/.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/(.*/)?jre.*/.*\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ 
+ /usr/(local/)?Adobe/(.*/)?intellinux/nppdf\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?Adobe/(.*/)?intellinux/sidecars/* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -279,7 +278,7 @@
+ /usr/(local/)?Adobe/(.*/)?lib/[^/]*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?acroread/(.*/)?lib/[^/]*\.so(\.[^/]*)* -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?Adobe/.*\.api		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
+-/usr/(local/)?lib/xchat/plugins/systray\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
++/usr/lib/xchat/plugins/systray\.so --	gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/bin/glnx86/libmwlapack\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/bin/glnx86/(libmw(lapack|mathutil|services)|lapack|libmkl)\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+ /usr/(local/)?matlab.*/sys/os/glnx86/libtermcap\.so -- gen_context(system_u:object_r:textrel_shlib_t,s0)
+@@ -310,6 +309,6 @@
+ /var/lib/samba/bin/.+\.so(\.[^/]*)*	-l	gen_context(system_u:object_r:lib_t,s0)
+ ')
+ 
+-/var/spool/postfix/lib(64)?(/.*)? 		gen_context(system_u:object_r:lib_t,s0)
++/var/spool/postfix/lib(/.*)? 		gen_context(system_u:object_r:lib_t,s0)
+ /var/spool/postfix/usr(/.*)?			gen_context(system_u:object_r:lib_t,s0)
+-/var/spool/postfix/lib(64)?/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
++/var/spool/postfix/lib/ld.*\.so.*	--	gen_context(system_u:object_r:ld_so_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/miscfiles.fc refpolicy/policy/modules/system/miscfiles.fc
+--- refpolicy/policy/modules/system/miscfiles.fc	2012-09-08 20:48:28.066572860 +0200
++++ refpolicy/policy/modules/system/miscfiles.fc	2012-08-09 17:29:45.161847759 +0200
+@@ -39,7 +39,7 @@
+ /usr/local/man(/.*)?		gen_context(system_u:object_r:man_t,s0)
+ /usr/local/share/man(/.*)?	gen_context(system_u:object_r:man_t,s0)
+ 
+-/usr/local/share/fonts(/.*)?	gen_context(system_u:object_r:fonts_t,s0)
++/usr/local/share/fonts(/.*)?	gen_context(system_u:object_r:man_t,s0)
+ 
+ /usr/man(/.*)?			gen_context(system_u:object_r:man_t,s0)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/sysnetwork.te refpolicy/policy/modules/system/sysnetwork.te
+--- refpolicy/policy/modules/system/sysnetwork.te	2012-09-08 20:48:28.076572860 +0200
++++ refpolicy/policy/modules/system/sysnetwork.te	2012-08-09 18:43:42.171025547 +0200
+@@ -65,7 +65,10 @@
+ 
+ # create pid file
+ manage_files_pattern(dhcpc_t, dhcpc_var_run_t, dhcpc_var_run_t)
+-files_pid_filetrans(dhcpc_t, dhcpc_var_run_t, file)
++create_dirs_pattern(dhcpc_t, dhcpc_var_run_t, dhcpc_var_run_t)
++# Create /var/run/dhcpc directory (state directory), needed for /run/dhcpc
++# Gets done through the dhcpcd-hooks
++files_pid_filetrans(dhcpc_t, dhcpc_var_run_t, { file dir })
+ 
+ # Allow read/write to /etc/resolv.conf and /etc/ntp.conf. Note that any files
+ # in /etc created by dhcpcd will be labelled net_conf_t.
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.fc refpolicy/policy/modules/system/udev.fc
+--- refpolicy/policy/modules/system/udev.fc	2012-09-08 20:48:28.019572860 +0200
++++ refpolicy/policy/modules/system/udev.fc	2012-07-17 17:31:55.765243315 +0200
+@@ -30,8 +30,12 @@
+ /usr/bin/udevadm	--	gen_context(system_u:object_r:udev_exec_t,s0)
+ /usr/bin/udevinfo --	gen_context(system_u:object_r:udev_exec_t,s0)
+ 
++/usr/lib/systemd/systemd-udevd	--	gen_context(system_u:object_r:udev_exec_t,s0)
++
+ /var/run/PackageKit/udev(/.*)? gen_context(system_u:object_r:udev_var_run_t,s0)
+-/var/run/udev(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev(/.*)?		gen_context(system_u:object_r:udev_var_run_t,s0)
++/var/run/udev/rules\.d(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
++/var/run/udev/data(/.*)?	gen_context(system_u:object_r:udev_tbl_t,s0)
+ 
+ ifdef(`distro_debian',`
+ /var/run/xen-hotplug -d	gen_context(system_u:object_r:udev_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.if refpolicy/policy/modules/system/udev.if
+--- refpolicy/policy/modules/system/udev.if	2012-07-24 14:49:22.000000000 +0200
++++ refpolicy/policy/modules/system/udev.if	2012-08-14 19:31:16.865412676 +0200
+@@ -132,6 +132,27 @@
+ 
+ ########################################
+ ## <summary>
++##	Read udev rules files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_read_rules_files',`
++	gen_require(`
++		type udev_rules_t;
++	')
++
++	files_search_etc($1) # /etc/udev/rules.d
++	udev_search_pids($1) # /run/udev/rules.d
++	read_files_pattern($1, udev_rules_t, udev_rules_t)
++')
++
++
++########################################
++## <summary>
+ ##	Manage udev rules files
+ ## </summary>
+ ## <param name="domain">
+@@ -200,6 +221,7 @@
+ 
+ 	files_search_etc($1)
+ 
++	# Device table files are beneith /run/udev
+ 	udev_search_pids($1)
+ ')
+ 
+@@ -224,7 +246,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Search through udev pid content
++##	Create udev database directories
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -232,38 +254,50 @@
+ ##	</summary>
+ ## </param>
+ #
+-interface(`udev_search_pids',`
++interface(`udev_create_db_dirs',`
+ 	gen_require(`
++		type udev_tbl_t;
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_search_pids($1)
+-	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++	create_dirs_pattern($1, udev_var_run_t, udev_tbl_t)
+ ')
+ 
++
++
+ ########################################
+ ## <summary>
+-##	Create, read, write, and delete
+-##	udev pid directories
++##	Write in /var/run/udev with the udev_tbl_t (udev database) file type
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
++## <param name="class">
++## 	<summary>
++##	Classes on which the file transition should occur
++##	</summary>
++## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	Name of the directory that the file transition will work on
++##	</summary>
++## </param>
+ #
+-interface(`udev_manage_pid_dirs',`
++interface(`udev_pid_filetrans_db',`
+ 	gen_require(`
++		type udev_tbl_t;
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_search_var($1)
+-	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++	filetrans_pattern($1, udev_var_run_t, udev_tbl_t, $2, $3)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create directories in the run location with udev_var_run_t type
++##	Write dirs in /var/run with the udev_var_run file type.
++##	This method is deprecated in favor of the init_daemon_run_dir call.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -271,19 +305,35 @@
+ ##	</summary>
+ ## </param>
+ ## <param name="name" optional="true">
+-## 	<summary>
+-##	Name of the directory that is created
++##	<summary>
++##	Name of the directory that the file transition will work on
+ ##	</summary>
+ ## </param>
+ #
+ interface(`udev_generic_pid_filetrans_run_dirs',`
++	refpolicywarn(`$0($*) has been deprecated.')
++')
++
++########################################
++## <summary>
++## 	Search through udev pid files and directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_search_pids',`
+ 	gen_require(`
+ 		type udev_var_run_t;
+ 	')
+ 
+-	files_pid_filetrans($1, udev_var_run_t, dir, $2)
++	files_search_var_lib($1)
++	search_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
+ ')
+ 
++
+ ########################################
+ ## <summary>
+ ##	Create, read, write, and delete
+@@ -303,3 +353,23 @@
+ 	files_search_var_lib($1)
+ 	manage_files_pattern($1, udev_var_run_t, udev_var_run_t)
+ ')
++
++########################################
++## <summary>
++##	Create, read, write, and delete
++##	udev run directories
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`udev_manage_pid_dirs',`
++	gen_require(`
++		type udev_var_run_t;
++	')
++
++	files_search_var_lib($1)
++	manage_dirs_pattern($1, udev_var_run_t, udev_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.te refpolicy/policy/modules/system/udev.te
+--- refpolicy/policy/modules/system/udev.te	2012-09-08 20:48:28.081572860 +0200
++++ refpolicy/policy/modules/system/udev.te	2012-08-15 10:36:10.483588192 +0200
+@@ -25,6 +25,7 @@
+ 
+ type udev_var_run_t;
+ files_pid_file(udev_var_run_t)
++init_daemon_run_dir(udev_var_run_t, "udev")
+ 
+ ifdef(`enable_mcs',`
+ 	kernel_ranged_domtrans_to(udev_t, udev_exec_t, s0 - mcs_systemhigh)
+@@ -74,6 +75,7 @@
+ manage_dirs_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ manage_lnk_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
++manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
+ files_pid_filetrans(udev_t, udev_var_run_t, { dir file })
+ 
+ kernel_dgram_send(udev_t)
+@@ -175,6 +177,8 @@
+ 
+ userdom_dontaudit_search_user_home_content(udev_t)
+ 
++udev_pid_filetrans_db(udev_t, dir, "data")
++
+ ifdef(`distro_gentoo',`
+ 	# during boot, init scripts use /dev/.rcsysinit
+ 	# existance to determine if we are in early booting

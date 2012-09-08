@@ -38,7 +38,6 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0013 - use runtime files for gcc-config (+ tmp support for "tac" command)
 0014 . add vde declaration
 0015 - update on fail2ban (start from initrc_t), dontaudit for python scripts wanting to write .pyc files where .py files are
-0016 + mark remotelogin_domtrans call in telnet as optional (no hard dependency)
 0017 . updates for init (partial)
      - updates for init 
 0018 - update on udev, later versions manage the udev_tbl_t more than just files
@@ -89,50 +88,25 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0069 - support proper userspace confinement
 0074 - various dontaudits
 0081 - allow sysadmin to be postfix admin
-0082 + use init_daemon_run_dir for /run support
-0083 + mark tor_var_run_t as a rundir for initrc_t
 0087 - label kmod as insmod_exec_t
 0088 - allow udev to load kernel modules
 0089 - update contexts for publicfile
 0090 - reading mail alias files requires search in etc_mail_t
 0091 - remove duplicate context for java
-0092 + simple set of postgresql updates (/run/postgresql)
-     - simple set of postgresql updates (support sysadm operations)
+0092 - simple set of postgresql updates (support sysadm operations)
 0093 - allow sysadm to manage asterisk service
 0094 - remove named_var_lib_t reference
 0097 - mark /etc/env.d generally as runtime files (gcc-config needed)
-0098 + allow init to create /run/asterisk
 0099 - allow sysadm to manage openvpn
 0100 - allow sysadm to manage bind
 0101 - allow sysadm to manage ntp
-0102 + named file transition for /run/ConsoleKit
-0103 + named file transition for /run/nscd
-0104 = merge set from 20120725
 0105 - introduce puppet_admin and puppet_admin_puppetmaster interfaces
 0106 - allow lvm_t (cryptsetup) to request loading a cryptography-related module
 0107 - dbus wants to set its max number of open file descriptors
-0108 + backport lost+found changes 
 0109 - consolekit creates /var/run/console tagfiles triggered through its pam connector
 0110 - mark the syslog-ng.persist file as the syslogd_var_lib_t file too to it survives a relabel
 0111 - consolekit reads dbus info
-0112 + support loop device file context
-0113 + turn all booleans off by default
-0114 + introduce sensord policy
-0115 + allow sasl to talk with mysql over tcp
-0116 + allow quota to request loading kernel modules
-0117 + fix ports usage for djbdns
-0118 + introduce systemtap policy
-0119 + clamav reads system and network state
-0120 + various block_suspend fixes
-0121 + support LDAP user authentication for dovecot
-0122 + support gitolite3 in gitosis
-0123 + gpg agent reads dev/random
-0124 + add milter' greylist enhancements
-0125 + allow wicd (networkmanager_t) to run wpa_cli within the networkmanager_t domain
-0126 + allow cups to read crypto sysctls
-0127 + support minimal policykit
-0128 + tor reads network sysctls
-0129 + various capability updates for sanlock
+0130 = merge set from 20120725
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

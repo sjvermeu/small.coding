@@ -1,6 +1,0 @@
-Recent postfix releases have their binaries at /usr/libexec instead of /usr/lib.
-This patch removes the ifdef for distro_redhat since, even for distributions
-that would still have the old locations, having the definitions for the contexts
-loaded doesn't hurt.
-
-Add in a small blurb too to reflect the potential deprecation of said contexts.

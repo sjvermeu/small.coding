@@ -1,7 +1,0 @@
-Mark the pid directory as a pid directory
-
-Currently, the policy has the pid directory itself marked as the postfix_spool_t
-type. However, when mails are delivered, several postfix daemons need to
-add/remove their PID files. It makes much more sense to mark this location as
-postfix_var_run_t rather than having file transitions for all these daemons when
-they write their PID file.

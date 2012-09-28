@@ -1,5 +1,0 @@
-Fix typo in interface postix_exec_postqueue
-
-To allow domains to execute the postqueue command, they should use
-postfix_exec_postqueue, not posftix_exec_postqueue.
-

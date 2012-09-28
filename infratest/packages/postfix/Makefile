@@ -16,7 +16,7 @@ setup:
 	echo "[postfix:setup] setting mynetworks to local network" && \
 	echo "                = mails received from here is accepted to be routed" && \
 	grep -v ^mynetworks /etc/postfix/main.cf.b > /etc/postfix/main.cf.c; \
-	echo "mynetworks = 127.0.0.1 192.168.100.1/24" >> /etc/postfix/main.cf.c && \
+	echo "mynetworks = 127.0.0.1 192.168.100.0/24" >> /etc/postfix/main.cf.c && \
 	echo "[postfix:setup] setting relay_domains empty" && \
 	echo "                = list of domains the mail server will forward for (regardless of source)" && \
 	grep -v ^relay_domains /etc/postfix/main.cf.c > /etc/postfix/main.cf.d; \

@@ -1,5 +1,10 @@
+** 2012-10-03 Revision 6
+
+#434888		Support stream sockets for phpfpm
+#434892		Nginx can read all web content and manage rw webcontent
+<no bug>	Chromium's libudev integration requires netlink privileges
+#433084		Introduce rtorrent policy
 <no bug>	Full merger with upstream
-#434888		Use stream sockets for phpfpm
 
 ** 2012-09-07 Revision 5
 

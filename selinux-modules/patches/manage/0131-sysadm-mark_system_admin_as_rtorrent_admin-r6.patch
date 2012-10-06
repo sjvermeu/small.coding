@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/sysadm.te	2012-09-29 18:50:12.922943743 +0200
++++ refpolicy/policy/modules/roles/sysadm.te	2012-09-29 18:36:48.194925153 +0200
+@@ -351,6 +351,10 @@
+ ')
+ 
+ optional_policy(`
++	rtorrent_admin(sysadm_t, sysadm_r)
++')
++
++optional_policy(`
+ 	samba_run_net(sysadm_t, sysadm_r)
+ 	samba_run_winbind_helper(sysadm_t, sysadm_r)
+ ')

@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/roles/unprivuser.te	2012-09-29 18:50:27.399944078 +0200
++++ refpolicy/policy/modules/roles/unprivuser.te	2012-09-29 18:37:30.327926128 +0200
+@@ -142,6 +142,10 @@
+ 	')
+ 
+ 	optional_policy(`
++		rtorrent_role(user_r, user_t)
++	')
++
++	optional_policy(`
+ 		skype_role(user_r, user_t)
+ 	')
+ 

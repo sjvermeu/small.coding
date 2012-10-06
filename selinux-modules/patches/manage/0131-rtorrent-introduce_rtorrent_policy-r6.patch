@@ -1,0 +1,160 @@
+--- refpolicy/policy/modules/contrib/rtorrent.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rtorrent.te	2012-09-29 18:46:09.970938131 +0200
+@@ -0,0 +1,87 @@
++policy_module(rtorrent, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++## <desc>
++## <p>
++## Allow rtorrent to use dht.
++## The correspondig port must be rtorrent_udp_port_t.
++## </p>
++## </desc>
++gen_tunable(rtorrent_use_dht, true)
++
++## <desc>
++## <p>
++## Allow rtorrent to use rsync, for example in a hook.
++## </p>
++## </desc>
++gen_tunable(rtorrent_use_rsync, false)
++
++
++type rtorrent_t;
++type rtorrent_exec_t;
++userdom_user_application_domain(rtorrent_t, rtorrent_exec_t)
++
++type rtorrent_home_t;
++userdom_user_home_content(rtorrent_home_t)
++
++type rtorrent_session_t;
++userdom_user_home_content(rtorrent_session_t)
++
++########################################
++#
++# rtorrent local policy
++#
++
++allow rtorrent_t self:process signal;
++allow rtorrent_t self:netlink_route_socket r_netlink_socket_perms;
++allow rtorrent_t self:tcp_socket create_stream_socket_perms;
++
++read_files_pattern(rtorrent_t, rtorrent_home_t, rtorrent_home_t)
++
++manage_dirs_pattern(rtorrent_t, rtorrent_session_t, rtorrent_session_t)
++manage_files_pattern(rtorrent_t, rtorrent_session_t, rtorrent_session_t)
++
++corenet_tcp_bind_generic_node(rtorrent_t)
++corenet_tcp_bind_rtorrent_port(rtorrent_t)
++corenet_tcp_connect_all_ports(rtorrent_t)
++corenet_tcp_sendrecv_all_ports(rtorrent_t)
++
++domain_use_interactive_fds(rtorrent_t)
++
++files_list_home(rtorrent_t)
++files_read_etc_files(rtorrent_t)
++
++fs_getattr_xattr_fs(rtorrent_t)
++
++miscfiles_read_localization(rtorrent_t)
++
++sysnet_read_config(rtorrent_t)
++
++userdom_list_user_home_dirs(rtorrent_t)
++userdom_use_user_ptys(rtorrent_t)
++
++tunable_policy(`rtorrent_use_dht',`
++	allow rtorrent_t self:udp_socket create_stream_socket_perms;
++
++	corenet_udp_bind_generic_node(rtorrent_t)
++	corenet_udp_bind_rtorrent_port(rtorrent_t)
++')
++
++tunable_policy(`rtorrent_use_rsync',`
++	allow rtorrent_t self:unix_stream_socket { create connect write read };
++
++	corecmd_search_bin(rtorrent_t)  
++
++	corenet_sendrecv_rsync_client_packets(rtorrent_t)
++	corenet_tcp_connect_rsync_port(rtorrent_t)
++
++	rsync_exec(rtorrent_t)
++')
++
++optional_policy(`
++	xdg_manage_downloads_home(rtorrent_t)
++')
+--- refpolicy/policy/modules/contrib/rtorrent.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rtorrent.if	2012-09-29 18:35:02.160922704 +0200
+@@ -0,0 +1,60 @@
++## <summary>rtorrent torrent client</summary>
++
++#######################################
++## <summary>
++## 	Role access for rtorrent
++## </summary>
++## <param name="user_role">
++##      <summary>
++##      The role associated with the user domain.
++##      </summary>
++## </param>
++## <param name="user_domain">
++##      <summary>
++##      The user domain.
++##      </summary>
++## </param>
++#
++interface(`rtorrent_role',`
++	gen_require(`
++		type rtorrent_t, rtorrent_exec_t, rtorrent_home_t, rtorrent_session_t;
++	')
++
++	role $1 types rtorrent_t;
++
++	domtrans_pattern($2, rtorrent_exec_t, rtorrent_t)
++
++	allow $2 rtorrent_t:process signal_perms;
++
++	manage_files_pattern($2, rtorrent_home_t, rtorrent_home_t)
++
++	read_files_pattern($2, rtorrent_session_t, rtorrent_session_t)
++	list_dirs_pattern($2, rtorrent_session_t, rtorrent_session_t)
++
++	ps_process_pattern($2, rtorrent_t)
++')
++
++#######################################
++## <summary>
++##      Administer the rtorrent application.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed access.
++##      </summary>
++## </param>
++## <param name="role">
++##      <summary>
++##      Role allowed access.
++##      </summary>
++## </param>
++#
++interface(`rtorrent_admin',`
++	gen_require(`
++		type rtorrent_t;
++	')
++
++	allow $1 rtorrent_t:process ptrace;
++
++	rtorrent_role($2, $1)
++')
+--- refpolicy/policy/modules/contrib/rtorrent.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rtorrent.fc	2012-09-29 18:36:10.562924285 +0200
+@@ -0,0 +1,4 @@
++HOME_DIR/.rtorrent.rc	--	gen_context(system_u:object_r:rtorrent_home_t,s0,s0)
++HOME_DIR/.rtsession(/.*)?	gen_context(system_u:object_r:rtorrent_session_t,s0,s0)
++
++/usr/bin/rtorrent	--	gen_context(system_u:object_r:rtorrent_exec_t,s0,s0)

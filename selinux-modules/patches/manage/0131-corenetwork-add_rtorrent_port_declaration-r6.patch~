@@ -1,0 +1,10 @@
+--- refpolicy/policy/modules/kernel/corenetwork.te.in	2012-09-29 18:49:55.756943347 +0200
++++ refpolicy/policy/modules/kernel/corenetwork.te.in	2012-09-29 18:26:04.483910283 +0200
+@@ -229,6 +229,7 @@
+ network_port(router, udp,520,s0, udp,521,s0, tcp,521,s0)
+ network_port(rsh, tcp,514,s0)
+ network_port(rsync, tcp,873,s0, udp,873,s0)
++network_port(rtorrent, udp, 6881, s0)
+ network_port(rtsp, tcp,554,s0, udp,554,s0)
+ network_port(rwho, udp,513,s0)
+ network_port(sap, tcp,9875,s0, udp,9875,s0)

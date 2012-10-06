@@ -57,7 +57,6 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0035 - allow mount and su to get attribute of security_t, needed for mounting with rootcontext option or running su [2]
 0036 - allow sysadmin to call qemu
 0037 - mark /var/lib/ip6tables as initrc_tmp_t, needed by ip6tables init script
-0038 - allow nginx_t to list the contents of its configuration directories
 0039 - mark /lib/rc/console as initrc_state_t so that init script can clean stuff in there
 0040 - selinux-aware applications check for selinux file system on /selinux (security_t) but also inside /sys (sysfs_t)
 0041 - remove domtrans when calling rc_exec_t to initrc_t, gentoo init system already supports integrated run_init (runscript_selinux.so is a modified run_init), all it needs is execute rights on rc_exec_t and "wait" until initrc_exec_t is called.
@@ -107,6 +106,7 @@ not yet approved). An "!" means that the patch will not be sent upstream
 0110 - mark the syslog-ng.persist file as the syslogd_var_lib_t file too to it survives a relabel
 0111 - consolekit reads dbus info
 0130 = merge set from 20120725
+0131 - introduce rtorrent policy
 
 [1] Refpolicy would like to see an intermediate domain (udev_network_initrc_t or something similar) which
     has the domtrans in it. In our case, this probably means that the udev "net.sh" script should use that.

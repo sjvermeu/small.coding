@@ -1,0 +1,13 @@
+--- refpolicy/policy/modules/system/unconfined.te	2012-09-29 18:50:50.971944622 +0200
++++ refpolicy/policy/modules/system/unconfined.te	2012-09-29 18:38:34.867927617 +0200
+@@ -187,6 +187,10 @@
+ ')
+ 
+ optional_policy(`
++	rtorrent_role(unconfined_r, unconfined_t)
++')
++
++optional_policy(`
+ 	samba_run_net(unconfined_t, unconfined_r)
+ 	samba_run_winbind_helper(unconfined_t, unconfined_r)
+ ')

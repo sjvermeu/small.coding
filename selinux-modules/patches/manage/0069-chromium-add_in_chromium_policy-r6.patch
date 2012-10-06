@@ -1,6 +1,6 @@
 --- refpolicy/policy/modules/contrib/chromium.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/chromium.te	2012-08-10 17:15:52.953276414 +0200
-@@ -0,0 +1,262 @@
++++ refpolicy/policy/modules/contrib/chromium.te	2012-09-29 19:40:24.254013308 +0200
+@@ -0,0 +1,263 @@
 +policy_module(chromium, 1.0.0)
 +
 +########################################
@@ -75,9 +75,10 @@
 +# chromium local policy
 +#
 +
-+allow chromium_t self:fifo_file rw_fifo_file_perms;;
 +allow chromium_t self:process { getsched setsched signal };
++allow chromium_t self:fifo_file rw_fifo_file_perms;;
 +allow chromium_t self:sem create_sem_perms;
++allow chromium_t self:netlink_kobject_uevent_socket client_stream_socket_perms;
 +
 +allow chromium_t chromium_exec_t:file execute_no_trans;
 +allow chromium_t chromium_renderer_t:dir list_dir_perms;

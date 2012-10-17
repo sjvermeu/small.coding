@@ -13726,8 +13726,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/cobbler.fc refpolicy/policy/modules/contrib/cobbler.fc
 --- refpolicy/policy/modules/contrib/cobbler.fc	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/cobbler.fc	2012-09-27 20:03:30.741126498 +0200
-@@ -1,7 +1,31 @@
++++ refpolicy/policy/modules/contrib/cobbler.fc	2012-10-16 19:35:35.241013957 +0200
+@@ -1,7 +1,22 @@
 -/etc/cobbler(/.*)?		gen_context(system_u:object_r:cobbler_etc_t, s0)
 -/etc/rc\.d/init\.d/cobblerd --	gen_context(system_u:object_r:cobblerd_initrc_exec_t, s0)
 +/etc/cobbler(/.*)?	gen_context(system_u:object_r:cobbler_etc_t,s0)
@@ -13754,16 +13754,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +/var/log/cobbler(/.*)?	gen_context(system_u:object_r:cobbler_var_log_t,s0)
 +
-+# This should removable when cobbler package installs /var/www/cobbler/rendered
-+/var/www/cobbler(/.*)?	gen_context(system_u:object_r:httpd_cobbler_content_t,s0)
-+
-+/var/www/cobbler/images(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/ks_mirror(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/links(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/localmirror(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/pub(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/rendered(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
-+/var/www/cobbler/repo_mirror(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
++/var/www/cobbler(/.*)?	gen_context(system_u:object_r:cobbler_var_lib_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/cobbler.if refpolicy/policy/modules/contrib/cobbler.if
 --- refpolicy/policy/modules/contrib/cobbler.if	2012-05-04 15:15:21.000000000 +0200
 +++ refpolicy/policy/modules/contrib/cobbler.if	2012-09-27 20:03:30.741126498 +0200
@@ -13821,10 +13812,10 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/cobbler.te refpolicy/policy/modules/contrib/cobbler.te
 --- refpolicy/policy/modules/contrib/cobbler.te	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/cobbler.te	2012-10-06 19:01:50.698741341 +0200
++++ refpolicy/policy/modules/contrib/cobbler.te	2012-10-16 19:35:35.251013957 +0200
 @@ -1,18 +1,44 @@
 -policy_module(cobbler, 1.1.0)
-+policy_module(cobbler, 1.1.1)
++policy_module(cobbler, 1.1.2)
  
  ########################################
  #
@@ -13873,7 +13864,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  type cobblerd_t;
  type cobblerd_exec_t;
  init_daemon_domain(cobblerd_t, cobblerd_exec_t)
-@@ -26,25 +52,36 @@
+@@ -26,25 +52,34 @@
  type cobbler_var_log_t;
  logging_log_file(cobbler_var_log_t)
  
@@ -13883,8 +13874,6 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
 +type cobbler_tmp_t;
 +files_tmp_file(cobbler_tmp_t)
-+
-+apache_content_template(cobbler)
 +
  ########################################
  #
@@ -13915,7 +13904,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  append_files_pattern(cobblerd_t, cobbler_var_log_t, cobbler_var_log_t)
  create_files_pattern(cobblerd_t, cobbler_var_log_t, cobbler_var_log_t)
-@@ -53,31 +90,50 @@
+@@ -53,31 +88,51 @@
  logging_log_filetrans(cobblerd_t, cobbler_var_log_t, file)
  
  kernel_read_system_state(cobblerd_t)
@@ -13957,6 +13946,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +files_read_etc_runtime_files(cobblerd_t)
 +files_read_usr_files(cobblerd_t)
 +
++fs_getattr_all_fs(cobblerd_t)
 +fs_read_iso9660_files(cobblerd_t)
 +
 +selinux_get_enforce_mode(cobblerd_t)
@@ -13973,7 +13963,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  sysnet_rw_dhcp_config(cobblerd_t)
  sysnet_write_config(cobblerd_t)
  
-@@ -85,6 +141,28 @@
+@@ -85,6 +140,28 @@
  	miscfiles_manage_public_files(cobblerd_t)
  ')
  
@@ -14002,7 +13992,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  optional_policy(`
  	bind_read_config(cobblerd_t)
  	bind_write_config(cobblerd_t)
-@@ -95,6 +173,10 @@
+@@ -95,6 +172,10 @@
  ')
  
  optional_policy(`
@@ -14013,7 +14003,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	dhcpd_domtrans(cobblerd_t)
  	dhcpd_initrc_domtrans(cobblerd_t)
  ')
-@@ -111,18 +193,21 @@
+@@ -111,18 +192,12 @@
  
  optional_policy(`
  	rsync_read_config(cobblerd_t)
@@ -14028,17 +14018,15 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	tftp_etc_filetrans_config(cobblerd_t, file, "tftp")
 +	tftp_filetrans_tftpdir(cobblerd_t, cobbler_var_lib_t, { dir file })
  ')
- 
- ########################################
- #
+-
+-########################################
+-#
 -# Cobbler web local policy.
-+# Web local policy
- #
- 
+-#
+-
 -apache_content_template(cobbler)
-+list_dirs_pattern(cobblerd_t, httpd_cobbler_content_t, httpd_cobbler_content_t)
- manage_dirs_pattern(cobblerd_t, httpd_cobbler_content_rw_t, httpd_cobbler_content_rw_t)
- manage_files_pattern(cobblerd_t, httpd_cobbler_content_rw_t, httpd_cobbler_content_rw_t)
+-manage_dirs_pattern(cobblerd_t, httpd_cobbler_content_rw_t, httpd_cobbler_content_rw_t)
+-manage_files_pattern(cobblerd_t, httpd_cobbler_content_rw_t, httpd_cobbler_content_rw_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/collectd.fc refpolicy/policy/modules/contrib/collectd.fc
 --- refpolicy/policy/modules/contrib/collectd.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/contrib/collectd.fc	2012-09-27 20:03:30.384126498 +0200
@@ -30982,7 +30970,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +/usr/lib/gnupg/gpgkeys.*	--	gen_context(system_u:object_r:gpg_helper_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/gpg.if refpolicy/policy/modules/contrib/gpg.if
 --- refpolicy/policy/modules/contrib/gpg.if	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/gpg.if	2012-10-15 20:33:04.227001963 +0200
++++ refpolicy/policy/modules/contrib/gpg.if	2012-10-16 19:36:47.098014111 +0200
 @@ -2,74 +2,57 @@
  
  ############################################################
@@ -31160,13 +31148,13 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +######################################
 +## <summary>
-+##  Make gpg executable files an
++##	Make gpg executable files an
 +##	entrypoint for the specified domain.
 +## </summary>
 +## <param name="domain">
-+##  <summary>
-+##  The domain for which gpg_exec_t is an entrypoint.
-+##  </summary>
++##	<summary>
++##	The domain for which gpg_exec_t is an entrypoint.
++##	</summary>
 +## </param>
 +#
 +interface(`gpg_entry_type',`
@@ -44846,8 +44834,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  userdom_dontaudit_search_user_home_dirs(monopd_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.fc refpolicy/policy/modules/contrib/mozilla.fc
 --- refpolicy/policy/modules/contrib/mozilla.fc	2012-05-04 16:18:26.000000000 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.fc	2012-10-13 19:06:37.709560358 +0200
-@@ -1,33 +1,36 @@
++++ refpolicy/policy/modules/contrib/mozilla.fc	2012-10-16 19:31:19.318013411 +0200
+@@ -1,33 +1,37 @@
 -HOME_DIR/\.config/chromium(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
 -HOME_DIR/\.galeon(/.*)?			gen_context(system_u:object_r:mozilla_home_t,s0)
 -HOME_DIR/\.java(/.*)?			gen_context(system_u:object_r:mozilla_home_t,s0)
@@ -44856,6 +44844,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 -HOME_DIR/\.phoenix(/.*)?		gen_context(system_u:object_r:mozilla_home_t,s0)
 +HOME_DIR/\.galeon(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
 +HOME_DIR/\.mozilla(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
++HOME_DIR/\.mozilla/plugins(/.*)?	gen_context(system_u:object_r:mozilla_plugin_home_t,s0)
 +HOME_DIR/\.netscape(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
 +HOME_DIR/\.phoenix(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
  
@@ -44911,8 +44900,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +/opt/firefox/plugin-container	--	gen_context(system_u:object_r:mozilla_plugin_exec_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.if refpolicy/policy/modules/contrib/mozilla.if
 --- refpolicy/policy/modules/contrib/mozilla.if	2012-05-04 17:06:48.000000000 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.if	2012-10-13 19:01:13.362559833 +0200
-@@ -1,58 +1,165 @@
++++ refpolicy/policy/modules/contrib/mozilla.if	2012-10-16 19:31:19.320013411 +0200
+@@ -1,58 +1,167 @@
 -## <summary>Policy for Mozilla and related web browsers</summary>
 +## <summary>Policy for Mozilla and related web browsers.</summary>
  
@@ -44938,7 +44927,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	gen_require(`
  		type mozilla_t, mozilla_exec_t, mozilla_home_t;
 +		type mozilla_tmp_t, mozilla_tmpfs_t, mozilla_plugin_tmp_t;
-+		type mozilla_plugin_tmpfs_t;
++		type mozilla_plugin_tmpfs_t, mozilla_plugin_home_t;
  		attribute_role mozilla_roles;
  	')
  
@@ -44959,10 +44948,10 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	#
 +	# Policy
 +	#
++
++	domtrans_pattern($2, mozilla_exec_t, mozilla_t)
  
 -	# Allow the user domain to signal/ps.
-+	domtrans_pattern($2, mozilla_exec_t, mozilla_t)
-+
 +	allow $2 mozilla_t:process { noatsecure siginh rlimitinh ptrace signal_perms };
  	ps_process_pattern($2, mozilla_t)
 -	allow $2 mozilla_t:process signal_perms;
@@ -44978,39 +44967,32 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +	stream_connect_pattern($2, mozilla_tmpfs_t, mozilla_tmpfs_t, mozilla_t)
 +
-+	allow $2 mozilla_home_t:dir { manage_dir_perms relabel_dir_perms };
-+	allow $2 mozilla_home_t:file { manage_file_perms relabel_file_perms };
++	allow $2 { mozilla_home_t mozilla_plugin_home_t }:dir { manage_dir_perms relabel_dir_perms };
++	allow $2 { mozilla_home_t mozilla_plugin_home_t }:file { manage_file_perms relabel_file_perms };
 +	allow $2 mozilla_home_t:lnk_file { manage_lnk_file_perms relabel_lnk_file_perms };
 +	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".galeon")
 +	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".mozilla")
 +	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".netscape")
 +	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".phoenix")
 +
++	filetrans_pattern($2, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
++
 +	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:dir { manage_dir_perms relabel_dir_perms };
 +	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:file { manage_file_perms relabel_file_perms };
 +	allow $2 mozilla_plugin_tmp_t:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
- 
--	# X access, Home files
--	manage_dirs_pattern($2, mozilla_home_t, mozilla_home_t)
--	manage_files_pattern($2, mozilla_home_t, mozilla_home_t)
--	manage_lnk_files_pattern($2, mozilla_home_t, mozilla_home_t)
--	relabel_dirs_pattern($2, mozilla_home_t, mozilla_home_t)
--	relabel_files_pattern($2, mozilla_home_t, mozilla_home_t)
--	relabel_lnk_files_pattern($2, mozilla_home_t, mozilla_home_t)
++
 +	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:dir { manage_dir_perms relabel_dir_perms };
 +	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:file { manage_file_perms relabel_file_perms };
 +	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
 +	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:sock_file { manage_sock_file_perms relabel_sock_file_perms };
- 
--	mozilla_dbus_chat($2)
++
 +	optional_policy(`
 +		mozilla_dbus_chat($2)
 +	')
- ')
- 
- ########################################
- ## <summary>
--##	Read mozilla home directory content
++')
++
++########################################
++## <summary>
 +##	Role access for mozilla plugin.
 +## </summary>
 +## <param name="role">
@@ -45032,10 +45014,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +	mozilla_run_plugin($2, $1)
 +	mozilla_run_plugin_config($2, $1)
-+
+ 
+-	# X access, Home files
+-	manage_dirs_pattern($2, mozilla_home_t, mozilla_home_t)
+-	manage_files_pattern($2, mozilla_home_t, mozilla_home_t)
+-	manage_lnk_files_pattern($2, mozilla_home_t, mozilla_home_t)
+-	relabel_dirs_pattern($2, mozilla_home_t, mozilla_home_t)
+-	relabel_files_pattern($2, mozilla_home_t, mozilla_home_t)
+-	relabel_lnk_files_pattern($2, mozilla_home_t, mozilla_home_t)
 +	allow $2 { mozilla_plugin_t mozilla_plugin_config_t }:process { ptrace signal_perms };
 +	ps_process_pattern($2, { mozilla_plugin_t mozilla_plugin_config_t })
-+
+ 
+-	mozilla_dbus_chat($2)
 +	allow $2 mozilla_plugin_t:unix_stream_socket rw_socket_perms;
 +	allow $2 mozilla_plugin_t:fd use;
 +
@@ -45073,10 +45063,11 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	optional_policy(`
 +		mozilla_dbus_chat_plugin($2)
 +	')
-+')
-+
-+########################################
-+## <summary>
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Read mozilla home directory content
 +##	Read mozilla home directory content.
 +## </summary>
 +## <param name="domain">
@@ -45102,7 +45093,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -65,15 +172,15 @@
+@@ -65,15 +174,15 @@
  		type mozilla_home_t;
  	')
  
@@ -45120,7 +45111,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -86,13 +193,14 @@
+@@ -86,13 +195,14 @@
  		type mozilla_home_t;
  	')
  
@@ -45137,7 +45128,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -110,7 +218,9 @@
+@@ -110,7 +220,9 @@
  
  ########################################
  ## <summary>
@@ -45148,7 +45139,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -125,11 +235,12 @@
+@@ -125,11 +237,12 @@
  
  	dontaudit $1 mozilla_home_t:dir manage_dir_perms;
  	dontaudit $1 mozilla_home_t:file manage_file_perms;
@@ -45158,27 +45149,78 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ########################################
  ## <summary>
 -##	Execute mozilla home directory content.
-+##	Execute mozilla home directory files.
++##	Execute mozilla home directory files.  (Deprecated)
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -142,12 +253,14 @@
- 		type mozilla_home_t;
+@@ -138,16 +251,33 @@
+ ## </param>
+ #
+ interface(`mozilla_exec_user_home_files',`
++	refpolicywarn(`$0($*) has been deprecated, use mozilla_exec_user_plugin_home_files() instead.')
++	mozilla_exec_user_plugin_home_files($1)
++')
++
++########################################
++## <summary>
++##	Execute mozilla plugin home directory files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`mozilla_exec_user_plugin_home_files',`
+ 	gen_require(`
+-		type mozilla_home_t;
++		type mozilla_home_t, mozilla_plugin_home_t;
  	')
  
+-	can_exec($1, mozilla_home_t)
 +	userdom_search_user_home_dirs($1)
- 	can_exec($1, mozilla_home_t)
++	exec_files_pattern($1, { mozilla_home_t mozilla_plugin_home_t }, mozilla_plugin_home_t)
  ')
  
  ########################################
  ## <summary>
 -##	Execmod mozilla home directory content.
 +##	Mozilla home directory file
-+##	text relocation.
++##	text relocation.  (Deprecated)
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -178,52 +291,102 @@
+@@ -156,11 +286,27 @@
+ ## </param>
+ #
+ interface(`mozilla_execmod_user_home_files',`
++	refpolicywarn(`$0($*) has been deprecated, use mozilla_execmod_user_plugin_home_files() instead.')
++	mozilla_execmod_user_plugin_home_files($1)
++')
++
++########################################
++## <summary>
++##	Mozilla plugin home directory file
++##	text relocation.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`mozilla_execmod_user_plugin_home_files',`
+ 	gen_require(`
+-		type mozilla_home_t;
++		type mozilla_plugin_home_t;
+ 	')
+ 
+-	allow $1 mozilla_home_t:file execmod;
++	allow $1 mozilla_plugin_home_t:file execmod;
+ ')
+ 
+ ########################################
+@@ -178,52 +324,102 @@
  		type mozilla_t, mozilla_exec_t;
  	')
  
@@ -45292,7 +45334,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  ########################################
-@@ -249,7 +412,28 @@
+@@ -249,7 +445,28 @@
  
  ########################################
  ## <summary>
@@ -45322,7 +45364,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -267,11 +451,11 @@
+@@ -267,11 +484,11 @@
  
  ########################################
  ## <summary>
@@ -45336,7 +45378,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ##	</summary>
  ## </param>
  #
-@@ -280,16 +464,17 @@
+@@ -280,16 +497,17 @@
  		type mozilla_plugin_tmpfs_t;
  	')
  
@@ -45356,7 +45398,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ##	</summary>
  ## </param>
  #
-@@ -298,5 +483,24 @@
+@@ -298,5 +516,24 @@
  		type mozilla_plugin_tmpfs_t;
  	')
  
@@ -45384,10 +45426,10 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.te refpolicy/policy/modules/contrib/mozilla.te
 --- refpolicy/policy/modules/contrib/mozilla.te	2012-07-25 20:33:05.000000000 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.te	2012-10-15 20:32:56.931001947 +0200
++++ refpolicy/policy/modules/contrib/mozilla.te	2012-10-16 20:46:41.919023105 +0200
 @@ -1,4 +1,4 @@
 -policy_module(mozilla, 2.6.0)
-+policy_module(mozilla, 2.6.6)
++policy_module(mozilla, 2.6.7)
  
  ########################################
  #
@@ -45446,7 +45488,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  type mozilla_home_t;
  typealias mozilla_home_t alias { user_mozilla_home_t staff_mozilla_home_t sysadm_mozilla_home_t };
  typealias mozilla_home_t alias { auditadm_mozilla_home_t secadm_mozilla_home_t };
-@@ -31,8 +57,8 @@
+@@ -31,8 +57,11 @@
  
  type mozilla_plugin_t;
  type mozilla_plugin_exec_t;
@@ -45454,10 +45496,13 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 -role mozilla_roles types mozilla_plugin_t;
 +userdom_user_application_domain(mozilla_plugin_t, mozilla_plugin_exec_t)
 +role mozilla_plugin_roles types mozilla_plugin_t;
++
++type mozilla_plugin_home_t;
++userdom_user_home_content(mozilla_plugin_home_t)
  
  type mozilla_plugin_tmp_t;
  userdom_user_tmp_file(mozilla_plugin_tmp_t)
-@@ -40,6 +66,14 @@
+@@ -40,6 +69,14 @@
  type mozilla_plugin_tmpfs_t;
  userdom_user_tmpfs_file(mozilla_plugin_tmpfs_t)
  
@@ -45472,7 +45517,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  type mozilla_tmp_t;
  userdom_user_tmp_file(mozilla_tmp_t)
  
-@@ -56,28 +90,28 @@
+@@ -56,28 +93,27 @@
  allow mozilla_t self:capability { sys_nice setgid setuid };
  allow mozilla_t self:process { sigkill signal setsched getsched setrlimit };
  allow mozilla_t self:fifo_file rw_fifo_file_perms;
@@ -45484,34 +45529,40 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 -# Browse the web, connect to printer
 -allow mozilla_t self:tcp_socket create_socket_perms;
 -allow mozilla_t self:netlink_route_socket r_netlink_socket_perms;
-+allow mozilla_t self:unix_stream_socket { accept listen };
- 
+-
 -# for bash - old mozilla binary
 -can_exec(mozilla_t, mozilla_exec_t)
+-
+-# X access, Home files
+-manage_dirs_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
+-manage_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
+-manage_lnk_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
+-userdom_search_user_home_dirs(mozilla_t)
+-userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir)
++allow mozilla_t self:unix_stream_socket { accept listen };
++
 +allow mozilla_t mozilla_plugin_t:process { rlimitinh siginh noatsecure };
 +allow mozilla_t mozilla_plugin_t:unix_stream_socket rw_socket_perms;
 +allow mozilla_t mozilla_plugin_t:fd use;
- 
--# X access, Home files
- manage_dirs_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
- manage_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
- manage_lnk_files_pattern(mozilla_t, mozilla_home_t, mozilla_home_t)
--userdom_search_user_home_dirs(mozilla_t)
--userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir)
++
++allow mozilla_t { mozilla_home_t mozilla_plugin_home_t }:dir manage_dir_perms;
++allow mozilla_t { mozilla_home_t mozilla_plugin_home_t }:file manage_file_perms;
++allow mozilla_t mozilla_home_t:lnk_file manage_lnk_file_perms;
 +userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir, ".galeon")
 +userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir, ".mozilla")
 +userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir, ".netscape")
 +userdom_user_home_dir_filetrans(mozilla_t, mozilla_home_t, dir, ".phoenix")
  
- # Mozpluggerrc
- allow mozilla_t mozilla_conf_t:file read_file_perms;
+-# Mozpluggerrc
+-allow mozilla_t mozilla_conf_t:file read_file_perms;
++filetrans_pattern(mozilla_t, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
  
  manage_files_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
 +manage_fifo_files_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
  manage_dirs_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
  files_tmp_filetrans(mozilla_t, mozilla_tmp_t, { file dir })
  
-@@ -87,92 +121,109 @@
+@@ -87,92 +123,109 @@
  manage_sock_files_pattern(mozilla_t, mozilla_tmpfs_t, mozilla_tmpfs_t)
  fs_tmpfs_filetrans(mozilla_t, mozilla_tmpfs_t, { file lnk_file sock_file fifo_file })
  
@@ -45661,7 +45712,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	allow mozilla_t self:process { execmem execstack };
  ')
  
-@@ -188,58 +239,39 @@
+@@ -188,58 +241,39 @@
  	fs_manage_cifs_symlinks(mozilla_t)
  ')
  
@@ -45735,7 +45786,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  optional_policy(`
-@@ -248,12 +280,19 @@
+@@ -248,12 +282,19 @@
  
  optional_policy(`
  	cups_read_rw_config(mozilla_t)
@@ -45757,7 +45808,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  	optional_policy(`
  		networkmanager_dbus_chat(mozilla_t)
-@@ -262,20 +301,41 @@
+@@ -262,20 +303,42 @@
  
  optional_policy(`
  	gnome_stream_connect_gconf(mozilla_t)
@@ -45779,8 +45830,9 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +		# specific domains for this (like mozilla_java_t)? TODO
 +		java_exec(mozilla_t)
 +		java_manage_generic_home_content(mozilla_t)
-+		java_home_filetrans_java_home(mozilla_t, dir, ".java")
 +	')
++	
++	java_home_filetrans_java_home(mozilla_t, dir, ".java")
 +
 +	# Cannot handle optional_policy within tunable_policy
 +	optional_policy(`
@@ -45792,7 +45844,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  optional_policy(`
 -	lpd_domtrans_lpr(mozilla_t)
-+	lpd_run_lpr(mozilla_t)
++	lpd_run_lpr(mozilla_t, mozilla_roles)
  ')
  
  optional_policy(`
@@ -45804,7 +45856,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  optional_policy(`
-@@ -284,32 +344,47 @@
+@@ -284,32 +347,49 @@
  
  optional_policy(`
  	pulseaudio_role(mozilla_roles, mozilla_t)
@@ -45852,31 +45904,34 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +allow mozilla_plugin_t mozilla_t:shm { rw_shm_perms destroy };
 +allow mozilla_plugin_t mozilla_t:sem create_sem_perms;
 +
-+manage_dirs_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
-+manage_files_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
-+manage_lnk_files_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_home_t)
++manage_dirs_pattern(mozilla_plugin_t, { mozilla_home_t mozilla_plugin_home_t }, { mozilla_home_t mozilla_plugin_home_t })
++manage_files_pattern(mozilla_plugin_t, { mozilla_home_t mozilla_plugin_home_t }, mozilla_plugin_home_t)
++manage_lnk_files_pattern(mozilla_plugin_t, { mozilla_home_t mozilla_plugin_home_t }, mozilla_plugin_home_t)
 +userdom_user_home_dir_filetrans(mozilla_plugin_t, mozilla_home_t, dir, ".galeon")
 +userdom_user_home_dir_filetrans(mozilla_plugin_t, mozilla_home_t, dir, ".mozilla")
 +userdom_user_home_dir_filetrans(mozilla_plugin_t, mozilla_home_t, dir, ".netscape")
 +userdom_user_home_dir_filetrans(mozilla_plugin_t, mozilla_home_t, dir, ".phoenix")
++
++filetrans_pattern(mozilla_plugin_t, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
  
  manage_dirs_pattern(mozilla_plugin_t, mozilla_plugin_tmp_t, mozilla_plugin_tmp_t)
  manage_files_pattern(mozilla_plugin_t, mozilla_plugin_tmp_t, mozilla_plugin_tmp_t)
-@@ -323,50 +398,115 @@
+@@ -323,50 +403,115 @@
  manage_sock_files_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t)
  fs_tmpfs_filetrans(mozilla_plugin_t, mozilla_plugin_tmpfs_t, { file lnk_file sock_file fifo_file })
  
+-can_exec(mozilla_plugin_t, mozilla_exec_t)
 +allow mozilla_plugin_t mozilla_plugin_rw_t:dir list_dir_perms;
-+read_files_pattern(mozilla_plugin_t, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
-+read_lnk_files_pattern(mozilla_plugin_t, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
-+
-+dgram_send_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t, mozilla_t)
-+stream_connect_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t, mozilla_t)
-+
- can_exec(mozilla_plugin_t, mozilla_exec_t)
++allow mozilla_plugin_t mozilla_plugin_rw_t:file read_file_perms;
++allow mozilla_plugin_t mozilla_plugin_rw_t:lnk_file read_lnk_file_perms;
  
 -kernel_read_kernel_sysctls(mozilla_plugin_t)
 -kernel_read_system_state(mozilla_plugin_t)
++dgram_send_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t, mozilla_t)
++stream_connect_pattern(mozilla_plugin_t, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t, mozilla_t)
++
++can_exec(mozilla_plugin_t, { mozilla_exec_t mozilla_plugin_home_t mozilla_plugin_tmp_t })
++
 +kernel_read_all_sysctls(mozilla_plugin_t)
  kernel_read_network_state(mozilla_plugin_t)
 +kernel_read_system_state(mozilla_plugin_t)
@@ -45899,7 +45954,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +corenet_sendrecv_ftp_client_packets(mozilla_plugin_t)
 +corenet_tcp_connect_ftp_port(mozilla_plugin_t)
-+corenet_tcp_sendrecv_ftp_potr(mozilla_plugin_t)
++corenet_tcp_sendrecv_ftp_port(mozilla_plugin_t)
 +
 +corenet_sendrecv_gatekeeper_client_packets(mozilla_plugin_t)
 +corenet_tcp_connect_gatekeeper_port(mozilla_plugin_t)
@@ -45922,9 +45977,9 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +corenet_tcp_connect_ircd_port(mozilla_plugin_t)
 +corenet_tcp_sendrecv_ircd_port(mozilla_plugin_t)
 +
-+corenet_sendrecv_jabber_client_packets(mozilla_plugin_t)
-+corenet_tcp_connect_jabber_port(mozilla_plugin_t)
-+corenet_tcp_sendrecv_jabber_port(mozilla_plugin_t)
++corenet_sendrecv_jabber_client_client_packets(mozilla_plugin_t)
++corenet_tcp_connect_jabber_client_port(mozilla_plugin_t)
++corenet_tcp_sendrecv_jabber_client_port(mozilla_plugin_t)
 +
 +corenet_sendrecv_mmcc_client_packets(mozilla_plugin_t)
  corenet_tcp_connect_mmcc_port(mozilla_plugin_t)
@@ -45949,11 +46004,11 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +corenet_sendrecv_squid_client_packets(mozilla_plugin_t)
 +corenet_tcp_connect_squid_port(mozilla_plugin_t)
 +corenet_tcp_sendrecv_squid_port(mozilla_plugin_t)
-+
+ 
 +corenet_sendrecv_vnc_client_packets(mozilla_plugin_t)
 +corenet_tcp_connect_vnc_port(mozilla_plugin_t)
 +corenet_tcp_sendrecv_vnc_port(mozilla_plugin_t)
- 
++
 +dev_read_generic_usb_dev(mozilla_plugin_t)
 +dev_rw_dri(mozilla_plugin_t)
  dev_read_rand(mozilla_plugin_t)
@@ -45995,7 +46050,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  application_dontaudit_signull(mozilla_plugin_t)
  
-@@ -374,32 +514,29 @@
+@@ -374,32 +519,29 @@
  
  logging_send_syslog_msg(mozilla_plugin_t)
  
@@ -46043,7 +46098,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  tunable_policy(`use_nfs_home_dirs',`
-@@ -415,27 +552,46 @@
+@@ -415,27 +557,46 @@
  ')
  
  optional_policy(`
@@ -46095,7 +46150,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ')
  
  optional_policy(`
-@@ -443,14 +599,106 @@
+@@ -443,14 +604,109 @@
  ')
  
  optional_policy(`
@@ -46132,19 +46187,22 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +allow mozilla_plugin_config_t self:fifo_file rw_fifo_file_perms;
 +allow mozilla_plugin_config_t self:unix_stream_socket create_stream_socket_perms;
 +
-+manage_dirs_pattern(mozilla_plugin_config_t, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
-+manage_files_pattern(mozilla_plugin_config_t, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
-+manage_lnk_files_pattern(mozilla_plugin_config_t, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
++allow mozilla_plugin_config_t mozilla_plugin_rw_t:dir manage_dir_perms;
++allow mozilla_plugin_config_t mozilla_plugin_rw_t:file manage_file_perms;
++allow mozilla_plugin_config_t mozilla_plugin_rw_t:lnk_file manage_lnk_file_perms;
 +
-+manage_dirs_pattern(mozilla_plugin_config_t, mozilla_home_t, mozilla_home_t)
-+manage_files_pattern(mozilla_plugin_config_t, mozilla_home_t, mozilla_home_t)
-+manage_lnk_files_pattern(mozilla_plugin_config_t, mozilla_home_t, mozilla_home_t)
++manage_dirs_pattern(mozilla_plugin_config_t, { mozilla_home_t mozilla_plugin_home_t }, { mozilla_home_t mozilla_plugin_home_t })
++manage_files_pattern(mozilla_plugin_config_t, { mozilla_home_t mozilla_plugin_home_t }, mozilla_plugin_home_t)
++manage_lnk_files_pattern(mozilla_plugin_config_t, { mozilla_home_t mozilla_plugin_home_t }, mozilla_plugin_home_t)
++
 +userdom_user_home_dir_filetrans(mozilla_plugin_config_t, mozilla_home_t, dir, ".galeon")
 +userdom_user_home_dir_filetrans(mozilla_plugin_config_t, mozilla_home_t, dir, ".mozilla")
 +userdom_user_home_dir_filetrans(mozilla_plugin_config_t, mozilla_home_t, dir, ".netscape")
 +userdom_user_home_dir_filetrans(mozilla_plugin_config_t, mozilla_home_t, dir, ".phoenix")
 +
-+can_exec(mozilla_plugin_config_t, mozilla_plugin_rw_t)
++filetrans_pattern(mozilla_plugin_config_t, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
++
++can_exec(mozilla_plugin_config_t, { mozilla_plugin_rw_t mozilla_plugin_home_t })
 +
 +kernel_read_system_state(mozilla_plugin_config_t)
 +kernel_request_load_module(mozilla_plugin_config_t)
@@ -52220,43 +52278,1376 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +tunable_policy(`gentoo_nginx_can_network_connect',`
 +	corenet_tcp_connect_all_ports(nginx_t)
 +')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nis.fc refpolicy/policy/modules/contrib/nis.fc
+--- refpolicy/policy/modules/contrib/nis.fc	2012-05-04 16:10:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/nis.fc	2012-10-16 19:35:56.160014002 +0200
+@@ -2,17 +2,19 @@
+ /etc/rc\.d/init\.d/yppasswd	--	gen_context(system_u:object_r:nis_initrc_exec_t,s0)
+ /etc/rc\.d/init\.d/ypserv	--	gen_context(system_u:object_r:nis_initrc_exec_t,s0)
+ /etc/rc\.d/init\.d/ypxfrd	--	gen_context(system_u:object_r:nis_initrc_exec_t,s0)
++
+ /etc/ypserv\.conf	--	gen_context(system_u:object_r:ypserv_conf_t,s0)
+ 
+-/sbin/ypbind		--	gen_context(system_u:object_r:ypbind_exec_t,s0)
++/sbin/ypbind	--	gen_context(system_u:object_r:ypbind_exec_t,s0)
+ 
+ /usr/lib/yp/ypxfr	--	gen_context(system_u:object_r:ypxfr_exec_t,s0)
+ 
+-/usr/sbin/rpc\.yppasswdd --	gen_context(system_u:object_r:yppasswdd_exec_t,s0)
++/usr/sbin/rpc\.yppasswdd	--	gen_context(system_u:object_r:yppasswdd_exec_t,s0)
+ /usr/sbin/rpc\.ypxfrd	--	gen_context(system_u:object_r:ypxfr_exec_t,s0)
++/usr/sbin/ypbind	--	gen_context(system_u:object_r:ypbind_exec_t,s0)
+ /usr/sbin/ypserv	--	gen_context(system_u:object_r:ypserv_exec_t,s0)
+ 
+-/var/yp(/.*)?			gen_context(system_u:object_r:var_yp_t,s0)
++/var/yp(/.*)?	gen_context(system_u:object_r:var_yp_t,s0)
+ 
+ /var/run/ypxfrd.*	--	gen_context(system_u:object_r:ypxfr_var_run_t,s0)
+ /var/run/ypbind.*	--	gen_context(system_u:object_r:ypbind_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nis.if refpolicy/policy/modules/contrib/nis.if
+--- refpolicy/policy/modules/contrib/nis.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nis.if	2012-10-16 19:35:56.183014000 +0200
+@@ -1,4 +1,4 @@
+-## <summary>Policy for NIS (YP) servers and clients</summary>
++## <summary>Policy for NIS (YP) servers and clients.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -34,8 +34,8 @@
+ 	allow $1 self:udp_socket create_socket_perms;
+ 
+ 	allow $1 var_yp_t:dir list_dir_perms;
+-	allow $1 var_yp_t:lnk_file { getattr read };
+ 	allow $1 var_yp_t:file read_file_perms;
++	allow $1 var_yp_t:lnk_file read_lnk_file_perms;
+ 
+ 	corenet_all_recvfrom_unlabeled($1)
+ 	corenet_all_recvfrom_netlabel($1)
+@@ -95,7 +95,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Use the nis to authenticate passwords
++##	Use nis to authenticate passwords.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -150,11 +150,11 @@
+ #
+ interface(`nis_run_ypbind',`
+ 	gen_require(`
+-		type ypbind_t;
++		attribute_role ypbind_roles;
+ 	')
+ 
+ 	nis_domtrans_ypbind($1)
+-	role $2 types ypbind_t;
++	roleattribute $2 ypbind_roles;
+ ')
+ 
+ ########################################
+@@ -177,7 +177,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	List the contents of the NIS data directory.
++##	List nis data directories.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -253,11 +253,10 @@
+ #
+ interface(`nis_delete_ypbind_pid',`
+ 	gen_require(`
+-		type ypbind_t;
++		type ypbind_var_run_t;
+ 	')
+ 
+-	# TODO: add delete pid from dir call to files
+-	allow $1 ypbind_t:file unlink;
++	allow $1 ypbind_var_run_t:file delete_file_perms;
+ ')
+ 
+ ########################################
+@@ -337,8 +336,8 @@
+ 
+ ########################################
+ ## <summary>
+-##	All of the rules required to administrate
+-##	an nis environment
++##	All of the rules required to
++##	administrate an nis environment.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -357,40 +356,29 @@
+ 		type ypbind_t, yppasswdd_t, ypserv_t, ypxfr_t;
+ 		type ypbind_tmp_t, ypserv_tmp_t, ypserv_conf_t;
+ 		type ypbind_var_run_t, yppasswdd_var_run_t, ypserv_var_run_t;
+-		type ypbind_initrc_exec_t, nis_initrc_exec_t;
++		type ypbind_initrc_exec_t, nis_initrc_exec_t, var_yp_t;
+ 	')
+ 
+-	allow $1 ypbind_t:process { ptrace signal_perms };
+-	ps_process_pattern($1, ypbind_t)
+-
+-	allow $1 yppasswdd_t:process { ptrace signal_perms };
+-	ps_process_pattern($1, yppasswdd_t)
+-
+-	allow $1 ypserv_t:process { ptrace signal_perms };
+-	ps_process_pattern($1, ypserv_t)
+-
+-	allow $1 ypxfr_t:process { ptrace signal_perms };
+-	ps_process_pattern($1, ypxfr_t)
++	allow $1 { ypbind_t yppasswdd_t ypserv_t ypxfr_t }:process { ptrace signal_perms };
++	ps_process_pattern($1, { ypbind_t yppasswdd_t ypserv_t ypxfr_t })
+ 
+ 	nis_initrc_domtrans($1)
+ 	nis_initrc_domtrans_ypbind($1)
+ 	domain_system_change_exemption($1)
+-	role_transition $2 nis_initrc_exec_t system_r;
+-	role_transition $2 ypbind_initrc_exec_t system_r;
++	role_transition $2 { nis_initrc_exec_t ypbind_initrc_exec_t } system_r;
+ 	allow $2 system_r;
+ 
+ 	files_list_tmp($1)
+-	admin_pattern($1, ypbind_tmp_t)
++	admin_pattern($1, { ypserv_tmp_t ypbind_tmp_t })
+ 
+ 	files_list_pids($1)
+-	admin_pattern($1, ypbind_var_run_t)
+-
+-	admin_pattern($1, yppasswdd_var_run_t)
++	admin_pattern($1, { ypserv_var_run_t ypbind_var_run_t yppasswdd_var_run_t })
+ 
+ 	files_list_etc($1)
+ 	admin_pattern($1, ypserv_conf_t)
+ 
+-	admin_pattern($1, ypserv_tmp_t)
++	files_search_var($1)
++	admin_pattern($1, var_yp_t)
+ 
+-	admin_pattern($1, ypserv_var_run_t)
++	nis_run_ypbind($1, $2)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nis.te refpolicy/policy/modules/contrib/nis.te
+--- refpolicy/policy/modules/contrib/nis.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/nis.te	2012-10-16 19:35:56.200013993 +0200
+@@ -1,10 +1,12 @@
+-policy_module(nis, 1.11.0)
++policy_module(nis, 1.11.1)
+ 
+ ########################################
+ #
+ # Declarations
+ #
+ 
++attribute_role ypbind_roles;
++
+ type nis_initrc_exec_t;
+ init_script_file(nis_initrc_exec_t)
+ 
+@@ -14,6 +16,7 @@
+ type ypbind_t;
+ type ypbind_exec_t;
+ init_daemon_domain(ypbind_t, ypbind_exec_t)
++role ypbind_roles types ypbind_t;
+ 
+ type ypbind_initrc_exec_t;
+ init_script_file(ypbind_initrc_exec_t)
+@@ -59,7 +62,6 @@
+ dontaudit ypbind_t self:capability { net_admin sys_tty_config };
+ allow ypbind_t self:fifo_file rw_fifo_file_perms;
+ allow ypbind_t self:process signal_perms;
+-allow ypbind_t self:{ unix_dgram_socket unix_stream_socket } create_socket_perms;
+ allow ypbind_t self:netlink_route_socket r_netlink_socket_perms;
+ allow ypbind_t self:tcp_socket create_stream_socket_perms;
+ allow ypbind_t self:udp_socket create_socket_perms;
+@@ -86,6 +88,7 @@
+ corenet_udp_sendrecv_all_ports(ypbind_t)
+ corenet_tcp_bind_generic_node(ypbind_t)
+ corenet_udp_bind_generic_node(ypbind_t)
++
+ corenet_tcp_bind_generic_port(ypbind_t)
+ corenet_udp_bind_generic_port(ypbind_t)
+ corenet_tcp_bind_reserved_port(ypbind_t)
+@@ -93,11 +96,12 @@
+ corenet_tcp_bind_all_rpc_ports(ypbind_t)
+ corenet_udp_bind_all_rpc_ports(ypbind_t)
+ corenet_tcp_connect_all_ports(ypbind_t)
+-corenet_dontaudit_tcp_bind_all_reserved_ports(ypbind_t)
+-corenet_dontaudit_udp_bind_all_reserved_ports(ypbind_t)
+ corenet_sendrecv_all_client_packets(ypbind_t)
+ corenet_sendrecv_generic_server_packets(ypbind_t)
+ 
++corenet_dontaudit_tcp_bind_all_reserved_ports(ypbind_t)
++corenet_dontaudit_udp_bind_all_reserved_ports(ypbind_t)
++
+ dev_read_sysfs(ypbind_t)
+ 
+ fs_getattr_all_fs(ypbind_t)
+@@ -120,6 +124,7 @@
+ optional_policy(`
+ 	dbus_system_bus_client(ypbind_t)
+ 	dbus_connect_system_bus(ypbind_t)
++
+ 	init_dbus_chat_script(ypbind_t)
+ 
+ 	optional_policy(`
+@@ -144,8 +149,7 @@
+ dontaudit yppasswdd_t self:capability sys_tty_config;
+ allow yppasswdd_t self:fifo_file rw_fifo_file_perms;
+ allow yppasswdd_t self:process { getsched setfscreate signal_perms };
+-allow yppasswdd_t self:unix_dgram_socket create_socket_perms;
+-allow yppasswdd_t self:unix_stream_socket create_stream_socket_perms;
++allow yppasswdd_t self:unix_stream_socket { accept listen };
+ allow yppasswdd_t self:netlink_route_socket r_netlink_socket_perms;
+ allow yppasswdd_t self:tcp_socket create_stream_socket_perms;
+ allow yppasswdd_t self:udp_socket create_socket_perms;
+@@ -156,6 +160,8 @@
+ manage_files_pattern(yppasswdd_t, var_yp_t, var_yp_t)
+ manage_lnk_files_pattern(yppasswdd_t, var_yp_t, var_yp_t)
+ 
++can_exec(yppasswdd_t, yppasswdd_exec_t)
++
+ kernel_list_proc(yppasswdd_t)
+ kernel_read_proc_symlinks(yppasswdd_t)
+ kernel_getattr_proc_files(yppasswdd_t)
+@@ -171,11 +177,22 @@
+ corenet_udp_sendrecv_all_ports(yppasswdd_t)
+ corenet_tcp_bind_generic_node(yppasswdd_t)
+ corenet_udp_bind_generic_node(yppasswdd_t)
++
+ corenet_tcp_bind_all_rpc_ports(yppasswdd_t)
+ corenet_udp_bind_all_rpc_ports(yppasswdd_t)
++corenet_sendrecv_generic_server_packets(yppasswdd_t)
++
+ corenet_dontaudit_tcp_bind_all_reserved_ports(yppasswdd_t)
+ corenet_dontaudit_udp_bind_all_reserved_ports(yppasswdd_t)
+-corenet_sendrecv_generic_server_packets(yppasswdd_t)
++
++corecmd_exec_bin(yppasswdd_t)
++corecmd_exec_shell(yppasswdd_t)
++
++domain_use_interactive_fds(yppasswdd_t)
++
++files_read_etc_files(yppasswdd_t)
++files_read_etc_runtime_files(yppasswdd_t)
++files_relabel_etc_files(yppasswdd_t)
+ 
+ dev_read_sysfs(yppasswdd_t)
+ 
+@@ -188,15 +205,6 @@
+ auth_relabel_shadow(yppasswdd_t)
+ auth_etc_filetrans_shadow(yppasswdd_t)
+ 
+-corecmd_exec_bin(yppasswdd_t)
+-corecmd_exec_shell(yppasswdd_t)
+-
+-domain_use_interactive_fds(yppasswdd_t)
+-
+-files_read_etc_files(yppasswdd_t)
+-files_read_etc_runtime_files(yppasswdd_t)
+-files_relabel_etc_files(yppasswdd_t)
+-
+ logging_send_syslog_msg(yppasswdd_t)
+ 
+ miscfiles_read_localization(yppasswdd_t)
+@@ -226,8 +234,7 @@
+ dontaudit ypserv_t self:capability sys_tty_config;
+ allow ypserv_t self:fifo_file rw_fifo_file_perms;
+ allow ypserv_t self:process signal_perms;
+-allow ypserv_t self:unix_dgram_socket create_socket_perms;
+-allow ypserv_t self:unix_stream_socket create_stream_socket_perms;
++allow ypserv_t self:unix_stream_socket { accept listen };
+ allow ypserv_t self:netlink_route_socket r_netlink_socket_perms;
+ allow ypserv_t self:tcp_socket connected_stream_socket_perms;
+ allow ypserv_t self:udp_socket create_socket_perms;
+@@ -257,25 +264,27 @@
+ corenet_udp_sendrecv_all_ports(ypserv_t)
+ corenet_tcp_bind_generic_node(ypserv_t)
+ corenet_udp_bind_generic_node(ypserv_t)
++
+ corenet_tcp_bind_reserved_port(ypserv_t)
+ corenet_udp_bind_reserved_port(ypserv_t)
+ corenet_tcp_bind_all_rpc_ports(ypserv_t)
+ corenet_udp_bind_all_rpc_ports(ypserv_t)
++corenet_sendrecv_generic_server_packets(ypserv_t)
++
+ corenet_dontaudit_tcp_bind_all_reserved_ports(ypserv_t)
+ corenet_dontaudit_udp_bind_all_reserved_ports(ypserv_t)
+-corenet_sendrecv_generic_server_packets(ypserv_t)
+ 
+-dev_read_sysfs(ypserv_t)
++corecmd_exec_bin(ypserv_t)
+ 
+-fs_getattr_all_fs(ypserv_t)
+-fs_search_auto_mountpoints(ypserv_t)
++files_read_etc_files(ypserv_t)
++files_read_var_files(ypserv_t)
+ 
+-corecmd_exec_bin(ypserv_t)
++dev_read_sysfs(ypserv_t)
+ 
+ domain_use_interactive_fds(ypserv_t)
+ 
+-files_read_var_files(ypserv_t)
+-files_read_etc_files(ypserv_t)
++fs_getattr_all_fs(ypserv_t)
++fs_search_auto_mountpoints(ypserv_t)
+ 
+ logging_send_syslog_msg(ypserv_t)
+ 
+@@ -301,8 +310,8 @@
+ # ypxfr local policy
+ #
+ 
+-allow ypxfr_t self:unix_stream_socket create_stream_socket_perms;
+-allow ypxfr_t self:unix_dgram_socket create_stream_socket_perms;
++allow ypxfr_t self:unix_stream_socket { accept listen };
++allow ypxfr_t self:unix_dgram_socket { accept listen };
+ allow ypxfr_t self:tcp_socket create_stream_socket_perms;
+ allow ypxfr_t self:udp_socket create_socket_perms;
+ allow ypxfr_t self:netlink_route_socket r_netlink_socket_perms;
+@@ -327,16 +336,18 @@
+ corenet_udp_sendrecv_all_ports(ypxfr_t)
+ corenet_tcp_bind_generic_node(ypxfr_t)
+ corenet_udp_bind_generic_node(ypxfr_t)
++
+ corenet_tcp_bind_reserved_port(ypxfr_t)
+ corenet_udp_bind_reserved_port(ypxfr_t)
+ corenet_tcp_bind_all_rpc_ports(ypxfr_t)
+ corenet_udp_bind_all_rpc_ports(ypxfr_t)
+-corenet_dontaudit_tcp_bind_all_reserved_ports(ypxfr_t)
+-corenet_dontaudit_udp_bind_all_reserved_ports(ypxfr_t)
+ corenet_tcp_connect_all_ports(ypxfr_t)
+ corenet_sendrecv_generic_server_packets(ypxfr_t)
+ corenet_sendrecv_all_client_packets(ypxfr_t)
+ 
++corenet_dontaudit_tcp_bind_all_reserved_ports(ypxfr_t)
++corenet_dontaudit_udp_bind_all_reserved_ports(ypxfr_t)
++
+ files_read_etc_files(ypxfr_t)
+ files_search_usr(ypxfr_t)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nscd.fc refpolicy/policy/modules/contrib/nscd.fc
+--- refpolicy/policy/modules/contrib/nscd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nscd.fc	2012-10-16 19:36:00.194014011 +0200
+@@ -1,13 +1,13 @@
+ /etc/rc\.d/init\.d/nscd	--	gen_context(system_u:object_r:nscd_initrc_exec_t,s0)
+ 
+-/usr/sbin/nscd		--	gen_context(system_u:object_r:nscd_exec_t,s0)
++/usr/sbin/nscd	--	gen_context(system_u:object_r:nscd_exec_t,s0)
+ 
+-/var/db/nscd(/.*)?		gen_context(system_u:object_r:nscd_var_run_t,s0)
+-/var/cache/nscd(/.*)?		gen_context(system_u:object_r:nscd_var_run_t,s0)
++/var/cache/nscd(/.*)?	gen_context(system_u:object_r:nscd_var_run_t,s0)
++
++/var/db/nscd(/.*)?	gen_context(system_u:object_r:nscd_var_run_t,s0)
+ 
+ /var/log/nscd\.log.*	--	gen_context(system_u:object_r:nscd_log_t,s0)
+ 
++/var/run/nscd(/.*)?	gen_context(system_u:object_r:nscd_var_run_t,s0)
+ /var/run/nscd\.pid	--	gen_context(system_u:object_r:nscd_var_run_t,s0)
+ /var/run/\.nscd_socket	-s	gen_context(system_u:object_r:nscd_var_run_t,s0)
+-
+-/var/run/nscd(/.*)?		gen_context(system_u:object_r:nscd_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nscd.if refpolicy/policy/modules/contrib/nscd.if
+--- refpolicy/policy/modules/contrib/nscd.if	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/nscd.if	2012-10-16 19:36:00.195014011 +0200
+@@ -1,8 +1,8 @@
+-## <summary>Name service cache daemon</summary>
++## <summary>Name service cache daemon.</summary>
+ 
+ ########################################
+ ## <summary>
+-##	Send generic signals to NSCD.
++##	Send generic signals to nscd.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -20,7 +20,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Send NSCD the kill signal.
++##	Send kill signals to nscd.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -38,7 +38,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Send signulls to NSCD.
++##	Send null signals to nscd.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -56,7 +56,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Execute NSCD in the nscd domain.
++##	Execute nscd in the nscd domain.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -75,8 +75,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Allow the specified domain to execute nscd
+-##	in the caller domain.
++##	Execute nscd in the caller domain.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -89,13 +88,14 @@
+ 		type nscd_exec_t;
+ 	')
+ 
++	corecmd_search_bin($1)
+ 	can_exec($1, nscd_exec_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Use NSCD services by connecting using
+-##	a unix stream socket.
++##	Use nscd services by connecting using
++##	a unix domain stream socket.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -112,17 +112,20 @@
+ 	allow $1 self:unix_stream_socket create_socket_perms;
+ 
+ 	allow $1 nscd_t:nscd { getpwd getgrp gethost };
++
+ 	dontaudit $1 nscd_t:fd use;
+ 	dontaudit $1 nscd_t:nscd { getserv shmempwd shmemgrp shmemhost shmemserv };
++
+ 	files_search_pids($1)
+ 	stream_connect_pattern($1, nscd_var_run_t, nscd_var_run_t, nscd_t)
+-	dontaudit $1 nscd_var_run_t:file { getattr read };
++	dontaudit $1 nscd_var_run_t:file read_file_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Use NSCD services by mapping the database from
+-##	an inherited NSCD file descriptor.
++##	Use nscd services by mapping the
++##	database from an inherited nscd
++##	file descriptor.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -136,26 +139,26 @@
+ 		class nscd { getpwd getgrp gethost shmempwd shmemgrp shmemhost };
+ 	')
+ 
+-	allow $1 nscd_var_run_t:dir list_dir_perms;
+-	allow $1 nscd_t:nscd { shmempwd shmemgrp shmemhost };
++	allow $1 self:unix_stream_socket create_stream_socket_perms;
++
++	allow $1 nscd_t:nscd { getpwd getgrp gethost shmempwd shmemgrp shmemhost };
+ 
+-	# Receive fd from nscd and map the backing file with read access.
+ 	allow $1 nscd_t:fd use;
+ 
+-	# cjp: these were originally inherited from the
+-	# nscd_socket_domain macro. need to investigate
+-	# if they are all actually required
+-	allow $1 self:unix_stream_socket create_stream_socket_perms;
+-	allow $1 nscd_t:unix_stream_socket connectto;
+-	allow $1 nscd_var_run_t:sock_file rw_file_perms;
+ 	files_search_pids($1)
+-	allow $1 nscd_t:nscd { getpwd getgrp gethost };
+-	dontaudit $1 nscd_var_run_t:file { getattr read };
++	stream_connect_pattern($1, nscd_var_run_t, nscd_var_run_t, nscd_t)
++	dontaudit $1 nscd_var_run_t:file read_file_perms;
++
++	allow $1 nscd_var_run_t:sock_file read_sock_file_perms;
++	allow $1 nscd_var_run_t:dir list_dir_perms;
++
++	dontaudit $1 nscd_var_run_t:file read_file_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Do not audit attempts to search the NSCD pid directory.
++##	Do not audit attempts to search
++##	nscd pid directories.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -168,12 +171,12 @@
+ 		type nscd_var_run_t;
+ 	')
+ 
+-	dontaudit $1 nscd_var_run_t:dir search;
++	dontaudit $1 nscd_var_run_t:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Read NSCD pid file.
++##	Read nscd pid files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -192,7 +195,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Unconfined access to NSCD services.
++##	Unconfined access to nscd services.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -227,16 +230,17 @@
+ #
+ interface(`nscd_run',`
+ 	gen_require(`
+-		type nscd_t;
++		attribute_role nscd_roles;
+ 	')
+ 
+ 	nscd_domtrans($1)
+-	role $2 types nscd_t;
++	roleattribute $2 nscd_roles;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Execute the nscd server init script.
++##	Execute the nscd server init
++##	script in the initrc domain.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -254,8 +258,8 @@
+ 
+ ########################################
+ ## <summary>
+-##	All of the rules required to administrate 
+-##	an nscd environment
++##	All of the rules required to
++##	administrate an nscd environment.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -264,7 +268,7 @@
+ ## </param>
+ ## <param name="role">
+ ##	<summary>
+-##	The role to be allowed to manage the nscd domain.
++##	Role allowed access.
+ ##	</summary>
+ ## </param>
+ ## <rolecap/>
+@@ -288,4 +292,6 @@
+ 
+ 	files_list_pids($1)
+ 	admin_pattern($1, nscd_var_run_t)
++
++	nscd_run($1, $2)
+ ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nscd.te refpolicy/policy/modules/contrib/nscd.te
 --- refpolicy/policy/modules/contrib/nscd.te	2012-05-04 15:16:28.000000000 +0200
-+++ refpolicy/policy/modules/contrib/nscd.te	2012-10-06 20:56:09.104755979 +0200
++++ refpolicy/policy/modules/contrib/nscd.te	2012-10-16 19:36:00.214014011 +0200
 @@ -1,4 +1,4 @@
 -policy_module(nscd, 1.10.0)
-+policy_module(nscd, 1.10.1)
++policy_module(nscd, 1.10.2)
  
  gen_require(`
  	class nscd all_nscd_perms;
-@@ -13,6 +13,7 @@
- # ordering problem with loadable modules
+@@ -9,15 +9,16 @@
+ # Declarations
+ #
+ 
+-# cjp: this is out of order because of an
+-# ordering problem with loadable modules
++attribute_role nscd_roles;
++
  type nscd_var_run_t;
  files_pid_file(nscd_var_run_t)
 +init_daemon_run_dir(nscd_var_run_t, "nscd")
  
- # nscd is both the client program and the daemon.
+-# nscd is both the client program and the daemon.
  type nscd_t;
+ type nscd_exec_t;
+ init_daemon_domain(nscd_t, nscd_exec_t)
++role nscd_roles types nscd_t;
+ 
+ type nscd_initrc_exec_t;
+ init_script_file(nscd_initrc_exec_t)
+@@ -34,53 +35,53 @@
+ dontaudit nscd_t self:capability sys_tty_config;
+ allow nscd_t self:process { getattr getcap setcap setsched signal_perms };
+ allow nscd_t self:fifo_file read_fifo_file_perms;
+-allow nscd_t self:unix_stream_socket create_stream_socket_perms;
+-allow nscd_t self:unix_dgram_socket create_socket_perms;
++allow nscd_t self:unix_stream_socket { accept listen };
+ allow nscd_t self:netlink_selinux_socket create_socket_perms;
+-allow nscd_t self:tcp_socket create_socket_perms;
+-allow nscd_t self:udp_socket create_socket_perms;
+ 
+-# For client program operation, invoked from sysadm_t.
+-# Transition occurs to nscd_t due to direct_sysadm_daemon. 
+ allow nscd_t self:nscd { admin getstat };
+ 
+-allow nscd_t nscd_log_t:file manage_file_perms;
++allow nscd_t nscd_log_t:file { append_file_perms create_file_perms setattr_file_perms };
+ logging_log_filetrans(nscd_t, nscd_log_t, file)
+ 
+ manage_files_pattern(nscd_t, nscd_var_run_t, nscd_var_run_t)
+ manage_sock_files_pattern(nscd_t, nscd_var_run_t, nscd_var_run_t)
+ files_pid_filetrans(nscd_t, nscd_var_run_t, { file sock_file })
+ 
+-corecmd_search_bin(nscd_t)
+ can_exec(nscd_t, nscd_exec_t)
+ 
+-kernel_read_kernel_sysctls(nscd_t)
+ kernel_list_proc(nscd_t)
++kernel_read_kernel_sysctls(nscd_t)
++kernel_read_network_state(nscd_t)
+ kernel_read_proc_symlinks(nscd_t)
+ 
++corecmd_search_bin(nscd_t)
++
+ dev_read_sysfs(nscd_t)
+ dev_read_rand(nscd_t)
+ dev_read_urand(nscd_t)
+ 
++domain_search_all_domains_state(nscd_t)
++domain_use_interactive_fds(nscd_t)
++
++files_read_generic_tmp_symlinks(nscd_t)
++files_read_etc_runtime_files(nscd_t)
++
+ fs_getattr_all_fs(nscd_t)
+ fs_search_auto_mountpoints(nscd_t)
+ fs_list_inotifyfs(nscd_t)
+ 
+-# for when /etc/passwd has just been updated and has the wrong type
+ auth_getattr_shadow(nscd_t)
+ auth_use_nsswitch(nscd_t)
+ 
+ corenet_all_recvfrom_unlabeled(nscd_t)
+ corenet_all_recvfrom_netlabel(nscd_t)
+ corenet_tcp_sendrecv_generic_if(nscd_t)
+-corenet_udp_sendrecv_generic_if(nscd_t)
+ corenet_tcp_sendrecv_generic_node(nscd_t)
+-corenet_udp_sendrecv_generic_node(nscd_t)
+-corenet_tcp_sendrecv_all_ports(nscd_t)
+-corenet_udp_sendrecv_all_ports(nscd_t)
+-corenet_udp_bind_generic_node(nscd_t)
+-corenet_tcp_connect_all_ports(nscd_t)
++
+ corenet_sendrecv_all_client_packets(nscd_t)
++corenet_tcp_connect_all_ports(nscd_t)
++corenet_tcp_sendrecv_all_ports(nscd_t)
++
+ corenet_rw_tun_tap_dev(nscd_t)
+ 
+ selinux_get_fs_mount(nscd_t)
+@@ -89,12 +90,6 @@
+ selinux_compute_create_context(nscd_t)
+ selinux_compute_relabel_context(nscd_t)
+ selinux_compute_user_contexts(nscd_t)
+-domain_use_interactive_fds(nscd_t)
+-
+-files_read_etc_files(nscd_t)
+-files_read_generic_tmp_symlinks(nscd_t)
+-# Needed to read files created by firstboot "/etc/hesiod.conf"
+-files_read_etc_runtime_files(nscd_t)
+ 
+ logging_send_audit_msgs(nscd_t)
+ logging_send_syslog_msg(nscd_t)
+@@ -105,18 +100,26 @@
+ seutil_read_default_contexts(nscd_t)
+ seutil_sigchld_newrole(nscd_t)
+ 
+-sysnet_read_config(nscd_t)
+-
+ userdom_dontaudit_use_user_terminals(nscd_t)
+ userdom_dontaudit_use_unpriv_user_fds(nscd_t)
+ userdom_dontaudit_search_user_home_dirs(nscd_t)
+ 
+ optional_policy(`
++	accountsd_dontaudit_rw_fifo_file(nscd_t)
++')
++
++optional_policy(`
+ 	cron_read_system_job_tmp_files(nscd_t)
+ ')
+ 
+ optional_policy(`
+-	kerberos_use(nscd_t)
++	tunable_policy(`samba_domain_controller',`
++		samba_append_log(nscd_t)
++		samba_dontaudit_use_fds(nscd_t)
++	')
++
++	samba_read_config(nscd_t)
++	samba_read_var_files(nscd_t)
+ ')
+ 
+ optional_policy(`
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nsd.fc refpolicy/policy/modules/contrib/nsd.fc
+--- refpolicy/policy/modules/contrib/nsd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nsd.fc	2012-10-16 19:36:07.531014026 +0200
+@@ -1,14 +1,16 @@
++/etc/rc\.d/init\.d/nsd	--	gen_context(system_u:object_r:nsd_initrc_exec_t,s0)
+ 
+-/etc/nsd(/.*)?			gen_context(system_u:object_r:nsd_conf_t,s0)
++/etc/nsd(/.*)?	gen_context(system_u:object_r:nsd_conf_t,s0)
+ /etc/nsd/nsd\.db	--	gen_context(system_u:object_r:nsd_db_t,s0)
+-/etc/nsd/primary(/.*)?		gen_context(system_u:object_r:nsd_zone_t,s0)
++/etc/nsd/primary(/.*)?	gen_context(system_u:object_r:nsd_zone_t,s0)
+ /etc/nsd/secondary(/.*)?	gen_context(system_u:object_r:nsd_zone_t,s0)
+ 
+-/usr/sbin/nsd		--	gen_context(system_u:object_r:nsd_exec_t,s0)
+-/usr/sbin/nsdc		--	gen_context(system_u:object_r:nsd_exec_t,s0)
++/usr/sbin/nsd	--	gen_context(system_u:object_r:nsd_exec_t,s0)
++/usr/sbin/nsdc	--	gen_context(system_u:object_r:nsd_exec_t,s0)
+ /usr/sbin/nsd-notify	--	gen_context(system_u:object_r:nsd_exec_t,s0)
+-/usr/sbin/zonec		--	gen_context(system_u:object_r:nsd_exec_t,s0)
++/usr/sbin/zonec	--	gen_context(system_u:object_r:nsd_exec_t,s0)
+ 
+-/var/lib/nsd(/.*)?		gen_context(system_u:object_r:nsd_zone_t,s0)
++/var/lib/nsd(/.*)?	gen_context(system_u:object_r:nsd_zone_t,s0)
+ /var/lib/nsd/nsd\.db	--	gen_context(system_u:object_r:nsd_db_t,s0)
++
+ /var/run/nsd\.pid	--	gen_context(system_u:object_r:nsd_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nsd.if refpolicy/policy/modules/contrib/nsd.if
+--- refpolicy/policy/modules/contrib/nsd.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nsd.if	2012-10-16 19:36:07.531014026 +0200
+@@ -1,4 +1,4 @@
+-## <summary>Authoritative only name server</summary>
++## <summary>Authoritative only name server.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -27,3 +27,44 @@
+ interface(`nsd_tcp_connect',`
+ 	refpolicywarn(`$0($*) has been deprecated.')
+ ')
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an nsd environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`nsd_admin',`
++	gen_require(`
++		type nsd_t, nsd_conf_t, nsd_var_run_t;
++		type nsd_initrc_exec_t, nsd_db_t, nsd_zone_t;
++	')
++
++	allow $1 nsd_t:process { ptrace signal_perms };
++	ps_process_pattern($1, nsd_t)
++
++	init_labeled_script_domtrans($1, nsd_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 nsd_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_etc($1)
++	admin_pattern($1, { nsd_conf_t nsd_db_t })
++
++	files_search_var_lib($1)
++	admin_pattern($1, nsd_zone_t)
++
++	files_list_pids($1)
++	admin_pattern($1, nsd_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nsd.te refpolicy/policy/modules/contrib/nsd.te
+--- refpolicy/policy/modules/contrib/nsd.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nsd.te	2012-10-16 19:36:07.532014026 +0200
+@@ -1,4 +1,4 @@
+-policy_module(nsd, 1.7.0)
++policy_module(nsd, 1.7.1)
+ 
+ ########################################
+ #
+@@ -9,7 +9,9 @@
+ type nsd_exec_t;
+ init_daemon_domain(nsd_t, nsd_exec_t)
+ 
+-# A type for configuration files of nsd
++type nsd_initrc_exec_t;
++init_script_file(nsd_initrc_exec_t)
++
+ type nsd_conf_t;
+ files_type(nsd_conf_t)
+ 
+@@ -18,31 +20,29 @@
+ domain_entry_file(nsd_crond_t, nsd_exec_t)
+ role system_r types nsd_crond_t;
+ 
+-# a type for nsd.db
+ type nsd_db_t;
+ files_type(nsd_db_t)
+ 
+ type nsd_var_run_t;
+ files_pid_file(nsd_var_run_t)
+ 
+-# A type for zone files
+ type nsd_zone_t;
+ files_type(nsd_zone_t)
+ 
+ ########################################
+ #
+-# NSD Local policy
++# Local policy
+ #
+ 
+-allow nsd_t self:capability { dac_override chown setuid setgid };
++allow nsd_t self:capability { chown dac_override kill setgid setuid };
+ dontaudit nsd_t self:capability sys_tty_config;
+ allow nsd_t self:process signal_perms;
+-allow nsd_t self:tcp_socket create_stream_socket_perms;
+-allow nsd_t self:udp_socket create_socket_perms;
++allow nsd_t self:fifo_file rw_fifo_file_perms;
++allow nsd_t self:tcp_socket { accept listen };
+ 
+ allow nsd_t nsd_conf_t:dir list_dir_perms;
+-read_files_pattern(nsd_t, nsd_conf_t, nsd_conf_t)
+-read_lnk_files_pattern(nsd_t, nsd_conf_t, nsd_conf_t)
++allow nsd_t nsd_conf_t:file read_file_perms;
++allow nsd_t nsd_conf_t:lnk_file read_lnk_file_perms;
+ 
+ allow nsd_t nsd_db_t:file manage_file_perms;
+ filetrans_pattern(nsd_t, nsd_zone_t, nsd_db_t, file)
+@@ -50,9 +50,10 @@
+ manage_files_pattern(nsd_t, nsd_var_run_t, nsd_var_run_t)
+ files_pid_filetrans(nsd_t, nsd_var_run_t, file)
+ 
+-allow nsd_t nsd_zone_t:dir list_dir_perms;
+-read_files_pattern(nsd_t, nsd_zone_t, nsd_zone_t)
+-read_lnk_files_pattern(nsd_t, nsd_zone_t, nsd_zone_t)
++manage_dirs_pattern(nsd_t, nsd_zone_t, nsd_zone_t)
++manage_files_pattern(nsd_t, nsd_zone_t, nsd_zone_t)
++manage_lnk_files_pattern(nsd_t, nsd_zone_t, nsd_zone_t)
++files_var_lib_filetrans(nsd_t, nsd_zone_t, dir)
+ 
+ can_exec(nsd_t, nsd_exec_t)
+ 
+@@ -71,34 +72,30 @@
+ corenet_udp_sendrecv_all_ports(nsd_t)
+ corenet_tcp_bind_generic_node(nsd_t)
+ corenet_udp_bind_generic_node(nsd_t)
++
++corenet_sendrecv_dns_server_packets(nsd_t)
+ corenet_tcp_bind_dns_port(nsd_t)
+ corenet_udp_bind_dns_port(nsd_t)
+-corenet_sendrecv_dns_server_packets(nsd_t)
+ 
+ dev_read_sysfs(nsd_t)
+ 
+ domain_use_interactive_fds(nsd_t)
+ 
+-files_read_etc_files(nsd_t)
+ files_read_etc_runtime_files(nsd_t)
+ 
+ fs_getattr_all_fs(nsd_t)
+ fs_search_auto_mountpoints(nsd_t)
+ 
++auth_use_nsswitch(nsd_t)
++
+ logging_send_syslog_msg(nsd_t)
+ 
+ miscfiles_read_localization(nsd_t)
+ 
+-sysnet_read_config(nsd_t)
+-
+ userdom_dontaudit_use_unpriv_user_fds(nsd_t)
+ userdom_dontaudit_search_user_home_dirs(nsd_t)
+ 
+ optional_policy(`
+-	nis_use_ypbind(nsd_t)
+-')
+-
+-optional_policy(`
+ 	seutil_sigchld_newrole(nsd_t)
+ ')
+ 
+@@ -108,26 +105,23 @@
+ 
+ ########################################
+ #
+-# Zone update cron job local policy
++# Cron local policy
+ #
+ 
+-# kill capability for root cron job and non-root daemon
+ allow nsd_crond_t self:capability { dac_override kill };
+ dontaudit nsd_crond_t self:capability sys_nice;
+ allow nsd_crond_t self:process { setsched signal_perms };
+ allow nsd_crond_t self:fifo_file rw_fifo_file_perms;
+-allow nsd_crond_t self:tcp_socket create_socket_perms;
+-allow nsd_crond_t self:udp_socket create_socket_perms;
+ 
++allow nsd_crond_t nsd_t:process signal;
++ps_process_pattern(nsd_crond_t, nsd_t)
++
++allow nsd_crond_t nsd_conf_t:dir list_dir_perms;
+ allow nsd_crond_t nsd_conf_t:file read_file_perms;
++allow nsd_crond_t nsd_conf_t:lnk_file read_lnk_file_perms;
+ 
+ allow nsd_crond_t nsd_db_t:file manage_file_perms;
+ filetrans_pattern(nsd_crond_t, nsd_zone_t, nsd_db_t, file)
+-files_search_var_lib(nsd_crond_t)
+-
+-allow nsd_crond_t nsd_t:process signal;
+-
+-ps_process_pattern(nsd_crond_t, nsd_t)
+ 
+ manage_files_pattern(nsd_crond_t, nsd_zone_t, nsd_zone_t)
+ filetrans_pattern(nsd_crond_t, nsd_conf_t, nsd_zone_t, file)
+@@ -142,39 +136,26 @@
+ corenet_all_recvfrom_unlabeled(nsd_crond_t)
+ corenet_all_recvfrom_netlabel(nsd_crond_t)
+ corenet_tcp_sendrecv_generic_if(nsd_crond_t)
+-corenet_udp_sendrecv_generic_if(nsd_crond_t)
+ corenet_tcp_sendrecv_generic_node(nsd_crond_t)
+-corenet_udp_sendrecv_generic_node(nsd_crond_t)
+-corenet_tcp_sendrecv_all_ports(nsd_crond_t)
+-corenet_udp_sendrecv_all_ports(nsd_crond_t)
+-corenet_tcp_connect_all_ports(nsd_crond_t)
++
+ corenet_sendrecv_all_client_packets(nsd_crond_t)
++corenet_tcp_connect_all_ports(nsd_crond_t)
++corenet_tcp_sendrecv_all_ports(nsd_crond_t)
+ 
+-# for SSP
+ dev_read_urand(nsd_crond_t)
+ 
+ domain_dontaudit_read_all_domains_state(nsd_crond_t)
+ 
+-files_read_etc_files(nsd_crond_t)
+ files_read_etc_runtime_files(nsd_crond_t)
+-files_search_var_lib(nsd_t)
++
++auth_use_nsswitch(nsd_crond_t)
+ 
+ logging_send_syslog_msg(nsd_crond_t)
+ 
+ miscfiles_read_localization(nsd_crond_t)
+ 
+-sysnet_read_config(nsd_crond_t)
+-
+ userdom_dontaudit_search_user_home_dirs(nsd_crond_t)
+ 
+ optional_policy(`
+ 	cron_system_entry(nsd_crond_t, nsd_exec_t)
+ ')
+-
+-optional_policy(`
+-	nis_use_ypbind(nsd_crond_t)
+-')
+-
+-optional_policy(`
+-	nscd_read_pid(nsd_crond_t)
+-')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nslcd.fc refpolicy/policy/modules/contrib/nslcd.fc
+--- refpolicy/policy/modules/contrib/nslcd.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nslcd.fc	2012-10-16 19:36:10.725014033 +0200
+@@ -1,4 +1,7 @@
+-/etc/nss-ldapd.conf	--	gen_context(system_u:object_r:nslcd_conf_t,s0)
+-/etc/rc\.d/init\.d/nslcd --	gen_context(system_u:object_r:nslcd_initrc_exec_t,s0)
+-/usr/sbin/nslcd		--	gen_context(system_u:object_r:nslcd_exec_t,s0)
+-/var/run/nslcd(/.*)?		gen_context(system_u:object_r:nslcd_var_run_t,s0)
++/etc/nss-ldapd\.conf	--	gen_context(system_u:object_r:nslcd_conf_t,s0)
++
++/etc/rc\.d/init\.d/nslcd	--	gen_context(system_u:object_r:nslcd_initrc_exec_t,s0)
++
++/usr/sbin/nslcd	--	gen_context(system_u:object_r:nslcd_exec_t,s0)
++
++/var/run/nslcd(/.*)?	gen_context(system_u:object_r:nslcd_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nslcd.if refpolicy/policy/modules/contrib/nslcd.if
+--- refpolicy/policy/modules/contrib/nslcd.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nslcd.if	2012-10-16 19:36:10.740014033 +0200
+@@ -1,4 +1,4 @@
+-## <summary>nslcd - local LDAP name service daemon.</summary>
++## <summary>Local LDAP name service daemon.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -15,6 +15,7 @@
+ 		type nslcd_t, nslcd_exec_t;
+ 	')
+ 
++	corecmd_searh_bin($1)
+ 	domtrans_pattern($1, nslcd_exec_t, nslcd_t)
+ ')
+ 
+@@ -38,7 +39,7 @@
+ 
+ ########################################
+ ## <summary>
+-##	Read nslcd PID files.
++##	Read nslcd pid files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -57,7 +58,8 @@
+ 
+ ########################################
+ ## <summary>
+-##	Connect to nslcd over an unix stream socket.
++##	Connect to nslcd over an unix
++##	domain stream socket.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -70,14 +72,14 @@
+ 		type nslcd_t, nslcd_var_run_t;
+ 	')
+ 
+-	stream_connect_pattern($1, nslcd_var_run_t, nslcd_var_run_t, nslcd_t)
+ 	files_search_pids($1)
++	stream_connect_pattern($1, nslcd_var_run_t, nslcd_var_run_t, nslcd_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	All of the rules required to administrate
+-##	an nslcd environment
++##	All of the rules required to
++##	administrate an nslcd environment.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -93,22 +95,21 @@
+ #
+ interface(`nslcd_admin',`
+ 	gen_require(`
+-		type nslcd_t, nslcd_initrc_exec_t;
+-		type nslcd_conf_t, nslcd_var_run_t;
++		type nslcd_t, nslcd_initrc_exec_t, nslcd_var_run_t;
++		type nslcd_conf_t;
+ 	')
+ 
+-	ps_process_pattern($1, nslcd_t)
+ 	allow $1 nslcd_t:process { ptrace signal_perms };
++	ps_process_pattern($1, nslcd_t)
+ 
+-	# Allow nslcd_t to restart the apache service
+ 	nslcd_initrc_domtrans($1)
+ 	domain_system_change_exemption($1)
+ 	role_transition $2 nslcd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
+-	manage_files_pattern($1, nslcd_conf_t, nslcd_conf_t)
++	files_search_etc($1)
++	admin_pattern($1, nslcd_conf_t)
+ 
+-	manage_dirs_pattern($1, nslcd_var_run_t, nslcd_var_run_t)
+-	manage_files_pattern($1, nslcd_var_run_t, nslcd_var_run_t)
+-	manage_lnk_files_pattern($1, nslcd_var_run_t, nslcd_var_run_t)
++	files_search_pids($1)
++	admin_pattern($1, nslcd_var_run_t)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nslcd.te refpolicy/policy/modules/contrib/nslcd.te
+--- refpolicy/policy/modules/contrib/nslcd.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/nslcd.te	2012-10-16 19:36:10.754014031 +0200
+@@ -1,4 +1,4 @@
+-policy_module(nslcd, 1.3.0)
++policy_module(nslcd, 1.3.1)
+ 
+ ########################################
+ #
+@@ -16,16 +16,16 @@
+ files_pid_file(nslcd_var_run_t)
+ 
+ type nslcd_conf_t;
+-files_type(nslcd_conf_t)
++files_config_file(nslcd_conf_t)
+ 
+ ########################################
+ #
+-# nslcd local policy
++# Local policy
+ #
+ 
+ allow nslcd_t self:capability { setgid setuid dac_override };
+ allow nslcd_t self:process signal;
+-allow nslcd_t self:unix_stream_socket create_stream_socket_perms;
++allow nslcd_t self:unix_stream_socket { accept listen };
+ 
+ allow nslcd_t nslcd_conf_t:file read_file_perms;
+ 
+@@ -38,10 +38,15 @@
+ 
+ corenet_all_recvfrom_unlabeled(nslcd_t)
+ corenet_all_recvfrom_netlabel(nslcd_t)
+-corenet_tcp_connect_ldap_port(nslcd_t)
++corenet_tcp_sendrecv_generic_if(nslcd_t)
++corenet_tcp_sendrecv_generic_node(nslcd_t)
++
+ corenet_sendrecv_ldap_client_packets(nslcd_t)
++corenet_tcp_connect_ldap_port(nslcd_t)
++corenet_tcp_sendrecv_ldap_port(nslcd_t)
+ 
+-files_read_etc_files(nslcd_t)
++files_read_usr_symlinks(nslcd_t)
++files_list_tmp(nslcd_t)
+ 
+ auth_use_nsswitch(nslcd_t)
+ 
+@@ -49,6 +54,8 @@
+ 
+ miscfiles_read_localization(nslcd_t)
+ 
++userdom_read_user_tmp_files(nslcd_t)
++
+ optional_policy(`
+ 	ldap_stream_connect(nslcd_t)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntop.fc refpolicy/policy/modules/contrib/ntop.fc
+--- refpolicy/policy/modules/contrib/ntop.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntop.fc	2012-10-16 19:36:13.101014038 +0200
+@@ -1,6 +1,9 @@
+-/etc/ntop(/.*)?			gen_context(system_u:object_r:ntop_etc_t,s0)
++/etc/ntop.*	gen_context(system_u:object_r:ntop_etc_t,s0)
+ 
+-/usr/bin/ntop		--	gen_context(system_u:object_r:ntop_exec_t,s0)
++/etc/rc\.d/init\.d/ntop	--	gen_context(system_u:object_r:ntop_initrc_exec_t,s0)
++
++/usr/sbin/ntop	--	gen_context(system_u:object_r:ntop_exec_t,s0)
++
++/var/lib/ntop(/.*)?	gen_context(system_u:object_r:ntop_var_lib_t,s0)
+ 
+-/var/lib/ntop(/.*)?		gen_context(system_u:object_r:ntop_var_lib_t,s0)
+ /var/run/ntop\.pid	--	gen_context(system_u:object_r:ntop_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntop.if refpolicy/policy/modules/contrib/ntop.if
+--- refpolicy/policy/modules/contrib/ntop.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntop.if	2012-10-16 19:36:13.101014038 +0200
+@@ -1 +1,42 @@
+-## <summary>Network Top</summary>
++## <summary>A network traffic probe similar to the UNIX top command.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an ntop environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`ntop_admin',`
++	gen_require(`
++		type ntop_t, ntop_etc_t, ntop_var_run_t;
++		type ntop_initrc_exec_t, ntop_var_lib_t;
++	')
++
++	allow $1 ntop_t:process { ptrace signal_perms };
++	ps_process_pattern($1, ntop_t)
++
++	init_labeled_script_domtrans($1, ntop_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 ntop_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_etc($1)
++	admin_pattern($1, ntop_etc_t)
++
++	files_search_var_lib($1)
++	admin_pattern($1, ntop_var_lib_t)
++
++	files_list_pids($1)
++	admin_pattern($1, ntop_var_run_t)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntop.te refpolicy/policy/modules/contrib/ntop.te
+--- refpolicy/policy/modules/contrib/ntop.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/ntop.te	2012-10-16 19:36:13.102014038 +0200
+@@ -1,4 +1,4 @@
+-policy_module(ntop, 1.9.0)
++policy_module(ntop, 1.9.2)
+ 
+ ########################################
+ #
+@@ -8,7 +8,6 @@
+ type ntop_t;
+ type ntop_exec_t;
+ init_daemon_domain(ntop_t, ntop_exec_t)
+-application_domain(ntop_t, ntop_exec_t)
+ 
+ type ntop_initrc_exec_t;
+ init_script_file(ntop_initrc_exec_t)
+@@ -34,16 +33,14 @@
+ dontaudit ntop_t self:capability sys_tty_config;
+ allow ntop_t self:process signal_perms;
+ allow ntop_t self:fifo_file rw_fifo_file_perms;
+-allow ntop_t self:tcp_socket create_stream_socket_perms;
+-allow ntop_t self:udp_socket create_socket_perms;
+-allow ntop_t self:unix_dgram_socket create_socket_perms;
+-allow ntop_t self:unix_stream_socket create_stream_socket_perms;
++allow ntop_t self:tcp_socket { accept listen };
++allow ntop_t self:unix_stream_socket { accept listen };
+ allow ntop_t self:packet_socket create_socket_perms;
+ allow ntop_t self:socket create_socket_perms;
+ 
+ allow ntop_t ntop_etc_t:dir list_dir_perms;
+-read_files_pattern(ntop_t, ntop_etc_t, ntop_etc_t)
+-read_lnk_files_pattern(ntop_t, ntop_etc_t, ntop_etc_t)
++allow ntop_t ntop_etc_t:file read_file_perms;
++allow ntop_t ntop_etc_t:lnk_file read_lnk_file_perms;
+ 
+ manage_dirs_pattern(ntop_t, ntop_tmp_t, ntop_tmp_t)
+ manage_files_pattern(ntop_t, ntop_tmp_t, ntop_tmp_t)
+@@ -60,32 +57,30 @@
+ kernel_read_system_state(ntop_t)
+ kernel_read_network_state(ntop_t)
+ kernel_read_kernel_sysctls(ntop_t)
+-kernel_list_proc(ntop_t)
+-kernel_read_proc_symlinks(ntop_t)
+ 
+ corenet_all_recvfrom_unlabeled(ntop_t)
+ corenet_all_recvfrom_netlabel(ntop_t)
+ corenet_tcp_sendrecv_generic_if(ntop_t)
+-corenet_udp_sendrecv_generic_if(ntop_t)
+ corenet_raw_sendrecv_generic_if(ntop_t)
+ corenet_tcp_sendrecv_generic_node(ntop_t)
+-corenet_udp_sendrecv_generic_node(ntop_t)
+ corenet_raw_sendrecv_generic_node(ntop_t)
+-corenet_tcp_sendrecv_all_ports(ntop_t)
+-corenet_udp_sendrecv_all_ports(ntop_t)
++corenet_tcp_bind_generic_node(ntop_t)
++
++corenet_sendrecv_ntop_server_packets(ntop_t)
+ corenet_tcp_bind_ntop_port(ntop_t)
++corenet_sendrecv_ntop_client_packets(ntop_t)
+ corenet_tcp_connect_ntop_port(ntop_t)
+-corenet_tcp_connect_http_port(ntop_t)
++corenet_tcp_sendrecv_ntop_port(ntop_t)
++
+ corenet_sendrecv_http_client_packets(ntop_t)
+-corenet_sendrecv_ntop_client_packets(ntop_t)
+-corenet_sendrecv_ntop_server_packets(ntop_t)
++corenet_tcp_connect_http_port(ntop_t)
++corenet_tcp_sendrecv_http_port(ntop_t)
+ 
+ dev_read_sysfs(ntop_t)
+ dev_rw_generic_usb_dev(ntop_t)
+ 
+ domain_use_interactive_fds(ntop_t)
+ 
+-files_read_etc_files(ntop_t)
+ files_read_usr_files(ntop_t)
+ 
+ fs_getattr_all_fs(ntop_t)
+@@ -95,8 +90,8 @@
+ 
+ logging_send_syslog_msg(ntop_t)
+ 
+-miscfiles_read_localization(ntop_t)
+ miscfiles_read_fonts(ntop_t)
++miscfiles_read_localization(ntop_t)
+ 
+ userdom_dontaudit_use_unpriv_user_fds(ntop_t)
+ userdom_dontaudit_search_user_home_dirs(ntop_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.fc refpolicy/policy/modules/contrib/ntp.fc
 --- refpolicy/policy/modules/contrib/ntp.fc	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/ntp.fc	2012-08-15 10:07:50.063520057 +0200
-@@ -2,11 +2,11 @@
- /etc/cron\.(daily|weekly)/ntp-simple -- gen_context(system_u:object_r:ntpd_exec_t,s0)
- /etc/cron\.(daily|weekly)/ntp-server -- gen_context(system_u:object_r:ntpd_exec_t,s0)
++++ refpolicy/policy/modules/contrib/ntp.fc	2012-10-16 19:36:15.706014044 +0200
+@@ -1,22 +1,21 @@
++/etc/cron\.(daily|weekly)/ntp-simple	--	gen_context(system_u:object_r:ntpd_exec_t,s0)
++/etc/cron\.(daily|weekly)/ntp-server	--	gen_context(system_u:object_r:ntpd_exec_t,s0)
+ 
+-/etc/cron\.(daily|weekly)/ntp-simple -- gen_context(system_u:object_r:ntpd_exec_t,s0)
+-/etc/cron\.(daily|weekly)/ntp-server -- gen_context(system_u:object_r:ntpd_exec_t,s0)
++/etc/ntpd.*\.conf.*	--	gen_context(system_u:object_r:ntp_conf_t,s0)
++/etc/ntp/crypto(/.*)?	gen_context(system_u:object_r:ntpd_key_t,s0)
++/etc/ntp/data(/.*)?	gen_context(system_u:object_r:ntp_drift_t,s0)
++/etc/ntp/keys	--	gen_context(system_u:object_r:ntpd_key_t,s0)
++/etc/ntp/step-tickers.*	--	gen_context(system_u:object_r:ntp_conf_t,s0)
  
 -/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:net_conf_t,s0)
-+/etc/ntpd?\.conf.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
- /etc/ntp/crypto(/.*)?			gen_context(system_u:object_r:ntpd_key_t,s0)
- /etc/ntp/data(/.*)?			gen_context(system_u:object_r:ntp_drift_t,s0)
- /etc/ntp/keys			--	gen_context(system_u:object_r:ntpd_key_t,s0)
+-/etc/ntp/crypto(/.*)?			gen_context(system_u:object_r:ntpd_key_t,s0)
+-/etc/ntp/data(/.*)?			gen_context(system_u:object_r:ntp_drift_t,s0)
+-/etc/ntp/keys			--	gen_context(system_u:object_r:ntpd_key_t,s0)
 -/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:net_conf_t,s0)
-+/etc/ntp/step-tickers.*		--	gen_context(system_u:object_r:ntp_conf_t,s0)
++/etc/rc\.d/init\.d/ntpd	--	gen_context(system_u:object_r:ntpd_initrc_exec_t,s0)
  
- /etc/rc\.d/init\.d/ntpd		--	gen_context(system_u:object_r:ntpd_initrc_exec_t,s0)
+-/etc/rc\.d/init\.d/ntpd		--	gen_context(system_u:object_r:ntpd_initrc_exec_t,s0)
++/usr/sbin/ntpd	--	gen_context(system_u:object_r:ntpd_exec_t,s0)
++/usr/sbin/ntpdate	--	gen_context(system_u:object_r:ntpdate_exec_t,s0)
  
+-/usr/sbin/ntpd			--	gen_context(system_u:object_r:ntpd_exec_t,s0)
+-/usr/sbin/ntpdate		--	gen_context(system_u:object_r:ntpdate_exec_t,s0)
++/var/lib/ntp(/.*)?	gen_context(system_u:object_r:ntp_drift_t,s0)
+ 
+-/var/lib/ntp(/.*)?			gen_context(system_u:object_r:ntp_drift_t,s0)
++/var/log/ntp.*	--	gen_context(system_u:object_r:ntpd_log_t,s0)
++/var/log/ntpstats(/.*)?	gen_context(system_u:object_r:ntpd_log_t,s0)
++/var/log/xntpd.*	--	gen_context(system_u:object_r:ntpd_log_t,s0)
+ 
+-/var/log/ntp.*			--	gen_context(system_u:object_r:ntpd_log_t,s0)
+-/var/log/ntpstats(/.*)?			gen_context(system_u:object_r:ntpd_log_t,s0)
+-/var/log/xntpd.*		--	gen_context(system_u:object_r:ntpd_log_t,s0)
+-
+-/var/run/ntpd\.pid		--	gen_context(system_u:object_r:ntpd_var_run_t,s0)
++/var/run/ntpd\.pid	--	gen_context(system_u:object_r:ntpd_var_run_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.if refpolicy/policy/modules/contrib/ntp.if
 --- refpolicy/policy/modules/contrib/ntp.if	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/ntp.if	2012-10-06 20:56:23.079756008 +0200
++++ refpolicy/policy/modules/contrib/ntp.if	2012-10-16 19:36:15.726014044 +0200
+@@ -1,4 +1,4 @@
+-## <summary>Network time protocol daemon</summary>
++## <summary>Network time protocol daemon.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -54,11 +54,11 @@
+ #
+ interface(`ntp_run',`
+ 	gen_require(`
+-		type ntpd_t;
++		attribute_role ntpd_roles;
+ 	')
+ 
+ 	ntp_domtrans($1)
+-	role $2 types ntpd_t;
++	roleattribute $2 ntpd_roles;
+ ')
+ 
+ ########################################
+@@ -122,8 +122,8 @@
+ 
+ ########################################
+ ## <summary>
+-##	All of the rules required to administrate
+-##	an ntp environment
++##	All of the rules required to
++##	administrate an ntp environment.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
 @@ -132,7 +132,7 @@
  ## </param>
  ## <param name="role">
@@ -52291,16 +53682,35 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  	logging_list_logs($1)
  	admin_pattern($1, ntpd_log_t)
+@@ -162,4 +163,6 @@
+ 
+ 	files_list_pids($1)
+ 	admin_pattern($1, ntpd_var_run_t)
++
++	ntp_run($1, $2)
+ ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ntp.te refpolicy/policy/modules/contrib/ntp.te
 --- refpolicy/policy/modules/contrib/ntp.te	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/ntp.te	2012-08-15 10:07:50.063520057 +0200
-@@ -1,4 +1,4 @@
++++ refpolicy/policy/modules/contrib/ntp.te	2012-10-16 19:36:15.727014044 +0200
+@@ -1,20 +1,26 @@
 -policy_module(ntp, 1.10.0)
-+policy_module(ntp, 1.10.1)
++policy_module(ntp, 1.10.2)
  
  ########################################
  #
-@@ -15,6 +15,9 @@
+ # Declarations
+ #
+ 
++attribute_role ntpd_roles;
++
+ type ntp_drift_t;
+ files_type(ntp_drift_t)
+ 
+ type ntpd_t;
+ type ntpd_exec_t;
+ init_daemon_domain(ntpd_t, ntpd_exec_t)
++role ntpd_roles types ntpd_t;
+ 
  type ntpd_initrc_exec_t;
  init_script_file(ntpd_initrc_exec_t)
  
@@ -52310,19 +53720,114 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  type ntpd_key_t;
  files_type(ntpd_key_t)
  
-@@ -54,10 +57,12 @@
+@@ -38,30 +44,26 @@
+ # Local policy
+ #
  
- can_exec(ntpd_t, ntpd_exec_t)
+-# sys_resource and setrlimit is for locking memory
+-# ntpdate wants sys_nice
+ allow ntpd_t self:capability { chown dac_override kill setgid setuid sys_time ipc_lock ipc_owner sys_chroot sys_nice sys_resource };
+ dontaudit ntpd_t self:capability { net_admin sys_tty_config fsetid sys_nice };
+ allow ntpd_t self:process { signal_perms getcap setcap setsched setrlimit };
+ allow ntpd_t self:fifo_file rw_fifo_file_perms;
+ allow ntpd_t self:shm create_shm_perms;
+-allow ntpd_t self:unix_dgram_socket create_socket_perms;
+-allow ntpd_t self:unix_stream_socket create_socket_perms;
+-allow ntpd_t self:tcp_socket create_stream_socket_perms;
+-allow ntpd_t self:udp_socket create_socket_perms;
++allow ntpd_t self:tcp_socket { accept listen };
  
+ manage_files_pattern(ntpd_t, ntp_drift_t, ntp_drift_t)
+ 
+-can_exec(ntpd_t, ntpd_exec_t)
 +allow ntpd_t ntp_conf_t:file read_file_perms;
-+
+ 
  read_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
  read_lnk_files_pattern(ntpd_t, ntpd_key_t, ntpd_key_t)
  
 -allow ntpd_t ntpd_log_t:dir setattr;
+-manage_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
 +allow ntpd_t ntpd_log_t:dir setattr_dir_perms;
- manage_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
++append_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
++create_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
++setattr_files_pattern(ntpd_t, ntpd_log_t, ntpd_log_t)
  logging_log_filetrans(ntpd_t, ntpd_log_t, { file dir })
+ 
+-# for some reason it creates a file in /tmp
+ manage_dirs_pattern(ntpd_t, ntpd_tmp_t, ntpd_tmp_t)
+ manage_files_pattern(ntpd_t, ntpd_tmp_t, ntpd_tmp_t)
+ files_tmp_filetrans(ntpd_t, ntpd_tmp_t, { file dir })
+@@ -73,6 +75,8 @@
+ manage_files_pattern(ntpd_t, ntpd_var_run_t, ntpd_var_run_t)
+ files_pid_filetrans(ntpd_t, ntpd_var_run_t, file)
+ 
++can_exec(ntpd_t, ntpd_exec_t)
++
+ kernel_read_kernel_sysctls(ntpd_t)
+ kernel_read_system_state(ntpd_t)
+ kernel_read_network_state(ntpd_t)
+@@ -84,37 +88,37 @@
+ corenet_udp_sendrecv_generic_if(ntpd_t)
+ corenet_tcp_sendrecv_generic_node(ntpd_t)
+ corenet_udp_sendrecv_generic_node(ntpd_t)
+-corenet_tcp_sendrecv_all_ports(ntpd_t)
+-corenet_udp_sendrecv_all_ports(ntpd_t)
+-corenet_tcp_bind_generic_node(ntpd_t)
+ corenet_udp_bind_generic_node(ntpd_t)
+-corenet_udp_bind_ntp_port(ntpd_t)
+-corenet_tcp_connect_ntp_port(ntpd_t)
+-corenet_sendrecv_ntp_server_packets(ntpd_t)
+-corenet_sendrecv_ntp_client_packets(ntpd_t)
+-
+-dev_read_sysfs(ntpd_t)
+-# for SSP
+-dev_read_urand(ntpd_t)
+ 
+-fs_getattr_all_fs(ntpd_t)
+-fs_search_auto_mountpoints(ntpd_t)
+-
+-term_use_ptmx(ntpd_t)
++corenet_sendrecv_ntp_server_packets(ntpd_t)
++corenet_udp_bind_ntp_port(ntpd_t)
++corenet_udp_sendrecv_ntp_port(ntpd_t)
+ 
+-auth_use_nsswitch(ntpd_t)
++corenet_sendrecv_ntp_client_packets(ntpd_t)
++corenet_tcp_connect_ntp_port(ntpd_t)
++corenet_tcp_sendrecv_ntp_port(ntpd_t)
+ 
+ corecmd_exec_bin(ntpd_t)
+ corecmd_exec_shell(ntpd_t)
+ 
++dev_read_sysfs(ntpd_t)
++dev_read_urand(ntpd_t)
++dev_rw_realtime_clock(ntpd_t)
++
+ domain_use_interactive_fds(ntpd_t)
+ domain_dontaudit_list_all_domains_state(ntpd_t)
+ 
+-files_read_etc_files(ntpd_t)
+ files_read_etc_runtime_files(ntpd_t)
+ files_read_usr_files(ntpd_t)
+ files_list_var_lib(ntpd_t)
+ 
++fs_getattr_all_fs(ntpd_t)
++fs_search_auto_mountpoints(ntpd_t)
++
++term_use_ptmx(ntpd_t)
++
++auth_use_nsswitch(ntpd_t)
++
+ init_exec_script_files(ntpd_t)
+ 
+ logging_send_syslog_msg(ntpd_t)
+@@ -125,7 +129,6 @@
+ userdom_list_user_home_dirs(ntpd_t)
+ 
+ optional_policy(`
+-	# for cron jobs
+ 	cron_system_entry(ntpd_t, ntpdate_exec_t)
+ ')
  
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/numad.fc refpolicy/policy/modules/contrib/numad.fc
 --- refpolicy/policy/modules/contrib/numad.fc	1970-01-01 01:00:00.000000000 +0100
@@ -52380,9 +53885,9 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/numad.te refpolicy/policy/modules/contrib/numad.te
 --- refpolicy/policy/modules/contrib/numad.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/numad.te	2012-09-24 21:09:43.925581732 +0200
-@@ -0,0 +1,43 @@
-+policy_module(numad, 1.0.2)
++++ refpolicy/policy/modules/contrib/numad.te	2012-10-16 19:36:17.441014047 +0200
+@@ -0,0 +1,44 @@
++policy_module(numad, 1.0.3)
 +
 +########################################
 +#
@@ -52392,6 +53897,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +type numad_t;
 +type numad_exec_t;
 +init_daemon_domain(numad_t, numad_exec_t)
++application_executable_file(numad_exec_t)
 +
 +type numad_initrc_exec_t;
 +init_script_file(numad_initrc_exec_t)
@@ -52427,30 +53933,978 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +miscfiles_read_localization(numad_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nut.fc refpolicy/policy/modules/contrib/nut.fc
 --- refpolicy/policy/modules/contrib/nut.fc	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/nut.fc	2012-10-10 21:34:04.936026174 +0200
-@@ -1,6 +1,13 @@
-+/etc/nut(/.*)?		gen_context(system_u:object_r:nut_conf_t,s0)
- /etc/ups(/.*)?		gen_context(system_u:object_r:nut_conf_t,s0)
++++ refpolicy/policy/modules/contrib/nut.fc	2012-10-16 19:36:20.906014055 +0200
+@@ -1,12 +1,23 @@
+-/etc/ups(/.*)?		gen_context(system_u:object_r:nut_conf_t,s0)
++/etc/nut(/.*)?	gen_context(system_u:object_r:nut_conf_t,s0)
++/etc/ups(/.*)?	gen_context(system_u:object_r:nut_conf_t,s0)
  
++/etc/rc\.d/init\.d/nut-driver	--	gen_context(system_u:object_r:nut_initrc_exec_t,s0)
++/etc/rc\.d/init\.d/nut-server	--	gen_context(system_u:object_r:nut_initrc_exec_t,s0)
++
 +/sbin/upsd	--	gen_context(system_u:object_r:nut_upsd_exec_t,s0)
  /sbin/upsdrvctl	--	gen_context(system_u:object_r:nut_upsdrvctl_exec_t,s0)
-+/sbin/upsmon 	--	gen_context(system_u:object_r:nut_upsmon_exec_t,s0)
++/sbin/upsmon	--	gen_context(system_u:object_r:nut_upsmon_exec_t,s0)
 +
-+/usr/lib/cgi-bin/nut/upsimage\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
-+/usr/lib/cgi-bin/nut/upsset\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
-+/usr/lib/cgi-bin/nut/upsstats\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/usr/lib/cgi-bin/nut/upsimage\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/usr/lib/cgi-bin/nut/upsset\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/usr/lib/cgi-bin/nut/upsstats\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
  
  /usr/sbin/upsd	--	gen_context(system_u:object_r:nut_upsd_exec_t,s0)
- /usr/sbin/upsmon --	gen_context(system_u:object_r:nut_upsmon_exec_t,s0)
+-/usr/sbin/upsmon --	gen_context(system_u:object_r:nut_upsmon_exec_t,s0)
++/usr/sbin/upsdrvctl	--	gen_context(system_u:object_r:nut_upsdrvctl_exec_t,s0)
++/usr/sbin/upsmon	--	gen_context(system_u:object_r:nut_upsmon_exec_t,s0)
+ 
+ /var/run/nut(/.*)?	gen_context(system_u:object_r:nut_var_run_t,s0)
+ 
+-/var/www/nut-cgi-bin/upsimage\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
+-/var/www/nut-cgi-bin/upsset\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
+-/var/www/nut-cgi-bin/upsstats\.cgi -- gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/var/www/nut-cgi-bin/upsimage\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/var/www/nut-cgi-bin/upsset\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
++/var/www/nut-cgi-bin/upsstats\.cgi	--	gen_context(system_u:object_r:httpd_nutups_cgi_script_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nut.if refpolicy/policy/modules/contrib/nut.if
+--- refpolicy/policy/modules/contrib/nut.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nut.if	2012-10-16 19:36:20.907014055 +0200
+@@ -1 +1,39 @@
+-## <summary>nut - Network UPS Tools </summary>
++## <summary>Network UPS Tools </summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an nut environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`nut_admin',`
++	gen_require(`
++		attribute nut_domain;
++		type nut_initrc_exec_t, nut_var_run_t, nut_conf_t;
++	')
++
++	allow $1 nut_domain:process { ptrace signal_perms };
++	ps_process_pattern($1, nut_domain_t)
++
++	init_labeled_script_domtrans($1, nut_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 nut_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_etc($1)
++	admin_pattern($1, nut_conf_t)
++
++	files_search_pids($1)
++	admin_pattern($1, nut_var_run_t)
++')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nut.te refpolicy/policy/modules/contrib/nut.te
 --- refpolicy/policy/modules/contrib/nut.te	2012-05-04 15:15:21.000000000 +0200
-+++ refpolicy/policy/modules/contrib/nut.te	2012-10-10 21:34:08.442026182 +0200
-@@ -1,4 +1,4 @@
++++ refpolicy/policy/modules/contrib/nut.te	2012-10-16 19:36:20.929014055 +0200
+@@ -1,107 +1,123 @@
 -policy_module(nut, 1.2.0)
-+policy_module(nut, 1.2.1)
++policy_module(nut, 1.2.2)
  
  ########################################
  #
+ # Declarations
+ #
+ 
++attribute nut_domain;
++
+ type nut_conf_t;
+ files_config_file(nut_conf_t)
+ 
+-type nut_upsd_t;
++type nut_upsd_t, nut_domain;
+ type nut_upsd_exec_t;
+ init_daemon_domain(nut_upsd_t, nut_upsd_exec_t)
+ 
+-type nut_upsmon_t;
++type nut_upsmon_t, nut_domain;
+ type nut_upsmon_exec_t;
+ init_daemon_domain(nut_upsmon_t, nut_upsmon_exec_t)
+ 
+-type nut_upsdrvctl_t;
++type nut_upsdrvctl_t, nut_domain;
+ type nut_upsdrvctl_exec_t;
+ init_daemon_domain(nut_upsdrvctl_t, nut_upsdrvctl_exec_t)
+ 
++type nut_initrc_exec_t;
++init_script_file(nut_initrc_exec_t)
++
+ type nut_var_run_t;
+ files_pid_file(nut_var_run_t)
+ 
+ ########################################
+ #
+-# Local policy for upsd
++# Common nut domain local policy
+ #
+ 
+-allow nut_upsd_t self:capability { setgid setuid dac_override };
++allow nut_domain self:capability { setgid setuid dac_override kill };
++allow nut_domain self:process signal_perms;
++allow nut_domain self:fifo_file rw_fifo_file_perms;
++allow nut_domain self:unix_dgram_socket sendto;
++
++allow nut_domain nut_conf_t:dir list_dir_perms;
++allow nut_domain nut_conf_t:file read_file_perms;
++allow nut_domain nut_conf_t:lnk_file read_lnk_file_perms;
++
++manage_files_pattern(nut_domain, nut_var_run_t, nut_var_run_t)
++manage_dirs_pattern(nut_domain, nut_var_run_t, nut_var_run_t)
++files_pid_filetrans(nut_domain, nut_var_run_t, { dir file })
++
++kernel_read_kernel_sysctls(nut_domain)
++
++logging_send_syslog_msg(nut_domain)
+ 
+-allow nut_upsd_t self:unix_dgram_socket { create_socket_perms sendto };
+-allow nut_upsd_t self:tcp_socket connected_stream_socket_perms;
++miscfiles_read_localization(nut_domain)
+ 
+-allow nut_upsd_t nut_upsdrvctl_t:unix_stream_socket connectto;
++########################################
++#
++# Upsd local policy
++#
+ 
+-read_files_pattern(nut_upsd_t, nut_conf_t, nut_conf_t)
++allow nut_upsd_t self:tcp_socket { accept listen };
+ 
+-# pid file
+-manage_files_pattern(nut_upsd_t, nut_var_run_t, nut_var_run_t)
+-manage_dirs_pattern(nut_upsd_t, nut_var_run_t, nut_var_run_t)
+ manage_sock_files_pattern(nut_upsd_t, nut_var_run_t, nut_var_run_t)
+-files_pid_filetrans(nut_upsd_t, nut_var_run_t, { dir file sock_file })
++files_pid_filetrans(nut_upsd_t, nut_var_run_t, sock_file)
+ 
+-kernel_read_kernel_sysctls(nut_upsd_t)
++stream_connect_pattern(nut_upsd_t, nut_var_run_t, nut_var_run_t, nut_upsdrvctl_t)
+ 
++corenet_all_recvfrom_unlabeled(nut_upsd_t)
++corenet_all_recvfrom_netlabel(nut_upsd_t)
++corenet_tcp_sendrecv_generic_if(nut_upsd_t)
++corenet_tcp_sendrecv_generic_node(nut_upsd_t)
++corenet_tcp_sendrecv_all_ports(nut_upsd_t)
++corenet_tcp_bind_generic_node(nut_upsd_t)
++
++corenet_sendrecv_ups_server_packets(nut_upsd_t)
+ corenet_tcp_bind_ups_port(nut_upsd_t)
++
++corenet_sendrecv_generic_server_packets(nut_upsd_t)
+ corenet_tcp_bind_generic_port(nut_upsd_t)
+-corenet_tcp_bind_all_nodes(nut_upsd_t)
+ 
+ files_read_usr_files(nut_upsd_t)
+ 
+ auth_use_nsswitch(nut_upsd_t)
+ 
+-logging_send_syslog_msg(nut_upsd_t)
+-
+-miscfiles_read_localization(nut_upsd_t)
+-
+ ########################################
+ #
+-# Local policy for upsmon
++# Upsmon local policy
+ #
+ 
+-allow nut_upsmon_t self:capability { dac_override dac_read_search setgid setuid };
+-allow nut_upsmon_t self:fifo_file rw_fifo_file_perms;
+-allow nut_upsmon_t self:unix_dgram_socket { create_socket_perms sendto };
+-allow nut_upsmon_t self:unix_stream_socket { create_socket_perms connectto };
+-allow nut_upsmon_t self:tcp_socket create_socket_perms;
+-
+-read_files_pattern(nut_upsmon_t, nut_conf_t, nut_conf_t)
+-
+-# pid file
+-manage_files_pattern(nut_upsmon_t, nut_var_run_t, nut_var_run_t)
+-manage_dirs_pattern(nut_upsmon_t, nut_var_run_t, nut_var_run_t)
+-files_pid_filetrans(nut_upsmon_t, nut_var_run_t, file)
++allow nut_upsmon_t self:capability dac_read_search;
++allow nut_upsmon_t self:unix_stream_socket connectto;
+ 
+-kernel_read_kernel_sysctls(nut_upsmon_t)
+ kernel_read_system_state(nut_upsmon_t)
+ 
+ corecmd_exec_bin(nut_upsmon_t)
+ corecmd_exec_shell(nut_upsmon_t)
+ 
++corenet_all_recvfrom_unlabeled(nut_upsmon_t)
++corenet_all_recvfrom_netlabel(nut_upsmon_t)
++corenet_tcp_sendrecv_generic_if(nut_upsmon_t)
++corenet_tcp_sendrecv_generic_node(nut_upsmon_t)
++corenet_tcp_sendrecv_all_ports(nut_upsmon_t)
++corenet_tcp_bind_generic_node(nut_upsmon_t)
++
++corenet_sendrecv_ups_client_packets(nut_upsmon_t)
+ corenet_tcp_connect_ups_port(nut_upsmon_t)
++
++corenet_sendrecv_generic_client_packets(nut_upsmon_t)
+ corenet_tcp_connect_generic_port(nut_upsmon_t)
+ 
+-# Creates /etc/killpower
+ files_manage_etc_runtime_files(nut_upsmon_t)
+ files_etc_filetrans_etc_runtime(nut_upsmon_t, file)
+ files_search_usr(nut_upsmon_t)
+ 
+-# /usr/bin/wall
+ term_write_all_terms(nut_upsmon_t)
+ 
+-# upsmon runs shutdown, probably need a shutdown domain
+ init_rw_utmp(nut_upsmon_t)
+ init_telinit(nut_upsmon_t)
+ 
+-logging_send_syslog_msg(nut_upsmon_t)
+-
+ auth_use_nsswitch(nut_upsmon_t)
+ 
+-miscfiles_read_localization(nut_upsmon_t)
+-
+ mta_send_mail(nut_upsmon_t)
+ 
+ optional_policy(`
+@@ -110,29 +126,17 @@
+ 
+ ########################################
+ #
+-# Local policy for upsdrvctl
++# Upsdrvctl local policy
+ #
+ 
+-allow nut_upsdrvctl_t self:capability { dac_override kill setgid setuid };
+-allow nut_upsdrvctl_t self:process { sigchld signal signull };
+ allow nut_upsdrvctl_t self:fd use;
+-allow nut_upsdrvctl_t self:fifo_file rw_fifo_file_perms;
+-allow nut_upsdrvctl_t self:unix_dgram_socket { create_socket_perms sendto };
+-allow nut_upsdrvctl_t self:udp_socket create_socket_perms;
+-
+-read_files_pattern(nut_upsdrvctl_t, nut_conf_t, nut_conf_t)
+-
+-# pid file
+-manage_files_pattern(nut_upsdrvctl_t, nut_var_run_t, nut_var_run_t)
+-manage_dirs_pattern(nut_upsdrvctl_t, nut_var_run_t, nut_var_run_t)
+-manage_sock_files_pattern(nut_upsdrvctl_t, nut_var_run_t, nut_var_run_t)
+-files_pid_filetrans(nut_upsdrvctl_t, nut_var_run_t, { file sock_file })
+ 
+-kernel_read_kernel_sysctls(nut_upsdrvctl_t)
++manage_sock_files_pattern(nut_upsdrvctl_t, nut_var_run_t, nut_var_run_t)
++files_pid_filetrans(nut_upsdrvctl_t, nut_var_run_t, sock_file)
+ 
+-# /sbin/upsdrvctl executes other drivers
+ corecmd_exec_bin(nut_upsdrvctl_t)
+ 
++dev_read_sysfs(nut_upsdrvctl_t)
+ dev_read_urand(nut_upsdrvctl_t)
+ dev_rw_generic_usb_dev(nut_upsdrvctl_t)
+ 
+@@ -142,30 +146,17 @@
+ 
+ init_sigchld(nut_upsdrvctl_t)
+ 
+-logging_send_syslog_msg(nut_upsdrvctl_t)
+-
+-miscfiles_read_localization(nut_upsdrvctl_t)
+-
+ #######################################
+ #
+-# Local policy for upscgi scripts
+-# requires httpd_enable_cgi and httpd_can_network_connect
++# Cgi local policy
+ #
+ 
+ optional_policy(`
+ 	apache_content_template(nutups_cgi)
+ 
+-	read_files_pattern(httpd_nutups_cgi_script_t, nut_conf_t, nut_conf_t)
+-
+-	corenet_all_recvfrom_unlabeled(httpd_nutups_cgi_script_t)
+-	corenet_all_recvfrom_netlabel(httpd_nutups_cgi_script_t)
+-	corenet_tcp_sendrecv_generic_if(httpd_nutups_cgi_script_t)
+-	corenet_tcp_sendrecv_generic_node(httpd_nutups_cgi_script_t)
+-	corenet_tcp_sendrecv_all_ports(httpd_nutups_cgi_script_t)
+-	corenet_tcp_connect_ups_port(httpd_nutups_cgi_script_t)
+-	corenet_udp_sendrecv_generic_if(httpd_nutups_cgi_script_t)
+-	corenet_udp_sendrecv_generic_node(httpd_nutups_cgi_script_t)
+-	corenet_udp_sendrecv_all_ports(httpd_nutups_cgi_script_t)
++	allow httpd_nutups_cgi_script_t nut_conf_t:dir list_dir_perms;
++	allow httpd_nutups_cgi_script_t nut_conf_t:file read_file_perms;
++	allow httpd_nutups_cgi_script_t nut_conf_t:lnk_file read_lnk_file_perms;
+ 
+ 	sysnet_dns_name_resolve(httpd_nutups_cgi_script_t)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nx.fc refpolicy/policy/modules/contrib/nx.fc
+--- refpolicy/policy/modules/contrib/nx.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nx.fc	2012-10-16 19:36:24.784014063 +0200
+@@ -1,12 +1,13 @@
+-/opt/NX/bin/nxserver		--	gen_context(system_u:object_r:nx_server_exec_t,s0)
+-/opt/NX/home(/.*)?			gen_context(system_u:object_r:nx_server_var_lib_t,s0)
+-/opt/NX/home/nx/\.ssh(/.*)?		gen_context(system_u:object_r:nx_server_home_ssh_t,s0)
+-/opt/NX/var(/.*)?			gen_context(system_u:object_r:nx_server_var_run_t,s0)
++/opt/NX/bin/nxserver	--	gen_context(system_u:object_r:nx_server_exec_t,s0)
++/opt/NX/home(/.*)?	gen_context(system_u:object_r:nx_server_var_lib_t,s0)
++/opt/NX/home/nx/\.ssh(/.*)?	gen_context(system_u:object_r:nx_server_home_ssh_t,s0)
++/opt/NX/var(/.*)?	gen_context(system_u:object_r:nx_server_var_run_t,s0)
+ 
+ /usr/libexec/nx/nxserver	--	gen_context(system_u:object_r:nx_server_exec_t,s0)
+-/usr/NX/bin/nxserver		--	gen_context(system_u:object_r:nx_server_exec_t,s0)
+-/usr/NX/home(/.*)?			gen_context(system_u:object_r:nx_server_var_lib_t,s0)
+-/usr/NX/home/nx/\.ssh(/.*)?		gen_context(system_u:object_r:nx_server_home_ssh_t,s0)
+ 
+-/var/lib/nxserver(/.*)?			gen_context(system_u:object_r:nx_server_var_lib_t,s0)
++/usr/NX/bin/nxserver	--	gen_context(system_u:object_r:nx_server_exec_t,s0)
++/usr/NX/home(/.*)?	gen_context(system_u:object_r:nx_server_var_lib_t,s0)
++/usr/NX/home/nx/\.ssh(/.*)?	gen_context(system_u:object_r:nx_server_home_ssh_t,s0)
++
++/var/lib/nxserver(/.*)?	gen_context(system_u:object_r:nx_server_var_lib_t,s0)
+ /var/lib/nxserver/home/.ssh(/.*)?	gen_context(system_u:object_r:nx_server_home_ssh_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nx.if refpolicy/policy/modules/contrib/nx.if
+--- refpolicy/policy/modules/contrib/nx.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/nx.if	2012-10-16 19:36:24.802014063 +0200
+@@ -1,8 +1,8 @@
+-## <summary>NX remote desktop</summary>
++## <summary>NX remote desktop.</summary>
+ 
+ ########################################
+ ## <summary>
+-##	Transition to NX server.
++##	Transition to nx server.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -15,12 +15,13 @@
+ 		type nx_server_t, nx_server_exec_t;
+ 	')
+ 
++	corecmd_search_bin($1)
+ 	spec_domtrans_pattern($1, nx_server_exec_t, nx_server_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Read nx home directory content
++##	Read nx home directory content.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -33,13 +34,13 @@
+ 		type nx_server_home_ssh_t, nx_server_var_lib_t;
+ 	')
+ 
+-	allow $1 nx_server_var_lib_t:dir search_dir_perms;
+-	read_files_pattern($1, nx_server_home_ssh_t, nx_server_home_ssh_t)
++	files_search_var_lib($1)
++	read_files_pattern($1, { nx_server_var_lib_t nx_server_home_ssh_t }, nx_server_home_ssh_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Read nx /var/lib content
++##	Search nx lib directories.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -52,13 +53,14 @@
+ 		type nx_server_var_lib_t;
+ 	')
+ 
++	files_search_var_lib($1)
+ 	allow $1 nx_server_var_lib_t:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create an object in the root directory, with a private
+-##	type using a type transition.
++##	Create specified objects in nx lib
++##	directories with a private type.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -75,11 +77,16 @@
+ ##	The object class of the object being created.
+ ##	</summary>
+ ## </param>
++## <param name="name" optional="true">
++##	<summary>
++##	The name of the object being created.
++##	</summary>
++## </param>
+ #
+ interface(`nx_var_lib_filetrans',`
+ 	gen_require(`
+ 		type nx_server_var_lib_t;
+ 	')
+ 
+-	filetrans_pattern($1, nx_server_var_lib_t, $2, $3)
++	filetrans_pattern($1, nx_server_var_lib_t, $2, $3, $4)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nx.te refpolicy/policy/modules/contrib/nx.te
+--- refpolicy/policy/modules/contrib/nx.te	2012-05-04 15:16:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/nx.te	2012-10-16 19:36:24.806014063 +0200
+@@ -1,4 +1,4 @@
+-policy_module(nx, 1.6.0)
++policy_module(nx, 1.6.1)
+ 
+ ########################################
+ #
+@@ -10,8 +10,7 @@
+ domain_type(nx_server_t)
+ domain_entry_file(nx_server_t, nx_server_exec_t)
+ domain_user_exemption_target(nx_server_t)
+-# we need an extra role because nxserver is called from sshd
+-# cjp: do we really need this?
++
+ role nx_server_r;
+ role nx_server_r types nx_server_t;
+ allow system_r nx_server_r;
+@@ -30,14 +29,14 @@
+ 
+ ########################################
+ #
+-# NX server local policy
++# Local policy
+ #
+ 
+ allow nx_server_t self:fifo_file rw_fifo_file_perms;
+ allow nx_server_t self:tcp_socket create_socket_perms;
+ allow nx_server_t self:udp_socket create_socket_perms;
+ 
+-allow nx_server_t nx_server_devpts_t:chr_file { rw_chr_file_perms setattr };
++allow nx_server_t nx_server_devpts_t:chr_file { rw_chr_file_perms setattr_chr_file_perms };
+ term_create_pty(nx_server_t, nx_server_devpts_t)
+ 
+ manage_dirs_pattern(nx_server_t, nx_server_tmp_t, nx_server_tmp_t)
+@@ -54,18 +53,15 @@
+ kernel_read_system_state(nx_server_t)
+ kernel_read_kernel_sysctls(nx_server_t)
+ 
+-# nxserver is a shell script --> call other programs
+ corecmd_exec_shell(nx_server_t)
+ corecmd_exec_bin(nx_server_t)
+ 
+ corenet_all_recvfrom_unlabeled(nx_server_t)
+ corenet_all_recvfrom_netlabel(nx_server_t)
+ corenet_tcp_sendrecv_generic_if(nx_server_t)
+-corenet_udp_sendrecv_generic_if(nx_server_t)
+ corenet_tcp_sendrecv_generic_node(nx_server_t)
+-corenet_udp_sendrecv_generic_node(nx_server_t)
+ corenet_tcp_sendrecv_all_ports(nx_server_t)
+-corenet_udp_sendrecv_all_ports(nx_server_t)
++
+ corenet_tcp_connect_all_ports(nx_server_t)
+ corenet_sendrecv_all_client_packets(nx_server_t)
+ 
+@@ -73,8 +69,6 @@
+ 
+ files_read_etc_files(nx_server_t)
+ files_read_etc_runtime_files(nx_server_t)
+-# for reading the config files; maybe a separate type, 
+-# but users need to be able to also read the config
+ files_read_usr_files(nx_server_t)
+ 
+ miscfiles_read_localization(nx_server_t)
+@@ -83,16 +77,4 @@
+ 
+ sysnet_read_config(nx_server_t)
+ 
+-ifdef(`TODO',`
+-# clients already have create permissions; the nxclient wants to also have unlink rights
+-allow userdomain xdm_tmp_t:sock_file unlink;
+-# for a lockfile created by the client process
+-allow nx_server_t user_tmpfile:file getattr;
+-')
+-
+-########################################
+-#
+-# SSH component local policy
+-#
+-
+ ssh_basic_client_template(nx_server, nx_server_t, nx_server_r)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oav.fc refpolicy/policy/modules/contrib/oav.fc
+--- refpolicy/policy/modules/contrib/oav.fc	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oav.fc	2012-10-16 19:36:25.926014066 +0200
+@@ -1,9 +1,9 @@
+-/etc/oav-update(/.*)?			gen_context(system_u:object_r:oav_update_etc_t,s0)
+-/etc/scannerdaemon/scannerdaemon\.conf -- gen_context(system_u:object_r:scannerdaemon_etc_t,s0)
++/etc/oav-update(/.*)?	gen_context(system_u:object_r:oav_update_etc_t,s0)
++/etc/scannerdaemon/scannerdaemon\.conf	--	gen_context(system_u:object_r:scannerdaemon_etc_t,s0)
+ 
+-/usr/sbin/oav-update		--	gen_context(system_u:object_r:oav_update_exec_t,s0)
+-/usr/sbin/scannerdaemon		--	gen_context(system_u:object_r:scannerdaemon_exec_t,s0)
++/usr/sbin/oav-update	--	gen_context(system_u:object_r:oav_update_exec_t,s0)
++/usr/sbin/scannerdaemon	--	gen_context(system_u:object_r:scannerdaemon_exec_t,s0)
+ 
+ /var/lib/oav-virussignatures	--	gen_context(system_u:object_r:oav_update_var_lib_t,s0)
+-/var/lib/oav-update(/.*)?		gen_context(system_u:object_r:oav_update_var_lib_t,s0)
+-/var/log/scannerdaemon\.log 	--	gen_context(system_u:object_r:scannerdaemon_log_t,s0)
++/var/lib/oav-update(/.*)?	gen_context(system_u:object_r:oav_update_var_lib_t,s0)
++/var/log/scannerdaemon\.log.*	--	gen_context(system_u:object_r:scannerdaemon_log_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oav.if refpolicy/policy/modules/contrib/oav.if
+--- refpolicy/policy/modules/contrib/oav.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oav.if	2012-10-16 19:36:25.927014066 +0200
+@@ -1,4 +1,4 @@
+-## <summary>Open AntiVirus scannerdaemon and signature update</summary>
++## <summary>Open AntiVirus scannerdaemon and signature update.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -21,8 +21,9 @@
+ 
+ ########################################
+ ## <summary>
+-##	Execute oav_update in the oav_update domain, and
+-##	allow the specified role the oav_update domain.
++##	Execute oav_update in the oav update
++##	domain, and allow the specified role
++##	the oav_update domain.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -38,9 +39,9 @@
+ #
+ interface(`oav_run_update',`
+ 	gen_require(`
+-		type oav_update_t;
++		attribute_role oav_update_roles;
+ 	')
+ 
+ 	oav_domtrans_update($1)
+-	role $2 types oav_update_t;
++	roleattribute $2 oav_update_roles;
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oav.te refpolicy/policy/modules/contrib/oav.te
+--- refpolicy/policy/modules/contrib/oav.te	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oav.te	2012-10-16 19:36:25.927014066 +0200
+@@ -1,15 +1,17 @@
+-policy_module(oav, 1.9.0)
++policy_module(oav, 1.9.1)
+ 
+ ########################################
+ #
+ # Declarations
+ #
+ 
++attribute_role oav_update_roles;
++
+ type oav_update_t;
+ type oav_update_exec_t;
+ application_domain(oav_update_t, oav_update_exec_t)
++role oav_update_roles types oav_update_t;
+ 
+-# cjp: may be collapsable to etc_t
+ type oav_update_etc_t;
+ files_config_file(oav_update_etc_t)
+ 
+@@ -31,32 +33,21 @@
+ 
+ ########################################
+ #
+-# OAV update local policy
++# Update local policy
+ #
+ 
+ allow oav_update_t self:tcp_socket create_stream_socket_perms;
+ allow oav_update_t self:udp_socket create_socket_perms;
+ 
+-# Can read /etc/oav-update/* files
+ allow oav_update_t oav_update_etc_t:dir list_dir_perms;
+ allow oav_update_t oav_update_etc_t:file read_file_perms;
+ 
+-# Can read /var/lib/oav-update/current
+ manage_dirs_pattern(oav_update_t, oav_update_var_lib_t, oav_update_var_lib_t)
+ manage_files_pattern(oav_update_t, oav_update_var_lib_t, oav_update_var_lib_t)
+ read_lnk_files_pattern(oav_update_t, oav_update_var_lib_t, oav_update_var_lib_t)
+ 
+ corecmd_exec_all_executables(oav_update_t)
+ 
+-corenet_all_recvfrom_unlabeled(oav_update_t)
+-corenet_all_recvfrom_netlabel(oav_update_t)
+-corenet_tcp_sendrecv_generic_if(oav_update_t)
+-corenet_udp_sendrecv_generic_if(oav_update_t)
+-corenet_tcp_sendrecv_generic_node(oav_update_t)
+-corenet_udp_sendrecv_generic_node(oav_update_t)
+-corenet_tcp_sendrecv_all_ports(oav_update_t)
+-corenet_udp_sendrecv_all_ports(oav_update_t)
+-
+ files_exec_etc_files(oav_update_t)
+ 
+ libs_exec_ld_so(oav_update_t)
+@@ -85,7 +76,6 @@
+ 
+ allow scannerdaemon_t oav_update_var_lib_t:dir list_dir_perms;
+ allow scannerdaemon_t oav_update_var_lib_t:file read_file_perms;
+-files_search_var_lib(scannerdaemon_t)
+ 
+ allow scannerdaemon_t scannerdaemon_etc_t:file read_file_perms;
+ 
+@@ -98,33 +88,22 @@
+ kernel_read_system_state(scannerdaemon_t)
+ kernel_read_kernel_sysctls(scannerdaemon_t)
+ 
+-# Can run kaffe
+ corecmd_exec_all_executables(scannerdaemon_t)
+ 
+-corenet_all_recvfrom_unlabeled(scannerdaemon_t)
+-corenet_all_recvfrom_netlabel(scannerdaemon_t)
+-corenet_tcp_sendrecv_generic_if(scannerdaemon_t)
+-corenet_udp_sendrecv_generic_if(scannerdaemon_t)
+-corenet_tcp_sendrecv_generic_node(scannerdaemon_t)
+-corenet_udp_sendrecv_generic_node(scannerdaemon_t)
+-corenet_tcp_sendrecv_all_ports(scannerdaemon_t)
+-corenet_udp_sendrecv_all_ports(scannerdaemon_t)
+-
+ dev_read_sysfs(scannerdaemon_t)
+ 
+ domain_use_interactive_fds(scannerdaemon_t)
+ 
++files_exec_etc_files(scannerdaemon_t)
+ files_read_etc_files(scannerdaemon_t)
+ files_read_etc_runtime_files(scannerdaemon_t)
+-# Can run kaffe
+-files_exec_etc_files(scannerdaemon_t)
++files_search_var_lib(scannerdaemon_t)
+ 
+ fs_getattr_all_fs(scannerdaemon_t)
+ fs_search_auto_mountpoints(scannerdaemon_t)
+ 
+ auth_dontaudit_read_shadow(scannerdaemon_t)
+ 
+-# Can run kaffe
+ libs_exec_ld_so(scannerdaemon_t)
+ libs_exec_lib_files(scannerdaemon_t)
+ 
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/obex.fc refpolicy/policy/modules/contrib/obex.fc
+--- refpolicy/policy/modules/contrib/obex.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/obex.fc	2012-10-16 19:36:27.083014068 +0200
+@@ -0,0 +1 @@
++/usr/bin/obex-data-server	--	gen_context(system_u:object_r:obex_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/obex.if refpolicy/policy/modules/contrib/obex.if
+--- refpolicy/policy/modules/contrib/obex.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/obex.if	2012-10-16 19:36:27.083014068 +0200
+@@ -0,0 +1,88 @@
++## <summary>D-Bus service providing high-level OBEX client and server side functionality.</summary>
++
++#######################################
++## <summary>
++##	The role template for obex.
++## </summary>
++## <param name="role_prefix">
++##	<summary>
++##	The prefix of the user domain (e.g., user
++##	is the prefix for user_t).
++##	</summary>
++## </param>
++## <param name="user_role">
++##	<summary>
++##	The role associated with the user domain.
++##	</summary>
++## </param>
++## <param name="user_domain">
++##	<summary>
++##	The type of the user domain.
++##	</summary>
++## </param>
++#
++template(`obex_role_template',`
++	gen_require(`
++		attribute_role obex_roles;
++		type obex_t, obex_exec_exec_t;
++	')
++
++	########################################
++	#
++	# Declarations
++	#
++
++	roleattribute $2 obex_roles;
++
++	########################################
++	#
++	# Policy
++	#
++
++	allow $3 obex_t:process { ptrace signal_perms };
++	ps_process_pattern($3, obex_t)
++
++	dbus_spec_session_domain($1, obex_exec_t, obex_t)
++
++	obex_dbus_chat($3)
++')
++
++########################################
++## <summary>
++##	Execute obex in the obex domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++interface(`obex_domtrans',`
++	gen_require(`
++		type obex_t, obex_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	domtrans_pattern($1, obex_exec_t, obex_t)
++')
++
++########################################
++## <summary>
++##	Send and receive messages from
++##	obex over dbus.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`obex_dbus_chat',`
++	gen_require(`
++		type obex_t;
++		class dbus send_msg;
++	')
++
++	allow $1 obex_t:dbus send_msg;
++	allow obex_t $1:dbus send_msg;
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/obex.te refpolicy/policy/modules/contrib/obex.te
+--- refpolicy/policy/modules/contrib/obex.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/obex.te	2012-10-16 19:36:27.083014068 +0200
+@@ -0,0 +1,43 @@
++policy_module(obex, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++attribute_role obex_roles;
++
++type obex_t;
++type obex_exec_t;
++userdom_user_application_domain(obex_t, obex_exec_t)
++role obex_roles types obex_t;
++
++########################################
++#
++# Local policy
++#
++
++allow obex_t self:fifo_file rw_fifo_file_perms;
++allow obex_t self:socket create_stream_socket_perms;
++
++dev_read_urand(obex_t)
++
++files_read_etc_files(obex_t)
++
++logging_send_syslog_msg(obex_t)
++
++miscfiles_read_localization(obex_t)
++
++userdom_search_user_home_content(obex_t)
++
++optional_policy(`
++	bluetooth_stream_connect(obex_t)
++')
++
++optional_policy(`
++	dbus_system_bus_client(obex_t)
++
++	optional_policy(`
++		bluetooth_dbus_chat(obex_t)
++	')
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oddjob.fc refpolicy/policy/modules/contrib/oddjob.fc
+--- refpolicy/policy/modules/contrib/oddjob.fc	2012-05-04 16:10:28.000000000 +0200
++++ refpolicy/policy/modules/contrib/oddjob.fc	2012-10-16 19:36:48.334014113 +0200
+@@ -1,7 +1,10 @@
++/sbin/mkhomedir_helper	--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
++
+ /usr/lib/oddjob/mkhomedir	--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
+ 
+-/usr/sbin/oddjobd		--	gen_context(system_u:object_r:oddjob_exec_t,s0)
++/usr/libexec/oddjob/mkhomedir	--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
+ 
+-/sbin/mkhomedir_helper		--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
++/usr/sbin/oddjobd	--	gen_context(system_u:object_r:oddjob_exec_t,s0)
++/usr/sbin/mkhomedir_helper	--	gen_context(system_u:object_r:oddjob_mkhomedir_exec_t,s0)
+ 
+-/var/run/oddjobd\.pid			gen_context(system_u:object_r:oddjob_var_run_t,s0)
++/var/run/oddjobd\.pid	gen_context(system_u:object_r:oddjob_var_run_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oddjob.if refpolicy/policy/modules/contrib/oddjob.if
+--- refpolicy/policy/modules/contrib/oddjob.if	2012-05-04 15:15:21.000000000 +0200
++++ refpolicy/policy/modules/contrib/oddjob.if	2012-10-16 19:36:48.354014113 +0200
+@@ -1,8 +1,4 @@
+-## <summary>
+-##	Oddjob provides a mechanism by which unprivileged applications can
+-##	request that specified privileged operations be performed on their
+-##	behalf.
+-## </summary>
++## <summary>D-BUS service which runs odd jobs on behalf of client applications.</summary>
+ 
+ ########################################
+ ## <summary>
+@@ -19,13 +15,14 @@
+ 		type oddjob_t, oddjob_exec_t;
+ 	')
+ 
++	corecmd_search_bin($1)
+ 	domtrans_pattern($1, oddjob_exec_t, oddjob_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Make the specified program domain accessable
+-##	from the oddjob.
++##	Make the specified program domain
++##	accessable from the oddjob.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -72,9 +69,9 @@
+ ##	Execute a domain transition to run oddjob_mkhomedir.
+ ## </summary>
+ ## <param name="domain">
+-## <summary>
++##	<summary>
+ ##	Domain allowed to transition.
+-## </summary>
++##	</summary>
+ ## </param>
+ #
+ interface(`oddjob_domtrans_mkhomedir',`
+@@ -82,12 +79,16 @@
+ 		type oddjob_mkhomedir_t, oddjob_mkhomedir_exec_t;
+ 	')
+ 
++	corecmd_search_bin($1)
+ 	domtrans_pattern($1, oddjob_mkhomedir_exec_t, oddjob_mkhomedir_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Execute the oddjob_mkhomedir program in the oddjob_mkhomedir domain.
++##	Execute oddjob mkhomedir in the
++##	oddjob mkhomedir domain and allow
++##	the specified role the oddjob
++##	mkhomedir domain.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -103,9 +104,9 @@
+ #
+ interface(`oddjob_run_mkhomedir',`
+ 	gen_require(`
+-		type oddjob_mkhomedir_t;
++		attribute_role oddjob_mkhomedir_roles;
+ 	')
+ 
+ 	oddjob_domtrans_mkhomedir($1)
+-	role $2 types oddjob_mkhomedir_t;
++	roleattribute $2 oddjob_mkhomedir_roles;
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oddjob.te refpolicy/policy/modules/contrib/oddjob.te
+--- refpolicy/policy/modules/contrib/oddjob.te	2012-07-25 20:33:05.000000000 +0200
++++ refpolicy/policy/modules/contrib/oddjob.te	2012-10-16 19:36:48.369014108 +0200
+@@ -1,10 +1,12 @@
+-policy_module(oddjob, 1.9.0)
++policy_module(oddjob, 1.9.1)
+ 
+ ########################################
+ #
+ # Declarations
+ #
+ 
++attribute_role oddjob_mkhomedir_roles;
++
+ type oddjob_t;
+ type oddjob_exec_t;
+ domain_type(oddjob_t)
+@@ -18,9 +20,8 @@
+ domain_type(oddjob_mkhomedir_t)
+ domain_obj_id_change_exemption(oddjob_mkhomedir_t)
+ init_system_domain(oddjob_mkhomedir_t, oddjob_mkhomedir_exec_t)
+-oddjob_system_entry(oddjob_mkhomedir_t, oddjob_mkhomedir_exec_t)
++role oddjob_mkhomedir_roles types oddjob_mkhomedir_t;
+ 
+-# pid files
+ type oddjob_var_run_t;
+ files_pid_file(oddjob_var_run_t)
+ 
+@@ -30,7 +31,7 @@
+ 
+ ########################################
+ #
+-# oddjob local policy
++# Local policy
+ #
+ 
+ allow oddjob_t self:capability setgid;
+@@ -42,6 +43,8 @@
+ manage_sock_files_pattern(oddjob_t, oddjob_var_run_t, oddjob_var_run_t)
+ files_pid_filetrans(oddjob_t, oddjob_var_run_t, { file sock_file })
+ 
++domtrans_pattern(oddjob_t, oddjob_mkhomedir_exec_t, oddjob_mkhomedir_t)
++
+ kernel_read_system_state(oddjob_t)
+ 
+ corecmd_exec_bin(oddjob_t)
+@@ -51,7 +54,7 @@
+ 
+ selinux_compute_create_context(oddjob_t)
+ 
+-files_read_etc_files(oddjob_t)
++auth_use_nsswitch(oddjob_t)
+ 
+ miscfiles_read_localization(oddjob_t)
+ 
+@@ -68,18 +71,16 @@
+ 
+ ########################################
+ #
+-# oddjob_mkhomedir local policy
++# Mkhomedir local policy
+ #
+ 
+ allow oddjob_mkhomedir_t self:capability { chown fowner fsetid dac_override };
+ allow oddjob_mkhomedir_t self:process setfscreate;
+ allow oddjob_mkhomedir_t self:fifo_file rw_fifo_file_perms;
+-allow oddjob_mkhomedir_t self:unix_stream_socket create_stream_socket_perms;
++allow oddjob_mkhomedir_t self:unix_stream_socket { accept listen };
+ 
+ kernel_read_system_state(oddjob_mkhomedir_t)
+ 
+-files_read_etc_files(oddjob_mkhomedir_t)
+-
+ auth_use_nsswitch(oddjob_mkhomedir_t)
+ 
+ logging_send_syslog_msg(oddjob_mkhomedir_t)
+@@ -97,10 +98,8 @@
+ seutil_read_file_contexts(oddjob_mkhomedir_t)
+ seutil_read_default_contexts(oddjob_mkhomedir_t)
+ 
+-# Add/remove user home directories
+ userdom_home_filetrans_user_home_dir(oddjob_mkhomedir_t)
+ userdom_manage_user_home_content_dirs(oddjob_mkhomedir_t)
+ userdom_manage_user_home_content_files(oddjob_mkhomedir_t)
+ userdom_manage_user_home_dirs(oddjob_mkhomedir_t)
+ userdom_user_home_dir_filetrans_user_home_content(oddjob_mkhomedir_t, notdevfile_class_set)
+-
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/oident.fc refpolicy/policy/modules/contrib/oident.fc
 --- refpolicy/policy/modules/contrib/oident.fc	2012-05-04 15:15:21.000000000 +0200
 +++ refpolicy/policy/modules/contrib/oident.fc	2012-10-06 20:56:42.807756051 +0200
@@ -53536,14 +55990,14 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/portage.te refpolicy/policy/modules/contrib/portage.te
 --- refpolicy/policy/modules/contrib/portage.te	2012-07-25 20:33:05.000000000 +0200
-+++ refpolicy/policy/modules/contrib/portage.te	2012-10-04 20:19:01.238382392 +0200
++++ refpolicy/policy/modules/contrib/portage.te	2012-10-15 21:39:27.276010465 +0200
 @@ -1,4 +1,4 @@
 -policy_module(portage, 1.13.0)
 +policy_module(portage, 1.13.1)
  
  ########################################
  #
-@@ -14,6 +14,9 @@
+@@ -14,10 +14,16 @@
  
  attribute_role portage_roles;
  
@@ -53553,7 +56007,34 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  type gcc_config_t;
  type gcc_config_exec_t;
  application_domain(gcc_config_t, gcc_config_exec_t)
-@@ -151,6 +154,7 @@
+ 
++type gcc_config_tmp_t;
++files_tmp_file(gcc_config_tmp_t)
++
+ # constraining type
+ type portage_t;
+ type portage_exec_t;
+@@ -84,6 +90,9 @@
+ allow gcc_config_t self:capability { chown fsetid };
+ allow gcc_config_t self:fifo_file rw_file_perms;
+ 
++allow gcc_config_t gcc_config_tmp_t:file manage_file_perms;
++files_tmp_filetrans(gcc_config_t, gcc_config_tmp_t, file)
++
+ manage_files_pattern(gcc_config_t, portage_cache_t, portage_cache_t)
+ 
+ read_files_pattern(gcc_config_t, portage_conf_t, portage_conf_t)
+@@ -103,7 +112,8 @@
+ domain_use_interactive_fds(gcc_config_t)
+ 
+ files_manage_etc_files(gcc_config_t)
+-files_rw_etc_runtime_files(gcc_config_t)
++files_manage_etc_runtime_files(gcc_config_t)
++files_manage_etc_runtime_lnk_files(gcc_config_t)
+ files_read_usr_files(gcc_config_t)
+ files_search_var_lib(gcc_config_t)
+ files_search_pids(gcc_config_t)
+@@ -151,6 +161,7 @@
  # - kill for mysql merging, at least
  allow portage_t self:capability { sys_nice kill setfcap };
  dontaudit portage_t self:capability { dac_read_search };
@@ -53561,7 +56042,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  dontaudit portage_t self:netlink_route_socket rw_netlink_socket_perms;
  
  # user post-sync scripts
-@@ -243,7 +247,7 @@
+@@ -243,7 +254,7 @@
  allow portage_fetch_t self:process signal;
  allow portage_fetch_t self:capability { dac_override fowner fsetid chown };
  allow portage_fetch_t self:fifo_file rw_fifo_file_perms;
@@ -53570,7 +56051,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  allow portage_fetch_t self:unix_stream_socket create_socket_perms;
  
  allow portage_fetch_t portage_conf_t:dir list_dir_perms;
-@@ -292,21 +296,23 @@
+@@ -292,21 +303,23 @@
  
  domain_use_interactive_fds(portage_fetch_t)
  
@@ -53599,7 +56080,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  userdom_use_user_terminals(portage_fetch_t)
  userdom_dontaudit_read_user_home_content_files(portage_fetch_t)
-@@ -336,8 +342,21 @@
+@@ -336,8 +349,21 @@
  
  portage_compile_domain(portage_sandbox_t)
  
@@ -54958,6 +57439,87 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  rhcs_domain_template(dlm_controld)
  
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rngd.fc refpolicy/policy/modules/contrib/rngd.fc
+--- refpolicy/policy/modules/contrib/rngd.fc	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rngd.fc	2012-10-16 19:35:40.451013968 +0200
+@@ -0,0 +1,3 @@
++/etc/rc\.d/init\.d/rngd	--	gen_context(system_u:object_r:rngd_initrc_exec_t,s0)
++
++/usr/sbin/rngd	--	gen_context(system_u:object_r:rngd_exec_t,s0)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rngd.if refpolicy/policy/modules/contrib/rngd.if
+--- refpolicy/policy/modules/contrib/rngd.if	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rngd.if	2012-10-16 19:35:40.451013968 +0200
+@@ -0,0 +1,32 @@
++## <summary>Check and feed random data from hardware device to kernel random device.</summary>
++
++########################################
++## <summary>
++##	All of the rules required to
++##	administrate an rng environment.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`rngd_admin',`
++	gen_require(`
++		type rngd_t, rngd_initrc_exec_t;
++	')
++
++	allow $1 rngd_t:process { ptrace signal_perms };
++	ps_process_pattern($1, rngd_t)
++
++	init_labeled_script_domtrans($1, rngd_initrc_exec_t)
++	domain_system_change_exemption($1)
++	role_transition $2 rngd_initrc_exec_t system_r;
++	allow $2 system_r;
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rngd.te refpolicy/policy/modules/contrib/rngd.te
+--- refpolicy/policy/modules/contrib/rngd.te	1970-01-01 01:00:00.000000000 +0100
++++ refpolicy/policy/modules/contrib/rngd.te	2012-10-16 19:35:40.452013968 +0200
+@@ -0,0 +1,34 @@
++policy_module(rngd, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type rngd_t;
++type rngd_exec_t;
++init_daemon_domain(rngd_t, rngd_exec_t)
++
++type rngd_initrc_exec_t;
++init_script_file(rngd_initrc_exec_t)
++
++########################################
++#
++# Local policy
++#
++
++allow rngd_t self:capability sys_admin;
++allow rngd_t self:process signal;
++allow rngd_t self:fifo_file rw_fifo_file_perms;
++allow rngd_t self:unix_stream_socket { accept listen };
++
++dev_read_rand(rngd_t)
++dev_read_urand(rngd_t)
++dev_rw_tpm(rngd_t)
++dev_write_rand(rngd_t)
++
++files_read_etc_files(rngd_t)
++
++logging_send_syslog_msg(rngd_t)
++
++miscfiles_read_localization(rngd_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/roundup.te refpolicy/policy/modules/contrib/roundup.te
 --- refpolicy/policy/modules/contrib/roundup.te	2012-05-04 15:15:22.000000000 +0200
 +++ refpolicy/policy/modules/contrib/roundup.te	2012-10-15 20:34:52.384002195 +0200

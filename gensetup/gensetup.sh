@@ -10,7 +10,7 @@ then
   DATA="$(pwd)/${DATA}";
 fi
 
-STEPS=" disk mount extract configure tools bootloader kernel umount"
+STEPS=" disk mount extract setup configure tools bootloader kernel umount"
 
 # Error handling
 if [ ! -f "${DATA}" ];
@@ -170,8 +170,8 @@ mountDisks() {
   printf "Mounting partitions:\n";
   logPrint "Mounting partitions:" >> ${LOG};
 
-  ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
-  ROOT="${ROOT}$(awk -F'.' "/disk.lvm.*.purpose=root/ {print \$3/\$4}" ${DATA})";
+  ROOT=$(awk -F'.' '/disk.*.purpose=root/ {print $2$3}' ${DATA} | grep -v lvm);
+  ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${DATA})";
   printf " - /dev/${ROOT} @ ${WORKDIR}\n";
   logPrint " - /dev/${ROOT} @ ${WORKDIR}" >> ${LOG};
   mount /dev/${ROOT} ${WORKDIR} || die "Failed to mount /dev/${ROOT} on ${WORKDIR}";
@@ -258,14 +258,15 @@ extractFiles() {
 
   printf "Extracting portage snapshot... ";
   logPrint "Extracting portage snapshot." >> ${LOG};
-  tar xjf ${SNAP##*/} >> ${LOG} 2>&1;
-  rm -f ${SNAP##*/} >> ${LOG} 2>&1;
+  tar xf ${SNAP##*/} >> ${LOG} 2>&1;
   printf "done\n";
 
   printf "Removing snapshot ${SNAP##*/}... ";
   rm -f ${SNAP##*/};
   printf "done\n";
+};
 
+setupSystem() {
   printf "Setup make.conf... ";
   logPrint "Setup make.conf." >> ${LOG};
   updateConfFile makeconf ${WORKDIR}/etc/make.conf;
@@ -328,13 +329,13 @@ umountDisks() {
 
 generateFstab() {
   echo "none		/selinux	selinuxfs	defaults		0 0"
-  ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
-  ROOT="${ROOT}$(awk -F'.' "/disk.lvm.*.purpose=root/ {print \$3/\$4}" ${DATA})";
+  ROOT=$(awk -F'.' '/disk.*.purpose=root/ {print $2$3}' ${DATA} | grep -v lvm);
+  ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${DATA})";
   ROOTLABEL=$(grep '.purpose=root' ${DATA} | sed -e 's:.purpose=root.*::g');
   ROOTFS=$(awk -F'=' "/${ROOTLABEL}.filesystem/ {print \$2}" ${DATA});
   echo "/dev/${ROOT}	/		${ROOTFS}	noatime		1 2"
 
-  SWAP=$(awk -F'.' "/disk.*.purpose=swap/ {print \$2\$3}" ${DATA});
+  SWAP=$(awk -F'.' '/disk.*.purpose=swap/ {print $2$3}' ${DATA} | grep -v lvm);
   SWAPLABEL=$(grep '.purpose=swap' ${DATA} | sed -e 's:.purpose=swap.*::g');
   SWAPFS=$(awk -F'=' "/${SWAPLABEL}.filesystem/ {print \$2}" ${DATA});
   echo "/dev/${SWAP}    none            ${SWAPFS}       sw,pri=1               0 0"
@@ -494,10 +495,10 @@ installGrub() {
   printf "done\n";
 
   ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
-  ROOT="${ROOT}$(awk -F'.' "/disk.lvm.*.purpose=root/ {print \$3/\$4}" ${DATA})";
+  ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${data})";
   printf "  - Configuring GRUB... ";
   logPrint "  - Configuring GRUB" >> ${LOG};
-  printf "default 0\ntimeout 5\n\ntitle Gentoo Linux (Hardened)\nroot (hd0,0)\nkernel /boot/kernel root=/dev/${ROOT}\n" > ${WORKDIR}/boot/grub/grub.conf;
+  printf "default 0\ntimeout 5\n\ntitle Gentoo Linux (Hardened)\nroot (hd0,0)\nkernel /boot/kernel root=/dev/${ROOT}\ninitrd /boot/initramfs\n" > ${WORKDIR}/boot/grub/grub.conf;
   printf "done\n";
 
   printf "  - Installing into MBR... ";
@@ -532,15 +533,22 @@ installKernel() {
   if [ "${INSTALLTYPE}" = "binary" ];
   then
     KERNELBUILD=$(getValue kernel.binary);
+    KERNELINITRAMFS=$(getValue kernel.initramfs);
     printf "  - Fetching kernel binary (${KERNELBUILD##*/})... ";
     logPrint "  - Fetching kernel binary (${KERNELBUILD##*/})" >> ${LOG};
     wget ${KERNELBUILD} -O ${WORKDIR}/usr/src/linux/linux-binary.tar.bz2 >> ${LOG} 2>&1;
     printf "done\n";
 
+    printf "  - Fetching initramfs (${KERNELINITRAMFS##*/})... ";
+    logPrint "  - Fetching initramfs (${KERNELINITRAMFS##*/})" >> ${LOG};
+    wget ${KERNELINITRAMFS} -O ${WORKDIR}/boot/${KERNELINITRAMFS##*/} >> ${LOG} 2>&1;
+    printf "done\n";
+
     printf "  - Installing kernel binary... ";
     runChrootCommand "tar xjf /usr/src/linux/linux-binary.tar.bz2 -C /" >> ${LOG} 2>&1;
-    runChrootCommand rm -f /boot/kernel;
+    runChrootCommand rm -f /boot/kernel /boot/initramfs;
     runChrootCommand ln -s /boot/vmlinuz-* /boot/kernel;
+    runChrootCommand ln -s /boot/initramfs-* /boot/initramfs;
     printf "done\n";
   elif [ "${INSTALLTYPE}" = "build" ];
   then
@@ -575,6 +583,12 @@ nextStep;
 stepOK "extract" && (
 printf ">>> Step \"extract\" starting...\n";
 extractFiles;
+);
+nextStep;
+
+stepOK "setup" && (
+printf ">>> Step \"setup\" starting...\n";
+setupSystem;
 );
 nextStep;
 

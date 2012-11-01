@@ -1,0 +1,215 @@
+#!/bin/sh
+
+if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ];
+then
+  echo "Usage: $(basename $0) <interfacename> [<main type> <...>]";
+  echo "";
+  echo "Supported interfaces: _admin, _domtrans, _exec, _manage_*";
+  exit 1;
+fi
+
+showadmin() {
+	local _IFACE="$1";
+	local _MTYPE="$2";
+	local _MODULE="$3";
+
+	cat << EOF | sed -e "s:@MOD@:${_MODULE}:g" -e "s:@TYP@:${_MTYPE}:g";
+#######################################
+## <summary>
+##	All of the rules required to administrate
+##	a @MOD@ environment.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+#
+interface(\`@MOD@_admin',\`
+	gen_require(\`
+		type @TYP@, @MOD@_log_t, @MOD@_tmp_t, @MOD@_var_run_t;
+		type @MOD@_initrc_exec_t;
+	')
+
+	allow \$1 @TYP@:process { ptrace signal_perms };
+	ps_process_pattern(\$1, @TYP@)
+
+	init_labeled_script_domtrans(\$1, @MOD@_initrc_exec_t)
+	domain_system_change_exemption(\$1)
+	role_transition \$2 @MOD@_initrc_exec_t system_r;
+	allow \$2 system_r;
+
+	logging_list_logs(\$1)
+	admin_pattern(\$1, @MOD@_log_t)
+
+	files_list_tmp(\$1)
+	admin_pattern(\$1, @MOD@_tmp_t)
+
+	files_list_pids(\$1)
+	admin_pattern(\$1, @MOD@_var_run_t)
+')
+EOF
+}
+
+showdomtrans() {
+	local _IFACE="$1";
+	local _MTYPE="$2";
+	local _MODULE="$3";
+
+	cat << EOF | sed -e "s:@MOD@:${_MODULE}:g" -e "s:@TYP@:${_MTYPE}:g";
+#######################################
+## <summary>
+##	Execute a domain transition to run @MOD@.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+interface(\`@MOD@_domtrans',\`
+	gen_require(\`
+		type @TYP@, @MOD@_exec_t;
+	')
+
+	corecmd_search_bin(\$1)
+	domtrans_pattern(\$1, @MOD@_exec_t, @TYP@)
+')
+EOF
+}
+
+showexec() {
+	local _IFACE="$1";
+	local _MTYPE="$2";
+	local _MODULE="$3";
+
+	cat << EOF | sed -e "s:@MOD@:${_MODULE}:g" -e "s:@TYP@:${_MTYPE}:g";
+#######################################
+## <summary>
+##	Execute @MOD@ in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(\`@MOD@_exec',\`
+	gen_require(\`
+		type @MOD@_exec_t;
+	')
+
+	corecmd_search_bin(\$1)
+	can_exec(\$1, @MOD@_exec_t)
+')
+EOF
+}
+
+showmanageclass() {
+	local _IFACE="$1";
+	local _MODULE="$2";
+	local _RESOURCE="$3";
+	local _CLASS="$4";
+
+	cat << EOF | sed -e "s:@MOD@:${_MODULE}:g" -e "s:@RES@:${_RESOURCE}:g" -e "s:@CLASS@:${_CLASS}:g";
+#######################################
+## <summary>
+##	Create, read, write and delete
+##	@MOD@ @RES@ @CLASS@.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(\`${_IFACE}',\`
+	gen_require(\`
+		type @MOD@_@RES@_t;
+	')
+
+	manage_@CLASS@_pattern(\$1, @MOD@_@RES@_t, @MOD@_@RES@_t)
+')
+EOF
+}
+
+showmanage() {
+	local _IFACE="$1";
+	local _MODULE="$2";
+	local _RESOURCE="$3";
+
+	cat << EOF | sed -e "s:@MOD@:${_MODULE}:g" -e "s:@RES@:${_RESOURCE}:g";
+#######################################
+## <summary>
+##	Create, read, write and delete
+##	@MOD@ @RES@ resources.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(\`${_IFACE}',\`
+	gen_require(\`
+		type @MOD@_@RES@_t;
+	')
+
+	manage_dirs_pattern(\$1, @MOD@_@RES@_t, @MOD@_@RES@_t)
+	manage_lnk_files_pattern(\$1, @MOD@_@RES@_t, @MOD@_@RES@_t)
+	manage_files_pattern(\$1, @MOD@_@RES@_t, @MOD@_@RES@_t)
+')
+EOF
+}
+
+
+export IFACE="${1}"
+export MTYPE="${2}"
+export STYPE1="${3}"
+
+MOD=$(echo ${IFACE} | sed -e 's:\([^_]*\)_.*:\1:g');
+
+# test_admin
+echo ${IFACE} | grep -q [^_]*_admin$
+if [ $? -eq 0 ] && [ $# -eq 1 ];
+then
+	showadmin ${IFACE} ${MOD}_t ${MOD};
+fi
+
+# test_domtrans
+echo ${IFACE} | grep -q [^_]*_domtrans$
+if [ $? -eq 0 ] && [ $# -eq 1 ];
+then
+	showdomtrans ${IFACE} ${MOD}_t ${MOD}
+fi
+
+# test_exec
+echo ${IFACE} | grep -q [^_]*_exec$
+if [ $? -eq 0 ] && [ $# -eq 1 ];
+then
+	showexec ${IFACE} ${MOD}_exec_t ${MOD}
+fi
+
+# test_manage_log_files
+echo ${IFACE} | grep -q '[^_]*_manage_.*_\(\|lnk_\)[^_]*$'
+if [ $? -eq 0 ] && [ $# -eq 1 ];
+then
+	RES=$(echo ${IFACE} | sed -e 's:[^_]*_manage_\([^_]*\)_[^_]*$:\1:g' | sed -e 's:[^_]*_manage_\([^_]*\)_lnk_files$:\1:g' | sed -e 's:[^_]*_manage_\(.*\)_lnk_files:\1:g' | sed -e 's:[^_]*_manage_\(.*\)_[^_]*$:\1:g');
+	CLASS=$(echo ${IFACE} | sed -e 's:[^_]*_manage_[^_]*_\([^_]*\)$:\1:g' | sed -e 's:[^_]*_manage_[^_]*_\(lnk_files\):\1:g' | sed -e 's:[^_]*_manage_.*_lnk_files:lnk_files:g' | sed -e 's:[^_]*_manage_.*_\([^_]*\)$:\1:g');
+	showmanageclass ${IFACE} ${MOD} ${RES} ${CLASS};
+	exit 0;
+fi
+
+# test_manage_log
+echo ${IFACE} | grep -q '[^_]*_manage_.*$'
+if [ $? -eq 0 ] && [ $# -eq 1 ];
+then
+	RES=$(echo ${IFACE} | sed -e 's:[^_]*_manage_\(.*\)$:\1:g');
+	showmanage ${IFACE} ${MOD} ${RES};
+	exit 0;
+fi

@@ -37,6 +37,7 @@ cvs;apache,inetd;
 cyphesis;;
 daemontools;;
 dante;;
+dbadm;;
 dbskk;inetd;
 dbus;;
 dcc;;

@@ -1,41 +1,97 @@
-#!/bin/bash
+#!/bin/sh
 
-# Initialize configuration
-if [ ! -d ~/.selocal ];
+CONFDIR=~/.selocal;
+
+if [ $# -lt 1 ] || [ "$1" = "-h" ] || [ "$1" == "--help" ];
 then
-  echo "Creating ~/.selocal configuration directory.";
-  mkdir ~/.selocal
+  echo "Usage: $(basename $0) [<command>] [<options>] <rule|line>";
+  echo "";
+  echo "Command can be one of:";
+  echo "  -l, --list		List the content of a SELinux module";
+  echo "  -a, --add		Add an entry to a SELinux module";
+  echo "  -d, --delete		Remove an entry from a SELinux module";
+  echo "  -M, --list-modules	List the modules currently known by $(basename $0)";
+  echo "  -b, --build		Build the SELinux module (.pp) file (requires privs)";
+  echo "  -L, --load		Load the SELinux module (.pp) file (requires privs)";
+  echo "";
+  echo "Options can be one of:";
+  echo "  -m, --module <module>		Module name to use (default: selocal)";
+  echo "  -c, --comment <comment>	Comment (with --add)";
+  echo "";
+  echo "The option -a requires that a rule is given, like so:";
+  echo "  $(basename $0) -a \"dbadm_role_change(staff_r)\"";
+  echo "The option -d requires that a line number, as shown by the --list, is given, like so:";
+  echo "  $(basename $0) -d 12";
+  exit 1;
 fi
 
-if [ ! -f ~/.selocal/localmod.te ];
+# Initialize configuration
+if [ ! -d ${CONFDIR} ];
 then
-  echo "Creating ~/.selocal/localmod.te module definition.";
-  cat > ~/.selocal/localmod.te << EOF
-policy_module(localmod, 1.0)
+  echo "Creating ${CONFDIR} configuration directory.";
+  mkdir ${CONFDIR};
+fi
 
-require {
+# Update dependencies
+updatedep() {
+  typeset MODNAME="$1";
+
+  awk 'BEGIN {f=1}; f{print;} /# REQSTART/ {f=0;}' ${CONFDIR}/${MODNAME}.te > ${CONFDIR}/${MODNAME}.te.new;
+
+  for TYPEDEF in $(awk '/POLICYSTART/,0 {getline; print $0}' ${CONFDIR}/${MODNAME}.te | \
+    sed -e 's:#.*::g' | \
+    sed -e 's:[a-zA-Z0-9_]*(\([^)]*\)):\1:g' | \
+    sed -e 's:,[ ]: :g' | \
+    tr -d '\n' | tr " " "\n" | sort | uniq);
+  do
+    if [[ "${TYPEDEF}" == *"_r" ]];
+    then
+      echo "role ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    elif [[ "${TYPEDEF}" == *"_t" ]];
+    then
+      echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    else
+      echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    fi
+  done
+
+  awk '/# REQSTOP/,0 {print;}' ${CONFDIR}/${MODNAME}.te >> ${CONFDIR}/${MODNAME}.te.new;
+
+  mv ${CONFDIR}/${MODNAME}.te.new ${CONFDIR}/${MODNAME}.te;
+}
+
+# New module template
+newtemplate() {
+  typeset MODNAME=$1;
+
+  cat > ${CONFDIR}/${MODNAME}.te << EOF
+policy_module(${MODNAME}, 0.1)
+
+gen_require(\`
   # REQSTART
 
   # REQSTOP
-}
+')
 
-# ALLOW
+# POLICYSTART
 EOF
-fi
+}
 
 # Load the module
 loadmodule() {
-  semodule -i ~/.selocal/localmod.pp > ~/.selocal/localmod.log 2>&1;
+  typeset MODNAME="$1";
+  semodule -i ~/.selocal/${MODNAME}.pp > ~/.selocal/${MODNAME}.log 2>&1;
   return $?;
 }
 
 # Build the module
 buildmodule() {
+  typeset MODNAME="$1";
   typeset POLICYTYPE=$(sestatus | awk '/Policy from config/ {print $5}');
   typeset RC=0;
 
   pushd ~/.selocal > /dev/null 2>&1;
-  make -f /usr/share/selinux/${POLICYTYPE}/include/Makefile localmod.pp > localmod.log 2>&1;
+  make -f /usr/share/selinux/${POLICYTYPE}/include/Makefile ${MODNAME}.pp > ${MODNAME}.log 2>&1;
   RC=$?;
 
   popd > /dev/null 2>&1;
@@ -44,126 +100,128 @@ buildmodule() {
 
 # Add a rule to the local module
 addrule() {
-  typeset VERB=$1;
+  typeset MODNAME="${1}";
+  typeset RULE="${2}";
+  typeset COMMENT="${3}";
 
-  cp ~/.selocal/localmod.te ~/.selocal/localmod.te.orig;
-
-  if [[ "x${VERB}" == "xallow" ]] || [[ "x${VERB}" == "xdontaudit" ]] || [[ "x${VERB}" == "xauditallow" ]];
+  if [ ! -f ${CONFDIR}/${MODNAME}.te ];
   then
-    typeset SOURCE=$2;
-    typeset TARGET=${3%%:*};
-    typeset CLASS=${3##*:};
-    typeset PERM=${4};
-
-    awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "type ${SOURCE};";
-    if [ $? -ne 0 ];
-    then
-      # Source type is not known, adding
-      awk "/# REQSTOP/ {print \"type ${SOURCE};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
-      mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
-    fi
-
-    if [[ "x${TARGET}" != "xself" ]];
-    then
-      awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "type ${TARGET};";
-      if [ $? -ne 0 ];
-      then
-        # Source type is not known, adding
-        awk "/# REQSTOP/ {print \"type ${TARGET};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
-	mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
-      fi
-    fi 
-
-    awk '/# REQSTART/,/# REQSTOP/' ~/.selocal/localmod.te | grep -q "class ${CLASS} ${PERM};";
-    if [ $? -ne 0 ];
-    then
-      # Source class/permission is not known, adding
-      awk "/# REQSTOP/ {print \"class ${CLASS} ${PERM};\"} {print}" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
-      mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
-    fi
-
-    grep -v "${VERB} ${SOURCE} ${TARGET}:${CLASS} { ${PERM} };" ~/.selocal/localmod.te > ~/.selocal/localmod.te.new;
-    mv ~/.selocal/localmod.te.new ~/.selocal/localmod.te;
-
-    echo "${VERB} ${SOURCE} ${TARGET}:${CLASS} { ${PERM} };" >> ~/.selocal/localmod.te;
-
-    buildmodule;
-    if [ $? -ne 0 ];
-    then
-      mv ~/.selocal/localmod.te.orig ~/.selocal/localmod.te;
-      echo "Build failed. Please check ~/.selocal/localmod.log for more information.";
-      return 1;
-    fi
-    loadmodule;
-    if [ $? -ne 0 ];
-    then
-      echo "Failed to load in new module. Please check ~/.selocal/localmod.log for more information.";
-      return 2;
-    fi
+    newtemplate ${MODNAME};
   fi
-  return 0;
+
+  echo "${RULE} # ${COMMENT}" >> ${CONFDIR}/${MODNAME}.te;
+  updatedep ${MODNAME};
 }
 
 # Delete a rule from the local module
 delrule() {
-  cp ~/.selocal/localmod.te ~/.selocal/localmod.te.orig;
-  grep -v "$*" ~/.selocal/localmod.te.orig > ~/.selocal/localmod.te;
+  typeset MODNAME="${1}";
+  typeset RULEID="${2}";
 
-  typeset OLINE=$(wc -l ~/.selocal/localmod.te.orig | awk '{print $1}');
-  typeset NLINE=$(wc -l ~/.selocal/localmod.te | awk '{print $1}');
-
-  if [[ ${OLINE} != $((${NLINE}+1)) ]];
+  if [ -z ${RULEID} ] || [ ${RULEID} -lt 8 ];
   then
-    echo "Removal of the given privilege failed";
-    echo "Source has ${OLINE} lines, new source ${NLINE}.";
-    return 1;
+    echo "Line number ${RULEID} is not a valid id, please use a (strictly positive) number."; 
+    return;
   fi
 
-  buildmodule;
-  if [ $? -ne 0 ];
+  if [ ! -f ${CONFDIR}/${MODNAME}.te ];
   then
-    mv ~/.selocal/localmod.te.orig ~/.selocal/localmod.te;
-    echo "Build failed. Please check ~/.selocal/localmod.log for more information.";
-    return 1;
-  fi
-  loadmodule;
-  if [ $? -ne 0 ];
-  then
-    echo "Failed to load in new module. Please check ~/.selocal/localmod.log for more information.";
-    return 2;
+    echo "# WARNING Module ${MODNAME} is not known yet (no rules assigned)";
+    return;
   fi
 
-  return 0;
+  echo "Removing line ${RULEID} from module ${MODNAME}";
+  awk "(NR!=${RULEID}) {print;}" ${CONFDIR}/${MODNAME}.te > ${CONFDIR}/${MODNAME}.te.new;
+  mv ${CONFDIR}/${MODNAME}.te.new ${CONFDIR}/${MODNAME}.te;
+
+  updatedep ${MODNAME};
 }
 
 # List rules
 listrules() {
-  awk '/# ALLOW/,0' ~/.selocal/localmod.te | grep -v '# ALLOW';
-  return 0;
+  typeset MODNAME="${1}";
+  if [ ! -f ${CONFDIR}/${MODNAME}.te ];
+  then
+    echo "# WARNING Module ${MODNAME} is not known yet (no rules assigned)";
+    return;
+  fi
+
+  awk 'BEGIN {f=0; line=1}; /# POLICYSTART/ {f=1; getline;}; f{printf NR": "; print}' ${CONFDIR}/${MODNAME}.te | sed -e 's:# $::g';
 }
 
-if [ $# -lt 1 ] || ( [[ "x$1" != "xadd" ]] && [[ "x$1" != "xdel" ]] && [[ "x$1" != "xlist" ]] );
+# List modules
+listmods() {
+  ls ${CONFDIR} | grep .te | sed -e 's:\.te::g';
+}
+
+listflag=0;
+delflag=0;
+addflag=0;
+modflag=0;
+listmodflag=0;
+buildflag=0;
+loadflag=0;
+commentflag=0;
+comment="";
+modname="";
+rule="";
+
+eval set -- "$(getopt -n $(basename $0) -s sh -o MlbLadm:c: --long list-modules,list,build,load,add,delete,module:,comment: -- "$@")"
+while [ $# -gt 0 ];
+do
+  case "$1" in
+  	(-l) listflag=1;;
+	(-a) addflag=1;;
+	(-d) delflag=1;;
+	(-m) modflag=1; modname="$2"; shift;;
+	(-M) listmodflag=1;;
+	(-c) commentflag=1; comment="$2"; shift;;
+	(-b) buildflag=1;;
+	(-L) loadflag=1;;
+	(--) rule="$2"; shift; break;;
+	(-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
+	(*) break;;
+  esac
+  shift;
+done
+
+if [ $((${listflag} + ${delflag} + ${addflag} + ${listmodflag})) -ne 1 ];
 then
-  echo "Usage: $0 <add | del | list> <rule>";
+  echo "$(basename $0): error: (only) one option of (-l, -a, -d or -M) is needed" 1>&2;
   exit 1;
 fi
 
-typeset CMD=$1;
-shift;
-typeset RULE=$*;
+if [ -z "${modname}" ];
+then
+  modname="selocal";
+fi
 
-case ${CMD} in
-	"add")
-		addrule ${RULE};
-		exit $?;
-		;;
-	"del")
-		delrule ${RULE};
-		exit $?;
-		;;
-	"list")
-		listrules;
-		exit $?;
-		;;
-esac
+if [ ${listflag} -eq 1 ];
+then
+  listrules "${modname}";
+fi
 
+if [ ${addflag} -eq 1 ];
+then
+  addrule "${modname}" "${rule}" "${comment}"
+fi
+
+if [ ${delflag} -eq 1 ];
+then
+  delrule "${modname}" "${rule}"
+fi
+
+if [ ${listmodflag} -eq 1 ];
+then
+  listmods
+fi
+
+if [ ${buildflag} -eq 1 ];
+then
+  buildmodule "${modname}";
+fi
+
+if [ ${loadflag} -eq 1 ];
+then
+  loadmodule "${modname}";
+fi

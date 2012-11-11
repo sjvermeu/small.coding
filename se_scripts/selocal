@@ -11,6 +11,7 @@ then
   echo "  -a, --add		Add an entry to a SELinux module";
   echo "  -d, --delete		Remove an entry from a SELinux module";
   echo "  -M, --list-modules	List the modules currently known by $(basename $0)";
+  echo "  -u, --update-dep	Update the dependencies for the rules";
   echo "  -b, --build		Build the SELinux module (.pp) file (requires privs)";
   echo "  -L, --load		Load the SELinux module (.pp) file (requires privs)";
   echo "";
@@ -38,8 +39,10 @@ updatedep() {
 
   awk 'BEGIN {f=1}; f{print;} /# REQSTART/ {f=0;}' ${CONFDIR}/${MODNAME}.te > ${CONFDIR}/${MODNAME}.te.new;
 
-  for TYPEDEF in $(awk '/POLICYSTART/,0 {getline; print $0}' ${CONFDIR}/${MODNAME}.te | \
+  # Interfaces
+  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
     sed -e 's:#.*::g' | \
+    grep ')' | \
     sed -e 's:[a-zA-Z0-9_]*(\([^)]*\)):\1:g' | \
     sed -e 's:,[ ]: :g' | \
     tr -d '\n' | tr " " "\n" | sort | uniq);
@@ -51,6 +54,20 @@ updatedep() {
     then
       echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
     else
+      echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    fi
+  done
+
+  # Others, first get types
+  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
+    grep -E '(allow|audit)' | sed -e 's|:| |g' | awk '{print $2" "$3" "}' | \
+    tr -d '\n' | tr " " "\n" | sort | uniq);
+  do
+    if [[ "${TYPEDEF}" == *"_t" ]];
+    then
+      echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    elif [[ "${TYPEDEF}" != "self" ]];
+    then
       echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
     fi
   done
@@ -80,21 +97,21 @@ EOF
 # Load the module
 loadmodule() {
   typeset MODNAME="$1";
-  semodule -i ~/.selocal/${MODNAME}.pp > ~/.selocal/${MODNAME}.log 2>&1;
+  semodule -i ~/.selocal/${MODNAME}.pp;
   return $?;
 }
 
 # Build the module
 buildmodule() {
   typeset MODNAME="$1";
-  typeset POLICYTYPE=$(sestatus | awk '/Policy from config/ {print $5}');
+  typeset POLICYTYPE=$(awk -F'=' '/^SELINUXTYPE=/ {print $2}' /etc/selinux/config);
   typeset RC=0;
 
-  pushd ~/.selocal > /dev/null 2>&1;
-  make -f /usr/share/selinux/${POLICYTYPE}/include/Makefile ${MODNAME}.pp > ${MODNAME}.log 2>&1;
+  pushd ~/.selocal;
+  make -f /usr/share/selinux/${POLICYTYPE}/include/Makefile ${MODNAME}.pp;
   RC=$?;
 
-  popd > /dev/null 2>&1;
+  popd;
   return ${RC};
 }
 
@@ -151,7 +168,7 @@ listrules() {
 
 # List modules
 listmods() {
-  ls ${CONFDIR} | grep .te | sed -e 's:\.te::g';
+  ls ${CONFDIR} | grep .te$ | sed -e 's:\.te::g';
 }
 
 listflag=0;
@@ -161,12 +178,13 @@ modflag=0;
 listmodflag=0;
 buildflag=0;
 loadflag=0;
+updateflag=0;
 commentflag=0;
 comment="";
 modname="";
 rule="";
 
-eval set -- "$(getopt -n $(basename $0) -s sh -o MlbLadm:c: --long list-modules,list,build,load,add,delete,module:,comment: -- "$@")"
+eval set -- "$(getopt -n $(basename $0) -s sh -o MlbLuadm:c: --long list-modules,list,build,load,update-dep,add,delete,module:,comment: -- "$@")"
 while [ $# -gt 0 ];
 do
   case "$1" in
@@ -178,6 +196,7 @@ do
 	(-c) commentflag=1; comment="$2"; shift;;
 	(-b) buildflag=1;;
 	(-L) loadflag=1;;
+	(-u) updateflag=1;;
 	(--) rule="$2"; shift; break;;
 	(-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
 	(*) break;;
@@ -185,7 +204,7 @@ do
   shift;
 done
 
-if [ $((${listflag} + ${delflag} + ${addflag} + ${listmodflag})) -ne 1 ];
+if [ $((${listflag} + ${delflag} + ${addflag} + ${listmodflag})) -gt 1 ];
 then
   echo "$(basename $0): error: (only) one option of (-l, -a, -d or -M) is needed" 1>&2;
   exit 1;
@@ -214,6 +233,11 @@ fi
 if [ ${listmodflag} -eq 1 ];
 then
   listmods
+fi
+
+if [ ${updateflag} -eq 1 ];
+then
+  updatedep "${modname}";
 fi
 
 if [ ${buildflag} -eq 1 ];

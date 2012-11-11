@@ -19,7 +19,7 @@
 typeset CONFFILE=$1;
 export CONFFILE;
 
-typeset STEPS="overlay arch reboot_0 mountcontext profile python selinux reboot_1 label pam reboot_2 booleans";
+typeset STEPS="overlay arch reboot_0 mountcontext profile python selinux reboot_1 label pam reboot_2 booleans users";
 export STEPS;
 
 typeset STEPFROM=$2;
@@ -117,6 +117,22 @@ set_mount_context() {
     typeset META=$(initChangeFile ${FILE});
     grep -v '[ 	]/tmp' ${FILE} > ${FILE}.new;
     echo "tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0" >> ${FILE}.new;
+    mv ${FILE}.new ${FILE};
+    applyMetaOnFile ${FILE} ${META};
+    commitChangeFile ${FILE} ${META};
+    logMessage "done\n";
+  else
+    logMessage "skipped\n";
+  fi
+
+  logMessage "   > Setting var_run_t context for /run... ";
+  grep -q '^tmpfs.*object_r:var_run_t' /etc/fstab;
+  if [ $? -ne 0 ];
+  then
+    typeset FILE=/etc/fstab;
+    typeset META=$(initChangeFile ${FILE});
+    grep -v '[ 	]/tmp' ${FILE} > ${FILE}.new;
+    echo "tmpfs   /run   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:var_run_t   0 0" >> ${FILE}.new;
     mv ${FILE}.new ${FILE};
     applyMetaOnFile ${FILE} ${META};
     commitChangeFile ${FILE} ${META};
@@ -284,8 +300,29 @@ set_booleans() {
   logMessage "   > Setting global_ssp boolean... ";
   setsebool -P global_ssp on || die "Failed to set global boolean";
   logMessage "done\n";
+}
 
-  logMessage "   Done. Don't forget to edit lvm-st{op,art}.sh.\n";
+users() {
+  DOUSERS=$(getValue testusers.enable);
+  if [ "${DOUSERS}" = "true" ];
+  then
+    logMessage "   > Creating user 'user'... ";
+    useradd -m -g users user;
+    printf "user:$(getValue testusers.user.password)\n" | chpasswd user;
+    logMessage "done\n";
+
+    logMessage "   > Creating user 'oper'... ";
+    useradd -m -g wheel oper;
+    printf "oper:$(getValue testusers.oper.password)\n" | chpasswd oper;
+    logMessage "done\n";
+
+    logMessage "   > Creating user 'test'... ";
+    useradd -m -g user test;
+    printf "test:$(getValue testusers.test.password)\n" | chpasswd test;
+    logMessage "done\n";
+  else
+    logMessage "   * Skipping creation of testusers as requested\n";
+  fi
 }
 
 fail_reboot() {
@@ -367,6 +404,12 @@ nextStep;
 stepOK "booleans" && (
 logMessage ">>> Step \"booleans\" starting...\n";
 runStep set_booleans;
+);
+nextStep;
+
+stepOK "users" && (
+logMessage ">>> Step \"users\" starting...\n";
+runStep users;
 );
 nextStep;
 

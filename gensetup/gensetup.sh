@@ -287,6 +287,13 @@ setupSystem() {
 };
 
 umountDisks() {
+  printf "Synchronizing changes... ";
+  logPrint "Synchronizing changes" >> ${LOG};
+  sync;
+  sleep 5;
+  sync;
+  printf "done\n";
+
   printf "Umounting all mounted filesystems at ${WORKDIR}... ";
   logPrint "Umounting all mounted filesystems at ${WORKDIR}." >> ${LOG};
   MFSYSES=$(mount | awk '{print $3}' | grep "^${WORKDIR}");
@@ -328,7 +335,6 @@ umountDisks() {
 };
 
 generateFstab() {
-  echo "none		/selinux	selinuxfs	defaults		0 0"
   ROOT=$(awk -F'.' '/disk.*.purpose=root/ {print $2$3}' ${DATA} | grep -v lvm);
   ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${DATA})";
   ROOTLABEL=$(grep '.purpose=root' ${DATA} | sed -e 's:.purpose=root.*::g');
@@ -494,17 +500,32 @@ installGrub() {
   runChrootCommand emerge --binpkg-respect-use=y -g grub-static >> ${LOG} 2>&1;
   printf "done\n";
 
+  printf "  - Forcing rw-mount for /boot (if applicable).. ";
+  logPrint "  - Forcing rw-mount for /boot (if applicable)." >> ${LOG};
+  mount -o remount,rw ${WORKDIR}/boot >> ${LOG} 2>&1;
+  printf "done\n";
+
   ROOT=$(awk -F'.' "/disk.*.purpose=root/ {print \$2\$3}" ${DATA});
-  ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${data})";
+  ROOT="${ROOT}$(awk -F'.' '/disk.lvm.*.purpose=root/ {print $3"/"$4}' ${DATA})";
+
+  BOOT=$(awk -F'.' '/disk.*.purpose=\/boot/ { print $2$3}' ${DATA} | grep -v lvm);
+  BOOT="${BOOT}$(awk -F'.' '/disk.lvm.*.purpose=\/boot/ { print $3"/"$4}' ${DATA})";
+
   printf "  - Configuring GRUB... ";
   logPrint "  - Configuring GRUB" >> ${LOG};
-  printf "default 0\ntimeout 5\n\ntitle Gentoo Linux (Hardened)\nroot (hd0,0)\nkernel /boot/kernel root=/dev/${ROOT}\ninitrd /boot/initramfs\n" > ${WORKDIR}/boot/grub/grub.conf;
+  printf "default 0\ntimeout 5\n\ntitle Gentoo Linux (Hardened)\nroot (hd0,0)\nkernel /boot/kernel root=/dev/${ROOT} dolvm\ninitrd /boot/initramfs\n" > ${WORKDIR}/boot/grub/grub.conf;
   printf "done\n";
 
   printf "  - Installing into MBR... ";
   logPrint "  - Installing into MBR." >> ${LOG};
   grep -v rootfs /proc/mounts > ${WORKDIR}/etc/mtab;
-  echo "(hd0)	/dev/${ROOT%%[0-9]*}" >> ${WORKDIR}/boot/grub/device.map;
+  if [ -n "${BOOT}" ];
+  then
+    echo "(hd0) /dev/${BOOT%%[0-9]*}" >> ${WORKDIR}/boot/grub/device.map;
+  else
+    echo "(hd0)	/dev/${ROOT%%[0-9]*}" >> ${WORKDIR}/boot/grub/device.map;
+  fi
+  
   runChrootCommand "printf \"root (hd0,0)\nsetup (hd0)\n\" | grub --device-map=/boot/grub/device.map" >> ${LOG} 2>&1;
   printf "done\n";
 };

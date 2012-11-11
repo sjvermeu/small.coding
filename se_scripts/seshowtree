@@ -1,0 +1,89 @@
+#!/bin/sh
+
+if [ $# -lt 1 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ];
+then
+  echo "Usage: $(basename $0) <domain> [<file>]";
+  echo "  Use domain without _t suffix please.";
+  exit 0;
+fi
+
+export TMPFS=/tmp/seshowtree;
+SRC=/home/swift/Development/Centralized/hardened-refpolicy/policy/modules;
+
+DOMAIN=$1;
+STARTFILE=$2;
+INDENT=2;
+
+indent() {
+  CTR=$1;
+  while [ ${CTR} -gt 0 ];
+  do
+    printf ". ";
+    CTR=$((${CTR}-2));
+  done
+}
+
+seshowif() {
+  INTERFACE="$1";
+  FILE=allifdef;
+  grep -A 9999 "\(interface(\`${INTERFACE}'\|template(\`${INTERFACE}'\)" ${FILE} | grep -B 9999 -m 1 "^')";
+}
+
+seshowdef() {
+  MACRONAME="$1";
+  FILE=allifdef;
+  grep -A 9999 "define(\`${MACRONAME}'" ${FILE} | grep -B 999 -m 1 "')";
+}
+
+
+handleLine() {
+  local LINE="${1}";
+  local INDENT="${2}";
+
+  local NEXTINDENT=$((${INDENT}+2));
+
+  echo "${LINE}" | grep -q '(';
+  if [ $? -eq 0 ];
+  then
+    # Line is an interface call
+    IFACE=$(echo "${LINE}" | sed -e 's:(.*)::g');
+    seshowif ${IFACE} | grep \\$ | sed -e 's:^[ 	]*::g' | while read IFLINE;
+    do
+      indent ${NEXTINDENT};
+      echo "${IFLINE}";
+      handleLine "${IFLINE}" "${NEXTINDENT}";
+    done
+    seshowdef ${IFACE} | grep \\$ | sed -e 's:^[ 	]*::g' | while read IFLINE;
+    do
+      indent ${NEXTINDENT};
+      echo "${IFLINE}";
+      handleLine "${IFLINE}" "${NEXTINDENT}";
+    done
+  fi
+}
+
+test -d ${TMPFS} && rm -rf ${TMPFS};
+mkdir ${TMPFS};
+pushd ${TMPFS} > /dev/null 2>&1;
+cp -r ${SRC}/* .;
+cp -r ${SRC}/../support/*.spt .;
+
+cat */*.if > allifdef;
+cat *.spt >> allifdef;
+
+MODFILE=$(grep "type ${DOMAIN}_t[;,]" */*.te | awk -F':' '{print $1}');
+if [ -n "${STARTFILE}" ];
+then
+  MODFILE="${STARTFILE}";
+fi
+
+grep '[ 	(,]'${DOMAIN}'\(_t\|\)[ 	,)]' ${MODFILE} | while read DOMLINE;
+do
+  indent ${INDENT};
+  echo "${DOMLINE}";
+  handleLine "${DOMLINE}" "${INDENT}";
+done
+
+popd > /dev/null 2>&1;
+
+test -d ${TMPFS} && rm -rf ${TMPFS};

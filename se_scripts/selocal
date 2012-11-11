@@ -189,14 +189,23 @@ while [ $# -gt 0 ];
 do
   case "$1" in
   	(-l) listflag=1;;
+	(--list) listflag=1;;
 	(-a) addflag=1;;
+	(--add) addflag=1;;
 	(-d) delflag=1;;
+	(--delete) delflag=1;;
 	(-m) modflag=1; modname="$2"; shift;;
+	(--module) modflag=1; modname="$2"; shift;;
 	(-M) listmodflag=1;;
+	(--list-modules) listmodflag=1;;
 	(-c) commentflag=1; comment="$2"; shift;;
+	(--comment) commentflag=1; comment="$2"; shift;;
 	(-b) buildflag=1;;
+	(--build) buildflag=1;;
 	(-L) loadflag=1;;
+	(--load) loadflag=1;;
 	(-u) updateflag=1;;
+	(--update-dep) updateflag=1;;
 	(--) rule="$2"; shift; break;;
 	(-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
 	(*) break;;

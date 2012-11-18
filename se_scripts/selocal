@@ -53,7 +53,8 @@ updatedep() {
     elif [[ "${TYPEDEF}" == *"_t" ]];
     then
       echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
-    else
+    elif [[ ! -d "/sys/fs/selinux/class/${TYPEDEF}" ]]
+    then
       echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
     fi
   done
@@ -66,7 +67,7 @@ updatedep() {
     if [[ "${TYPEDEF}" == *"_t" ]];
     then
       echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
-    elif [[ "${TYPEDEF}" != "self" ]];
+    elif [[ "${TYPEDEF}" != "self" ]] && [[ ! -d "/sys/fs/selinux/class/${TYPEDEF}" ]]
     then
       echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
     fi

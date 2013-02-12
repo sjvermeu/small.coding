@@ -7,3 +7,9 @@ processed with tools like docbook2latex and so forth.
 
 It is currently extremely basic and lacking a lot of features, but for simple
 books (i.e. all non-main handbooks) it does the job nicely.
+
+gxml2wiki
+=========
+
+The gxml2wiki.xsl file is a XSL transformation that will attempt to transform a
+Gentoo GuideXML file into the wiki format as used on https://wiki.gentoo.org.

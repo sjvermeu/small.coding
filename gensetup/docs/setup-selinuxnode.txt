@@ -1,0 +1,12 @@
+In the image:
+
+for n in /boot / /usr /home /opt /var;
+do
+  dd if=/dev/zero of=${n}/junk; sync; rm ${n}/junk;
+done
+
+Outside the image:
+
+qemu-img convert -f qcow2 -O qcow2 source.img target.img 
+
+xz -k --x86 --lzma2=preset=9,lc=4,nice=273 $1

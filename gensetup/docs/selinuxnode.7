@@ -1,10 +1,11 @@
+'\" -*- coding: us-ascii -*-
 .if \n(.g .ds T< \\FC
 .if \n(.g .ds T> \\F[\n[.fam]]
 .de URL
 \\$2 \(la\\$1\(ra\\$3
 ..
 .if \n(.g .mso www.tmac
-.TH selinuxnode 7 "13 July 2012" "July 1st, 2012" "Gentoo Hardened SELinux Node Information"
+.TH selinuxnode 7 "21 February 2013" "February 21st, 2013" "Gentoo Hardened SELinux Node Information"
 .SH NAME
 selinuxnode \- Example SELinux-enabled Gentoo Hardened image
 .SH USAGE
@@ -24,13 +25,14 @@ environment, including
 .TP 0.2i
 \(bu
 setting keymap in /etc/conf.d/keymaps to your keyboard
-layout
+layout, after which you can remove askkeymaps from the default
+runlevel
 .TP 0.2i
 \(bu
 copying the right zone file from /usr/share/zoneinfo onto
 /etc/localtime.
 .SS "THE USER, OPER AND ROOT USERS"
-On this SELinux node, three users are defined.
+On this SELinux node, four users are defined.
 .TP 0.2i
 \(bu
 user is a regular system user, mapped to the SELinux user_u
@@ -43,6 +45,11 @@ administrators, mapped to the SELinux staff_u user
 \(bu
 root is an administrative user, mapped to the SELinux root
 user
+.TP 0.2i
+\(bu
+test is a regular system user, mapped to the SELinux user_u
+user (but meant as a test user when creating additional
+roles)
 .PP
 These SELinux mappings define which actions a user is allowed to
 take. For instance user_u is not able to switch roles and thus will
@@ -55,7 +62,7 @@ sysadm_r\fR. The root user either logs in in the staff_r role
 .SS "SELINUX COMMAND REFERENCE"
 For a full explanation of all the SELinux-related commands, please
 read the Gentoo Hardened SELinux handbook at
-http://hardened.gentoo.org/selinux
+http://www.gentoo.org/proj/en/hardened/selinux
 .TP 
 newrole -r <role>
 Switch to the specified SELinux role. Supported roles are
@@ -65,26 +72,12 @@ switched to nor switched from).
 setenforce [0 | 1]
 Disable (0) or enable (1) SELinux enforcing mode. By
 default, the node boots in enforcing mode.
-.SS "CUSTOM COMMENTS"
-On the SELinux system node, a few custom scripts have been made
-available:
-.TP 
-mglshow.sh <id>, mglshow.sh -i <category>
-Show script replays of recorded sessions. This will be used
-in the future for educational purposes. With -i, mglshow.sh displays
-the current list of categories and scripts.
-
-This command needs a working Internet connection. For more
-info about script replay sessions, see
-\fBscript(1)\fR and
-\fBscriptreplay(1)\fR.
 .SH "ABOUT THIS IMAGE"
 .SS "SPECIFIC PORTAGE SETTINGS"
-Due to the introduction of /run, the SELinux policies are
-currently being updated to reflect the dynamical nature of this
-location. As a result, this image is currently using the ~arch version
-of the SELinux policies (see the selinux file in
-/etc/portage/package.accept_keywords).
+Due to the support of IMA/EVM, the ima-evm-utils package is
+currently inside the package.accept_keywords definitions. Also all
+SELinux-related packages are mentioned therein to be at the latest
+(~arch) version.
 .SH AUTHOR
 The SELinux node is maintained by Sven Vermeulen
 <swift@gentoo.org>

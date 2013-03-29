@@ -35,12 +35,24 @@ seshowdef() {
   grep -A 9999 "define(\`${MACRONAME}'" ${FILE} | grep -B 999 -m 1 "')";
 }
 
+seshowattrdef() {
+  ATTRIBUTE="$1";
+  FILE=alltedef;
+  grep -E "[(, ]${ATTRIBUTE}[), :]" ${FILE};
+}
+
 
 handleLine() {
   local LINE="${1}";
   local INDENT="${2}";
 
   local NEXTINDENT=$((${INDENT}+2));
+
+  if [[ ${INDENT} -gt 80 ]];
+  then
+    echo "!! Breaking at indent 80... (loop?)"
+    return
+  fi
 
   echo "${LINE}" | grep -q '(';
   if [ $? -eq 0 ];
@@ -60,6 +72,18 @@ handleLine() {
       handleLine "${IFLINE}" "${NEXTINDENT}";
     done
   fi
+  echo "${LINE}" | grep -q 'typeattribute';
+  if [ $? -eq 0 ];
+  then
+    # Line assigns an attribute
+    ATTR=$(echo "${LINE}" | awk '{print $NF}' | sed -e 's:;::g');
+    seshowattrdef ${ATTR} | sed -e 's:^[ 	]*::g' | while read ALINE;
+    do
+      indent ${NEXTINDENT};
+      echo "${ALINE}";
+      handleLine "${ALINE}" "${NEXTINDENT}";
+    done
+  fi
 }
 
 test -d ${TMPFS} && rm -rf ${TMPFS};
@@ -70,6 +94,7 @@ cp -r ${SRC}/../support/*.spt .;
 
 cat */*.if > allifdef;
 cat *.spt >> allifdef;
+cat */*.te > alltedef;
 
 MODFILE=$(grep "type ${DOMAIN}_t[;,]" */*.te | awk -F':' '{print $1}');
 if [ -n "${STARTFILE}" ];

@@ -49,6 +49,12 @@ do
     > ${F};
   fi
 done
+echo "cd /var/log/audit";
+cd /var/log/audit;
+for F in *;
+do
+  ${PRECMD} rm ${F};
+done
 
 echo "## Cleaning root and user home directories"
 echo "cd /root"
@@ -60,7 +66,7 @@ do
 done
 [ -d .ssh ] && ${PRECMD} rm -rf .ssh
 
-for U in user oper;
+for U in user oper test;
 do
   echo "cd /home/${U}"
   cd /home/${U};
@@ -101,7 +107,22 @@ done
 echo "## Cleaning /usr/portage";
 ${PRECMD} rm -rf /usr/portage/*;
 
+echo "## Cleaning /var/tmp/portage";
+${PRECMD} rm -rf /var/tmp/portage/*;
+
+echo "## Removing sshd from default runlevel";
+${PRECMD} rc-update del sshd default;
+
+echo "## Removing net.eth0 from default runlevel";
+${PRECMD} rc-update del net.eth0 default;
+
+echo "## Adding askkeymaps to boot runlevel";
+${PRECMD} rc-update add askkeymaps boot;
+
 echo "## "
 echo "## Do not forget:"
 echo "## - reset /etc/conf.d/keymaps"
 echo "## - /etc/localtime"
+echo "## - /etc/fstab"
+echo "## - overlays"
+echo "## - /etc/portage/make.conf"

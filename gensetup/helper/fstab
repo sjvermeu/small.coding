@@ -1,0 +1,11 @@
+/dev/vg/root	/	ext4	noatime,data=journal,iversion		0 0
+/dev/vda1	/boot	ext4	noatime,data=journal,iversion		0 0
+/dev/vg/home	/home	ext4	defaults,rw,noatime,data=journal,iversion		0 0
+/dev/vg/opt	/opt	ext4	defaults,rw,noatime,data=journal,iversion		0 0
+/dev/vg/var	/var	ext4	defaults,rw,noatime,data=journal,iversion		0 0
+/dev/vg/usr	/usr	ext4	defaults,rw,noatime,data=journal,iversion		0 0
+tmpfs   /tmp   tmpfs       defaults,noexec,nosuid,rootcontext=system_u:object_r:tmp_t   0 0
+tmpfs	/run	tmpfs	mode=0755,nosuid,nodev,rootcontext=system_u:object_r:var_run_t	0 0
+rc-svcdir   /lib64/rc/init.d   tmpfs       rw,rootcontext=system_u:object_r:initrc_state_t,seclabel,nosuid,nodev,noexec,relatime,size=1024k,mode=755  0 0
+/swapfile	none	swap	sw,pri=1	0 0
+workstation:gentoo/packages	/usr/portage/packages	nfs	rw,timeo=30,soft,vers=4	0	0

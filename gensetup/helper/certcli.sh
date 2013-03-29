@@ -22,7 +22,7 @@ then
   echo "  -r, --create-root		Create a root CA key named <value>";
   echo "  -c, --create-child		Create a child CA key named <value>";
   echo "  -s, --sign-request		Sign a certificate request (<value> is input)";
-  echo "  -R, --create-request		Create a key and signing request";
+  echo "  -R, --create-request		Create a key and signing request named <value>.req";
   echo "";
   echo "Options can be one of:";
   echo "  -p, --parent <parent>		Use <parent> as the parent key value";

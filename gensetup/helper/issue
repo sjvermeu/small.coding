@@ -1,0 +1,11 @@
+
+Welcome on this SELinux node, now with IMA/EVM.
+
+You can log on as:
+  root (password is "rootpass") as SELinux root user   (sysadm_r)
+  user (password is "userpass") as SELinux user_u user (user_r)
+  oper (password is "operpass") as SELinux staff_u user (staff_r)
+  test (password is "testpass") as SELinux user_u user (user_r)
+
+This is \n.\O (\s \m \r) \t
+

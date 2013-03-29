@@ -1,0 +1,35 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+description="Switch into SELinux enforcing mode"
+
+depend() {
+	need sysfs
+}
+
+start() {
+	if get_bootparam "norestorecon" ; then
+		ewarn "Skipping restoring file contexts in /dev as requested by kernel cmdline"
+	else
+		ebegin "Restoring file contexts in /dev"
+			restorecon -R /dev
+		eend 0
+	fi
+	
+	if get_bootparam "nosetenforce" ; then
+		ewarn "Skipping switching to enforcing mode as requested by kernel cmdline"
+	else
+		. /etc/selinux/config
+		CURRENTMODE=$(cat /sys/fs/selinux/enforce)
+		if [ "${SELINUX}" = "enforcing" ] && [ "${CURRENTMODE}" = "0" ];
+		then
+			ebegin "Switching to enforcing mode"
+			echo 1 > /sys/fs/selinux/enforce
+			eend $?
+		else
+			ewarn "Not switching to enforcing mode, or enforcing mode already enabled"
+		fi
+	fi
+}

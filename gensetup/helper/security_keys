@@ -1,0 +1,31 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+description="Load in the EVM and IMA keys"
+
+depend() {
+	need sysfs
+}
+
+start() {
+	ebegin "Remounting /usr with iversion"
+	mount -o remount,iversion /usr
+	eend $?
+
+	ebegin "Loading EVM keys"
+	# Load the master key (this is for a non-TPM system)
+	keyctl show | grep -q kmk-user || keyctl add user kmk-user "`cat /etc/keys/kmk-user.blob`" @u > /dev/null
+	keyctl add encrypted evm-key "load `cat /etc/keys/evm-user.blob`" @u > /dev/null
+	eend $?
+
+	ebegin "Loading pubkeys"
+	ima_id=`keyctl newring _ima @u` && /usr/bin/evmctl import /etc/keys/rsa_public.pem $ima_id > /dev/null
+	evm_id=`keyctl newring _evm @u` && /usr/bin/evmctl import /etc/keys/rsa_public.pem $evm_id > /dev/null
+	eend $?
+
+	ebegin "Enabling EVM"
+	echo 1 > /sys/kernel/security/evm
+	eend $?
+}

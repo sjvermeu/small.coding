@@ -1,0 +1,7 @@
+127.0.0.1   localhost.virtdomain 
+::1	localhost.internal.genfic.com localhost
+
+2001:db8:81:22::d8:e8fc:a2dc	test.internal.genfic.com test
+2001:db8:81:21:0:ac:98ad:5fe1	ns.internal.genfic.com ns
+2001:db8:81:21::53:3a8a:71e0	puppet.internal.genfic.com puppet
+2001:db8:81:e2::26b5:365b:5072	workstation.internal.genfic.com workstation

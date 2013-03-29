@@ -30,7 +30,11 @@ do
 	if [ $? -ne 0 ];
 	then
 	  echo " - Removing ${MOD} from runtime";
-	  semodule -r ${MOD};
+	  for STORE in /etc/selinux/*;
+	  do
+            test -d ${STORE} || continue;
+	    semodule -s $(basename ${STORE}) -r ${MOD};
+	  done
 	  CLEAN=0;
 	fi
       done

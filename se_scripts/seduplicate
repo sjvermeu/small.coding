@@ -61,6 +61,8 @@ FILELIST=$(mktemp);
 BLOCKID=0;
 while read LINE;
 do
+  echo ${LINE} | grep -q 'ifdef(\`distro_gentoo';
+  [ $? -eq 0 ] && continue;
   echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
   if [ $? -eq 0 ];
   then
@@ -82,6 +84,7 @@ done < ${FILE};
 BLOCKID=0;
 while read LINE;
 do
+  echo ${LINE} | grep -q 'ifdef(\`distro_gentoo';
   echo ${LINE} | grep -q '\(tunable_policy\|optional_policy\|ifdef\|ifndef\)';
   if [ $? -eq 0 ];
   then

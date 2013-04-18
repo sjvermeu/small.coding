@@ -51,33 +51,21 @@
 <book>
   <xsl:attribute name="version">5.0</xsl:attribute>
   <title><xsl:value-of select="title" /></title>
-  <info>
-  <authorgroup>
-    <xsl:for-each select="author">
-      <xsl:choose>
-        <xsl:when test="@title='Author'">
-          <author>
-            <personname><xsl:value-of select="." /></personname>
-          </author>
-	</xsl:when>
-	<xsl:when test="@title='Editor'">
-          <editor>
-            <personname><xsl:value-of select="." /></personname>
-	  </editor>
-	</xsl:when>
-	<xsl:otherwise>
-          <othercredit>
-	    <personname><xsl:value-of select="." /></personname>
-	  </othercredit>
-	</xsl:otherwise>
-      </xsl:choose>
-    </xsl:for-each>
-  </authorgroup>
-  </info>
   <preface>
   <title>Abstract</title>
   <para>
     <xsl:value-of select="abstract" />
+  </para>
+  <para>
+    Special thanks go to the following people, in no particular order, for
+    their contributions, editing and authoring of the various Gentoo
+    Handbooks:
+  </para>
+  <para>
+    <xsl:for-each select="author">
+      <xsl:value-of select="." /> (<xsl:value-of select="@title" />)
+      <xsl:if test="position() != last()">, </xsl:if>
+    </xsl:for-each>
   </para>
   </preface>
 

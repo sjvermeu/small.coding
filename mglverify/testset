@@ -1,0 +1,81 @@
+# mglverify check --set mysql.password=OhmYg0dIsaw4Kitties \
+#                 --set 
+
+## 01 - The /home file system should be mounted with nosuid option
+##
+## @reference Security Benchmark for Gentoo Linux v20122201, rule 5
+## @keywords L1
+##
+## User home directories should not contain any setuid applications.
+## By mounting the /home file system with nosuid, even if such applications
+## are installed, they cannot be easily executed.
+
+[conditions]
+# Only if the file system exists
+command: mount | grep -q "^/home on"
+
+[check]
+command: mount | grep '/home ' | grep -q "[(,]nosuid[,)]"
+
+[fix]
+command: mount -o remount,nosuid /home
+
+## 02 - No root user should exist in the MySQL database without a password
+##
+## @reference My Personal Idea
+## @iterator mysql_dbports
+## @keywords L2
+##
+## If root users exist in the MySQL database, then they should not have
+## an empty password.
+
+[conditions]
+sql: SELECT COUNT(*) > 0 FROM mysql.users WHERE user='root'
+
+[check]
+sql: SELECT LENGTH(password) > 0 FROM mysql.users WHERE user='root'
+
+[fix]
+sql: UPDATE USER root SET PASSWORD @@mysql.pwdhash@@
+
+
+## 03 - DBA users should not be called "root"
+##
+## @reference My Personal Idea
+## @iterator mysql_dbports,sql_users
+## @keywords L2
+##
+## If a user has Admin privileges, he should not be called root.
+## Simple example, but trying to show the use of multiple iterators
+#
+# We could also iterate (sql_users) over all users, and then have a condition
+# that checks if he has the Admin privs. Depends if sql_users would be used
+# elsewhere as well or not.
+
+[check]
+sql: SELECT NOT '@@sql_users@@'='root';
+
+[fix]
+sql: ALTER USER @@sql_users@@ EXPIRE LOCKED;
+
+#
+# List of parameters
+# 
+[parameters]
+ask mysql.user default is root
+ask mysql.password default is ''
+ask mysql.pwdhash default is 'abcdef01234566789223def23243b234ca0'
+
+#
+# Rules that are marked for a particular iterator will be reran
+# for each of the iterators
+# 
+[iterators]
+
+iterator mysql_dbports is command: grep Port /etc/my.cnf | awk '{print $2}'
+iterator sql_users is sql: SELECT user FROM mysql.users WHERE Admin_Priv='Y';
+# iterator filesystems is ask:
+# would need:
+# 	mglverify check --set filesystems='/home,/var,/lib'
+# or even, if we would also have a filesystemtype iterator:
+# 	mglverify check --set filesystemtype[tmpfs].filesystems='/home,/var,/lib'

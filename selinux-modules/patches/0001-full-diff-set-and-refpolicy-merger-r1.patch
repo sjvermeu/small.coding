@@ -334,8 +334,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/config/file_co
  /var/run/lock /var/lock
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/doc/gentoo_tunables.xml refpolicy/doc/gentoo_tunables.xml
 --- refpolicy/doc/gentoo_tunables.xml	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/doc/gentoo_tunables.xml	2013-04-19 19:52:48.858640722 +0200
-@@ -0,0 +1,57 @@
++++ refpolicy/doc/gentoo_tunables.xml	2013-05-11 20:45:27.322023542 +0200
+@@ -0,0 +1,87 @@
 +<tunable name="mozilla_read_generic_user_content" dftval="true">
 +<desc>
 +<p>
@@ -393,6 +393,36 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/doc/gentoo_tun
 +</p>
 +</desc>
 +</tunable>
++
++<tunable name="mutt_read_generic_user_content" dftval="true">
++<desc>
++<p>
++Allow mutt to read generic user content (i.e. content that is not specific to an application).
++</p>
++</desc>
++</tunable>
++<tunable name="mutt_read_all_user_content" dftval="false">
++<desc>
++<p>
++Allow mutt to read all user content (including content that is specific to an application, such as the configuration files of other applications in the users home directory).
++</p>
++</desc>
++</tunable>
++<tunable name="mutt_manage_generic_user_content" dftval="false">
++<desc>
++<p>
++Allow mutt to manage generic user content (i.e. content that is not specific to an application).
++</p>
++</desc>
++</tunable>
++<tunable name="mutt_manage_all_user_content" dftval="false">
++<desc>
++<p>
++Allow mutt to manage all user content (including content that is specific to an application, such as the configuration files of other applications in the users home directory).
++</p>
++</desc>
++</tunable>
++
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/doc/policy.xml refpolicy/doc/policy.xml
 --- refpolicy/doc/policy.xml	2013-04-24 22:15:02.000000000 +0200
 +++ refpolicy/doc/policy.xml	2012-07-26 21:20:57.026965170 +0200
@@ -107359,6 +107389,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +miscfiles_read_localization(at_t)
 +
 +userdom_use_user_terminals(at_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/avahi.if refpolicy/policy/modules/contrib/avahi.if
+--- refpolicy/policy/modules/contrib/avahi.if	2012-09-21 14:10:12.000000000 +0200
++++ refpolicy/policy/modules/contrib/avahi.if	2013-05-31 15:46:46.458395372 +0200
+@@ -97,7 +97,7 @@
+ ########################################
+ ## <summary>
+ ##	Connect to avahi using a unix
+-$$	stream socket.
++##	stream socket.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/chromium.fc refpolicy/policy/modules/contrib/chromium.fc
 --- refpolicy/policy/modules/contrib/chromium.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/contrib/chromium.fc	2013-04-21 15:21:12.352974770 +0200
@@ -108794,6 +108836,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +type flash_home_t;
 +userdom_user_home_content(flash_home_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/glusterfs.te refpolicy/policy/modules/contrib/glusterfs.te
+--- refpolicy/policy/modules/contrib/glusterfs.te	2013-04-24 22:14:52.000000000 +0200
++++ refpolicy/policy/modules/contrib/glusterfs.te	2013-05-31 15:46:49.830395379 +0200
+@@ -25,7 +25,7 @@
+ files_pid_file(glusterd_var_run_t)
+ 
+ type glusterd_var_lib_t;
+-files_type(glusterd_var_lib_t);
++files_type(glusterd_var_lib_t)
+ 
+ ########################################
+ #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/gnome.fc refpolicy/policy/modules/contrib/gnome.fc
 --- refpolicy/policy/modules/contrib/gnome.fc	2013-01-03 16:09:15.000000000 +0100
 +++ refpolicy/policy/modules/contrib/gnome.fc	2012-12-06 19:17:51.450072397 +0100
@@ -108974,8 +109028,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/googletalk.te refpolicy/policy/modules/contrib/googletalk.te
 --- refpolicy/policy/modules/contrib/googletalk.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/googletalk.te	2013-04-16 10:49:37.218017910 +0200
-@@ -0,0 +1,91 @@
++++ refpolicy/policy/modules/contrib/googletalk.te	2013-07-10 20:13:53.834050229 +0200
+@@ -0,0 +1,95 @@
 +policy_module(googletalk, 0.1)
 +
 +type googletalk_plugin_t;
@@ -108996,10 +109050,12 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +# Google talk plugin policy
 +#
 +
++allow googletalk_plugin_t self:process signal;
 +allow googletalk_plugin_t self:fifo_file rw_fifo_file_perms;
 +allow googletalk_plugin_t self:netlink_kobject_uevent_socket create_socket_perms;
 +allow googletalk_plugin_t self:netlink_route_socket create_netlink_socket_perms;
 +allow googletalk_plugin_t self:tcp_socket create_stream_socket_perms;
++allow googletalk_plugin_t self:udp_socket create_socket_perms;
 +allow googletalk_plugin_t self:unix_stream_socket create_stream_socket_perms;
 +
 +manage_files_pattern(googletalk_plugin_t, googletalk_plugin_tmp_t, googletalk_plugin_tmp_t)
@@ -109030,6 +109086,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +corenet_tcp_bind_generic_node(googletalk_plugin_t)
 +corenet_tcp_sendrecv_generic_if(googletalk_plugin_t)
 +corenet_tcp_sendrecv_generic_node(googletalk_plugin_t)
++
++corenet_udp_bind_generic_node(googletalk_plugin_t)
 +
 +# It runs find in /etc to find any release file for knowing the distribution it
 +# runs on. Yes, great isnt it...
@@ -109213,6 +109271,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  optional_policy(`
  	cron_system_entry(innd_t, innd_exec_t)
  ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/jabber.if refpolicy/policy/modules/contrib/jabber.if
+--- refpolicy/policy/modules/contrib/jabber.if	2012-10-30 19:43:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/jabber.if	2013-05-31 15:46:51.696395383 +0200
+@@ -86,7 +86,7 @@
+ 	role_transition $2 jabberd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
+-	files_search_locks($1))
++	files_search_locks($1)
+ 	admin_pattern($1, jabberd_lock_t)
+ 
+ 	logging_search_logs($1)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/java.if refpolicy/policy/modules/contrib/java.if
 --- refpolicy/policy/modules/contrib/java.if	2012-10-30 19:43:35.000000000 +0100
 +++ refpolicy/policy/modules/contrib/java.if	2012-11-02 19:51:48.062955282 +0100
@@ -109321,6 +109391,39 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  optional_policy(`
  	xserver_user_x_domain_template(java, java_t, java_tmpfs_t)
  ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/keystone.if refpolicy/policy/modules/contrib/keystone.if
+--- refpolicy/policy/modules/contrib/keystone.if	2012-09-21 14:10:02.000000000 +0200
++++ refpolicy/policy/modules/contrib/keystone.if	2013-05-31 15:46:53.343395386 +0200
+@@ -34,7 +34,7 @@
+ 	logging_search_logs($1)
+ 	admin_pattern($1, keystone_log_t)
+ 
+-	files_search_var_lib($1
++	files_search_var_lib($1)
+ 	admin_pattern($1, keystone_var_lib_t)
+ 
+ 	files_search_tmp($1)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ksmtuned.if refpolicy/policy/modules/contrib/ksmtuned.if
+--- refpolicy/policy/modules/contrib/ksmtuned.if	2012-10-30 19:43:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/ksmtuned.if	2013-05-09 18:18:05.115635837 +0200
+@@ -67,7 +67,7 @@
+ 	allow $2 system_r;
+ 
+ 	allow $1 ksmtuned_t:process { ptrace signal_perms };
+-	ps_process_pattern(ksmtumed_t)
++	ps_process_pattern($1, ksmtuned_t)
+ 
+ 	files_list_pids($1)
+ 	admin_pattern($1, ksmtuned_var_run_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ksmtuned.te refpolicy/policy/modules/contrib/ksmtuned.te
+--- refpolicy/policy/modules/contrib/ksmtuned.te	2013-04-24 22:14:50.000000000 +0200
++++ refpolicy/policy/modules/contrib/ksmtuned.te	2013-05-09 18:18:09.224635846 +0200
+@@ -1,4 +1,4 @@
+-policy_module(ksmtuned, 1.1.0)
++policy_module(ksmtuned, 1.1.1)
+ 
+ ########################################
+ #
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/ldap.if refpolicy/policy/modules/contrib/ldap.if
 --- refpolicy/policy/modules/contrib/ldap.if	2012-10-30 19:43:35.000000000 +0100
 +++ refpolicy/policy/modules/contrib/ldap.if	2012-11-01 22:00:34.726787359 +0100
@@ -109616,6 +109719,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +  cron_system_entry(logsentry_t, logsentry_exec_t)
 +')
 +
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mailscanner.if refpolicy/policy/modules/contrib/mailscanner.if
+--- refpolicy/policy/modules/contrib/mailscanner.if	2012-10-30 20:35:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/mailscanner.if	2013-05-31 15:46:54.740395389 +0200
+@@ -55,7 +55,7 @@
+ 	files_search_etc($1)
+ 	admin_pattern($1, mscan_etc_t)
+ 
+-	files_search_pids($1
++	files_search_pids($1)
+ 	admin_pattern($1, mscan_var_run_t)
+ 
+ 	files_search_spool($1)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/makewhatis.fc refpolicy/policy/modules/contrib/makewhatis.fc
 --- refpolicy/policy/modules/contrib/makewhatis.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/contrib/makewhatis.fc	2012-12-09 23:25:28.280656519 +0100
@@ -109753,8 +109868,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/minidlna.te refpolicy/policy/modules/contrib/minidlna.te
 --- refpolicy/policy/modules/contrib/minidlna.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/minidlna.te	2013-05-02 21:27:01.642567464 +0200
-@@ -0,0 +1,134 @@
++++ refpolicy/policy/modules/contrib/minidlna.te	2013-05-09 19:13:05.867642883 +0200
+@@ -0,0 +1,130 @@
 +policy_module(minidlna, 0.1)
 +
 +#############################################
@@ -109769,35 +109884,21 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +## </desc>
 +gen_tunable(minidlna_read_generic_user_content, false)
 +
-+## <desc>
-+##	<p>
-+##	Determine whether minidlna can read all user content.
-+##	</p>
-+## </desc>
-+gen_tunable(minidlna_read_all_user_content, false)
-+
-+## <desc>
-+##	<p>
-+##	Determine whether minidlna can read users xdg videos, pictures and music labeled files
-+##	</p>
-+## </desc>
-+gen_tunable(minidlna_read_xdg_media_content, false)
-+
 +type minidlna_t;
 +type minidlna_exec_t;
 +init_daemon_domain(minidlna_t, minidlna_exec_t)
 +
-+type minidlna_initrc_exec_t;
-+init_script_file(minidlna_initrc_exec_t)
-+
 +type minidlna_conf_t;
 +files_config_file(minidlna_conf_t)
 +
-+type minidlna_log_t;
-+logging_log_file(minidlna_log_t)
-+
 +type minidlna_db_t;
 +files_type(minidlna_db_t)
++
++type minidlna_initrc_exec_t;
++init_script_file(minidlna_initrc_exec_t)
++
++type minidlna_log_t;
++logging_log_file(minidlna_log_t)
 +
 +type minidlna_var_run_t;
 +files_pid_file(minidlna_var_run_t)
@@ -109815,19 +109916,12 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
 +allow minidlna_t minidlna_db_t:dir { create_dir_perms rw_dir_perms };
 +allow minidlna_t minidlna_db_t:file manage_file_perms;
-+#manage_files_pattern(minidlna_t, minidlna_db_t, minidlna_db_t)
-+#create_dirs_pattern(minidlna_t, minidlna_db_t, minidlna_db_t)
-+#rw_dirs_pattern(minidlna_t, minidlna_db_t, minidlna_db_t)
-+#files_var_lib_filetrans(minidlna_t, minidlna_db_t, dir)
 +
 +allow minidlna_t minidlna_log_t:file append_file_perms;
 +create_files_pattern(minidlna_t, minidlna_log_t, minidlna_log_t)
-+#append_files_pattern(minidlna_t, minidlna_log_t, minidlna_log_t)
 +
 +allow minidlna_t minidlna_var_run_t:file manage_file_perms;
 +allow minidlna_t minidlna_var_run_t:dir rw_dir_perms;
-+#manage_files_pattern(minidlna_t, minidlna_var_run_t, minidlna_var_run_t)
-+#rw_dirs_pattern(minidlna_t, minidlna_var_run_t, minidlna_var_run_t)
 +files_pid_filetrans(minidlna_t, minidlna_var_run_t, file)
 +
 +kernel_read_fs_sysctls(minidlna_t)
@@ -109879,20 +109973,41 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	userdom_dontaudit_read_user_tmp_files(minidlna_t)
 +')
 +
-+tunable_policy(`minidlna_read_all_user_content',`
-+	userdom_list_user_tmp(minidlna_t)
-+	userdom_read_all_user_home_content(minidlna_t)
-+')
++ifdef(`distro_gentoo',`
 +
-+tunable_policy(`minidlna_read_xdg_media_content',`
-+	xdg_read_music_home(minidlna_t)
-+	xdg_read_pictures_home(minidlna_t)
-+	xdg_read_videos_home(minidlna_t)
++## <desc>
++##	<p>
++##	Determine whether minidlna can read all user content.
++##	</p>
++## </desc>
++gen_tunable(minidlna_read_all_user_content, false)
++
++## <desc>
++##	<p>
++##	Determine whether minidlna can read users xdg videos, pictures and music labeled files
++##	</p>
++## </desc>
++gen_tunable(minidlna_read_xdg_media_content, false)
++
++	tunable_policy(`minidlna_read_all_user_content',`
++		userdom_list_user_tmp(minidlna_t)
++		userdom_read_all_user_home_content(minidlna_t)
++	')
++	
++	tunable_policy(`minidlna_read_xdg_media_content',`
++		xdg_read_music_home(minidlna_t)
++		xdg_read_pictures_home(minidlna_t)
++		xdg_read_videos_home(minidlna_t)
++	')
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.fc refpolicy/policy/modules/contrib/mozilla.fc
 --- refpolicy/policy/modules/contrib/mozilla.fc	2012-10-30 19:43:35.000000000 +0100
-+++ refpolicy/policy/modules/contrib/mozilla.fc	2012-10-17 19:36:49.135198553 +0200
-@@ -4,35 +4,34 @@
++++ refpolicy/policy/modules/contrib/mozilla.fc	2013-06-22 21:31:56.405273216 +0200
+@@ -1,38 +1,38 @@
++HOME_DIR/\.cache/mozilla(/.*)?	gen_context(system_u:object_r:mozilla_xdg_cache_t,s0)
+ HOME_DIR/\.galeon(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
+ HOME_DIR/\.mozilla(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
+ HOME_DIR/\.mozilla/plugins(/.*)?	gen_context(system_u:object_r:mozilla_plugin_home_t,s0)
  HOME_DIR/\.netscape(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
  HOME_DIR/\.phoenix(/.*)?	gen_context(system_u:object_r:mozilla_home_t,s0)
  
@@ -110041,7 +110156,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mozilla.te refpolicy/policy/modules/contrib/mozilla.te
 --- refpolicy/policy/modules/contrib/mozilla.te	2013-04-24 22:14:50.000000000 +0200
-+++ refpolicy/policy/modules/contrib/mozilla.te	2013-05-01 20:21:35.131374667 +0200
++++ refpolicy/policy/modules/contrib/mozilla.te	2013-06-22 21:29:56.580270448 +0200
 @@ -13,6 +13,19 @@
  ## </desc>
  gen_tunable(mozilla_execstack, false)
@@ -110228,7 +110343,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	automount_dontaudit_getattr_tmp_dirs(mozilla_plugin_t)
  ')
  
-@@ -673,3 +605,145 @@
+@@ -673,3 +605,152 @@
  optional_policy(`
  	xserver_use_user_fonts(mozilla_plugin_config_t)
  ')
@@ -110251,6 +110366,9 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +## </desc>
 +gen_tunable(mozilla_plugin_connect_all_unreserved, false)
 +
++	type mozilla_xdg_cache_t;
++	xdg_cache_home_content(mozilla_xdg_cache_t)
++
 +	#####################
 +	#
 +	# Mozilla policy
@@ -110260,6 +110378,10 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	allow mozilla_t mozilla_plugin_t:process { rlimitinh siginh noatsecure };
 +
 +	manage_fifo_files_pattern(mozilla_t, mozilla_tmp_t, mozilla_tmp_t)
++
++	manage_files_pattern(mozilla_t, mozilla_xdg_cache_t, mozilla_xdg_cache_t) 
++	manage_dirs_pattern(mozilla_t, mozilla_xdg_cache_t, mozilla_xdg_cache_t)
++	xdg_cache_home_filetrans(mozilla_t, mozilla_xdg_cache_t, dir, "mozilla")
 +
 +	corenet_dontaudit_tcp_bind_generic_port(mozilla_t)
 +	corenet_dontaudit_tcp_sendrecv_generic_port(mozilla_t)
@@ -110665,21 +110787,14 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mutt.te refpolicy/policy/modules/contrib/mutt.te
 --- refpolicy/policy/modules/contrib/mutt.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/mutt.te	2012-12-05 20:56:58.878893789 +0100
-@@ -0,0 +1,105 @@
++++ refpolicy/policy/modules/contrib/mutt.te	2013-05-11 20:44:25.269023410 +0200
+@@ -0,0 +1,93 @@
 +policy_module(mutt, 1.0.0)
 +
 +############################
 +# 
 +# Declarations
 +#
-+
-+## <desc>
-+## <p>
-+##   Be able to manage user files (needed to support attachment handling)
-+## </p>
-+## </desc>
-+gen_tunable(mutt_manage_user_content, false)
 +
 +type mutt_t;
 +type mutt_exec_t;
@@ -110753,6 +110868,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +userdom_search_user_home_content(mutt_t)
 +userdom_use_user_terminals(mutt_t)
 +
++userdom_user_content_access_template(mutt, mutt_t)
++
 +optional_policy(`
 +	gpg_domtrans(mutt_t)
 +')
@@ -110765,13 +110882,6 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	xdg_manage_cache_home(mutt_t)
 +	xdg_read_config_home_files(mutt_t)
 +')
-+
-+tunable_policy(`mutt_manage_user_content',`
-+	# Needed for handling attachments
-+	userdom_manage_user_home_content_files(mutt_t)
-+	userdom_manage_user_home_content_dirs(mutt_t)
-+')
-+
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/mysql.if refpolicy/policy/modules/contrib/mysql.if
 --- refpolicy/policy/modules/contrib/mysql.if	2012-11-26 14:59:17.000000000 +0100
 +++ refpolicy/policy/modules/contrib/mysql.if	2012-11-02 20:08:30.304957423 +0100
@@ -110967,8 +111077,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nginx.fc refpolicy/policy/modules/contrib/nginx.fc
 --- refpolicy/policy/modules/contrib/nginx.fc	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/nginx.fc	2012-05-05 16:11:28.380762616 +0200
-@@ -0,0 +1,63 @@
++++ refpolicy/policy/modules/contrib/nginx.fc	2013-06-22 20:56:56.830224713 +0200
+@@ -0,0 +1,64 @@
 +###############################################################################
 +# SELinux module for the NGINX Web Server
 +#
@@ -111030,6 +111140,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +#
 +# /var
 +#
++/var/lib/nginx/tmp(/.*)?			gen_context(system_u:object_r:nginx_tmp_t,s0)
 +/var/log/nginx(/.*)?				gen_context(system_u:object_r:nginx_log_t,s0)
 +/var/tmp/nginx(/.*)?				gen_context(system_u:object_r:nginx_tmp_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/nginx.if refpolicy/policy/modules/contrib/nginx.if
@@ -111348,6 +111459,35 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +fs_manage_cgroup_files(openrc_cgroup_release_t)
 +
 +auth_use_nsswitch(openrc_cgroup_release_t)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/openvpn.te refpolicy/policy/modules/contrib/openvpn.te
+--- refpolicy/policy/modules/contrib/openvpn.te	2013-04-24 22:14:50.000000000 +0200
++++ refpolicy/policy/modules/contrib/openvpn.te	2013-05-16 11:05:18.068019888 +0200
+@@ -1,4 +1,4 @@
+-policy_module(openvpn, 1.12.0)
++policy_module(openvpn, 1.12.1)
+ 
+ ########################################
+ #
+@@ -32,6 +32,9 @@
+ type openvpn_status_t;
+ logging_log_file(openvpn_status_t)
+ 
++type openvpn_tmp_t;
++files_tmp_file(openvpn_tmp_t)
++
+ type openvpn_var_log_t;
+ logging_log_file(openvpn_var_log_t)
+ 
+@@ -62,6 +65,9 @@
+ allow openvpn_t openvpn_status_t:file manage_file_perms;
+ logging_log_filetrans(openvpn_t, openvpn_status_t, file, "openvpn-status.log")
+ 
++allow openvpn_t openvpn_tmp_t:file manage_file_perms;
++files_tmp_filetrans(openvpn_t, openvpn_tmp_t, file)
++
+ manage_dirs_pattern(openvpn_t, openvpn_var_log_t, openvpn_var_log_t)
+ append_files_pattern(openvpn_t, openvpn_var_log_t, openvpn_var_log_t)
+ create_files_pattern(openvpn_t, openvpn_var_log_t, openvpn_var_log_t)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/pan.fc refpolicy/policy/modules/contrib/pan.fc
 --- refpolicy/policy/modules/contrib/pan.fc	1970-01-01 01:00:00.000000000 +0100
 +++ refpolicy/policy/modules/contrib/pan.fc	2012-05-05 16:11:29.238762618 +0200
@@ -112198,28 +112338,6 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +	pulseaudio_domtrans($1)
 +	pulseaudio_tmpfs_content($2)
 +')
-diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/puppet.fc refpolicy/policy/modules/contrib/puppet.fc
---- refpolicy/policy/modules/contrib/puppet.fc	2013-04-22 15:47:40.000000000 +0200
-+++ refpolicy/policy/modules/contrib/puppet.fc	2013-04-17 19:43:31.095270700 +0200
-@@ -1,14 +1,17 @@
- /etc/puppet(/.*)?	gen_context(system_u:object_r:puppet_etc_t,s0)
- 
- /etc/rc\.d/init\.d/puppet	--	gen_context(system_u:object_r:puppet_initrc_exec_t,s0)
--/etc/rc\.d/init\.d/puppetmaster	--	gen_context(system_u:object_r:puppetmaster_initrc_exec_t,s0)
-+/etc/rc\.d/init\.d/puppetmaster --	gen_context(system_u:object_r:puppetmaster_initrc_exec_t,s0)
- 
- /usr/bin/puppetca	--	gen_context(system_u:object_r:puppetca_exec_t,s0)
- /usr/bin/puppetd	--	gen_context(system_u:object_r:puppet_exec_t,s0)
- /usr/bin/puppetmasterd	--	gen_context(system_u:object_r:puppetmaster_exec_t,s0)
- 
- /usr/sbin/puppetca	--	gen_context(system_u:object_r:puppetca_exec_t,s0)
-+/usr/bin/puppetca	--	gen_context(system_u:object_r:puppetca_exec_t,s0)
-+/usr/bin/puppetd	--	gen_context(system_u:object_r:puppet_exec_t,s0)
- /usr/sbin/puppetd	--	gen_context(system_u:object_r:puppet_exec_t,s0)
-+/usr/bin/puppetmasterd	--	gen_context(system_u:object_r:puppetmaster_exec_t,s0)
- /usr/sbin/puppetmasterd	--	gen_context(system_u:object_r:puppetmaster_exec_t,s0)
- 
- /var/lib/puppet(/.*)?	gen_context(system_u:object_r:puppet_var_lib_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/puppet.te refpolicy/policy/modules/contrib/puppet.te
 --- refpolicy/policy/modules/contrib/puppet.te	2013-04-24 22:14:50.000000000 +0200
 +++ refpolicy/policy/modules/contrib/puppet.te	2013-05-01 20:21:35.766374668 +0200
@@ -112312,6 +112430,27 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +		vde_connect(qemu_t)
 +	')
 +')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/qpid.if refpolicy/policy/modules/contrib/qpid.if
+--- refpolicy/policy/modules/contrib/qpid.if	2012-10-30 20:35:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/qpid.if	2013-05-31 15:46:56.484395393 +0200
+@@ -182,7 +182,7 @@
+ 	role_transition $2 qpidd_initrc_exec_t system_r;
+ 	allow $2 system_r;
+ 
+-	files_search_var_lib($1(
++	files_search_var_lib($1)
+ 	admin_pattern($1, qpidd_var_lib_t)
+ 
+ 	files_search_pids($1)
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/readahead.fc refpolicy/policy/modules/contrib/readahead.fc
+--- refpolicy/policy/modules/contrib/readahead.fc	2012-10-30 20:35:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/readahead.fc	2013-05-31 15:46:58.718395398 +0200
+@@ -4,4 +4,4 @@
+ 
+ /var/lib/readahead(/.*)?	gen_context(system_u:object_r:readahead_var_lib_t,s0)
+ 
+-/var/run/readahead,*	gen_context(system_u:object_r:readahead_var_run_t,s0)
++/var/run/readahead.*	gen_context(system_u:object_r:readahead_var_run_t,s0)
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpc.if refpolicy/policy/modules/contrib/rpc.if
 --- refpolicy/policy/modules/contrib/rpc.if	2013-01-03 16:09:15.000000000 +0100
 +++ refpolicy/policy/modules/contrib/rpc.if	2013-01-16 21:12:04.697190848 +0100
@@ -112339,6 +112478,18 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +
  tunable_policy(`allow_nfsd_anon_write',`
  	miscfiles_manage_public_files(nfsd_t)
+ ')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rpm.if refpolicy/policy/modules/contrib/rpm.if
+--- refpolicy/policy/modules/contrib/rpm.if	2012-10-30 20:35:35.000000000 +0100
++++ refpolicy/policy/modules/contrib/rpm.if	2013-05-31 15:47:01.410395404 +0200
+@@ -660,7 +660,7 @@
+ 	admin_pattern($1, rpm_var_run_t)
+ 
+ 	fs_search_tmpfs($1)
+-	admin_pattern($1, { rpm_tmpfs_t rpm_script_tmpfs_t }
++	admin_pattern($1, { rpm_tmpfs_t rpm_script_tmpfs_t })
+ 
+ 	rpm_run($1, $2)
  ')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/rtorrent.fc refpolicy/policy/modules/contrib/rtorrent.fc
 --- refpolicy/policy/modules/contrib/rtorrent.fc	1970-01-01 01:00:00.000000000 +0100
@@ -112611,8 +112762,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')	
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/contrib/skype.te refpolicy/policy/modules/contrib/skype.te
 --- refpolicy/policy/modules/contrib/skype.te	1970-01-01 01:00:00.000000000 +0100
-+++ refpolicy/policy/modules/contrib/skype.te	2013-04-11 17:39:11.642258279 +0200
-@@ -0,0 +1,122 @@
++++ refpolicy/policy/modules/contrib/skype.te	2013-06-10 20:30:17.275900252 +0200
+@@ -0,0 +1,125 @@
 +policy_module(skype, 0.0.2)
 +
 +############################
@@ -112655,6 +112806,8 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +allow skype_t self:unix_stream_socket create_socket_perms;
 +allow skype_t self:sem create_sem_perms;
 +allow skype_t self:tcp_socket create_stream_socket_perms;
++
++allow skype_t skype_exec_t:file execmod;
 +
 +# Allow skype to work with its ~/.skype location
 +manage_dirs_pattern(skype_t, skype_home_t, skype_home_t)
@@ -112711,6 +112864,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +auth_use_nsswitch(skype_t)
 +
 +miscfiles_dontaudit_setattr_fonts_dirs(skype_t)
++miscfiles_read_generic_certs(skype_t)
 +miscfiles_read_localization(skype_t)
 +
 +userdom_dontaudit_use_user_ttys(skype_t)
@@ -123793,7 +123947,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ## </summary>
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/kernel.if refpolicy/policy/modules/kernel/kernel.if
 --- refpolicy/policy/modules/kernel/kernel.if	2012-10-19 15:05:07.000000000 +0200
-+++ refpolicy/policy/modules/kernel/kernel.if	2012-10-19 17:03:59.881547790 +0200
++++ refpolicy/policy/modules/kernel/kernel.if	2013-05-16 11:05:18.069019888 +0200
 @@ -1862,6 +1862,24 @@
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_crypto_t)
  ')
@@ -123819,9 +123973,25 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  ########################################
  ## <summary>
  ##	Read general kernel sysctls.
+@@ -2630,9 +2648,6 @@
+ 	')
+ 
+ 	allow $1 unlabeled_t:association { sendto recvfrom };
+-
+-	# temporary hack until labeling on packets is supported
+-	allow $1 unlabeled_t:packet { send recv };
+ ')
+ 
+ ########################################
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/kernel/kernel.te refpolicy/policy/modules/kernel/kernel.te
 --- refpolicy/policy/modules/kernel/kernel.te	2013-04-24 22:14:48.000000000 +0200
-+++ refpolicy/policy/modules/kernel/kernel.te	2013-05-01 20:19:18.582374376 +0200
++++ refpolicy/policy/modules/kernel/kernel.te	2013-05-16 11:05:18.069019888 +0200
+@@ -1,4 +1,4 @@
+-policy_module(kernel, 1.17.0)
++policy_module(kernel, 1.17.1)
+ 
+ ########################################
+ #
 @@ -410,3 +410,13 @@
  allow kern_unconfined unlabeled_t:association *;
  allow kern_unconfined unlabeled_t:packet *;
@@ -124372,27 +124542,6 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  
  	typeattribute $1 nsswitch_domain;
  ')
-diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/authlogin.te refpolicy/policy/modules/system/authlogin.te
---- refpolicy/policy/modules/system/authlogin.te	2013-04-24 22:14:49.000000000 +0200
-+++ refpolicy/policy/modules/system/authlogin.te	2013-05-01 20:19:18.599374376 +0200
-@@ -405,7 +405,7 @@
- 	xserver_rw_xdm_pipes(utempter_t)
- ')
- 
--#######################################
-+#########################################
- #
- # nsswitch_domain local policy
- #
-@@ -426,7 +426,7 @@
- 
- optional_policy(`
- 	tunable_policy(`authlogin_nsswitch_use_ldap',`
--		ldap_stream_connect(nsswitch_domain)
-+		 ldap_stream_connect(nsswitch_domain)
- 	')
- ')
- 
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/getty.if refpolicy/policy/modules/system/getty.if
 --- refpolicy/policy/modules/system/getty.if	2012-05-04 15:14:47.000000000 +0200
 +++ refpolicy/policy/modules/system/getty.if	2012-07-23 12:47:19.537346153 +0200
@@ -124575,7 +124724,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/ipsec.fc refpolicy/policy/modules/system/ipsec.fc
 --- refpolicy/policy/modules/system/ipsec.fc	2012-08-15 16:30:25.000000000 +0200
-+++ refpolicy/policy/modules/system/ipsec.fc	2012-07-28 18:53:56.059315169 +0200
++++ refpolicy/policy/modules/system/ipsec.fc	2013-07-04 19:25:30.553575581 +0200
 @@ -14,9 +14,9 @@
  
  /usr/lib/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
@@ -124588,6 +124737,38 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  /usr/lib/ipsec/spi		--	gen_context(system_u:object_r:ipsec_exec_t,s0)
  
  /usr/libexec/ipsec/_plutoload	-- 	gen_context(system_u:object_r:ipsec_mgmt_exec_t,s0)
+@@ -39,3 +39,7 @@
+ 
+ /var/run/pluto(/.*)?			gen_context(system_u:object_r:ipsec_var_run_t,s0)
+ /var/run/racoon\.pid		--	gen_context(system_u:object_r:ipsec_var_run_t,s0)
++
++ifdef(`distro_gentoo',`
++/var/lib/racoon(/.*)?			gen_context(system_u:object_r:ipsec_var_run_t,s0)
++')
+diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/ipsec.te refpolicy/policy/modules/system/ipsec.te
+--- refpolicy/policy/modules/system/ipsec.te	2013-04-24 22:14:48.000000000 +0200
++++ refpolicy/policy/modules/system/ipsec.te	2013-07-07 10:34:32.580744642 +0200
+@@ -444,3 +444,20 @@
+ 
+ userdom_use_user_terminals(setkey_t)
+ 
++ifdef(`distro_gentoo',`
++	################################################
++	#
++	# racoon policy
++	#
++
++	allow racoon_t self:unix_stream_socket create_stream_socket_perms;
++
++	selinux_getattr_fs(racoon_t)
++
++	###############################################
++	#
++	# setkey policy
++	#
++
++	domain_use_interactive_fds(setkey_t)
++')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/libraries.fc refpolicy/policy/modules/system/libraries.fc
 --- refpolicy/policy/modules/system/libraries.fc	2012-10-30 18:42:04.000000000 +0100
 +++ refpolicy/policy/modules/system/libraries.fc	2012-10-30 19:21:03.653398100 +0100
@@ -125334,7 +125515,7 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
 +')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/sysnetwork.te refpolicy/policy/modules/system/sysnetwork.te
 --- refpolicy/policy/modules/system/sysnetwork.te	2013-04-24 22:14:48.000000000 +0200
-+++ refpolicy/policy/modules/system/sysnetwork.te	2013-05-01 20:19:18.617374376 +0200
++++ refpolicy/policy/modules/system/sysnetwork.te	2013-06-23 12:07:51.144487278 +0200
 @@ -44,7 +44,7 @@
  # DHCP client local policy
  #
@@ -125364,6 +125545,20 @@ diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules
  	nis_use_ypbind(ifconfig_t)
  ')
  
+@@ -360,3 +366,13 @@
+ 	xen_append_log(ifconfig_t)
+ 	xen_dontaudit_rw_unix_stream_sockets(ifconfig_t)
+ ')
++
++ifdef(`distro_gentoo',`
++	###########################################
++	# 
++	# dhcp client policy
++	#
++
++	# Fixes bug 468874
++	allow dhcpc_t self:rawip_socket create_socket_perms;
++')
 diff -uNr -x '.git*' -x CVS -x '*.autogen*' -x '*.part' refpolicy/policy/modules/system/udev.fc refpolicy/policy/modules/system/udev.fc
 --- refpolicy/policy/modules/system/udev.fc	2012-08-08 15:29:53.000000000 +0200
 +++ refpolicy/policy/modules/system/udev.fc	2013-01-20 16:04:44.727435462 +0100

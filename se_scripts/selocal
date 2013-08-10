@@ -14,6 +14,8 @@ then
   echo "  -u, --update-dep	Update the dependencies for the rules";
   echo "  -b, --build		Build the SELinux module (.pp) file (requires privs)";
   echo "  -L, --load		Load the SELinux module (.pp) file (requires privs)";
+  echo "  -B, --backup		Present the type enforcement rules as they are";
+  echo "  -R, --restore		Restore the type enforcement rules from file";
   echo "";
   echo "Options can be one of:";
   echo "  -m, --module <module>		Module name to use (default: selocal)";
@@ -23,14 +25,24 @@ then
   echo "  $(basename $0) -a \"dbadm_role_change(staff_r)\"";
   echo "The option -d requires that a line number, as shown by the --list, is given, like so:";
   echo "  $(basename $0) -d 12";
+  echo "The option -R requires a file that replaces the current type";
+  echo "  $(basename $0) -R last-backup.te";
+  echo "";
+  echo "WARNING!"
+  echo "The numbers change with every modification, so please rerun --list again before every delete."
   exit 1;
 fi
 
 # Initialize configuration
-if [ ! -d ${CONFDIR} ];
+if [ ! -d "${CONFDIR}" ];
 then
   echo "Creating ${CONFDIR} configuration directory.";
-  mkdir ${CONFDIR};
+  mkdir "${CONFDIR}";
+fi
+
+if [ ! -d "${CONFDIR}/changes" ];
+then
+  mkdir "${CONFDIR}/changes";
 fi
 
 # Update dependencies
@@ -40,7 +52,7 @@ updatedep() {
   awk 'BEGIN {f=1}; f{print;} /# REQSTART/ {f=0;}' ${CONFDIR}/${MODNAME}.te > ${CONFDIR}/${MODNAME}.te.new;
 
   # Interfaces
-  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
+  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /# POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
     sed -e 's:#.*::g' | \
     grep ')' | \
     sed -e 's:[a-zA-Z0-9_]*(\([^)]*\)):\1:g' | \
@@ -60,8 +72,10 @@ updatedep() {
   done
 
   # Others, first get types
-  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
-    grep -E '(allow|audit)' | sed -e 's|:| |g' | awk '{print $2" "$3" "}' | \
+  # allow, auditallow, type_transition and type_change all have a type at second
+  # and third argument
+  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /# POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
+    grep -E '^[ ]*(allow|type_transition|auditallow|type_change) ' | sed -e 's|:| |g' | awk '{print $2" "$3" "}' | \
     tr -d '\n' | tr " " "\n" | sort | uniq);
   do
     if [[ "${TYPEDEF}" == *"_t" ]];
@@ -72,6 +86,20 @@ updatedep() {
       echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
     fi
   done
+  # type_transition and type_change also has a type at fourth
+  for TYPEDEF in $(awk 'BEGIN {f=0}; f{print;} /# POLICYSTART/ {f=1;}' ${CONFDIR}/${MODNAME}.te | \
+    grep -E '^[ ]*(type_transition|type_change) ' | sed -e 's|:| |g' | awk '{print $5}' | \
+    tr -d '\n' | tr " " "\n" | sort | uniq);
+  do
+    if [[ "${TYPEDEF}" == *"_t" ]];
+    then
+      echo "type ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    elif [[ "${TYPEDEF}" != "self" ]] && [[ ! -d "/sys/fs/selinux/class/${TYPEDEF}" ]] && [[ "x${TYPEDEF:0:1}" != "x\"" ]]
+    then
+      echo "attribute ${TYPEDEF};" >> ${CONFDIR}/${MODNAME}.te.new;
+    fi
+  done
+
 
   awk '/# REQSTOP/,0 {print;}' ${CONFDIR}/${MODNAME}.te >> ${CONFDIR}/${MODNAME}.te.new;
 
@@ -86,10 +114,13 @@ newtemplate() {
 policy_module(${MODNAME}, 0.1)
 
 gen_require(\`
+  # Add in requirements that selocal cannot manage below this but before the REQSTART line
   # REQSTART
 
   # REQSTOP
 ')
+
+# Add in policy rules that selocal cannot manage below this but before the POLICYSTART line
 
 # POLICYSTART
 EOF
@@ -127,7 +158,10 @@ addrule() {
     newtemplate ${MODNAME};
   fi
 
-  echo "${RULE} # ${COMMENT}" >> ${CONFDIR}/${MODNAME}.te;
+  cp "${CONFDIR}/${MODNAME}.te" "${CONFDIR}/${MODNAME}.te.new";
+  echo "${RULE} # ${COMMENT}" >> "${CONFDIR}/${MODNAME}.te.new";
+  diff -u "${CONFDIR}/${MODNAME}.te" "${CONFDIR}/${MODNAME}.te.new" > "${CONFDIR}/changes/$(date +%Y%m%d-%H%M%S-%N).patch"
+  cp "${CONFDIR}/${MODNAME}.te.new" "${CONFDIR}/${MODNAME}.te";
   updatedep ${MODNAME};
 }
 
@@ -136,21 +170,30 @@ delrule() {
   typeset MODNAME="${1}";
   typeset RULEID="${2}";
 
-  if [ -z ${RULEID} ] || [ ${RULEID} -lt 8 ];
+  echo "${RULEID}" | grep -q -E '^[0-9]*$';
+  if [ $? -ne 0 ];
   then
-    echo "Line number ${RULEID} is not a valid id, please use a (strictly positive) number."; 
+    echo "Line number \"${RULEID}\" is not a valid id, pelase use a (strictly positive) number.";
     return;
   fi
 
-  if [ ! -f ${CONFDIR}/${MODNAME}.te ];
+  if [ -z "${RULEID}" ] || [ "${RULEID}" -lt 8 ];
   then
-    echo "# WARNING Module ${MODNAME} is not known yet (no rules assigned)";
+    echo "Line number \"${RULEID}\" is not a valid id, please use a (strictly positive) number."; 
+    return;
+  fi
+
+  if [ ! -f "${CONFDIR}/${MODNAME}.te" ];
+  then
+    echo "# WARNING Module \"${MODNAME}\" is not known yet (no rules assigned)";
     return;
   fi
 
   echo "Removing line ${RULEID} from module ${MODNAME}";
-  awk "(NR!=${RULEID}) {print;}" ${CONFDIR}/${MODNAME}.te > ${CONFDIR}/${MODNAME}.te.new;
-  mv ${CONFDIR}/${MODNAME}.te.new ${CONFDIR}/${MODNAME}.te;
+  awk "(NR!=${RULEID}) {print;}" "${CONFDIR}/${MODNAME}.te" > "${CONFDIR}/${MODNAME}.te.new";
+
+  diff -u "${CONFDIR}/${MODNAME}.te" "${CONFDIR}/${MODNAME}.te.new" > "${CONFDIR}/changes/$(date +%Y%m%d-%H%M%S-%N).patch"
+  mv "${CONFDIR}/${MODNAME}.te.new" "${CONFDIR}/${MODNAME}.te";
 
   updatedep ${MODNAME};
 }
@@ -164,12 +207,26 @@ listrules() {
     return;
   fi
 
-  awk 'BEGIN {f=0; line=1}; /# POLICYSTART/ {f=1; getline;}; f{printf NR": "; print}' ${CONFDIR}/${MODNAME}.te | sed -e 's:# $::g';
+  awk 'BEGIN {f=0; line=1}; /# POLICYSTART/ {f=1; if(getline == 0) {f=0};}; f{printf NR": "; print}' ${CONFDIR}/${MODNAME}.te | sed -e 's:# $::g';
 }
 
 # List modules
 listmods() {
   ls ${CONFDIR} | grep .te$ | sed -e 's:\.te::g';
+}
+
+# Backup module
+backuprules() {
+  typeset MODNAME="${1}";
+  cat "${CONFDIR}/${MODNAME}.te"
+}
+
+# Restore module
+restorerules() {
+  typeset MODNAME="${1}";
+  typeset RESTOREFILE="${2}";
+
+  cat "${RESTOREFILE}" > "${CONFDIR}/${MODNAME}.te";
 }
 
 listflag=0;
@@ -181,11 +238,13 @@ buildflag=0;
 loadflag=0;
 updateflag=0;
 commentflag=0;
+backupflag=0;
+restoreflag=0;
 comment="";
 modname="";
 rule="";
 
-eval set -- "$(getopt -n $(basename $0) -s sh -o MlbLuadm:c: --long list-modules,list,build,load,update-dep,add,delete,module:,comment: -- "$@")"
+eval set -- "$(getopt -n $(basename $0) -s sh -o MlbLuadm:c:BR --long list-modules,list,build,load,update-dep,add,delete,module:,comment:,backup,restore -- "$@")"
 while [ $# -gt 0 ];
 do
   case "$1" in
@@ -207,6 +266,10 @@ do
 	(--load) loadflag=1;;
 	(-u) updateflag=1;;
 	(--update-dep) updateflag=1;;
+	(-B) backupflag=1;;
+	(--backup) backupflag=1;;
+	(-R) restoreflag=1;;
+	(--restore) restoreflag=1;;
 	(--) rule="$2"; shift; break;;
 	(-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
 	(*) break;;
@@ -223,6 +286,16 @@ fi
 if [ -z "${modname}" ];
 then
   modname="selocal";
+fi
+
+if [ ${backupflag} -eq 1 ];
+then
+  backuprules "${modname}";
+fi
+
+if [ ${restoreflag} -eq 1 ];
+then
+  restorerules "${modname}" "${rule}";
 fi
 
 if [ ${listflag} -eq 1 ];

@@ -17,6 +17,7 @@ fi
 #
 if [ "${MGL_CMD}" = "create" ];
 then
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
   cd "${IMAGE_LOCATION}";
   if [ -f "${TARGET_LOCATION}/${MGL_NAME}.img" ];
   then
@@ -59,12 +60,15 @@ then
     done
     echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.com ${MGL_NAME}" >> hosts;
     echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
+    echo ">> Refreshing dnsmasq cache";
+    sudo /usr/bin/pkill -SIGHUP dnsmasq
   fi
 #
 # Delete instances (images)
 #
 elif [ "${MGL_CMD}" = "delete" ];
 then
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
   cd "${IMAGE_LOCATION}";
   if [ -f "${TARGET_LOCATION}/${MGL_NAME}.img" ];
   then
@@ -75,6 +79,8 @@ then
       rm "${TARGET_LOCATION}/${MGL_NAME}.img";
       echo ">> Deregistering ${MGL_NAME} from hosts file";
       sed -i -e "/${MGL_NAME}.internal.genfic.com/d" -e "/${MGL_NAME}.ip4.internal.genfic.com/d" hosts
+      echo ">> Refreshing dnsmasq cache"
+      sudo /usr/bin/pkill -SIGHUP dnsmasq
     else
       echo "!! A process with PID ${APID} is still hanging on to ${MGL_NAME}.";
       exit 1;
@@ -111,6 +117,7 @@ then
 #
 elif [ "${MGL_CMD}" = "start" ];
 then
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   if [ ! -f ${MGL_NAME}.img ];
   then
@@ -143,6 +150,7 @@ then
 #
 elif [ "${MGL_CMD}" = "connect" ];
 then
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   if [ ! -f ${MGL_NAME}.img ];
   then

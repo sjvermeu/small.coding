@@ -1,0 +1,190 @@
+policy_module(firefox, 0.1)
+
+##########################################
+#
+# Declarations
+#
+
+## <desc>
+##	<p>
+##	Allow firefox to execute helper apps for downloaded or specifically
+##	associated files (such as PDF files, office files, etc.) Also allows
+##	execution of plugins that have no domains defined.
+##	</p>
+## </desc>
+gen_tunable(firefox_exec_bin, false)
+
+attribute_role firefox_roles;
+
+type firefox_t;
+type firefox_exec_t;
+userdom_user_application_domain(firefox_t, firefox_exec_t)
+role firefox_roles types firefox_t;
+
+type firefox_plugin_t;
+type firefox_plugin_exec_t;
+userdom_user_application_domain(firefox_plugin_t, firefox_plugin_exec_t)
+role firefox_roles types firefox_plugin_t;
+
+# End user firefox settings
+type firefox_home_t;
+userdom_user_home_content(firefox_home_t)
+
+# Privacy-related files (such as cookies, form history, downloads etc.)
+type firefox_home_private_t;
+userdom_user_home_content(firefox_home_private_t)
+
+# Sensitive user data (passwords, certificates)
+type firefox_home_secret_t;
+userdom_user_home_content(firefox_home_secret_t)
+
+# Used for X11
+type firefox_plugin_tmpfs_t;
+userdom_user_tmpfs_file(firefox_plugin_tmpfs_t)
+
+type firefox_tmp_t;
+userdom_user_tmp_file(firefox_tmp_t)
+
+# Used for X11
+type firefox_tmpfs_t;
+userdom_user_tmpfs_file(firefox_tmpfs_t)
+
+# XDG entries
+type firefox_xdg_cache_t;
+xdg_cache_home_content(firefox_xdg_cache_t)
+
+
+##########################################
+#
+# Local policy (firefox_t)
+#
+
+allow firefox_t self:process { getsched setsched signal };
+allow firefox_t self:process { execmem }; # yes i know, needed apparently
+allow firefox_t self:fifo_file { read write getattr };
+allow firefox_t self:netlink_route_socket r_netlink_socket_perms;
+allow firefox_t self:udp_socket create_socket_perms;
+allow firefox_t self:tcp_socket create_stream_socket_perms;
+allow firefox_t firefox_exec_t:file { execute_no_trans };
+allow firefox_t firefox_home_t:dir manage_dir_perms;
+allow firefox_t firefox_home_t:file manage_file_perms;
+allow firefox_t firefox_home_t:lnk_file manage_file_perms;
+allow firefox_t firefox_home_private_t:file manage_file_perms;
+allow firefox_t firefox_home_secret_t:file manage_file_perms;
+userdom_user_home_dir_filetrans(firefox_t, firefox_home_t, dir, ".mozilla")
+
+allow firefox_t firefox_plugin_t:process { sigkill noatsecure }; # cannot open libxul.so and no plugin runs otherwise
+allow firefox_t firefox_plugin_t:fd use;
+allow firefox_t firefox_plugin_t:unix_stream_socket rw_socket_perms;
+
+allow firefox_t firefox_tmp_t:file manage_file_perms;
+allow firefox_t firefox_tmp_t:dir manage_dir_perms;
+files_tmp_filetrans(firefox_t, firefox_tmp_t, file)
+
+allow firefox_t firefox_tmpfs_t:file manage_file_perms;
+fs_tmpfs_filetrans(firefox_t, firefox_tmpfs_t, file)
+
+allow firefox_t firefox_xdg_cache_t:dir manage_dir_perms;
+allow firefox_t firefox_xdg_cache_t:file manage_file_perms;
+xdg_cache_home_filetrans(firefox_t, firefox_xdg_cache_t, dir, "mozilla")
+
+kernel_read_system_state(firefox_t)
+
+corecmd_read_bin_symlinks(firefox_t)
+corecmd_search_bin(firefox_t)
+
+corenet_sendrecv_http_client_packets(firefox_t)
+corenet_tcp_connect_http_port(firefox_t)
+corenet_tcp_sendrecv_http_port(firefox_t)
+
+dev_read_sound(firefox_t)
+dev_write_sound(firefox_t)
+
+files_read_etc_files(firefox_t) # auth_use_nsswitch(firefox_t) it reads nsswitch.conf
+files_read_usr_files(firefox_t)
+
+fs_getattr_all_fs(firefox_t)
+
+firefox_domtrans_plugin(firefox_t)
+
+miscfiles_read_localization(firefox_t)
+
+sysnet_read_config(firefox_t) # resolv.conf
+
+userdom_use_user_ptys(firefox_t) # Print output to user screen (terminal)
+# firefox_manage_all_user_content
+# firefox_manage_generic_user_content
+# firefox_read_all_user_content
+# firefox_read_generic_user_content
+userdom_user_content_access_template(firefox, firefox_t)
+
+xdg_read_data_home_files(firefox_t)
+xdg_search_config_home_dirs(firefox_t)
+
+xserver_user_x_domain_template(firefox, firefox_t, firefox_tmpfs_t)
+
+tunable_policy(`firefox_exec_bin',`
+	corecmd_exec_bin(firefox_t)	
+',`
+	corecmd_dontaudit_exec_all_executables(firefox_t)
+')
+
+ifdef(`use_alsa',`
+	optional_policy(`
+		alsa_domain(firefox_t, firefox_tmpfs_t)
+	')
+')
+
+ifdef(`use_dbus',`
+	optional_policy(`
+		dbus_all_session_bus_client(firefox_t)
+		dbus_system_bus_client(firefox_t)
+	')
+')
+
+##########################################
+#
+# Local policy (firefox_plugin_t)
+#
+
+allow firefox_plugin_t self:fifo_file { read write getattr };
+allow firefox_plugin_t self:tcp_socket create_stream_socket_perms;
+
+allow firefox_plugin_t firefox_t:unix_stream_socket rw_socket_perms;
+allow firefox_plugin_t firefox_plugin_tmpfs_t:file manage_file_perms;
+fs_tmpfs_filetrans(firefox_plugin_t, firefox_plugin_tmpfs_t, file)
+
+
+kernel_read_system_state(firefox_plugin_t)
+
+corecmd_read_bin_files(firefox_plugin_t)
+corecmd_read_bin_symlinks(firefox_plugin_t)
+corecmd_search_bin(firefox_plugin_t)
+
+domain_use_interactive_fds(firefox_plugin_t)
+
+files_read_etc_files(firefox_plugin_t) # auth_use_nsswitch(firefox_plugin_t) it reads nsswitch.conf
+
+miscfiles_read_localization(firefox_plugin_t)
+
+userdom_use_user_ptys(firefox_plugin_t) # Print output to user screen (terminal)
+
+xserver_user_x_domain_template(firefox_plugin, firefox_plugin_t, firefox_plugin_tmpfs_t)
+
+ifdef(`use_dbus',`
+	optional_policy(`
+		dbus_all_session_bus_client(firefox_plugin_t)
+		dbus_system_bus_client(firefox_plugin_t)
+	')
+')
+
+ifdef(`use_alsa',`
+	optional_policy(`
+		alsa_domain(firefox_plugin_t, firefox_plugin_tmpfs_t)
+	')
+')
+
+optional_policy(`
+	# Also requires dbus to be enabled (will launch Googletalk)
+	googletalk_plugin_domain(firefox_plugin_t)
+')

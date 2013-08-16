@@ -1,0 +1,81 @@
+## <summary>Firefox web browser</summary>
+
+##########################################
+## <summary>
+##	Role access for firefox
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	User domain for the role.
+## </param>
+#
+interface(`firefox_role',`
+	gen_require(`
+		type firefox_t, firefox_exec_t;
+		type firefox_home_t, firefox_home_private_t, firefox_home_secret_t;
+		attribute_role firefox_roles;
+	')
+
+	#############################################
+	#
+	# Declarations
+	#
+
+	roleattribute $1 firefox_roles;
+
+	#############################################
+	#
+	# Policy
+	#
+
+	domtrans_pattern($2, firefox_exec_t, firefox_t)
+
+	allow $2 firefox_t:process { ptrace signal_perms };
+	ps_process_pattern($2, firefox_t)
+
+	allow firefox_t $2:process signull;
+
+	allow $2 { firefox_home_t }:dir { manage_dir_perms relabel_dir_perms };
+	allow $2 { firefox_home_t firefox_home_private_t firefox_home_secret_t }:file { manage_file_perms relabel_file_perms };
+	allow $2 { firefox_home_t }:lnk_file { manage_lnk_file_perms relabel_lnk_file_perms };
+
+	userdom_user_home_dir_filetrans($2, firefox_home_t, dir, ".mozilla")
+
+	filetrans_pattern($2, firefox_home_t, firefox_home_secret_t, file, "key3.db")
+	filetrans_pattern($2, firefox_home_t, firefox_home_secret_t, file, "signons.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_secret_t, file, "cert8.db")
+	filetrans_pattern($2, firefox_home_t, firefox_home_secret_t, file, "secmod.db")
+
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "places.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "permissions.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "content-prefs.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "formhistory.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "downloads.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "cookies.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "webappstore.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "chromeappstore.sqlite")
+	filetrans_pattern($2, firefox_home_t, firefox_home_private_t, file, "sessionstore.js")
+')
+
+##########################################
+## <summary>
+##	Execute plugin container and transition to firefox_plugin_t domain
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+#
+interface(`firefox_domtrans_plugin',`
+	gen_require(`
+		type firefox_plugin_t, firefox_plugin_exec_t;
+	')
+
+	domtrans_pattern($1, firefox_plugin_exec_t, firefox_plugin_t)
+')

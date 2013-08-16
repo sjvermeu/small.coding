@@ -1,0 +1,24 @@
+HOME_DIR/\.mozilla(/.*)?	gen_context(system_u:object_r:firefox_home_t,s0)
+
+# Sensitive files
+HOME_DIR/\.mozilla/firefox/.*/key3\.db	--	gen_context(system_u:object_r:firefox_home_secret_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/secmod\.db	--	gen_context(system_u:object_r:firefox_home_secret_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/cert8\.db	--	gen_context(system_u:object_r:firefox_home_secret_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/signons\.sqlite	--	gen_context(system_u:object_r:firefox_home_secret_t,s0)
+
+# Privacy related
+HOME_DIR/\.mozilla/firefox/.*/places\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/permissions\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/content-prefs\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/formhistory\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/downloads\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/cookies\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/webappstore\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/chromeappstore\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+HOME_DIR/\.mozilla/firefox/.*/sessionstore\.sqlite	--	gen_context(system_u:object_r:firefox_home_private_t,s0)
+
+# XDG
+HOME_DIR/\.cache/mozilla(/.*)?	gen_context(system_u:object_r:firefox_xdg_cache_t,s0)
+
+/usr/lib/firefox/firefox	--	gen_context(system_u:object_r:firefox_exec_t,s0)
+/usr/lib/firefox/plugin-container	--	gen_context(system_u:object_r:firefox_plugin_exec_t,s0)

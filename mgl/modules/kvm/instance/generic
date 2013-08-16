@@ -13,6 +13,22 @@ then
 fi
 
 #
+# Parse MGL_OPTS (if applicable)
+#
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=');
+    VAL=$(echo ${OPT} | cut -f 2 -d '=');
+    if [ "${KEY}" = "mem" ] || [ "${KEY}" = "memory" ];
+    then
+      MEM=${VAL}; # override MEM from settings.conf
+    fi
+  done
+fi
+
+#
 # Create instances (images)
 #
 if [ "${MGL_CMD}" = "create" ];

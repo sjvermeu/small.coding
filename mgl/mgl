@@ -1,0 +1,81 @@
+#!/bin/sh
+
+# Command matching
+
+MGL_CMD=$2;
+CTE=$1;
+MGL_NAME=$3;
+shift; shift; shift;
+MGL_OPTS="$*";
+
+MGL_CLASS=$(echo ${CTE} | cut -f 1 -d ':');
+MGL_TYPE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 1 -d '~');
+MGL_TEMPLATE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 2 -d '~' -s);
+MGL_TEMPLATE=${MGL_TEMPLATE:-generic};
+
+if [ -n "${MGL_DEBUG}" ];
+then
+  echo "---------------------------------";
+  echo "MGL_CMD=${MGL_CMD}";
+  echo "MGL_CLASS=${MGL_CLASS}";
+  echo "MGL_TYPE=${MGL_TYPE}";
+  echo "MGL_TEMPLATE=${MGL_TEMPLATE}";
+  echo "MGL_NAME=${MGL_NAME}";
+  echo "MGL_OPTS=\"${MGL_OPTS}\"";
+  echo "---------------------------------";
+fi
+
+export MGL_CMD;
+export MGL_CLASS;
+export MGL_TYPE;
+export MGL_TEMPLATE;
+export MGL_NAME;
+export MGL_OPTS;
+
+MGL_BASEDIR=${MGL_BASEDIR:-/var/lib/mgl/modules};
+
+if [ -x "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic" ];
+then
+  if [ -x "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}" ];
+  then
+    "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}";
+  else
+    "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic";
+  fi
+else
+  # Check if we have special commands
+  if [ "${MGL_CLASS}" = "help" ] && [ -z "${MGL_CMD}" ];
+  then
+    echo "Supported classes";
+    echo "-----------------";
+    for DIR in "${MGL_BASEDIR}"/*;
+    do
+      [ -d "${DIR}" ] || continue;
+      CDIR=$(basename ${DIR});
+      CEXP=$(head -1 ${DIR}/README 2>/dev/null);
+      echo "  ${CDIR}	(${CEXP})"; 
+    done
+    exit 0;
+  elif [ "${MGL_CMD}" = "help" ] && [ -z "${MGL_INSTANCE}" ] && [ -d "${MGL_BASEDIR}/${MGL_CLASS}" ];
+  then
+    echo "Supported types";
+    echo "---------------";
+    for DIR in "${MGL_BASEDIR}/${MGL_CLASS}"/*;
+    do
+      [ -d "${DIR}" ] || continue;
+      CDIR=$(basename ${DIR});
+      CEXP=$(head -1 ${DIR}/README 2>/dev/null);
+      echo "  ${CDIR}	(${CEXP})";
+    done
+  elif [ "${MGL_CMD}" = "" ];
+  then
+    echo "Manage Generic Linux v0.1";
+    echo "";
+    echo "Simplify high level commands easily.";
+    echo "Run with \"help\" to get information about supported classes.";
+    exit 0;
+  else
+    echo "!! File ${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic does not exist or is not executable.";
+    exit 1;
+  fi
+fi

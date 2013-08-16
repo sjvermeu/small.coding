@@ -21,3 +21,4 @@ mglverify - Test script allowing to validate settings and such
 mglshow - Script that easily displays (using scriptreplay) how to do stuff in the commandline
 fileproc - Set of scripts to process files in a controlled manner
 infratest - Testing scripts for validating if my test VMs are still working properly
+mgl - Simple interface I use to manage multiple technologies

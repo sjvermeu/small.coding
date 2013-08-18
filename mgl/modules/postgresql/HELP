@@ -1,0 +1,4 @@
+Database connections are handled by psql, so we support the same
+environment variables, including PGUSER, PGPASSWORD, PGHOST, etc.
+
+If PGUSER is not set, we default to "postgres".

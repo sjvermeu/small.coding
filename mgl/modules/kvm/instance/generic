@@ -7,6 +7,7 @@ then
   echo "  create <name>               - Create a KVM instance";
   echo "  list                        - List defined instances";
   echo "  start <name>                - Start the KVM instance";
+  echo "        mem=###	                boot with ### megabyte of memory";
   echo "  connect <name>              - Connect to the KVM instance";
   echo "  delete <name>               - Delete the KVM instance";
   exit 0;

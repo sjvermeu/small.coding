@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# modules
+#  class
+#    README - first line short info
+#    HELP - optional, additional displayed info
+#
+
 # Command matching
 
 MGL_CMD=$2;
@@ -67,6 +73,13 @@ else
       CEXP=$(head -1 ${DIR}/README 2>/dev/null);
       echo "  ${CDIR}	(${CEXP})";
     done
+    if [ -f "${MGL_BASEDIR}/${MGL_CLASS}/HELP" ];
+    then
+      echo "";
+      echo "Additional help"
+      echo "---------------"
+      strings "${MGL_BASEDIR}/${MGL_CLASS}/HELP";
+    fi
   elif [ "${MGL_CMD}" = "" ];
   then
     echo "Manage Generic Linux v0.1";

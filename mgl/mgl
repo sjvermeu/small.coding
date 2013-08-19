@@ -18,6 +18,11 @@ MGL_CLASS=$(echo ${CTE} | cut -f 1 -d ':');
 MGL_TYPE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 1 -d '~');
 MGL_TEMPLATE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 2 -d '~' -s);
 MGL_TEMPLATE=${MGL_TEMPLATE:-generic};
+MGL_TARGET=$(echo ${MGL_NAME} | cut -f 2 -d '@' -s);
+MGL_NAME=$(echo ${MGL_NAME} | cut -f 1 -d '@');
+
+# Open fd3 for output
+exec 3<&1
 
 if [ -n "${MGL_DEBUG}" ];
 then
@@ -27,6 +32,7 @@ then
   echo "MGL_TYPE=${MGL_TYPE}";
   echo "MGL_TEMPLATE=${MGL_TEMPLATE}";
   echo "MGL_NAME=${MGL_NAME}";
+  echo "MGL_TARGET=${MGL_TARGET}";
   echo "MGL_OPTS=\"${MGL_OPTS}\"";
   echo "---------------------------------";
 fi

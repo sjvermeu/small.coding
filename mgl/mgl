@@ -18,7 +18,7 @@ MGL_CLASS=$(echo ${CTE} | cut -f 1 -d ':');
 MGL_TYPE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 1 -d '~');
 MGL_TEMPLATE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 2 -d '~' -s);
 MGL_TEMPLATE=${MGL_TEMPLATE:-generic};
-MGL_TARGET=$(echo ${MGL_NAME} | cut -f 2 -d '@' -s);
+MGL_TARGET=$(echo ${MGL_NAME} | sed -e 's:[^@]*@\(.*\):\1:g');
 MGL_NAME=$(echo ${MGL_NAME} | cut -f 1 -d '@');
 
 # Open fd3 for output

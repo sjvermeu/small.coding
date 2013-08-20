@@ -1,0 +1,133 @@
+#!/bin/dash
+
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
+    case "${KEY}" in
+      "path") DBPATH=${VAL} ;;
+    esac;
+  done
+fi
+
+##
+# Show help
+#
+show_help() {
+  RC=${1:-0};
+  echo "Available methods";
+  echo "-----------------";
+  echo "  list			- List defined tablespaces";
+  echo "  create <name>		- Create tablespace <name>";
+  echo "    path=<path>		  Path of the tablespace";
+  echo "  delete <name>		- Delete tablespace <name>";
+  echo "  uses <name>		- List users of tablespace";
+  exit $RC;
+}
+
+##
+# List tablespaces
+#
+list_tablespaces() {
+  #STMT="SELECT ts.oid, spcname, pg_tablespace_location(ts.oid) as spclocation, "
+  #STMT="${STMT} spcoptions, pg_get_userbyid(spcowner) as spcuser, spcacl, "
+  #STMT="${STMT} pg_catalog.shobj_description(oid, 'pg_tablespace') as description, "
+  #STMT="${STMT} (SELECT array_agg(label) from pg_shseclabel sl1 where sl1.objoid=ts.oid) as labels, "
+  #STMT="${STMT} (SELECT array_agg(provider) from pg_shseclabel sl2 where sl2.objoid=ts.oid) as provider "
+  #STMT="${STMT} from pg_tablespace ts order by spcname;"
+  DDIR=$(psql_statement "show data_directory;");
+  echo ">>> pg_default is at ${DDIR}/base";
+  echo ">>> pg_global is at ${DDIR}/global";
+  echo ">>> Listing tablespaces:";
+  psql_full "\db+"
+  #psql_full "${STMT}";
+}
+
+##
+# Create tablespace
+#
+create_tablespace() {
+  if [ -z "${MGL_NAME}" ];
+  then
+    echo "!!! No tablespace name set, please add the name!";
+    exit 1;
+  fi
+  if [ -z "${DBPATH}" ];
+  then
+    echo "!!! No path set, please add path=\"...\" parameter.";
+    exit 1;
+  fi
+
+  # Check if tablespace already exists
+  TS=$(psql_statement "select count(spcname) from pg_tablespace where spcname = '${MGL_NAME}';")
+  if [ "${TS}" != "0" ];
+  then
+    echo "!!! Tablespace ${MGL_NAME} already exists.";
+    exit 1;
+  fi
+
+  echo ">>> Creating tablespace ${MGL_NAME} with location \"${DBPATH}\".";
+  psql_statement "CREATE TABLESPACE ${MGL_NAME} LOCATION '${DBPATH}';";
+};
+
+##
+# Delete tablespace
+#
+delete_tablespace() {
+  if [ -z "${MGL_NAME}" ];
+  then
+    echo "!!! No tablespace name set, please add the name!";
+    exit 1;
+  fi
+  TS=$(psql_statement "select count(spcname) from pg_tablespace where spcname = '${MGL_NAME}';");
+  if [ "${TS}" = "0" ];
+  then
+    echo "!!! There is no tablespace named ${MGL_NAME}";
+    exit 1;
+  fi
+
+  echo ">>> Deleting tablespace ${MGL_NAME}.";
+  psql_statement "DROP TABLESPACE IF EXISTS ${MGL_NAME}";
+};
+
+##
+# Uses tablespace
+#
+uses_tablespace() {
+  if [ -z "${MGL_NAME}" ];
+  then
+    echo "!!! No tablespace name set, please add the name!";
+    exit 1;
+  fi
+  TS=$(psql_statement "SELECT COUNT(spcname) FROM pg_tablespace WHERE spcname = '${MGL_NAME}';");
+  if [ "${TS}" = "0" ];
+  then
+    echo "!!! There is no tablespace named ${MGL_NAME}";
+    exit 1;
+  fi
+
+  echo ">>> Displaying databases with '${MGL_NAME}' as default tablespace:";
+  psql_full "SELECT datname, pg_get_userbyid(datdba) as datdba, pg_encoding_to_char(encoding), datcollate, datctype, (SELECT spcname from pg_tablespace where pg_tablespace.oid = dattablespace) as dattablespace FROM pg_database WHERE NOT datistemplate AND dattablespace = (SELECT oid FROM pg_tablespace WHERE spcname = '${MGL_NAME}');";
+  echo ">>> Displaying objects in tablespace '${MGL_NAME}'.";
+  DBS=$(psql_statement "SELECT datname FROM pg_database WHERE NOT datistemplate;")
+  for DB in ${DBS};
+  do
+    echo ">>>   Objects in database '${DB}'";
+    export PGDATABASE=${DB};
+    psql_full "SELECT schemaname, tablename, tableowner, tablespace FROM pg_tables WHERE tablespace = '${MGL_NAME}'";
+  done
+};
+
+case "${MGL_CMD}" in
+  "help") show_help ;;
+  "list") list_tablespaces ;;
+  "create") create_tablespace ;;
+  "delete") delete_tablespace ;;
+  "uses") uses_tablespace ;;
+  *) show_help 1 ;;
+esac;

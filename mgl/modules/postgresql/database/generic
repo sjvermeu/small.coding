@@ -1,0 +1,80 @@
+#!/bin/dash
+
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
+    case "${KEY}" in
+      "default_tablespace") DBTABLESPACE=${VAL} ;;
+    esac;
+  done
+fi
+
+postgresql_database_help_execute() {
+  echo "Available methods";
+  echo "-----------------";
+  echo "  list				- List defined databases";
+  echo "  create <name>			- Create database <name>";
+  echo "    default_tablespace=<ts>	  Set default tablespace";
+  echo "  delete <name>			- Delete database <name>";
+}
+
+##
+# List databases
+#
+postgresql_database_list_execute() {
+  echo ">>> Displaying overview of (non-template) databases:";
+  psql_full "SELECT datname, pg_get_userbyid(datdba) as datdba, pg_encoding_to_char(encoding), datcollate, datctype, (SELECT spcname from pg_tablespace where pg_tablespace.oid = dattablespace) as dattablespace FROM pg_database WHERE NOT datistemplate;"
+}
+
+##
+# Delete database
+#
+postgresql_database_delete_check() {
+  if [ -z "${MGL_NAME}" ];
+  then
+    echo "!!! No database name provided.";
+    exit 1;
+  fi
+  DB=$(psql_statement "SELECT count(datname) FROM pg_database WHERE datname = '${MGL_NAME}';");
+  if [ "${DB}" = "0" ];
+  then
+    echo "!!! No database exists with name '${MGL_NAME}'.";
+    exit 1;
+  fi
+}
+
+postgresql_database_delete_execute() {
+  postgresql_database_delete_check || return 1;
+  echo ">>> Deleting database '${MGL_NAME}'.";
+  psql_statement "DROP DATABASE IF EXISTS ${MGL_NAME}";
+};
+
+
+##
+# Create database
+#
+postgresql_database_create_check() {
+  if [ -z "${MGL_NAME}" ];
+  then
+    echo "!!! No database name provided.";
+    exit 1;
+  fi
+  DB=$(psql_statement "SELECT count(datname) FROM pg_database WHERE datname = '${MGL_NAME}';");
+  if [ "${DB}" != "0" ];
+  then
+    echo "!!! Database '${MGL_NAME}' already exists.";
+    exit 1;
+  fi
+}
+
+postgresql_database_create_execute() {
+  postgresql_database_create_check || return 1;
+  echo ">>> Creating database '${MGL_NAME}'.";
+  psql_statement "CREATE DATABASE ${MGL_NAME} WITH TABLESPACE = ${DBTABLESPACE}";
+}

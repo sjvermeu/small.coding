@@ -8,6 +8,7 @@ kvm_instance_help_execute() {
   echo "  list                        - List defined instances";
   echo "  start <name>                - Start the KVM instance";
   echo "        mem=###	                boot with ### megabyte of memory";
+  echo "        novnc                   disable vnc output, use stdin/out instead"
   echo "  connect <name>              - Connect to the KVM instance";
   echo "  delete <name>               - Delete the KVM instance";
   return 0;
@@ -25,6 +26,10 @@ then
     if [ "${KEY}" = "mem" ] || [ "${KEY}" = "memory" ];
     then
       MEM=${VAL}; # override MEM from settings.conf
+    fi
+    if [ "${KEY}" = "novnc" ];
+    then
+      USE_VNC=0;
     fi
   done
 fi
@@ -195,7 +200,15 @@ kvm_instance_start_execute() {
     fi
     MAC="00:11:22:33:40:${BASEHEX}";
     echo ">> Launching ${MGL_NAME} instance as kvm-${MGL_NAME}"
-    screen -S kvm-${MGL_NAME} -dm sh -c "${KVM} -monitor stdio -gdb tcp::${GDB} -vnc 127.0.0.1:${VNC} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
+    CMDLINE="${KVM} -gdb tcp::${GDB} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
+    if [ "${USE_VNC}" = "1" ];
+    then
+      CMDLINE="${CMDLINE} -monitor stdio -vnc 127.0.0.1:${VNC}";
+    else
+      CMDLINE="${CMDLINE} -nographic";
+    fi
+    [ -n "${MGL_DEBUG}" ] && echo "### DEBUG: Executing ${CMDLINE}";
+    screen -S kvm-${MGL_NAME} -dm sh -c "${CMDLINE}";
   else
     echo "!! Instance ${MGL_NAME} is already running (PID ${APID})";
     return 1;

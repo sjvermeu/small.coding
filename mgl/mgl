@@ -106,6 +106,7 @@ then
   # if prehooks exist, they are executed before the call itself.
   # if posthooks exist, they are executed after the call.
   RC=0;
+  MAINEXECUTED=0;
   for METHOD in check execute final;
   do
     for PREHOOK in $(eval "echo \$${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD}_prehooks");
@@ -114,8 +115,8 @@ then
       if [ $? -eq 0 ];
       then
         eval ${PREHOOK};
-	RC=$?;
-	[ ${RC} -ne 0 ] && exit ${RC};
+        RC=$?;
+        [ ${RC} -ne 0 ] && exit ${RC};
       fi
     done
     type ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD} > /dev/null 2>&1;
@@ -124,6 +125,10 @@ then
       eval ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD};
       RC=$?;
       [ ${RC} -ne 0 ] && exit ${RC};
+      if [ "${METHOD}" = "execute" ];
+      then
+        MAINEXECUTED=1;
+      fi
     fi
     for POSTHOOK in $(eval "echo \$${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD}_posthooks");
     do
@@ -131,11 +136,16 @@ then
       if [ $? -eq 0 ];
       then
         eval ${POSTHOOK};
-	RC=$?;
-	[ ${RC} -ne 0 ] && exit ${RC};
+        RC=$?;
+        [ ${RC} -ne 0 ] && exit ${RC};
       fi
     done
   done
+  if [ "${MAINEXECUTED}" = "0" ];
+  then
+    eval ${MGL_CLASS}_${MGL_TYPE}_help_execute;
+    exit 1;
+  fi
 else
   # Check if we have special commands
   if [ "${MGL_CLASS}" = "help" ] && [ -z "${MGL_CMD}" ];

@@ -1,17 +1,17 @@
-#!/bin/dash
+#!/bin/sh
 
 [ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ] && . "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
 
-if [ "${MGL_CMD}" = "help" ];
-then
+
+kvm_instance_help_execute() {
   echo "  create <name>               - Create a KVM instance";
   echo "  list                        - List defined instances";
   echo "  start <name>                - Start the KVM instance";
   echo "        mem=###	                boot with ### megabyte of memory";
   echo "  connect <name>              - Connect to the KVM instance";
   echo "  delete <name>               - Delete the KVM instance";
-  exit 0;
-fi
+  return 0;
+}
 
 #
 # Parse MGL_OPTS (if applicable)
@@ -32,14 +32,13 @@ fi
 #
 # Create instances (images)
 #
-if [ "${MGL_CMD}" = "create" ];
-then
-  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
+kvm_instance_create_check() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}";
   if [ -f "${TARGET_LOCATION}/${MGL_NAME}.img" ];
   then
     echo "Instance ${MGL_NAME} already exists.";
-    exit 1;
+    return 1;
   fi
   cd "${TARGET_LOCATION}";
   BFILE="../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img";
@@ -52,40 +51,60 @@ then
       TEMPLATENAME=$(basename ${TEMPLATE} | sed -e 's:-base.img::g');
       echo "!!   - $(basename ${TEMPLATENAME})";
     done
-  else
-    echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
-    OUTPUT=$(qemu-img create -f qcow2 -o backing_file=../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.img 2>&1);
-    [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
-    echo ">> Registering ${MGL_NAME} in hosts file";
-    cd "${IMAGE_LOCATION}";
-    VARLIST=$(grep -v ip4.internal hosts | cut -f 1 | awk -F':' '{print $NF}' | sed -e 's:40::g');
-    VALUE=1;
-    VALNUM=1;
-    for NUM in `seq 1 100`;
-    do
-      VALUE=$(echo "obase=16; ${NUM}" | bc);
-      VALNUM=${NUM};
-      echo ${VARLIST} | grep -q ${VALUE};
-      if [ $? -ne 0 ];
-      then
-        if [ ${VALUE} -lt 10 ];
-	then
-          VALUE="0${VALUE}";
-	fi
-        break; 
-      fi
-    done
-    echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.com ${MGL_NAME}" >> hosts;
-    echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
-    echo ">> Refreshing dnsmasq cache";
-    sudo /usr/bin/pkill -SIGHUP dnsmasq
+    return 2;
   fi
+}
+
+kvm_instance_create_execute() {
+  echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
+  OUTPUT=$(qemu-img create -f qcow2 -o backing_file=../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.img 2>&1);
+  [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
+  echo ">> Registering ${MGL_NAME} in hosts file";
+  cd "${IMAGE_LOCATION}";
+  VARLIST=$(grep -v ip4.internal hosts | cut -f 1 | awk -F':' '{print $NF}' | sed -e 's:40::g');
+  VALUE=1;
+  VALNUM=1;
+  for NUM in `seq 1 100`;
+  do
+    VALUE=$(echo "obase=16; ${NUM}" | bc);
+    VALNUM=${NUM};
+    echo ${VARLIST} | grep -q ${VALUE};
+    if [ $? -ne 0 ];
+    then
+      if [ ${VALUE} -lt 10 ];
+      then
+        VALUE="0${VALUE}";
+      fi
+      break; 
+    fi
+  done
+  echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.com ${MGL_NAME}" >> hosts;
+  echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
+  echo ">> Refreshing dnsmasq cache";
+  sudo /usr/bin/pkill -SIGHUP dnsmasq
+}
+
 #
 # Delete instances (images)
 #
-elif [ "${MGL_CMD}" = "delete" ];
-then
-  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
+kvm_instance_delete_check() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
+  cd "${IMAGE_LOCATION}";
+  if [ -f "${TARGET_LOCATION}/${MGL_NAME}.img" ];
+  then
+    APID=$(fuser "${TARGET_LOCATION}/${MGL_NAME}.img" 2> /dev/null);
+    if [ $? -eq 0 ];
+    then
+      echo "!! A process with PID ${APID} is still hanging on to ${MGL_NAME}.";
+      return 1;
+    fi
+  else
+    echo "!! Image ${MGL_NAME}.img does not exist.";
+    return 1;
+  fi
+}
+
+kvm_instance_delete_execute() {
   cd "${IMAGE_LOCATION}";
   if [ -f "${TARGET_LOCATION}/${MGL_NAME}.img" ];
   then
@@ -100,17 +119,19 @@ then
       sudo /usr/bin/pkill -SIGHUP dnsmasq
     else
       echo "!! A process with PID ${APID} is still hanging on to ${MGL_NAME}.";
-      exit 1;
+      return 1;
     fi
   else
     echo "!! Image ${MGL_NAME}.img does not exist.";
-    exit 1;
+    return 1;
   fi
+}
+
+
 #
 # List currently defined instances
 #
-elif [ "${MGL_CMD}" = "list" ];
-then
+kvm_instance_list_execute() {
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   for IMG in *.img;
   do
@@ -129,17 +150,34 @@ then
     fi
     echo "  ${INAME}	- ${IPV4}	- ${IPV6}	(VNC: ${VNC}, GDB: ${GDB}) ${RUNNING}";
   done
+}
+
 #
 # Start instance in the background (on a screen session)
 #
-elif [ "${MGL_CMD}" = "start" ];
-then
-  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
+kvm_instance_start_check() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   if [ ! -f ${MGL_NAME}.img ];
   then
     echo "!! Image ${MGL_NAME}.img does not exist.";
-    exit 1;
+    return 1;
+  fi
+  APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.img" 2>/dev/null);
+  if [ $? -ne 1 ];
+  then
+    echo "!! Instance ${MGL_NAME} is already running (PID ${APID})";
+    return 1;
+  fi
+}
+
+kvm_instance_start_execute() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
+  cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
+  if [ ! -f ${MGL_NAME}.img ];
+  then
+    echo "!! Image ${MGL_NAME}.img does not exist.";
+    return 1;
   fi
   APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.img" 2>/dev/null);
   if [ $? -eq 1 ];
@@ -160,19 +198,36 @@ then
     screen -S kvm-${MGL_NAME} -dm sh -c "${KVM} -monitor stdio -gdb tcp::${GDB} -vnc 127.0.0.1:${VNC} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
   else
     echo "!! Instance ${MGL_NAME} is already running (PID ${APID})";
-    exit 1;
+    return 1;
   fi
+}
 #
 # Connect to an instance through VNC
 #
-elif [ "${MGL_CMD}" = "connect" ];
-then
-  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && exit 1;
+kvm_instance_connect_check() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   if [ ! -f ${MGL_NAME}.img ];
   then
     echo "!! Image ${MGL_NAME}.img does not exist.";
-    exit 1;
+    return 1;
+  fi
+  fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.img" > /dev/null 2>&1;
+  if [ $? -ne 0 ];
+  then
+    # Is not running
+    echo "!! Instance ${MGL_NAME} is not running.";
+    return 1;
+  fi
+}
+
+kvm_instance_connect_execute() {
+  [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
+  cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
+  if [ ! -f ${MGL_NAME}.img ];
+  then
+    echo "!! Image ${MGL_NAME}.img does not exist.";
+    return 1;
   fi
   fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.img" > /dev/null 2>&1;
   if [ $? -eq 0 ];
@@ -186,6 +241,6 @@ then
   else
     # Is not running
     echo "!! Instance ${MGL_NAME} is not running.";
-    exit 1;
+    return 1;
   fi
-fi
+}

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 
 # modules
 #  class
@@ -11,7 +11,10 @@
 MGL_CMD=$2;
 CTE=$1;
 MGL_NAME=$3;
-shift; shift; shift;
+# Shift arguments if exist
+[ -n "${1}" ] && shift;
+[ -n "${1}" ] && shift;
+[ -n "${1}" ] && shift;
 MGL_OPTS="$*";
 
 MGL_CLASS=$(echo ${CTE} | cut -f 1 -d ':');
@@ -20,6 +23,26 @@ MGL_TEMPLATE=$(echo ${CTE} | cut -f 3 -d ':' -s | cut -f 2 -d '~' -s);
 MGL_TEMPLATE=${MGL_TEMPLATE:-generic};
 MGL_TARGET=$(echo ${MGL_NAME} | sed -e 's:[^@]*@\(.*\):\1:g');
 MGL_NAME=$(echo ${MGL_NAME} | cut -f 1 -d '@');
+
+# Verify no special characters exist in important variables
+echo "${MGL_CLASS}" | grep -E '^[a-zA-Z0-9_-]*$' > /dev/null 2>&1;
+if [ $? -ne 0 ];
+then
+  echo "Class \"${MGL_CLASS}\" does not match character set [a-zA-Z0-9_-]*.";
+  exit 1;
+fi
+echo "${MGL_TYPE}" | grep -E '^[a-zA-Z0-9_-]*$' > /dev/null 2>&1;
+if [ $? -ne 0 ];
+then
+  echo "Type \"${MGL_TYPE}\" does not match character set [a-zA-Z0-9_-]*.";
+  exit 1;
+fi
+echo "${MGL_CMD}" | grep -E '^[a-zA-A0-9_-]*$' > /dev/null 2>&1;
+if [ $? -ne 0 ];
+then
+  echo "Command \"${MGL_CMD}\" does not match character set [a-zA-Z0-9_-]*.";
+  exit 1;
+fi
 
 # Open fd3 for output
 exec 3<&1
@@ -48,12 +71,71 @@ MGL_BASEDIR=${MGL_BASEDIR:-/var/lib/mgl/modules};
 
 if [ -x "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic" ];
 then
+  # Execution is done by /sourcing/ the file and then executing the right
+  # methods
+  # First  process the template
+
+  export ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_prehooks=""
+  export ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_posthooks=""
+
+  if [ -n "${MGL_TEMPLATEDIR}" ];
+  then
+    if [ -x "${MGL_TEMPLATEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}" ];
+    then
+      . "${MGL_TEMPLATEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}";
+    elif [ -x "${MGL_TEMPLATEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic" ];
+    then
+      . "${MGL_TEMPLATEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic";
+    fi
+  fi
+  # Now source the main files
   if [ -x "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}" ];
   then
-    "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}";
+    . "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/${MGL_CMD}";
   else
-    "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic";
+    . "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic";
   fi
+  # We call the methods in three stages:
+  # <class>_<type>_<cmd>_check: 	prerequirement checks
+  # <class>_<type>_<cmd>_execute	main method
+  # <class>_<type>_<cmd>_final	finalize (validation etc.)
+  # 
+  # Each run first sees if there are hooks defined, like:
+  # <class>_<type>_<cmd>_check_prehooks=""
+  # <class>_<type>_<cmd>_check_posthooks=""
+  # if prehooks exist, they are executed before the call itself.
+  # if posthooks exist, they are executed after the call.
+  RC=0;
+  for METHOD in check execute final;
+  do
+    for PREHOOK in $(eval "echo \$${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD}_prehooks");
+    do
+      type ${PREHOOK} > /dev/null 2>&1;
+      if [ $? -eq 0 ];
+      then
+        eval ${PREHOOK};
+	RC=$?;
+	[ ${RC} -ne 0 ] && exit ${RC};
+      fi
+    done
+    type ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD} > /dev/null 2>&1;
+    if [ $? -eq 0 ];
+    then
+      eval ${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD};
+      RC=$?;
+      [ ${RC} -ne 0 ] && exit ${RC};
+    fi
+    for POSTHOOK in $(eval "echo \$${MGL_CLASS}_${MGL_TYPE}_${MGL_CMD}_${METHOD}_posthooks");
+    do
+      type ${POSTHOOK} > /dev/null 2>&1;
+      if [ $? -eq 0 ];
+      then
+        eval ${POSTHOOK};
+	RC=$?;
+	[ ${RC} -ne 0 ] && exit ${RC};
+      fi
+    done
+  done
 else
   # Check if we have special commands
   if [ "${MGL_CLASS}" = "help" ] && [ -z "${MGL_CMD}" ];

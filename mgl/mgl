@@ -68,6 +68,7 @@ export MGL_NAME;
 export MGL_OPTS;
 
 MGL_BASEDIR=${MGL_BASEDIR:-/var/lib/mgl/modules};
+MGL_PURPOSEDIR=${MGL_PURPOSEDIR:-/var/lib/mgl/purpose};
 
 if [ -x "${MGL_BASEDIR}/${MGL_CLASS}/${MGL_TYPE}/generic" ];
 then

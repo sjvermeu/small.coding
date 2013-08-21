@@ -5,6 +5,7 @@
 
 kvm_instance_help_execute() {
   echo "  create <name>               - Create a KVM instance";
+  echo "        purpose=...		enable purpose.sh scripts (separated by + signs)"
   echo "  list                        - List defined instances";
   echo "  start <name>                - Start the KVM instance";
   echo "        mem=###	                boot with ### megabyte of memory";
@@ -30,6 +31,10 @@ then
     if [ "${KEY}" = "novnc" ];
     then
       USE_VNC=0;
+    fi
+    if [ "${KEY}" = "purpose" ];
+    then
+      PURPOSE="${VAL}";
     fi
   done
 fi
@@ -87,6 +92,18 @@ kvm_instance_create_execute() {
   echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
+  if [ -n "${PURPOSE}" ] && [ -d "${MGL_PURPOSEDIR}" ];
+  then
+    echo ">> Creating links to specified purpose scripts";
+    cd ${MGL_PURPOSEDIR}/hosts/ || return 1;
+    mkdir -p ${MGL_NAME}.internal.genfic.com;
+    cd ${MGL_NAME}.internal.genfic.com;
+    for PURPOSESCRIPT in $(echo ${PURPOSE} | sed -e 's:+: :g');
+    do
+      [ -f ../../scripts/${PURPOSESCRIPT}.sh ] && ln -s ../../scripts/${PURPOSESCRIPT}.sh
+      echo ">>   Added link to ${PURPOSESCRIPT}.sh";
+    done
+  fi
 }
 
 #
@@ -129,6 +146,18 @@ kvm_instance_delete_execute() {
   else
     echo "!! Image ${MGL_NAME}.img does not exist.";
     return 1;
+  fi
+  if [ -d "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.com" ];
+  then
+    cd "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.com";
+    for FILE in *.sh;
+    do
+      [ -f ${FILE} ] || break;
+      echo ">> Removing purpose reference ${FILE}";
+      rm ${FILE};
+    done
+    cd "${MGL_PURPOSEDIR}/hosts";
+    rmdir ${MGL_NAME}.internal.genfic.com;
   fi
 }
 

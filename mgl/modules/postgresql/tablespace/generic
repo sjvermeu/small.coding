@@ -18,8 +18,7 @@ fi
 ##
 # Show help
 #
-show_help() {
-  RC=${1:-0};
+postgresql_tablespace_help_execute() {
   echo "Available methods";
   echo "-----------------";
   echo "  list			- List defined tablespaces";
@@ -27,13 +26,12 @@ show_help() {
   echo "    path=<path>		  Path of the tablespace";
   echo "  delete <name>		- Delete tablespace <name>";
   echo "  uses <name>		- List users of tablespace";
-  exit $RC;
 }
 
 ##
 # List tablespaces
 #
-list_tablespaces() {
+postgresql_tablespace_list_execute() {
   #STMT="SELECT ts.oid, spcname, pg_tablespace_location(ts.oid) as spclocation, "
   #STMT="${STMT} spcoptions, pg_get_userbyid(spcowner) as spcuser, spcacl, "
   #STMT="${STMT} pg_catalog.shobj_description(oid, 'pg_tablespace') as description, "
@@ -51,16 +49,16 @@ list_tablespaces() {
 ##
 # Create tablespace
 #
-create_tablespace() {
+postgresql_tablespace_create_check() {
   if [ -z "${MGL_NAME}" ];
   then
     echo "!!! No tablespace name set, please add the name!";
-    exit 1;
+    return 1;
   fi
   if [ -z "${DBPATH}" ];
   then
     echo "!!! No path set, please add path=\"...\" parameter.";
-    exit 1;
+    return 1;
   fi
 
   # Check if tablespace already exists
@@ -68,9 +66,12 @@ create_tablespace() {
   if [ "${TS}" != "0" ];
   then
     echo "!!! Tablespace ${MGL_NAME} already exists.";
-    exit 1;
+    return 1;
   fi
+}
 
+postgresql_tablespace_create_execute() {
+  postgresql_tablespace_create_check || return 1;
   echo ">>> Creating tablespace ${MGL_NAME} with location \"${DBPATH}\".";
   psql_statement "CREATE TABLESPACE ${MGL_NAME} LOCATION '${DBPATH}';";
 };
@@ -78,19 +79,22 @@ create_tablespace() {
 ##
 # Delete tablespace
 #
-delete_tablespace() {
+postgresql_tablespace_delete_check() {
   if [ -z "${MGL_NAME}" ];
   then
     echo "!!! No tablespace name set, please add the name!";
-    exit 1;
+    return 1;
   fi
   TS=$(psql_statement "select count(spcname) from pg_tablespace where spcname = '${MGL_NAME}';");
   if [ "${TS}" = "0" ];
   then
     echo "!!! There is no tablespace named ${MGL_NAME}";
-    exit 1;
+    return 1;
   fi
+}
 
+postgresql_tablespace_delete_execute() {
+  postgresql_tablespace_delete_check || return 1;
   echo ">>> Deleting tablespace ${MGL_NAME}.";
   psql_statement "DROP TABLESPACE IF EXISTS ${MGL_NAME}";
 };
@@ -98,36 +102,36 @@ delete_tablespace() {
 ##
 # Uses tablespace
 #
-uses_tablespace() {
+postgresql_tablespace_uses_check() {
   if [ -z "${MGL_NAME}" ];
   then
     echo "!!! No tablespace name set, please add the name!";
-    exit 1;
+    return 1;
   fi
   TS=$(psql_statement "SELECT COUNT(spcname) FROM pg_tablespace WHERE spcname = '${MGL_NAME}';");
   if [ "${TS}" = "0" ];
   then
     echo "!!! There is no tablespace named ${MGL_NAME}";
-    exit 1;
+    return 1;
   fi
+}
 
+postgresql_tablespace_uses_execute() {
+  postgresql_tablespace_uses_check || return 1;
   echo ">>> Displaying databases with '${MGL_NAME}' as default tablespace:";
   psql_full "SELECT datname, pg_get_userbyid(datdba) as datdba, pg_encoding_to_char(encoding), datcollate, datctype, (SELECT spcname from pg_tablespace where pg_tablespace.oid = dattablespace) as dattablespace FROM pg_database WHERE NOT datistemplate AND dattablespace = (SELECT oid FROM pg_tablespace WHERE spcname = '${MGL_NAME}');";
   echo ">>> Displaying objects in tablespace '${MGL_NAME}'.";
   DBS=$(psql_statement "SELECT datname FROM pg_database WHERE NOT datistemplate;")
+  CURRDB="${PGDATABASE}";
   for DB in ${DBS};
   do
-    echo ">>>   Objects in database '${DB}'";
     export PGDATABASE=${DB};
-    psql_full "SELECT schemaname, tablename, tableowner, tablespace FROM pg_tables WHERE tablespace = '${MGL_NAME}'";
+    NUMOBJECTS=$(psql_statement "SELECT count(tablename) FROM pg_tables WHERE tablespace = '${MGL_NAME}';")
+    if [ "${NUMOBJECTS}" != "0" ];
+    then
+      echo ">>>   Objects in database '${DB}'";
+      psql_full "SELECT schemaname, tablename, tableowner, tablespace FROM pg_tables WHERE tablespace = '${MGL_NAME}'";
+    fi
   done
+  PGDATABASE="${CURRDB}";
 };
-
-case "${MGL_CMD}" in
-  "help") show_help ;;
-  "list") list_tablespaces ;;
-  "create") create_tablespace ;;
-  "delete") delete_tablespace ;;
-  "uses") uses_tablespace ;;
-  *) show_help 1 ;;
-esac;

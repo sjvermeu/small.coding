@@ -1,0 +1,49 @@
+#!/bin/dash
+
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
+    case "${KEY}" in
+      "foo") BAR="${VAL}";
+    esac;
+  done
+fi
+
+if [ -n "${MGL_TARGET}" ];
+then
+  export PGDATABASE="${MGL_TARGET}";
+else
+  export PGDATABASE="postgres";
+fi
+
+postgresql_schema_help_execute() {
+  echo "Available methods";
+  echo "-----------------";
+  echo "  list				- List defined schemas";
+  echo "  create <name>			- Create schema <name>";
+  echo "  delete <name>			- Delete schema <name>";
+}
+
+##
+# List schemas
+#
+postgresql_schema_list_execute() {
+  echo ">> Overview of schemas in '${PGDATABASE}' database"
+  psql_full "\dn";
+}
+
+postgresql_schema_create_execute() {
+  echo ">> Creating schema '${MGL_NAME}' in database '${PGDATABASE}'"
+  psql_full "CREATE SCHEMA ${MGL_NAME}";
+}
+
+postgresql_schema_delete_execute() {
+  echo ">> Dropping schema '${MGL_NAME}' in database '${PGDATABASE}'"
+  psql_full "DROP SCHEMA ${MGL_NAME}";
+}

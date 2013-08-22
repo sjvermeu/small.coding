@@ -11,6 +11,7 @@ then
     VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
     case "${KEY}" in
       "default_tablespace") DBTABLESPACE=${VAL} ;;
+      "owner") DBOWNER=${VAL} ;;
     esac;
   done
 fi
@@ -21,6 +22,7 @@ postgresql_database_help_execute() {
   echo "  list				- List defined databases";
   echo "  create <name>			- Create database <name>";
   echo "    default_tablespace=<ts>	  Set default tablespace";
+  echo "    owner=<user>		  Set owner";
   echo "  delete <name>			- Delete database <name>";
 }
 
@@ -76,5 +78,5 @@ postgresql_database_create_check() {
 postgresql_database_create_execute() {
   postgresql_database_create_check || return 1;
   echo ">>> Creating database '${MGL_NAME}'.";
-  psql_statement "CREATE DATABASE ${MGL_NAME} WITH TABLESPACE = ${DBTABLESPACE}";
+  psql_statement "CREATE DATABASE ${MGL_NAME} WITH TABLESPACE = ${DBTABLESPACE} OWNER = ${DBOWNER}";
 }

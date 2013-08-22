@@ -1,0 +1,53 @@
+#!/bin/dash
+
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
+    case "${KEY}" in
+      "type") DBROLETYPE=${VAL} ;;
+      "password") DBPASSWORD=${VAL} ;;
+    esac;
+  done
+fi
+
+postgresql_role_help_execute() {
+  echo "Available methods";
+  echo "-----------------";
+  echo "  list				- List defined roles";
+  echo "  create <name>			- Create role <name>";
+  echo "    type=...                      Configure role as 'owner', 'app'(lication user)";
+  echo "            			  (end) 'user' or 'role'.";
+  echo "    password=...                  Set the role password (app/user)";
+  echo "  delete <name>			- Delete role <name>";
+}
+
+##
+# List roles
+#
+postgresql_role_list_execute() {
+  echo ">> Overview of users";
+  psql_full "\du+";
+}
+
+postgresql_role_create_execute() {
+  echo ">> Creating role '${MGL_NAME}'"
+  psql_full "CREATE ROLE ${MGL_NAME} PASSWORD NULL";
+  if ([ "${DBROLETYPE}" = "app" ] || [ "${DBROLETYPE}" = "user" ]) && [ -n "${DBPASSWORD}" ];
+  then
+    echo ">> Setting password to provided value.";
+    psql_full "ALTER ROLE ${MGL_NAME} WITH PASSWORD '${DBPASSWORD}';"
+    echo ">> Unlocking account.";
+    psql_full "ALTER ROLE ${MGL_NAME} WITH LOGIN;"
+  fi
+}
+
+postgresql_role_delete_execute() {
+  echo ">> Dropping role '${MGL_NAME}'"
+  psql_full "DROP ROLE ${MGL_NAME}";
+}

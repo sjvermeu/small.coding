@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Gentoo-Security-Benchmark-1" xsi:schemaLocation="http://checklists.nist.gov/xccdf/1.1 xccdf-1.1.4.xsd" resolved="0">
+  <status date="2013-08-23">draft</status>
+  <title>PostgreSQL Security Benchmark</title>
+  <description>
+    The PostgreSQL server is a powerful relational database server. In this document, we will
+    provide some pointers and tips for the secure configuration of PostgreSQL within Gentoo Linux.
+  </description>
+  <platform idref="cpe:/o:gentoo:linux"/>
+  <version>1</version>
+  <model system="urn:xccdf:scoring:default"/>
+  <model system="urn:xccdf:scoring:flat"/>
+  <Profile id="Default">
+    <title>Default server setup settings</title>
+    <description>
+      Default PostgreSQL configuration to check
+    </description>
+    <!-- <select idref="rule-named-nochroot" selected="true" /> -->
+  </Profile>
+  <Group id="gr-intro">
+    <title>Introduction</title>
+    <description>
+      PostgreSQL is a powerful relational database management system (RDBMS) that has
+      an enormous user base.
+    </description>
+    <Group id="gr-intro-using">
+      <title>Using this guide</title>
+      <description>
+        The guide you are currently reading is the guide generated from this SCAP
+        content (more specifically, the XCCDF document) using <h:b>openscap</h:b>,
+        a free software implementation for handling SCAP content. Within Gentoo,
+        the package <h:code>app-forensics/openscap</h:code> provides the tools, and
+        the following command is used to generate the HTML output:
+        <h:br />
+        <h:pre>### Command to generate this guide ###
+# <h:b>oscap xccdf generate guide scap-postgresql-xccdf.xml &gt; output.html</h:b>
+        </h:pre>
+        <h:br />
+        Secondly, together with this XCCDF XML, you will also find an OVAL XML file.
+        The two files combined allow you to automatically validate various settings as
+        documented in the benchmark. 
+	<h:br />
+	<h:br />
+        You can now test the benchmark against your configuration.
+        <h:pre>### Testing the rules mentioned in the XCCDF document ###
+# <h:b>oscap xccdf eval --profile Default scap-postgresql-xccdf.xml</h:b></h:pre>
+        <h:br />
+        To generate a full report in HTML as well, you can use the next command:
+        <h:pre>### Testing the rules and generating an HTML report ###
+# <h:b>oscap xccdf eval --profile Default --results xccdf-results.xml --report report.html scap-postgresql-xccdf.xml</h:b></h:pre>
+        <h:br />
+        Finally, this benchmark will suggest some settings which you do not want
+        to enable. That is perfectly fine - even more, some settings might even
+        raise eyebrows left and right. I'll try to document the reasoning behind
+        the settings but you are free to deviate from them. If that is the case,
+        you might want to disable the rules in the XCCDF document so that they are
+        not checked on your system.
+      </description>
+    </Group>
+    <Group id="gr-intro-profiles">
+      <title>Available XCCDF Profiles</title>
+      <description>
+        As mentioned earlier, the XCCDF document supports multiple profiles. For the time
+	being, one profile is defined:
+	<h:br />
+	<h:ul>
+	  <h:li>Default contains all mentioned tests</h:li>
+	</h:ul>
+	Substitute the profile information in the commands above with the profile you want to test on.
+      </description>
+    </Group>
+  </Group>
+  <Group id="gt-software">
+    <title>Software deployment settings</title>
+    <description>
+      In this section, we look at the software deployment of a PostgreSQL server. It deals with
+      software location, file ownership and permissions.
+    </description>
+    <Group id="gt-software-patched">
+      <title>Use up-to-date software</title>
+      <description>
+        Make sure that the latest PostgreSQL server software is installed. Check with 
+	<h:a href="http://www.postgresql.org">www.postgresql.org</h:a> to see what the latest
+	software version is.
+	<h:br />
+	<h:br />
+	The installed software version can be obtained from the <h:b>psql</h:b> command itself (if it is
+	provided together with the server):<h:br />
+	<h:pre>~$ <b>psql -V</b><br />
+psql (PostgreSQL) 9.2.4</h:pre><h:br />
+        The server software version can also be obtained through the <h:b>SELECT version();</h:b> query.
+      </description>
+    </Group>
+  </Group>
+</Benchmark>

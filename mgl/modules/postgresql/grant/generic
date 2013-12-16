@@ -1,0 +1,31 @@
+#!/bin/dash
+
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
+[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+
+if [ -n "${MGL_OPTS}" ];
+then
+  for OPT in ${MGL_OPTS};
+  do
+    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
+    case "${KEY}" in
+      "foo") BAR="${VAL}";
+    esac;
+  done
+fi
+
+postgresql_grant_help_execute() {
+  echo "Available methods";
+  echo "-----------------";
+  echo "  list				- List defined grants";
+}
+
+##
+# List grants
+#
+postgresql_grant_list_execute() {
+  echo ">> Overview of grants"
+  psql_full "\dp";
+}
+

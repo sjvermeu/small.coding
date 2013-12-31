@@ -1,6 +1,12 @@
 #!/bin/sh
 
-export KEYLOC=/etc/ssl;
+export KEYLOC=${KEYLOC:=/etc/ssl};
+export RANDFILE=${RANDFILE:=${KEYLOC}/.rnd};
+
+die() {
+  echo "!! $*";
+  exit 1;
+}
 
 toparg="";
 createrootflag=0;
@@ -71,10 +77,11 @@ then
   echo "# key. Make sure that you keep the passphraze on a secure location.";
   echo "#";
   pushd ${KEYLOC};
-  mkdir ${toparg};
-  cd ${toparg};
-  echo "Running: openssl genrsa -des3 -out root-${toparg}.key 2048";
-  openssl genrsa -des3 -out root-${toparg}.key 2048;
+  mkdir ${toparg} || die "Failed to make directory ${toparg}";
+  mkdir ${toparg}/private || die "Failed to make directory ${toparg}";
+  cd ${toparg} || die "Could not go to ${toparg}";
+  echo "Running: openssl genrsa -des3 -out private/root-${toparg}.key 2048";
+  openssl genrsa -des3 -out private/root-${toparg}.key 2048 || die "OpenSSL failed";
   echo "##";
   echo "## Creating root key certificate";
   echo "##";
@@ -87,20 +94,18 @@ then
   echo "# - Fill CN with a generic description, like \"GenFic Root CA\"";
   echo "# - Keep the E-mail address empty";
   echo "#";
-  echo "Running: openssl req -new -x509 -days 7205 -key root-${toparg}.key -out root-${toparg}.crt";
-  openssl req -new -x509 -days 7205 -key root-${toparg}.key -out root-${toparg}.crt;
+  echo "Running: openssl req -new -x509 -days 7205 -key private/root-${toparg}.key -out root-${toparg}.crt";
+  openssl req -new -x509 -days 7205 -key private/root-${toparg}.key -out root-${toparg}.crt || die "OpenSSL failed";
   echo "##";
   echo "## Creating CA structure";
   echo "##";
   echo "# Creates the CA structure with an openssl.cnf file specific for this CA."
   echo "#";
-  mkdir newcerts;
-  mkdir private;
-  touch index.txt;
-  echo 01 > crlnumber;
-  echo 01 > serial;
-  mv root-${toparg}.key private;
-  cat > openssl.cnf << EOF
+  mkdir newcerts || die "Could not create newcerts directory";
+  touch index.txt || die "Could not create index file";
+  echo 01 > crlnumber || die "Could not initialize crlnumber";
+  echo 01 > serial || die "Could not initialize serial";
+  cat > openssl.cnf << EOF || die "Could not create openssl.cnf"
 [ ca ]
 default_ca	= CA_default
 
@@ -143,7 +148,7 @@ EOF
   echo "#";
   echo "Running: openssl ca -config ./openssl.cnf -gencrl -crldays 365 -keyfile private/root-${toparg}.key -cert root-${toparg}.crt -out root-${toparg}.crl";
   openssl ca -config ./openssl.cnf -gencrl -crldays 365 -keyfile private/root-${toparg}.key -cert root-${toparg}.crt -out root-${toparg}.crl
-  popd;
+  popd > /dev/null 2>&1;
 fi
 
 if [ ${createchildflag} -eq 1 ];
@@ -164,11 +169,12 @@ then
   echo "# The result will be a file called ${toparg}.key which is the private"
   echo "# key. Make sure that you keep the passphraze on a secure location.";
   echo "#";
-  pushd ${KEYLOC};
-  mkdir ${toparg};
-  cd ${toparg};
-  echo "Running: openssl genrsa -des3 -out ${toparg}.key 2048";
-  openssl genrsa -des3 -out ${toparg}.key 2048;
+  pushd ${KEYLOC} || die "Could not enter ${KEYLOC}";
+  mkdir ${toparg} || die "Could not create ${toparg}";
+  cd ${toparg} || die "Could not enter ${toparg}";
+  mkdir private || die "Could not create private dir";
+  echo "Running: openssl genrsa -des3 -out private/${toparg}.key 2048";
+  openssl genrsa -des3 -out private/${toparg}.key 2048 || die "OpenSSL failed";
   echo "##";
   echo "## Creating key certificate";
   echo "##";
@@ -178,26 +184,24 @@ then
   echo "# The system will ask for a challenge too. This is optional and can be left";
   echo "# empty (it is used to \"protect\" revocation).";
   echo "#";
-  echo "Running: openssl req -new -days 1095 -key ${toparg}.key -out ${toparg}.csr";
-  openssl req -new -days 1095 -key ${toparg}.key -out ${toparg}.csr;
+  echo "Running: openssl req -new -days 1095 -key private/${toparg}.key -out ${toparg}.csr";
+  openssl req -new -days 1095 -key private/${toparg}.key -out ${toparg}.csr || die "OpenSSL failed";
   echo "##";
   echo "## Signing certificate";
   echo "##";
   echo "#";
   echo "Running: openssl ca -config ../${parent}/openssl.cnf -name CA_default -days 1095 -extensions v3_ca -out ${toparg}.crt -infiles ${toparg}.csr";
-  openssl ca -config ../${parent}/openssl.cnf -name CA_default -days 1095 -extensions v3_ca -out ${toparg}.crt -infiles ${toparg}.csr
+  openssl ca -config ../${parent}/openssl.cnf -name CA_default -days 1095 -extensions v3_ca -out ${toparg}.crt -infiles ${toparg}.csr || die "OpenSSL failed"
   echo "##";
   echo "## Creating CA structure";
   echo "##";
   echo "# Creates the CA structure with an openssl.cnf file specific for this CA."
   echo "#";
-  mkdir newcerts;
-  mkdir private;
-  touch index.txt;
-  echo 01 > crlnumber;
-  echo 01 > serial;
-  mv ${toparg}.key private;
-  cat > openssl.cnf << EOF
+  mkdir newcerts || die "Could not create newcerts directory";
+  touch index.txt || die "Could not set index.txt";
+  echo 01 > crlnumber || die "Could not initialize crlnumber";
+  echo 01 > serial || die "Could not initialize serial";
+  cat > openssl.cnf << EOF || die "Could not setup openssl.cnf"
 [ ca ]
 default_ca	= CA_default
 
@@ -239,8 +243,8 @@ EOF
   echo "##";
   echo "#";
   echo "Running: openssl ca -config ./openssl.cnf -gencrl -crldays 365 -keyfile private/${toparg}.key -cert ${toparg}.crt -out ${toparg}.crl";
-  openssl ca -config ./openssl.cnf -gencrl -crldays 365 -keyfile private/${toparg}.key -cert ${toparg}.crt -out ${toparg}.crl
-  popd;
+  openssl ca -config ./openssl.cnf -gencrl -crldays 365 -keyfile private/${toparg}.key -cert ${toparg}.crt -out ${toparg}.crl || die "OpenSSL failed"
+  popd > /dev/null 2>&1;
 fi
 
 if [ ${signflag} -eq 1 ];
@@ -263,7 +267,7 @@ then
   echo "## Signing request";
   echo "##";
   echo "Running: openssl ca -config ${KEYLOC}/${parent}/openssl.cnf -name CA_default -days ${valid} -out ${output} -infiles ${toparg}";
-  openssl ca -config ${KEYLOC}/${parent}/openssl.cnf -name CA_default -days ${valid} -out ${output} -infiles ${toparg};
+  openssl ca -config ${KEYLOC}/${parent}/openssl.cnf -name CA_default -days ${valid} -out ${output} -infiles ${toparg} || die "OpenSSL failed";
 fi
 
 if [ ${requestflag} -eq 1 ];
@@ -272,5 +276,5 @@ then
   echo "## Creating request";
   echo "##";
   echo "Running: openssl req -newkey rsa:2048 -keyout ${toparg}.key -out ${toparg}.req";
-  openssl req -newkey rsa:2048 -keyout ${toparg}.key -out ${toparg}.req;
+  openssl req -newkey rsa:2048 -keyout ${toparg}.key -out ${toparg}.req || die "OpenSSL failed";
 fi

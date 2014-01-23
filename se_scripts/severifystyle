@@ -20,6 +20,7 @@ then
 fi
 
 typeset LIST=$(mktemp);
+typeset CMDLIST=$(mktemp);
 typeset DOMAIN=$1;
 typeset FILE=$2;
 typeset PREV=0;
@@ -62,6 +63,9 @@ then
     echo ${LINE} | grep -vq "^type " || continue;
     echo ${LINE} | sed -e "s:${DOMAIN}::g" | grep -vq "[a-z]*_t[, )]" || continue;
     echo ${LINE} | grep -vq "domain_type" || continue;
+
+    # Store line
+    echo "${BLOCKID}::${LINE}" >> ${CMDLIST};
   
     FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
     NUM=$(grep "${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
@@ -70,6 +74,17 @@ then
     then
       echo "Function ${FUNC} should be before ${PREVFUNC}";
     fi
+
+    # Now check if a block has a rule that is also known in a 0-block (main)
+    if [[ ${BLOCKID} -ne 0 ]];
+    then
+      grep -q "^0::${LINE}" ${CMDLIST};
+      if [ $? -eq 0 ];
+      then
+        echo "Call ${LINE} is also known in a main block.";
+      fi
+    fi
+
     PREVFUNC="${FUNC}";
     PREV=${NUM};
     PREVBLOCKID=${BLOCKID};
@@ -92,3 +107,4 @@ then
 fi
 
 rm ${LIST};
+rm ${CMDLIST};

@@ -15,6 +15,11 @@ then
   done
 fi
 
+if [ -n "${MGL_TARGET}" ];
+then
+  export PGDATABASE="${MGL_TARGET}";
+fi
+
 postgresql_grant_help_execute() {
   echo "Available methods";
   echo "-----------------";
@@ -25,7 +30,15 @@ postgresql_grant_help_execute() {
 # List grants
 #
 postgresql_grant_list_execute() {
+  echo ">> Using database ${PGDATABASE}";
+  echo ">> Overview of default permissions";
+  psql_full "\ddp";
   echo ">> Overview of grants"
-  psql_full "\dp";
+  if [ -n "${MGL_NAME}" ];
+  then
+    psql_full "\dp ${MGL_NAME}.*"
+  else
+    psql_full "\dp";
+  fi
 }
 

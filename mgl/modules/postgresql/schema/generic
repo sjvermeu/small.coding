@@ -3,14 +3,19 @@
 [ -f "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/functions.sh" || echo "functions.sh not found.";
 [ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ]] && .  "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
 
+export OWNER="";
+export WITHAUTH="";
+
 if [ -n "${MGL_OPTS}" ];
 then
   for OPT in ${MGL_OPTS};
   do
-    KEY=$(echo ${OPT} | cut -f 1 -d '=' -s);
+    KEY=$(echo ${OPT} | cut -f 1 -d '=');
     VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
     case "${KEY}" in
-      "foo") BAR="${VAL}";
+      "foo") BAR="${VAL}";;
+      "owner") OWNER="${VAL}";;
+      "withauth") WITHAUTH="1";;
     esac;
   done
 fi
@@ -27,6 +32,8 @@ postgresql_schema_help_execute() {
   echo "-----------------";
   echo "  list				- List defined schemas";
   echo "  create <name>			- Create schema <name>";
+  echo "    owner=<owner>                 Set authorization to <owner>";
+  echo "    withauth                      Create roles for the schema";
   echo "  delete <name>			- Delete schema <name>";
 }
 
@@ -40,10 +47,44 @@ postgresql_schema_list_execute() {
 
 postgresql_schema_create_execute() {
   echo ">> Creating schema '${MGL_NAME}' in database '${PGDATABASE}'"
-  psql_full "CREATE SCHEMA ${MGL_NAME}";
+  if [ -n "${OWNER}" ];
+  then
+    psql_full "CREATE SCHEMA ${MGL_NAME} AUTHORIZATION ${OWNER};"
+  else
+    psql_full "CREATE SCHEMA ${MGL_NAME}";
+  fi
+  if [ -n "${WITHAUTH}" ];
+  then
+    # Roles
+    psql_statement "CREATE ROLE R_${MGL_NAME} PASSWORD NULL";
+    psql_statement "COMMENT ON ROLE R_${MGL_NAME} IS 'Schema owner'";
+    psql_statement "CREATE ROLE R_${MGL_NAME}_RO PASSWORD NULL";
+    psql_statement "COMMENT ON ROLE R_${MGL_NAME}_RO IS 'Read-only role'";
+    psql_statement "CREATE ROLE R_${MGL_NAME}_RW PASSWORD NULL";
+    psql_statement "COMMENT ON ROLE R_${MGL_NAME}_RW IS 'Read-write role'";
+    # REmove unnecessary privileges
+    psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME}";
+    psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME}_RO";
+    psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME}_RW";
+    # Set default permissions
+    psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}";
+    psql_statement "GRANT CREATE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}";
+    psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}_RO";
+    psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}_RW";
+    psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT ALL PRIVILEGES ON TABLES TO R_${MGL_NAME};"
+    psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT SELECT ON TABLES TO R_${MGL_NAME}_RO;"
+    psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO R_${MGL_NAME}_RW;"
+  fi
+  
 }
 
 postgresql_schema_delete_execute() {
   echo ">> Dropping schema '${MGL_NAME}' in database '${PGDATABASE}'"
   psql_full "DROP SCHEMA ${MGL_NAME}";
+  if [ -n "${WITHAUTH}" ];
+  then
+    psql_statement "DROP ROLE R_${MGL_NAME}";
+    psql_statement "DROP ROLE R_${MGL_NAME}_RO";
+    psql_statement "DROP ROLE R_${MGL_NAME}_RW";
+  fi
 }

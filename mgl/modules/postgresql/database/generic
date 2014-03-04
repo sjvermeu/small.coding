@@ -11,7 +11,6 @@ then
     VAL=$(echo ${OPT} | cut -f 2 -d '=' -s);
     case "${KEY}" in
       "default_tablespace") DBTABLESPACE=${VAL} ;;
-      "owner") DBOWNER=${VAL} ;;
     esac;
   done
 fi
@@ -22,7 +21,6 @@ postgresql_database_help_execute() {
   echo "  list				- List defined databases";
   echo "  create <name>			- Create database <name>";
   echo "    default_tablespace=<ts>	  Set default tablespace";
-  echo "    owner=<user>		  Set owner";
   echo "  delete <name>			- Delete database <name>";
 }
 
@@ -55,6 +53,12 @@ postgresql_database_delete_execute() {
   postgresql_database_delete_check || return 1;
   echo ">>> Deleting database '${MGL_NAME}'.";
   psql_statement "DROP DATABASE IF EXISTS ${MGL_NAME}";
+  echo ">>> Deleting schema owner R_${MGL_NAME}."
+  psql_statement "DROP ROLE R_${MGL_NAME}";
+  echo ">>> Deleting application user R_${MGL_NAME}_RO.";
+  psql_statement "DROP ROLE R_${MGL_NAME}_RO;"
+  echo ">>> Deleting application user R_${MGL_NAME}_RW.";
+  psql_statement "DROP ROLE R_${MGL_NAME}_RW;"
 };
 
 
@@ -77,6 +81,30 @@ postgresql_database_create_check() {
 
 postgresql_database_create_execute() {
   postgresql_database_create_check || return 1;
+  echo ">>> Creating schema owner R_${MGL_NAME}.";
+  psql_statement "CREATE ROLE R_${MGL_NAME} PASSWORD NULL";
+  psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME};"
+  psql_statement "COMMENT ON ROLE R_${MGL_NAME} IS 'Schema owner'";
+  echo ">>> Creating application role R_${MGL_NAME}_RO.";
+  psql_statement "CREATE ROLE R_${MGL_NAME}_RO PASSWORD NULL";
+  psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME}_RO;"
+  psql_statement "COMMENT ON ROLE R_${MGL_NAME}_RO IS 'Read-only role';";
+  echo ">>> Creating application role R_${MGL_NAME}_RW.";
+  psql_statement "CREATE ROLE R_${MGL_NAME}_RW PASSWORD NULL";
+  psql_statement "REVOKE ALL PRIVILEGES ON SCHEMA PUBLIC FROM R_${MGL_NAME}_RW;"
+  psql_statement "COMMENT ON ROLE R_${MGL_NAME}_RW IS 'Read-write role';";
   echo ">>> Creating database '${MGL_NAME}'.";
-  psql_statement "CREATE DATABASE ${MGL_NAME} WITH TABLESPACE = ${DBTABLESPACE} OWNER = ${DBOWNER}";
+  psql_statement "CREATE DATABASE ${MGL_NAME} WITH TABLESPACE = ${DBTABLESPACE} OWNER = R_${MGL_NAME}";
+  # Switch to the newly created database
+  export PGDATABASE="${MGL_NAME}";
+  echo ">>> Creating schema ${MGL_NAME}."
+  #psql_statement "CREATE SCHEMA IF NOT EXISTS ${MGL_NAME} AUTHORIZATION R_${MGL_NAME};"
+  psql_statement "CREATE SCHEMA ${MGL_NAME} AUTHORIZATION R_${MGL_NAME}";
+  psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}";
+  psql_statement "GRANT CREATE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}";
+  psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}_RO";
+  psql_statement "GRANT USAGE ON SCHEMA ${MGL_NAME} TO R_${MGL_NAME}_RW";
+  psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT ALL PRIVILEGES ON TABLES TO R_${MGL_NAME}";
+  psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT SELECT ON TABLES TO R_${MGL_NAME}_RO";
+  psql_statement "ALTER DEFAULT PRIVILEGES IN SCHEMA ${MGL_NAME} GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO R_${MGL_NAME}_RW";
 }

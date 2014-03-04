@@ -6,6 +6,9 @@
 #    HELP - optional, additional displayed info
 #
 
+# Need to be exported:
+# MGL_BASEDIR=/path/to/modules
+
 # Command matching
 
 MGL_CMD=$2;

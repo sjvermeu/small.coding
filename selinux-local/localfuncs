@@ -52,3 +52,7 @@ selist() {
   ) | nl | sed -e "s:$: :g";
   popd > /dev/null 2>&1;
 }
+
+sepathdecode() {
+	python -c "import base64; print(base64.b16decode(\"${1}\"));";
+}

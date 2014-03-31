@@ -68,7 +68,7 @@ kvm_instance_create_check() {
 kvm_instance_create_execute() {
   echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
   mkdir ${MGL_NAME}.internal.genfic.com;
-  OUTPUT=$(qemu-img create -f qcow2 -o backing_file=../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.com/rootfs.img 2>&1);
+  OUTPUT=$(qemu-img create -f qcow2 -o backing_file=$(pwd)/../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.com/rootfs.img 2>&1);
   [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
   echo ">> Registering ${MGL_NAME} in hosts file";
   cd "${IMAGE_LOCATION}";
@@ -97,7 +97,7 @@ kvm_instance_create_execute() {
   then
     echo ">> Creating links to specified purpose scripts";
     cd ${MGL_PURPOSEDIR}/hosts/ || return 1;
-    mkdir -p ${MGL_NAME}.internal.genfic.com;
+    [ ! -d ${MGL_NAME}.internal.genfic.com ] && mkdir -p ${MGL_NAME}.internal.genfic.com;
     cd ${MGL_NAME}.internal.genfic.com;
     for PURPOSESCRIPT in $(echo ${PURPOSE} | sed -e 's:+: :g');
     do
@@ -238,7 +238,13 @@ kvm_instance_start_execute() {
       CMDLINE="${CMDLINE} -nographic";
     fi
     [ -n "${MGL_DEBUG}" ] && echo "### DEBUG: Executing ${CMDLINE}";
-    screen -S kvm-${MGL_NAME} -dm sh -c "${CMDLINE}";
+    if [ -n "${MGL_DEBUG}" ];
+    then
+      echo "### DEBUG: Output will be in mgl.log"; 
+      screen -S kvm-${MGL_NAME} -dm sh -c "${CMDLINE} > mgl.log 2>&1";
+    else
+      screen -S kvm-${MGL_NAME} -dm sh -c "${CMDLINE}";
+    fi
   else
     echo "!! Instance ${MGL_NAME} is already running (PID ${APID})";
     return 1;

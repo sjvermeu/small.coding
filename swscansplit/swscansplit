@@ -1,0 +1,51 @@
+#!/bin/bash
+
+if [ $# -ne 2 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ];
+then
+  echo "Usage: $0 <pdffile> <metafile>"
+  echo "";
+  echo "$0 will then split the PDF file according to the info in the meta file"
+  echo "and create the necessary .txt files"
+  echo "";
+  echo "Meta file is tab-delimited with following fields:"
+  echo "<pagenum> <company> <date> <deletedate> <archive> <description>";
+  echo "";
+  echo "pagenum uses pdftk convention, so 2-5 is pages 2 to 5, 10S means page 10, rotate 180 (south), etc.";
+  exit 1;
+fi
+
+PDFFILE="$1";
+METAFILE="$2";
+
+if [ ! -f ${PDFFILE} ];
+then
+  echo "Error: PDF file ${PDFFILE} does not exist.";
+  exit 1;
+fi
+
+if [ ! -f ${METAFILE} ];
+then
+  echo "Error: Meta file ${METAFILE} does not exist.";
+  exit 2;
+fi
+
+while read LINE;
+do
+  PAGENUM=$(echo "${LINE}" | awk -F'	' '{print $1}');
+  COMPANY=$(echo "${LINE}" | awk -F'	' '{print $2}');
+  DATE=$(echo "${LINE}" | awk -F'	' '{print $3}');
+  DELETE=$(echo "${LINE}" | awk -F'	' '{print $4}');
+  ARCHIVE=$(echo "${LINE}" | awk -F'	' '{print $5}');
+  DESCR=$(echo "${LINE}" | awk -F'	' '{print $6}');
+  NORMDESC=$(echo "${DESCR}" | sed -e 's:[^ a-zA-Z0-9_]::g' | sed -e 's: :_:g');
+  FINALFILE=$(echo "${DATE}_${COMPANY}_${NORMDESC}" | tr '[A-Z]' '[a-z]');
+  echo "Taking pages ${PAGENUM} for ${COMPANY}, creating ${FINALFILE}.pdf";
+  echo Running: pdftk "${PDFFILE}" cat "${PAGENUM}" output ${FINALFILE}.pdf;
+  pdftk "${PDFFILE}" cat ${PAGENUM} output ${FINALFILE}.pdf;
+  echo "Company: ${COMPANY}" > ${FINALFILE}.txt;
+  echo "Date: ${DATE}" >> ${FINALFILE}.txt;
+  echo "Delete: ${DELETE}" >> ${FINALFILE}.txt;
+  echo "Archive: ${ARCHIVE}" >> ${FINALFILE}.txt;
+  echo "" >> ${FINALFILE}.txt;
+  echo "${DESCR}" >> ${FINALFILE}.txt;
+done < ${METAFILE};

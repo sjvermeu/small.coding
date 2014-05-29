@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# Constrain input is passed on
+
+if [ $# -lt 2 ];
+then
+  echo "Usage: $0 <class> <permission> [<set of types to show>]";
+  echo "";
+  echo "If limiting to set, do not forget to include role and users."
+  echo "For instance: $0 file read \"staff_t user_home_t _r _u\"";
+  exit 1;
+fi
+
+CLASS=$1;
+PERMISSION=$2;
+TYPELIST="";
+
+if [[ $# -eq 3 ]];
+then
+  TYPELIST="${3}";
+fi
+
+buffer=();
+freelist=();
+freelistptr=0;
+id=0;
+bufferptr=0;
+group=0;
+groupcnt=0;
+start=0;
+
+echo "digraph constraint {"
+
+for LIST in $(seinfo --constrain | grep "constrain .* ${CLASS} .* ${PERMISSION}" -A 1);
+do
+  echo "${LIST}" | grep -q "^constrain" && continue;
+
+  for word in ${LIST};
+  do
+    if [[ "${word}" == "(" ]];
+    then
+      start=1;
+    elif [[ "${word}" == ")" ]] || [[ "${word}" == ");" ]];
+    then
+      start=0;
+    elif [[ ${start} -eq 1 ]];
+    then
+      if [[ "${word}" == "==" ]] || [[ "${word}" == "||" ]] || [[ "${word}" == "!=" ]] || [[ "${word}" == "&&" ]];
+      then
+        echo "id${id} [ label = \"${word}\" ]";
+        # This one should point to the 2 previously free IDs
+        echo "id${freelist[${freelistptr}-1]} -> id${id}";
+        echo "id${freelist[${freelistptr}-2]} -> id${id}";
+        # Free list
+        freelistptr=$((${freelistptr}-2));
+        freelist[${freelistptr}]="${id}";
+        # Now add current node
+        freelistptr=$((${freelistptr}+1));
+        id=$((${id}+1));
+      elif [[ "${word}" == "{" ]];
+      then
+        ##
+        ## Start group
+        ##
+        group=1;
+        groupcnt=0;
+      elif [[ "${word}" == "<empty" ]];
+      then
+        ##
+        ## Start empty set group
+        ##
+        group=1;
+        buffer[${bufferptr}]+=" (empty ) ";
+      elif [[ "${word}" == "}" ]] || [[ "${word}" == "set>" ]];
+      then
+        ##
+        ## End group, create node
+        ##
+        group=0;
+        echo "id${id} [ label = \"${buffer[${bufferptr}]}\"]";
+        freelist[${freelistptr}]="${id}";
+        freelistptr=$((${freelistptr}+1));
+        id=$((${id}+1));
+      else
+        if [[ ${group} -eq 1 ]];
+        then
+          ##
+          ## We are inside a group, so append if requested
+          ##
+	  if [[ -z ${TYPELIST} ]];
+	  then
+            buffer[${bufferptr}]+=" ${word}";
+            groupcnt=$((${groupcnt}+1));
+	  else
+	    echo ${TYPELIST} | grep -q ${word};
+	    if [[ $? -eq 0 ]];
+	    then
+	      buffer[${bufferptr}]+=" ${word}";
+              groupcnt=$((${groupcnt}+1));
+	    fi
+	  fi
+	  if [[ ${groupcnt} -eq 4 ]];
+	  then
+	    buffer[${bufferptr}]+="\n";
+	    groupcnt=0;
+	  fi
+        else
+          ##
+  	  ## Regular entry (no group)
+	  ##
+          buffer[${bufferptr}]="${word}";
+	  bufferptr=$((${bufferptr}+1));
+	  echo "id${id} [ label = \"${buffer[${bufferptr}-1]}\" ]";
+	  # This one is ready to be used
+	  freelist[${freelistptr}]="${id}";
+	  freelistptr=$((${freelistptr}+1));
+
+  	  id=$((${id}+1));
+        fi
+      fi
+    fi
+  done
+done 
+
+echo "}"

@@ -87,17 +87,21 @@ do
           ##
           ## We are inside a group, so append if requested
           ##
-	  if [[ -z ${TYPELIST} ]];
+	  if [[ -z "${TYPELIST}" ]];
 	  then
             buffer[${bufferptr}]+=" ${word}";
             groupcnt=$((${groupcnt}+1));
 	  else
-	    echo ${TYPELIST} | grep -q ${word};
-	    if [[ $? -eq 0 ]];
-	    then
-	      buffer[${bufferptr}]+=" ${word}";
-              groupcnt=$((${groupcnt}+1));
-	    fi
+	    for TYPE in ${TYPELIST};
+	    do
+              echo "${word}" | grep -q ${TYPE};
+	      if [[ $? -eq 0 ]];
+	      then
+                buffer[${bufferptr}]+=" ${word}";
+		groupcnt=$((${groupcnt}+1));
+		break;
+	      fi
+	    done
 	  fi
 	  if [[ ${groupcnt} -eq 4 ]];
 	  then

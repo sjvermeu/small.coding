@@ -1,0 +1,49 @@
+## <summary>OpenResolv network configuration management</summary>
+
+#########################################
+## <summary>
+##	Execute resolvconf and transition to the resolvconf_t domain
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition
+##	</summary>
+## </param>
+#
+interface(`resolvconf_domtrans',`
+	gen_require(`
+		type resolvconf_t;
+		type resolvconf_exec_t;
+	')
+
+	domtrans_pattern($1, resolvconf_exec_t, resolvconf_t)
+')
+
+#########################################
+## <summary>
+##	Transition to resolvconf_run_t when creating resources
+##	inside the generic run directory
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+## <param name="class">
+##	<summary>
+##	Class on which a file transition has to occur
+##	</summary>
+## </param>
+## <param name="filename" optional="true">
+##	<summary>
+##	Name of the resource on which a file transition has to occur
+##	</summary>
+## </param>
+#
+interface(`resolvconf_generic_run_filetrans_run',`
+	gen_require(`
+		type resolvconf_var_run_t;
+	')
+
+	files_pid_filetrans($1, resolvconf_var_run_t, $2, $3)
+')

@@ -1,0 +1,55 @@
+policy_module(resolvconf, 0.1)
+
+type resolvconf_t;
+type resolvconf_exec_t;
+domain_type(resolvconf_t)
+domain_entry_file(resolvconf_t, resolvconf_exec_t)
+role system_r types resolvconf_t;
+
+type resolvconf_conf_t;
+files_config_file(resolvconf_conf_t)
+
+type resolvconf_var_run_t;
+files_pid_file(resolvconf_var_run_t)
+
+#########################################
+#
+# OpenResolv policy
+#
+
+allow resolvconf_t self:fifo_file manage_fifo_file_perms;
+allow resolvconf_t resolvconf_conf_t:file read_file_perms;
+
+manage_dirs_pattern(resolvconf_t, resolvconf_var_run_t, resolvconf_var_run_t)
+manage_files_pattern(resolvconf_t, resolvconf_var_run_t, resolvconf_var_run_t)
+
+corecmd_exec_bin(resolvconf_t)
+corecmd_exec_shell(resolvconf_t)
+
+files_pid_filetrans(resolvconf_t, resolvconf_var_run_t, { dir file })
+files_read_etc_files(resolvconf_t)
+
+sysnet_manage_config(resolvconf_t)
+
+optional_policy(`
+	init_domtrans_script(resolvconf_t)
+	init_read_script_status_files(resolvconf_t)
+	init_use_script_fds(resolvconf_t)
+	init_use_script_ptys(resolvconf_t)
+')
+
+optional_policy(`
+	term_dontaudit_use_console(resolvconf_t)
+')
+
+##
+## TODO
+##
+
+gen_require(`
+	type dhcpc_t;
+')
+
+resolvconf_domtrans(dhcpc_t)
+
+resolvconf_generic_run_filetrans_run(dhcpc_t, dir, "resolvconf")

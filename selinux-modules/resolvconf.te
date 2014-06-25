@@ -50,13 +50,3 @@ optional_policy(`
 #
 
 resolvconf_client_domain_privs(resolvconf_client)
-
-##
-## TODO
-##
-
-gen_require(`
-	type dhcpc_t;
-')
-
-resolvconf_client_domain(dhcpc_t)

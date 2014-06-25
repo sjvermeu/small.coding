@@ -6,6 +6,8 @@ domain_type(resolvconf_t)
 domain_entry_file(resolvconf_t, resolvconf_exec_t)
 role system_r types resolvconf_t;
 
+attribute resolvconf_client;
+
 type resolvconf_conf_t;
 files_config_file(resolvconf_conf_t)
 
@@ -42,6 +44,13 @@ optional_policy(`
 	term_dontaudit_use_console(resolvconf_t)
 ')
 
+#########################################
+#
+# Resolvconf client policy
+#
+
+resolvconf_client_domain_privs(resolvconf_client)
+
 ##
 ## TODO
 ##
@@ -50,6 +59,4 @@ gen_require(`
 	type dhcpc_t;
 ')
 
-resolvconf_domtrans(dhcpc_t)
-
-resolvconf_generic_run_filetrans_run(dhcpc_t, dir, "resolvconf")
+resolvconf_client_domain(dhcpc_t)

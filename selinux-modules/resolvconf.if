@@ -2,6 +2,41 @@
 
 #########################################
 ## <summary>
+##	Mark the domain as a resolvconf client, automatically granting
+##	the necessary privileges (execute resolvconf and type access).
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to mark as a resolvconf client
+##	</summary>
+## </param>
+#
+interface(`resolvconf_client_domain',`
+	gen_require(`
+		attribute resolvconf_client;
+	')
+
+	typeattribute $1 resolvconf_client;	
+')
+
+#########################################
+## <summary>
+##	Assign the proper permissions to the domain, such as
+##	executing resolvconf and accessing its types.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain to assign proper permissions to
+##	</summary>
+## </param>
+#
+interface(`resolvconf_client_domain_privs',`
+	resolvconf_domtrans($1)
+	resolvconf_generic_run_filetrans_run($1, dir, "resolvconf")
+')
+
+#########################################
+## <summary>
 ##	Execute resolvconf and transition to the resolvconf_t domain
 ## </summary>
 ## <param name="domain">
@@ -17,6 +52,24 @@ interface(`resolvconf_domtrans',`
 	')
 
 	domtrans_pattern($1, resolvconf_exec_t, resolvconf_t)
+')
+
+#########################################
+## <summary>
+##	Execute resolvconf in the calling domain (no transition)
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to execute
+##	</summary>
+## </param>
+#
+interface(`resolvconf_exec',`
+	gen_require(`
+		type resolvconf_exec_t;
+	')
+
+	can_exec($1, resolvconf_exec_t)
 ')
 
 #########################################

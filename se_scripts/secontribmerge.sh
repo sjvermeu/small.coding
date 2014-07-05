@@ -18,7 +18,7 @@ then
 		echo " Patch rejections found. Clean this up manually please."
 		echo "";
 	else
-		git add -A;
+		git add -A .;
 		git am --resolved;
 	fi
 else

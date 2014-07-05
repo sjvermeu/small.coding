@@ -49,8 +49,8 @@ int selinux_prepare_fork(char * name) {
 #ifndef SELINUX
   return 0;
 #else
-  security_context_t newcon = 0;
-  security_context_t curcon = 0;
+  char * newcon = 0;
+  char * curcon = 0;
   struct av_decision avd;
   int rc;
   int permissive = 0;

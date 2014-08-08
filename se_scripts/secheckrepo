@@ -1,0 +1,106 @@
+#!/bin/bash
+
+if [ $# -lt 1 ];
+then
+  echo "Usage: $0 /path/to/base/repo/dir [<check>]";
+  exit 1;
+fi
+
+REPO=$1
+CHECK=$2;
+
+if [ ! -d ${REPO}/policy/modules ];
+then
+  echo "Sorry, ${REPO} is not a repository.";
+  exit 2;
+fi
+
+export POLICY_LOCATION="${REPO}";
+
+LISTING=$(mktemp);
+TELIST=$(mktemp);
+selist > ${LISTING};
+
+#
+# Are there interfaces defined more than once?
+#
+if [ -z ${CHECK} ] || [ ${CHECK} -eq 1 ];
+then
+  echo "[1] Checking for duplicate interface definitions.";
+  uniq -c -f 1 ${LISTING} | grep -v '^[     ]*1[    ]*' | awk '{print $2" definitions of "$3}';
+fi
+
+#
+# Are there interfaces called that don't exist?
+#
+if [ -z ${CHECK} ] || [ ${CHECK} -eq 2 ];
+then
+echo "[2] Checking for non-existing interfaces.";
+for category in admin apps contrib kernel roles services system;
+do
+  echo "____Processing ${category}";
+  cd ${REPO}/policy/modules/${category};
+  for file in *.te *.if;
+  do
+    for line in $(
+    	sed -e 's:#.*::g' ${file} | grep '_.*(.*)' | \
+	grep -v "[ 	]*allow " | sed -e 's:(.*::g' | \
+	grep -v "[ 	]*gen_context" | \
+	sed -e 's:[ 	]*::g' | \
+	grep -E -v '^ifdef$' | grep -E -v '^optional_policy$' | \
+	grep -E -v '^gen_context$' | \
+	grep -v '_pattern$' | \
+	grep -E -v '^can_exec$' | \
+	grep -E -v '^gen_tunable$' | \
+	grep -E -v '^policy_module$' | \
+	grep -E -v '^refpolicywarn$' | \
+	grep -E -v '^gen_bool$' | \
+	grep -E -v '^gen_require$' | \
+	grep -E -v '^domain_auto_trans$'
+    ); do
+      # Check the list
+      grep -E -q "	${line} " ${LISTING};
+      if [ $? -ne 0 ];
+      then
+        echo "File ${category}/${file} calls ${line} which is not defined.";
+      fi
+    done
+  done
+done
+fi
+
+#
+# Are there duplicate interfaces?
+#
+if [ -n ${CHECK} ] || [ ${CHECK} -eq 3 ];
+then
+echo "[3] Checking for duplicate calls in the same module";
+for category in admin apps contrib kernel roles services system;
+do
+  echo "____Processing ${category}";
+  cd ${REPO}/policy/modules/${category};
+  for file in *.te;
+  do
+   	sed -e 's:#.*::g' ${file} | grep '_.*(.*)' | \
+	grep -v "[ 	]*allow " | \
+	grep -v "[ 	]*gen_context" | \
+	sed -e 's:[ 	]*::g' | \
+	grep -E -v '^ifdef$' | grep -E -v '^optional_policy$' | \
+	grep -E -v '^gen_context$' | \
+	grep -v '_pattern$' | \
+	grep -E -v '^can_exec$' | \
+	grep -E -v '^gen_tunable$' | \
+	grep -E -v '^policy_module$' | \
+	grep -E -v '^refpolicywarn$' | \
+	grep -E -v '^gen_bool$' | \
+	grep -E -v '^gen_require$' | \
+	grep -E -v '^domain_auto_trans$' > ${TELIST};
+    LC_COLLATE="C" sort ${TELIST} | uniq -c ${TELIST} | grep -v '^[ 	]*1[ 	]*' | \
+      awk '{print $1" occurrences of "$2}' | \
+      sed -e "s:$: in ${category}/${file}:g";
+  done
+done
+fi
+
+rm ${LISTING};
+rm ${TELIST};

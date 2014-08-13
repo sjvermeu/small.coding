@@ -91,6 +91,20 @@ kvm_instance_create_execute() {
   done
   echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.com ${MGL_NAME}" >> hosts;
   echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
+  echo ">> Registering ${MGL_NAME} in dnsmasq-hosts file";
+  # Some magic again to calculate MAC address - TODO this can be improved
+  IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
+  VNC=$((${BASENUM} + 10));
+  GDB=$((${BASENUM} + 1299));
+  BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
+  if [ ${BASENUM} -le 8 ];
+  then
+    BASEHEX="0${BASEHEX}";
+  fi
+  MAC="00:11:22:33:40:${BASEHEX}";
+  echo "${MAC},$192.168.100.$((${NUM}+151)),infinite" >> dnsmasq-hosts;
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
   if [ -n "${PURPOSE}" ] && [ -d "${MGL_PURPOSEDIR}" ];
@@ -138,6 +152,20 @@ kvm_instance_delete_execute() {
       rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img";
       echo ">> Deregistering ${MGL_NAME} from hosts file";
       sed -i -e "/${MGL_NAME}.internal.genfic.com/d" -e "/${MGL_NAME}.ip4.internal.genfic.com/d" hosts
+      echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
+      # Calculate MAC address - TODO this can be improved 
+      IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+      IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+      BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
+      VNC=$((${BASENUM} + 10));
+      GDB=$((${BASENUM} + 1299));
+      BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
+      if [ ${BASENUM} -le 8 ];
+      then
+        BASEHEX="0${BASEHEX}";
+      fi
+      MAC="00:11:22:33:40:${BASEHEX}";
+      sed -i -e "/${MAC},/d" dnsmasq-hosts
       echo ">> Refreshing dnsmasq cache"
       sudo /usr/bin/pkill -SIGHUP dnsmasq
     else

@@ -67,7 +67,7 @@ kvm_instance_create_check() {
 
 kvm_instance_create_execute() {
   echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
-  mkdir ${MGL_NAME}.internal.genfic.com;
+  mkdir -f ${MGL_NAME}.internal.genfic.com;
   OUTPUT=$(qemu-img create -f qcow2 -o backing_file=$(pwd)/../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.com/rootfs.img 2>&1);
   [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
   echo ">> Registering ${MGL_NAME} in hosts file";

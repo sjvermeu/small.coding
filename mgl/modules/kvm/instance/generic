@@ -104,7 +104,7 @@ kvm_instance_create_execute() {
     BASEHEX="0${BASEHEX}";
   fi
   MAC="00:11:22:33:40:${BASEHEX}";
-  echo "${MAC},$192.168.100.$((${NUM}+151)),infinite" >> dnsmasq-hosts;
+  echo "${MAC},192.168.100.$((${NUM}+151)),infinite" >> dnsmasq-hosts;
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
   if [ -n "${PURPOSE}" ] && [ -d "${MGL_PURPOSEDIR}" ];
@@ -150,8 +150,6 @@ kvm_instance_delete_execute() {
     then
       echo ">> Deleting ${MGL_NAME} images";
       rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img";
-      echo ">> Deregistering ${MGL_NAME} from hosts file";
-      sed -i -e "/${MGL_NAME}.internal.genfic.com/d" -e "/${MGL_NAME}.ip4.internal.genfic.com/d" hosts
       echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
       # Calculate MAC address - TODO this can be improved 
       IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
@@ -166,6 +164,8 @@ kvm_instance_delete_execute() {
       fi
       MAC="00:11:22:33:40:${BASEHEX}";
       sed -i -e "/${MAC},/d" dnsmasq-hosts
+      echo ">> Deregistering ${MGL_NAME} from hosts file";
+      sed -i -e "/${MGL_NAME}.internal.genfic.com/d" -e "/${MGL_NAME}.ip4.internal.genfic.com/d" hosts
       echo ">> Refreshing dnsmasq cache"
       sudo /usr/bin/pkill -SIGHUP dnsmasq
     else

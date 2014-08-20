@@ -2,6 +2,21 @@
 
 [ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ] && . "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
 
+name_to_mac() {
+  IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
+  VNC=$((${BASENUM} + 5910));
+  GDB=$((${BASENUM} + 1299));
+  BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
+  if [ ${BASENUM} -le 8 ];
+  then
+    BASEHEX="0${BASEHEX}";
+  fi
+  MAC="00:11:22:33:40:${BASEHEX}";
+
+  echo ${MAC}
+}
 
 kvm_instance_help_execute() {
   echo "  create <name>               - Create a KVM instance";
@@ -9,8 +24,9 @@ kvm_instance_help_execute() {
   echo "  list                        - List defined instances";
   echo "  start <name>                - Start the KVM instance";
   echo "        mem=###	                boot with ### megabyte of memory";
-  echo "        novnc                   disable vnc output, use stdin/out instead"
+  echo "        stdio                   disable vnc output, use stdin/out instead"
   echo "  connect <name>              - Connect to the KVM instance";
+  echo "  ssh <name>		      - Use SSH to connect to the instance";
   echo "  delete <name>               - Delete the KVM instance";
   return 0;
 }
@@ -28,7 +44,7 @@ then
     then
       MEM=${VAL}; # override MEM from settings.conf
     fi
-    if [ "${KEY}" = "novnc" ];
+    if [ "${KEY}" = "stdio" ];
     then
       USE_VNC=0;
     fi
@@ -67,8 +83,8 @@ kvm_instance_create_check() {
 
 kvm_instance_create_execute() {
   echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
-  mkdir -p ${MGL_NAME}.internal.genfic.com;
-  OUTPUT=$(qemu-img create -f qcow2 -o backing_file=$(pwd)/../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.com/rootfs.img 2>&1);
+  mkdir -p ${MGL_NAME}.internal.genfic.local;
+  OUTPUT=$(qemu-img create -f qcow2 -o backing_file=$(pwd)/../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.local/rootfs.img 2>&1);
   [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
   echo ">> Registering ${MGL_NAME} in hosts file";
   cd "${IMAGE_LOCATION}";
@@ -89,30 +105,20 @@ kvm_instance_create_execute() {
       break; 
     fi
   done
-  echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.com ${MGL_NAME}" >> hosts;
-  echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.com ${MGL_NAME}_4" >> hosts;
+  echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.local ${MGL_NAME}" >> hosts;
+  echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.local ${MGL_NAME}_4" >> hosts;
   echo ">> Registering ${MGL_NAME} in dnsmasq-hosts file";
-  # Some magic again to calculate MAC address - TODO this can be improved
-  IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
-  IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
-  BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
-  VNC=$((${BASENUM} + 10));
-  GDB=$((${BASENUM} + 1299));
-  BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
-  if [ ${BASENUM} -le 8 ];
-  then
-    BASEHEX="0${BASEHEX}";
-  fi
-  MAC="00:11:22:33:40:${BASEHEX}";
-  echo "${MAC},192.168.100.$((${NUM}+151)),infinite" >> dnsmasq-hosts;
+  # Get the MAC address
+  MAC=$(name_to_mac)
+  echo "${MAC},192.168.100.$((${NUM}+151)),${MGL_NAME},10m" >> dnsmasq-hosts;
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
   if [ -n "${PURPOSE}" ] && [ -d "${MGL_PURPOSEDIR}" ];
   then
     echo ">> Creating links to specified purpose scripts";
     cd ${MGL_PURPOSEDIR}/hosts/ || return 1;
-    [ ! -d ${MGL_NAME}.internal.genfic.com ] && mkdir -p ${MGL_NAME}.internal.genfic.com;
-    cd ${MGL_NAME}.internal.genfic.com;
+    [ ! -d ${MGL_NAME}.internal.genfic.local ] && mkdir -p ${MGL_NAME}.internal.genfic.local;
+    cd ${MGL_NAME}.internal.genfic.local;
     for PURPOSESCRIPT in $(echo ${PURPOSE} | sed -e 's:+: :g');
     do
       [ -f ../../scripts/${PURPOSESCRIPT}.sh ] && ln -s ../../scripts/${PURPOSESCRIPT}.sh
@@ -127,45 +133,35 @@ kvm_instance_create_execute() {
 kvm_instance_delete_check() {
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}";
-  if [ -f "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" ];
+  if [ -f "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" ];
   then
-    APID=$(fuser "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" 2> /dev/null);
+    APID=$(fuser "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" 2> /dev/null);
     if [ $? -eq 0 ];
     then
       echo "!! A process with PID ${APID} is still hanging on to ${MGL_NAME}.";
       return 1;
     fi
   else
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
 }
 
 kvm_instance_delete_execute() {
   cd "${IMAGE_LOCATION}";
-  if [ -f "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" ];
+  if [ -f "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" ];
   then
-    APID=$(fuser "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" 2> /dev/null);
+    APID=$(fuser "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" 2> /dev/null);
     if [ $? -ne 0 ];
     then
       echo ">> Deleting ${MGL_NAME} images";
-      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img";
+      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img";
       echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
-      # Calculate MAC address - TODO this can be improved 
-      IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
-      IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
-      BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
-      VNC=$((${BASENUM} + 10));
-      GDB=$((${BASENUM} + 1299));
-      BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
-      if [ ${BASENUM} -le 8 ];
-      then
-        BASEHEX="0${BASEHEX}";
-      fi
-      MAC="00:11:22:33:40:${BASEHEX}";
+      # Get MAC address 
+      MAC=$(name_to_mac)
       sed -i -e "/${MAC},/d" dnsmasq-hosts
       echo ">> Deregistering ${MGL_NAME} from hosts file";
-      sed -i -e "/${MGL_NAME}.internal.genfic.com/d" -e "/${MGL_NAME}.ip4.internal.genfic.com/d" hosts
+      sed -i -e "/${MGL_NAME}.internal.genfic.local/d" -e "/${MGL_NAME}.ip4.internal.genfic.local/d" hosts
       echo ">> Refreshing dnsmasq cache"
       sudo /usr/bin/pkill -SIGHUP dnsmasq
     else
@@ -173,12 +169,12 @@ kvm_instance_delete_execute() {
       return 1;
     fi
   else
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
-  if [ -d "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.com" ];
+  if [ -d "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.local" ];
   then
-    cd "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.com";
+    cd "${MGL_PURPOSEDIR}/hosts/${MGL_NAME}.internal.genfic.local";
     for FILE in *.sh;
     do
       [ -f ${FILE} ] || break;
@@ -186,7 +182,7 @@ kvm_instance_delete_execute() {
       rm ${FILE};
     done
     cd "${MGL_PURPOSEDIR}/hosts";
-    rmdir ${MGL_NAME}.internal.genfic.com;
+    rmdir ${MGL_NAME}.internal.genfic.local;
   fi
 }
 
@@ -196,12 +192,12 @@ kvm_instance_delete_execute() {
 #
 kvm_instance_list_execute() {
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
-  for IMG in *.internal.genfic.com/rootfs.img;
+  for IMG in *.internal.genfic.local/rootfs.img;
   do
     [ -f "${IMG}" ] || continue;
     INAME=$(echo ${IMG} | cut -f 1 -d '.');
-    IPV4=$(grep ${INAME}.ip4.internal.genfic.com ${IMAGE_LOCATION}/hosts | cut -f 1);
-    IPV6=$(grep ${INAME}.internal.genfic.com ${IMAGE_LOCATION}/hosts | cut -f 1);
+    IPV4=$(grep ${INAME}.ip4.internal.genfic.local ${IMAGE_LOCATION}/hosts | cut -f 1);
+    IPV6=$(grep ${INAME}.internal.genfic.local ${IMAGE_LOCATION}/hosts | cut -f 1);
     BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
     VNC=$((${BASENUM} + 10));
     GDB=$((${BASENUM} + 1299));
@@ -221,12 +217,12 @@ kvm_instance_list_execute() {
 kvm_instance_start_check() {
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
-  if [ ! -f ${MGL_NAME}.internal.genfic.com/rootfs.img ];
+  if [ ! -f ${MGL_NAME}.internal.genfic.local/rootfs.img ];
   then
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
-  APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" 2>/dev/null);
+  APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" 2>/dev/null);
   if [ $? -ne 1 ];
   then
     echo "!! Instance ${MGL_NAME} is already running (PID ${APID})";
@@ -237,17 +233,17 @@ kvm_instance_start_check() {
 kvm_instance_start_execute() {
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
-  if [ ! -f ${MGL_NAME}.internal.genfic.com/rootfs.img ];
+  if [ ! -f ${MGL_NAME}.internal.genfic.local/rootfs.img ];
   then
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
-  APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" 2>/dev/null);
+  APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" 2>/dev/null);
   if [ $? -eq 1 ];
   then
     # Not used yet, so let us start it
-    IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
-    IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+    IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+    IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
     BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
     VNC=$((${BASENUM} + 10));
     GDB=$((${BASENUM} + 1299));
@@ -258,12 +254,13 @@ kvm_instance_start_execute() {
     fi
     MAC="00:11:22:33:40:${BASEHEX}";
     echo ">> Launching ${MGL_NAME} instance as kvm-${MGL_NAME}"
-    CMDLINE="${KVM} -gdb tcp::${GDB} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.internal.genfic.com/rootfs.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
+    CMDLINE="${KVM} -gdb tcp::${GDB} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.internal.genfic.local/rootfs.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
     if [ "${USE_VNC}" = "1" ];
     then
+      #CMDLINE="${CMDLINE} -monitor stdio -vga qxl -spice port=${VNC},addr=127.0.0.1,disable-ticketing";
       CMDLINE="${CMDLINE} -monitor stdio -vnc 127.0.0.1:${VNC}";
     else
-      CMDLINE="${CMDLINE} -nographic";
+      CMDLINE="${CMDLINE} -curses";
     fi
     [ -n "${MGL_DEBUG}" ] && echo "### DEBUG: Executing ${CMDLINE}";
     if [ -n "${MGL_DEBUG}" ];
@@ -284,12 +281,12 @@ kvm_instance_start_execute() {
 kvm_instance_connect_check() {
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
-  if [ ! -f ${MGL_NAME}.internal.genfic.com/rootfs.img ];
+  if [ ! -f ${MGL_NAME}.internal.genfic.local/rootfs.img ];
   then
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
-  fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" > /dev/null 2>&1;
+  fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" > /dev/null 2>&1;
   if [ $? -ne 0 ];
   then
     # Is not running
@@ -301,23 +298,33 @@ kvm_instance_connect_check() {
 kvm_instance_connect_execute() {
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
-  if [ ! -f ${MGL_NAME}.internal.genfic.com/rootfs.img ];
+  if [ ! -f ${MGL_NAME}.internal.genfic.local/rootfs.img ];
   then
-    echo "!! Image ${MGL_NAME}.internal.genfic.com/rootfs.img does not exist.";
+    echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
-  fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.com/rootfs.img" > /dev/null 2>&1;
+  fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" > /dev/null 2>&1;
   if [ $? -eq 0 ];
   then
     # Is running
-    IPV6=$(grep ${MGL_NAME}.internal.genfic.com "${IMAGE_LOCATION}/hosts" | cut -f 1);
+    IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
     BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
     VNC=$((${BASENUM} + 10));
-    echo ">>> Connecting to ${MGL_NAME} (vncviewer :${VNC})";
+    echo ">>> Connecting to ${MGL_NAME} (VNC :${VNC})";
     vncviewer :${VNC};
   else
     # Is not running
     echo "!! Instance ${MGL_NAME} is not running.";
     return 1;
   fi
+}
+
+#
+# Connect to the target through SSH
+#
+kvm_instance_ssh_execute() {
+  [ -z "${MGL_NAME}" ] && echo "!! No username provided." && return 1;
+  [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
+  IPV4=$(grep ${MGL_TARGET}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  ssh ${MGL_NAME}@${IPV4};
 }

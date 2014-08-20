@@ -1,9 +1,16 @@
-#!/bin/sh
+#!/bin/bash
+
+IGNOREIN="kernel/*.if.in";
+
+if [ -n "$1" ] && [[ "$1" = "-n" ]];
+then
+  IGNOREIN="";
+fi
 
 pushd ${POLICY_LOCATION}/policy/modules > /dev/null 2>&1;
 (
   egrep '^(interface|template)' kernel/kernel.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, kernel):g" | LC_COLLATE="C" sort;
-  egrep '^(interface|template)' kernel/*.if kernel/*.if.in | grep -v 'kernel/kernel.if' | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, other):g" | LC_COLLATE="C" sort;
+  egrep '^(interface|template)' kernel/*.if ${IGNOREIN} | grep -v 'kernel/kernel.if' | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (kernel, other):g" | LC_COLLATE="C" sort;
   egrep '^(interface|template)' system/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (system):g" | LC_COLLATE="C" sort;
   egrep '^(interface|template)' admin/*.if apps/*.if roles/*.if services/*.if contrib/*.if | awk -F'`' '{print $2}' | sed -e "s:',::g" | sed -e "s:$: (other):g" | LC_COLLATE="C" sort;
 ) | nl;

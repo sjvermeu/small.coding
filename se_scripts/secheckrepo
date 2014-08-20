@@ -3,6 +3,10 @@
 if [ $# -lt 1 ];
 then
   echo "Usage: $0 /path/to/base/repo/dir [<check>]";
+  echo "";
+  echo " 1	- Are there interfaces defined more than once?";
+  echo " 2	- Are there interfaces called that don't exist?";
+  echo " 3	- Are there duplicate interface definitions?";
   exit 1;
 fi
 
@@ -19,7 +23,8 @@ export POLICY_LOCATION="${REPO}";
 
 LISTING=$(mktemp);
 TELIST=$(mktemp);
-selist > ${LISTING};
+GENERATED=$(mktemp);
+selist -n > ${LISTING};
 
 #
 # Are there interfaces defined more than once?
@@ -27,8 +32,11 @@ selist > ${LISTING};
 if [ -z ${CHECK} ] || [ ${CHECK} -eq 1 ];
 then
   echo "[1] Checking for duplicate interface definitions.";
-  uniq -c -f 1 ${LISTING} | grep -v '^[     ]*1[    ]*' | awk '{print $2" definitions of "$3}';
+  uniq -c -f 1 ${LISTING} | grep -v '^[     ][ 	]*1[    ][ 	]*' | awk '{print $2" definitions of "$3}';
 fi
+
+# Repeat listing, but now with the *.in files included.
+selist > ${LISTING};
 
 #
 # Are there interfaces called that don't exist?
@@ -62,17 +70,88 @@ do
       grep -E -q "	${line} " ${LISTING};
       if [ $? -ne 0 ];
       then
-        echo "File ${category}/${file} calls ${line} which is not defined.";
+        # Perhaps it is auto-generated
+	echo "${line}" | \
+       	grep -E -v '^corenet_tcp_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_udp_send_.*_if$' | \
+	grep -E -v '^corenet_udp_receive_.*_if$' | \
+	grep -E -v '^corenet_udp_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_raw_send_.*_if$' | \
+	grep -E -v '^corenet_raw_receive_.*_if$' | \
+	grep -E -v '^corenet_raw_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_tcp_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_udp_send_.*_if$' | \
+	grep -E -v '^corenet_udp_receive_.*_if$' | \
+	grep -E -v '^corenet_udp_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_raw_send_.*_if$' | \
+	grep -E -v '^corenet_raw_receive_.*_if$' | \
+	grep -E -v '^corenet_raw_sendrecv_.*_if$' | \
+	grep -E -v '^corenet_tcp_sendrecv_.*_node$' | \
+	grep -E -v '^corenet_udp_send_.*_node$' | \
+	grep -E -v '^corenet_udp_receive_.*_node$' | \
+	grep -E -v '^corenet_udp_sendrecv_.*_node$' | \
+	grep -E -v '^corenet_raw_send_.*_node$' | \
+	grep -E -v '^corenet_raw_receive_.*_node$' | \
+	grep -E -v '^corenet_raw_sendrecv_.*_node$' | \
+	grep -E -v '^corenet_tcp_bind_.*_node$' | \
+	grep -E -v '^corenet_udp_bind_.*_node$' | \
+	grep -E -v '^corenet_tcp_sendrecv_.*_port$' | \
+	grep -E -v '^corenet_udp_send_.*_port$' | \
+	grep -E -v '^corenet_dontaudit_udp_send_.*_port$' | \
+	grep -E -v '^corenet_udp_receive_.*_port$' | \
+	grep -E -v '^corenet_dontaudit_udp_receive_.*_port$' | \
+	grep -E -v '^corenet_udp_sendrecv_.*_port$' | \
+	grep -E -v '^corenet_dontaudit_udp_sendrecv_.*_port$' | \
+	grep -E -v '^corenet_tcp_bind_.*_port$' | \
+	grep -E -v '^corenet_udp_bind_.*_port$' | \
+	grep -E -v '^corenet_tcp_connect_.*_port$' | \
+	grep -E -v '^corenet_send_.*_packets$' | \
+	grep -E -v '^corenet_dontaudit_send_.*_packets$' | \
+	grep -E -v '^corenet_receive_.*_packets$' | \
+	grep -E -v '^corenet_dontaudit_receive_.*_packets$' | \
+	grep -E -v '^corenet_sendrecv_.*_packets$' | \
+	grep -E -v '^corenet_dontaudit_sendrecv_.*_packets$' | \
+	grep -E -v '^corenet_relabelto_.*_packets$' | \
+	grep -q '_';
+	if [ $? -eq 0 ];
+	then
+          # Nope, not one of the auto-generated ones
+          echo "File ${category}/${file} calls ${line} which is not defined.";
+	else
+	  # Stacking for now...
+          echo "${line}" >> ${GENERATED};
+	fi
       fi
     done
   done
 done
+echo "____Found the following auto-generated interfaces with no apparent source:"
+cd ${REPO}/policy/modules/kernel;
+for port in $(grep -E '^network_port\(' corenetwork.te.in | sed -e 's:network_port(\([^ ,]*\),.*).*:\1:g');
+do
+  sed -i "/corenet_send_${port}_server_packets/d" ${GENERATED};
+  sed -i "/corenet_receive_${port}_server_packets/d" ${GENERATED};
+  sed -i "/corenet_sendrecv_${port}_server_packets/d" ${GENERATED};
+  sed -i "/corenet_send_${port}_client_packets/d" ${GENERATED};
+  sed -i "/corenet_receive_${port}_client_packets/d" ${GENERATED};
+  sed -i "/corenet_sendrecv_${port}_client_packets/d" ${GENERATED};
+  sed -i "/corenet_tcp_bind_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_tcp_connect_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_tcp_send_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_tcp_receive_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_tcp_sendrecv_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_udp_bind_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_udp_send_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_udp_receive_${port}_port/d" ${GENERATED};
+  sed -i "/corenet_udp_sendrecv_${port}_port/d" ${GENERATED};
+done
+sort ${GENERATED} | uniq;
 fi
 
 #
 # Are there duplicate interfaces?
 #
-if [ -n ${CHECK} ] || [ ${CHECK} -eq 3 ];
+if [ -z ${CHECK} ] || [ ${CHECK} -eq 3 ];
 then
 echo "[3] Checking for duplicate calls in the same module";
 for category in admin apps contrib kernel roles services system;
@@ -104,3 +183,4 @@ fi
 
 rm ${LISTING};
 rm ${TELIST};
+rm ${GENERATED};

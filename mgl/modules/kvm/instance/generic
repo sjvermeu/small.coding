@@ -175,7 +175,7 @@ kvm_instance_create_execute() {
   keyval_set ro-settings.conf IP6ADDRESS "2001:db8:81:e2:211:22ff:fe33:40${VALUE}";
   keyval_set settings.conf GDB_PORT "$((${NUM}+1299))";
   keyval_set settings.conf VNC_PORT "$((${NUM}+10))";
-  keyval_set settings.conf NET_PORTID ${NUM};
+  keyval_set settings.conf NET_PORTID $((${NUM}+1));
   keyval_set settings.conf MEMORY 1536;
   keyval_set settings.conf CPUCOUNT 2;
 }

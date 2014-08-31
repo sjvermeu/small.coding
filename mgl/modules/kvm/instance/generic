@@ -1,21 +1,48 @@
 #!/bin/sh
 
-[ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ] && . "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" || echo "settings.conf not found.";
+# Read in local settings (useful for debugging)
+if [ -f ${HOME}/.mgl/${MGL_CLASS}/settings.conf ] ; then
+  . "${HOME}/.mgl/${MGL_CLASS}/settings.conf"
+elif [ -f "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf" ] ; then
+  . "${MGL_BASEDIR}/${MGL_CLASS}/settings.conf";
+else
+  echo "settings.conf not found.";
+  exit 1;
+fi
 
-name_to_mac() {
-  IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
-  IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
-  BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
-  VNC=$((${BASENUM} + 5910));
-  GDB=$((${BASENUM} + 1299));
-  BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
-  if [ ${BASENUM} -le 8 ];
-  then
-    BASEHEX="0${BASEHEX}";
+# keyval_set <filename> <key> <value>
+#
+# Sets the value of <key> in <filename>, creating a new <key>=<value> line if needed.
+keyval_set() {
+  local FILE="$1";
+  local KEY="$2";
+  local VALUE="$3";
+
+  if grep -q "^$KEY *= *" $FILE ; then
+    sed -c -i "s/^\($KEY *= *\).*/\1$VALUE/" $FILE
+  else
+    echo "${KEY}=${VALUE}" >> $FILE;
   fi
-  MAC="00:11:22:33:40:${BASEHEX}";
+}
 
-  echo ${MAC}
+# keyval_get <filename> <key> [<default>]
+#
+# Get the value of <key> from <filename>, or return <default> if it does not exist
+keyval_get() {
+  local FILE="$1";
+  local KEY="$2";
+  local DEFAULT="$3";
+
+  if [ ! -f $FILE ] ; then
+    echo ${DEFAULT};
+  else
+    grep -q "^${KEY} *= *" $FILE ; 
+    if [ $? -eq 0 ] ; then
+      grep "^${KEY} *= *" $FILE | sed -e "s/^${KEY} *= *//" 
+    else
+      echo ${DEFAULT};
+    fi
+  fi
 }
 
 kvm_instance_help_execute() {
@@ -83,11 +110,20 @@ kvm_instance_create_check() {
 
 kvm_instance_create_execute() {
   echo ">> Creating ${MGL_NAME}.img based on ${MGL_TEMPLATE}-base.img:";
+
+  #
+  # The base location of the guest is a directory named after its hostname
+  #
   mkdir -p ${MGL_NAME}.internal.genfic.local;
   OUTPUT=$(qemu-img create -f qcow2 -o backing_file=$(pwd)/../${TEMPLATE_LOCATION}/${MGL_TEMPLATE}-base.img ${MGL_NAME}.internal.genfic.local/rootfs.img 2>&1);
   [ $? -ne 0 ] && echo "${OUTPUT}" && return 1;
+
+  #
+  # Register the hostname for dnsmasq
+  #
   echo ">> Registering ${MGL_NAME} in hosts file";
   cd "${IMAGE_LOCATION}";
+  # Generating IPv6 address (part in ${VALUE}) and IPv4 address (part in ${NUM})
   VARLIST=$(grep -v ip4.internal hosts | cut -f 1 | awk -F':' '{print $NF}' | sed -e 's:40::g');
   VALUE=1;
   VALNUM=1;
@@ -108,9 +144,10 @@ kvm_instance_create_execute() {
   echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.local ${MGL_NAME}" >> hosts;
   echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.local ${MGL_NAME}_4" >> hosts;
   echo ">> Registering ${MGL_NAME} in dnsmasq-hosts file";
-  # Get the MAC address
-  MAC=$(name_to_mac)
+  # Set the MAC address
+  MAC="00:11:22:33:40:$((echo "obase=16;${NUM}" | bc))";
   echo "${MAC},192.168.100.$((${NUM}+151)),${MGL_NAME},10m" >> dnsmasq-hosts;
+
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
   if [ -n "${PURPOSE}" ] && [ -d "${MGL_PURPOSEDIR}" ];
@@ -125,6 +162,22 @@ kvm_instance_create_execute() {
       echo ">>   Added link to ${PURPOSESCRIPT}.sh";
     done
   fi
+
+  #
+  # Writing configuration file
+  #
+  echo ">> Writing configuration file";
+  cd "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local"
+  keyval_set ro-settings.conf MAC_ADDRESS "${MAC}";
+  keyval_set ro-settings.conf HOSTNAME "${MGL_NAME}";
+  keyval_set ro-settings.conf DOMAINNAME "internal.genfic.local";
+  keyval_set ro-settings.conf IP4ADDRESS "192.168.100.$((${NUM}+151))";
+  keyval_set ro-settings.conf IP6ADDRESS "2001:db8:81:e2:211:22ff:fe33:40${VALUE}";
+  keyval_set settings.conf GDB_PORT "$((${NUM}+1299))";
+  keyval_set settings.conf VNC_PORT "$((${NUM}+10))";
+  keyval_set settings.conf NET_PORTID ${NUM};
+  keyval_set settings.conf MEMORY 1536;
+  keyval_set settings.conf CPUCOUNT 2;
 }
 
 #
@@ -155,15 +208,19 @@ kvm_instance_delete_execute() {
     if [ $? -ne 0 ];
     then
       echo ">> Deleting ${MGL_NAME} images";
+      GUESTDIR="${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local";
       rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img";
       echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
       # Get MAC address 
-      MAC=$(name_to_mac)
+      MAC=$(keyval_get ${GUESTDIR}/ro-settings.conf MAC_ADDRESS);
       sed -i -e "/${MAC},/d" dnsmasq-hosts
       echo ">> Deregistering ${MGL_NAME} from hosts file";
       sed -i -e "/${MGL_NAME}.internal.genfic.local/d" -e "/${MGL_NAME}.ip4.internal.genfic.local/d" hosts
       echo ">> Refreshing dnsmasq cache"
       sudo /usr/bin/pkill -SIGHUP dnsmasq
+      echo ">> Removing configuration files";
+      rm ${GUESTDIR}/ro-settings.conf;
+      rm ${GUESTDIR}/settings.conf;
     else
       echo "!! A process with PID ${APID} is still hanging on to ${MGL_NAME}.";
       return 1;
@@ -192,22 +249,25 @@ kvm_instance_delete_execute() {
 #
 kvm_instance_list_execute() {
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
+
+  printf "%11s %2s %15s %35s  %3s %4s\n" hostname port "ip4 address" "ip6 address" vnc gdb;
   for IMG in *.internal.genfic.local/rootfs.img;
   do
     [ -f "${IMG}" ] || continue;
     INAME=$(echo ${IMG} | cut -f 1 -d '.');
-    IPV4=$(grep ${INAME}.ip4.internal.genfic.local ${IMAGE_LOCATION}/hosts | cut -f 1);
-    IPV6=$(grep ${INAME}.internal.genfic.local ${IMAGE_LOCATION}/hosts | cut -f 1);
-    BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
-    VNC=$((${BASENUM} + 10));
-    GDB=$((${BASENUM} + 1299));
+    GUESTDIR="${IMAGE_LOCATION}/${TARGET_LOCATION}/${INAME}.internal.genfic.local";
+    IPV4=$(keyval_get ${GUESTDIR}/ro-settings.conf IP4ADDRESS);
+    IPV6=$(keyval_get ${GUESTDIR}/ro-settings.conf IP6ADDRESS);
+    VNC=$(keyval_get ${GUESTDIR}/settings.conf VNC_PORT);
+    GDB=$(keyval_get ${GUESTDIR}/settings.conf GDB_PORT);
+    PORT=$(keyval_get ${GUESTDIR}/settings.conf NET_PORTID);
     RUNNING="";
     fuser ${IMG} > /dev/null 2>&1;
     if [ $? -eq 0 ];
     then
       RUNNING="RUNNING";
     fi
-    echo "  ${INAME}	- ${IPV4}	- ${IPV6}	(VNC: ${VNC}, GDB: ${GDB}) ${RUNNING}";
+    printf "%11s %4s %15s %35s  %3s %4s (%7s)\n" ${INAME} ${PORT} ${IPV4} ${IPV6} ${VNC} ${GDB} ${RUNNING};
   done
 }
 
@@ -231,6 +291,7 @@ kvm_instance_start_check() {
 }
 
 kvm_instance_start_execute() {
+  # Validation
   [ -z "${MGL_NAME}" ] && echo "!! No name provided." && return 1;
   cd "${IMAGE_LOCATION}/${TARGET_LOCATION}";
   if [ ! -f ${MGL_NAME}.internal.genfic.local/rootfs.img ];
@@ -238,23 +299,27 @@ kvm_instance_start_execute() {
     echo "!! Image ${MGL_NAME}.internal.genfic.local/rootfs.img does not exist.";
     return 1;
   fi
+
+  # Okay we can start - let's see if it is already in use
   APID=$(fuser "${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img" 2>/dev/null);
   if [ $? -eq 1 ];
   then
     # Not used yet, so let us start it
-    IPV4=$(grep ${MGL_NAME}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
-    IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
-    BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
-    VNC=$((${BASENUM} + 10));
-    GDB=$((${BASENUM} + 1299));
-    BASEHEX=$(echo "obase=16;${BASENUM}" | bc);
-    if [ ${BASENUM} -le 8 ];
-    then
-      BASEHEX="0${BASEHEX}";
-    fi
-    MAC="00:11:22:33:40:${BASEHEX}";
+    GUESTDIR="${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local";
+
+    MAC="$(keyval_get ${GUESTDIR}/ro-settings.conf MAC_ADDRESS)";
+    PORTID="$(keyval_get ${GUESTDIR}/settings.conf NET_PORTID 1)";
+    GDB="$(keyval_get ${GUESTDIR}/settings.conf GDB_PORT 1299)";
+    VNC="$(keyval_get ${GUESTDIR}/settings.conf VNC_PORT 10)";
+    MEMORY="$(keyval_get ${GUESTDIR}/settings.conf MEMORY 1536)";
+    CPUCOUNT="$(keyval_get ${GUESTDIR}/settings.conf CPUCOUNT 2)";
+    CPUTYPE="$(keyval_get ${GUESTDIR}/settings.conf CPUTYPE kvm64)";
+
     echo ">> Launching ${MGL_NAME} instance as kvm-${MGL_NAME}"
-    CMDLINE="${KVM} -gdb tcp::${GDB} -net nic,model=virtio,macaddr=${MAC},vlan=0 -net vde,vlan=0 -drive file=${MGL_NAME}.internal.genfic.local/rootfs.img,if=virtio,cache=writeback -k ${KEYBOARD} -m ${MEM} -cpu ${CPU} -smp 2";
+    CMDLINE="${KVM} -gdb tcp::${GDB} -netdev vde,id=${MGL_NAME},port=${PORTID} -device virtio-net-pci,netdev=${MGL_NAME},mac=${MAC} -drive file=${MGL_NAME}.internal.genfic.local/rootfs.img,if=virtio,cache=writeback -m ${MEMORY} -cpu ${CPU} -smp ${CPUCOUNT}";
+    if [ -n "${KEYBOARD}" ] ; then
+      CMDLINE="${CMDLINE} -k ${KEYBOARD}";
+    fi
     if [ "${USE_VNC}" = "1" ];
     then
       #CMDLINE="${CMDLINE} -monitor stdio -vga qxl -spice port=${VNC},addr=127.0.0.1,disable-ticketing";

@@ -18,10 +18,14 @@ keyval_set() {
   local KEY="$2";
   local VALUE="$3";
 
-  if grep -q "^$KEY *= *" $FILE ; then
-    sed -c -i "s/^\($KEY *= *\).*/\1$VALUE/" $FILE
-  else
+  if [ ! -f $FILE ] ; then
     echo "${KEY}=${VALUE}" >> $FILE;
+  else
+    if grep -q "^$KEY *= *" $FILE ; then
+      sed -c -i "s/^\($KEY *= *\).*/\1$VALUE/" $FILE
+    else
+      echo "${KEY}=${VALUE}" >> $FILE;
+    fi
   fi
 }
 
@@ -145,7 +149,12 @@ kvm_instance_create_execute() {
   echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.local ${MGL_NAME}_4" >> hosts;
   echo ">> Registering ${MGL_NAME} in dnsmasq-hosts file";
   # Set the MAC address
-  MAC="00:11:22:33:40:$((echo "obase=16;${NUM}" | bc))";
+  MAC=""
+  if [ ${NUM} -lt 16 ] ; then
+    MAC="00:11:22:33:40:0$(echo "obase=16;${NUM}" | bc)";
+  else
+    MAC="00:11:22:33:40:$(echo "obase=16;${NUM}" | bc)";
+  fi
   echo "${MAC},192.168.100.$((${NUM}+151)),${MGL_NAME},10m" >> dnsmasq-hosts;
 
   echo ">> Refreshing dnsmasq cache";

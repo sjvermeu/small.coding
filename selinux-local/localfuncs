@@ -16,7 +16,7 @@ sefindif() {
   fi
   for FILE in */*.if;
   do
-    awk "/(interface\(|template\()/ { NAME=\$NF; P=0 }; /${REGEXP}/ { if (P==0) {P=1; print NAME}; print };" ${FILE} | sed -e "s:^:${FILE}\: :g";
+    awk "BEGIN { P=1 } /(interface\(|template\()/ { NAME=\$0; P=0 }; /${REGEXP}/ { if (P==0) {P=1; print NAME}; if (NAME!=\$0) print };" ${FILE} | sed -e "s:^:${FILE}\: :g";
   done
   popd > /dev/null 2>&1;
 }
@@ -57,7 +57,7 @@ sefinddef() {
   fi
   for FILE in *;
   do
-    awk "BEGIN { P=1; } /(define\(\`[^\`]*\`$)/ { NAME=\$NF; P=0 }; /${REGEXP}/ { if (P==0) {P=1; print NAME}; print };" ${FILE};
+    awk "BEGIN { P=1; } /(define\(\`[^\`]*\`$)/ { NAME=\$0; P=0 }; /${REGEXP}/ { if (P==0) {P=1; print NAME}; if (NAME!=\$0) print };" ${FILE};
   done
   popd > /dev/null 2>&1;
 }

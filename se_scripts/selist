@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IGNOREIN="kernel/*.if.in";
+IGNOREIN='kernel/*.if.in';
 
 if [ -n "$1" ] && [[ "$1" = "-n" ]];
 then

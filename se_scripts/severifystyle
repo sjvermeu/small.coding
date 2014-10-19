@@ -15,7 +15,7 @@ typeset NUM=0;
 typeset PREVFUNC="";
 typeset FUNC="";
 
-selist > ${LIST};
+selist -n > ${LIST};
 
 # Order of interface calls, only for .te files
 # First start with those direct matches (not within a block)
@@ -54,7 +54,7 @@ then
     # Store line
     echo "${BLOCKID}::${LINE}" >> ${CMDLIST};
   
-    FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_0-9]*\)(.*:\1:g' 2>/dev/null);
+    FUNC=$(echo ${LINE} | grep ${DOMAIN} | sed -e 's:^[ 	]*\([a-zA-Z_1-9]*\)(.*:\1:g' 2>/dev/null);
     NUM=$(grep "	${FUNC} " ${LIST} 2>/dev/null | awk '{print $1}');
     [[ -n "${NUM}" ]] && [[ ${NUM} -gt 0 ]] || continue;
     if [[ ${NUM} -lt ${PREV} ]] && [[ ${PREVBLOCKID} -eq ${BLOCKID} ]];

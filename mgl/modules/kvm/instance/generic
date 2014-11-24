@@ -58,6 +58,7 @@ kvm_instance_help_execute() {
   echo "        stdio                   disable vnc output, use stdin/out instead"
   echo "  connect <name>              - Connect to the KVM instance";
   echo "  ssh <name>		      - Use SSH to connect to the instance";
+  echo "  sftp <name>		      - Use SFTP to connect to the instance";
   echo "  delete <name>               - Delete the KVM instance";
   return 0;
 }
@@ -401,4 +402,14 @@ kvm_instance_ssh_execute() {
   [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
   IPV4=$(grep ${MGL_TARGET}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
   ssh ${MGL_NAME}@${IPV4};
+}
+
+#
+# Connect to the target using SFTP
+#
+kvm_instance_sftp_execute() {
+  [ -z "${MGL_NAME}" ] && echo "!! No username provided." && return 1;
+  [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
+  IPV4=$(grep ${MGL_TARGET}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  sftp ${MGL_NAME}@${IPV4};
 }

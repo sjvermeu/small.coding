@@ -219,7 +219,7 @@ kvm_instance_delete_execute() {
     then
       echo ">> Deleting ${MGL_NAME} images";
       GUESTDIR="${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local";
-      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/rootfs.img";
+      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/*.img";
       echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
       # Get MAC address 
       MAC=$(keyval_get ${GUESTDIR}/ro-settings.conf MAC_ADDRESS);
@@ -325,8 +325,14 @@ kvm_instance_start_execute() {
     CPUCOUNT="$(keyval_get ${GUESTDIR}/settings.conf CPUCOUNT 2)";
     CPUTYPE="$(keyval_get ${GUESTDIR}/settings.conf CPUTYPE kvm64)";
 
+    ADDFS=""
+
+    for FSIMAGE in $(ls ${MGL_NAME}.internal.genfic.local/*.img | grep -v rootfs.img) ; do
+      ADDFS="${ADDFS} -drive file=${FSIMAGE},if=virtio,cache=writeback"
+    done
+
     echo ">> Launching ${MGL_NAME} instance as kvm-${MGL_NAME}"
-    CMDLINE="${KVM} -gdb tcp::${GDB} -netdev vde,id=${MGL_NAME},port=${PORTID} -device virtio-net-pci,netdev=${MGL_NAME},mac=${MAC} -drive file=${MGL_NAME}.internal.genfic.local/rootfs.img,if=virtio,cache=writeback -m ${MEMORY} -cpu ${CPU} -smp ${CPUCOUNT}";
+    CMDLINE="${KVM} -gdb tcp::${GDB} -netdev vde,id=${MGL_NAME},port=${PORTID} -device virtio-net-pci,netdev=${MGL_NAME},mac=${MAC} -drive file=${MGL_NAME}.internal.genfic.local/rootfs.img,if=virtio,cache=writeback ${ADDFS} -m ${MEMORY} -cpu ${CPU} -smp ${CPUCOUNT}";
     if [ -n "${KEYBOARD}" ] ; then
       CMDLINE="${CMDLINE} -k ${KEYBOARD}";
     fi

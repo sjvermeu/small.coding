@@ -219,7 +219,7 @@ kvm_instance_delete_execute() {
     then
       echo ">> Deleting ${MGL_NAME} images";
       GUESTDIR="${IMAGE_LOCATION}/${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local";
-      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/*.img";
+      rm "${TARGET_LOCATION}/${MGL_NAME}.internal.genfic.local/"*.img;
       echo ">> Deregistering ${MGL_NAME} from dnsmasq-hosts file";
       # Get MAC address 
       MAC=$(keyval_get ${GUESTDIR}/ro-settings.conf MAC_ADDRESS);

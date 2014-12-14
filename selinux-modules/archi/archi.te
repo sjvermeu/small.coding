@@ -8,7 +8,6 @@ policy_module(archi, 1.0)
 type archi_t;
 type archi_exec_t;
 userdom_user_application_domain(archi_t, archi_exec_t)
-java_domain_type(archi_t)
 
 type archi_tmp_t;
 userdom_user_tmp_file(archi_tmp_t)
@@ -24,20 +23,60 @@ userdom_user_home_content(archi_home_t)
 # Archi policy rules
 #
 
+allow archi_t self:process { execmem getsched signal };
+allow archi_t self:fifo_file rw_fifo_file_perms;
+# allow archi_t self:tcp_socket create_socket_perms;
+# allow archi_t self:udp_socket create_socket_perms;
+dontaudit archi_t self:tcp_socket create;
+dontaudit archi_t self:udp_socket create;
+
 manage_dirs_pattern(archi_t, archi_home_t, archi_home_t)
 manage_files_pattern(archi_t, archi_home_t, archi_home_t)
+can_exec(archi_t, archi_home_t) # Eclipse executing .so file in ~/.archi/...
 
 files_tmp_filetrans(archi_t, archi_tmp_t, {file dir})
 manage_dirs_pattern(archi_t, archi_tmp_t, archi_tmp_t)
 manage_files_pattern(archi_t, archi_tmp_t, archi_tmp_t)
 
+manage_files_pattern(archi_t, archi_tmpfs_t, archi_tmpfs_t)
+fs_tmpfs_filetrans(archi_t, archi_tmpfs_t, file)
+
+kernel_dontaudit_read_system_state(archi_t)
+kernel_dontaudit_search_network_state(archi_t)
+kernel_dontaudit_search_sysctl(archi_t)
+
+fs_getattr_xattr_fs(archi_t)
+fs_rw_hugetlbfs_files(archi_t)
+
+files_dontaudit_getattr_all_dirs(archi_t)
+
+corecmd_exec_bin(archi_t)
+corecmd_exec_shell(archi_t)
+
+dev_dontaudit_read_sysfs(archi_t)
+dev_read_rand(archi_t)
+dev_read_urand(archi_t)
+dev_write_rand(archi_t)
+dev_write_urand(archi_t)
+
 userdom_manage_user_home_content_dirs(archi_t)
 userdom_manage_user_home_content_files(archi_t)
+userdom_read_user_home_content_symlinks(archi_t)
 userdom_use_user_terminals(archi_t)
+userdom_user_home_dir_filetrans(archi_t, archi_home_t, dir, ".archi")
+
+sysnet_read_config(archi_t)
+
+files_read_etc_files(archi_t)
+files_read_usr_files(archi_t)
+
+java_exec(archi_t)
 
 miscfiles_read_fonts(archi_t)
 miscfiles_read_localization(archi_t)
 
+xdg_read_data_home_files(archi_t)
+xdg_read_cache_home_files(archi_t)
 xdg_read_config_home_files(archi_t)
 
 xserver_user_x_domain_template(archi, archi_t, archi_tmpfs_t)

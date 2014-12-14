@@ -1,0 +1,43 @@
+## <summary>Archi ArchiMate modelling tool</summary>
+
+#########################################
+## <summary>
+##	The role for using Archi
+## </summary>
+## <param name="role">
+##	<summary>
+##	The role associated with the user domain.
+##	</summary>
+## </param>
+## <param name-"domain">
+##	<summary>
+##	The user domain.
+##	</summary>
+## </param>
+#
+interface(`archi_role',`
+	gen_require(`
+		type archi_t;
+		type archi_exec_t;
+		type archi_home_t;
+		type archi_tmp_t;
+		type archi_tmpfs_t;
+	')
+
+	role $1 types archi_t;
+
+	domtrans_pattern($2, archi_exec_t, archi_t)
+
+	allow $2 archi_t:process { ptrace signal_perms };
+
+	manage_dirs_pattern($2, archi_home_t, archi_home_t)
+	manage_files_pattern($2, archi_home_t, archi_home_t)
+
+	manage_dirs_pattern($2, archi_tmp_t, archi_tmp_t)
+	manage_files_pattern($2, archi_tmp_t, archi_tmp_t)
+
+	relabel_dirs_pattern($2, archi_home_t, archi_home_t)
+	relabel_files_pattern($2, archi_home_t, archi_home_t)
+
+	ps_process_pattern($2, archi_t)
+')

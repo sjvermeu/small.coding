@@ -1,0 +1,43 @@
+policy_module(archi, 1.0)
+
+#########################################
+#
+# Declarations
+#
+
+type archi_t;
+type archi_exec_t;
+userdom_user_application_domain(archi_t, archi_exec_t)
+java_domain_type(archi_t)
+
+type archi_tmp_t;
+userdom_user_tmp_file(archi_tmp_t)
+
+type archi_tmpfs_t;
+userdom_user_tmpfs_file(archi_tmpfs_t)
+
+type archi_home_t;
+userdom_user_home_content(archi_home_t)
+
+##########################################
+#
+# Archi policy rules
+#
+
+manage_dirs_pattern(archi_t, archi_home_t, archi_home_t)
+manage_files_pattern(archi_t, archi_home_t, archi_home_t)
+
+files_tmp_filetrans(archi_t, archi_tmp_t, {file dir})
+manage_dirs_pattern(archi_t, archi_tmp_t, archi_tmp_t)
+manage_files_pattern(archi_t, archi_tmp_t, archi_tmp_t)
+
+userdom_manage_user_home_content_dirs(archi_t)
+userdom_manage_user_home_content_files(archi_t)
+userdom_use_user_terminals(archi_t)
+
+miscfiles_read_fonts(archi_t)
+miscfiles_read_localization(archi_t)
+
+xdg_read_config_home_files(archi_t)
+
+xserver_user_x_domain_template(archi, archi_t, archi_tmpfs_t)

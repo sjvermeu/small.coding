@@ -323,7 +323,7 @@ kvm_instance_start_execute() {
     VNC="$(keyval_get ${GUESTDIR}/settings.conf VNC_PORT 10)";
     MEMORY="$(keyval_get ${GUESTDIR}/settings.conf MEMORY 1536)";
     CPUCOUNT="$(keyval_get ${GUESTDIR}/settings.conf CPUCOUNT 2)";
-    CPUTYPE="$(keyval_get ${GUESTDIR}/settings.conf CPUTYPE kvm64)";
+    CPUTYPE="$(keyval_get ${GUESTDIR}/settings.conf CPUTYPE kvm64,+nx)";
 
     ADDFS=""
 
@@ -388,7 +388,7 @@ kvm_instance_connect_execute() {
   if [ $? -eq 0 ];
   then
     # Is running
-    IPV6=$(grep ${MGL_NAME}.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+    IPV6=$(grep -E "[ 	]${MGL_NAME}.internal.genfic.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
     BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
     VNC=$((${BASENUM} + 10));
     echo ">>> Connecting to ${MGL_NAME} (VNC :${VNC})";
@@ -406,7 +406,7 @@ kvm_instance_connect_execute() {
 kvm_instance_ssh_execute() {
   [ -z "${MGL_NAME}" ] && echo "!! No username provided." && return 1;
   [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
-  IPV4=$(grep ${MGL_TARGET}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  IPV4=$(grep -E "[ 	]${MGL_TARGET}.ip4.internal.genfic.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
   ssh ${MGL_NAME}@${IPV4};
 }
 
@@ -416,6 +416,6 @@ kvm_instance_ssh_execute() {
 kvm_instance_sftp_execute() {
   [ -z "${MGL_NAME}" ] && echo "!! No username provided." && return 1;
   [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
-  IPV4=$(grep ${MGL_TARGET}.ip4.internal.genfic.local "${IMAGE_LOCATION}/hosts" | cut -f 1);
+  IPV4=$(grep -E "[ 	]${MGL_TARGET}.ip4.internal.genfic.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
   sftp ${MGL_NAME}@${IPV4};
 }

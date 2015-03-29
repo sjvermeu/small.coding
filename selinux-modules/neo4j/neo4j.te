@@ -1,0 +1,121 @@
+policy_module(neo4j, 1.0)
+
+#########################################
+#
+# Declarations
+#
+
+type neo4j_t;
+type neo4j_exec_t;
+init_daemon_domain(neo4j_t, neo4j_exec_t)
+
+type neo4j_initrc_exec_t;
+init_script_file(neo4j_initrc_exec_t)
+
+type neo4j_conf_t;
+files_config_file(neo4j_conf_t)
+
+type neo4j_log_t;
+logging_log_file(neo4j_log_t)
+
+type neo4j_var_run_t;
+files_pid_file(neo4j_var_run_t)
+
+type neo4j_var_lib_t;
+files_type(neo4j_var_lib_t)
+
+type neo4j_tmp_t;
+files_tmp_file(neo4j_tmp_t)
+
+#########################################
+#
+# Neo4J policy
+#
+
+gen_require(`
+	class passwd rootok;
+')
+
+allow neo4j_t self:process { execmem getsched signal signull };
+allow neo4j_t self:capability { dac_override kill setuid };
+# this is only during startup as it runs lsof to find if the deamon has started
+allow neo4j_t self:capability { sys_ptrace };
+allow neo4j_t self:fifo_file rw_fifo_file_perms;
+allow neo4j_t self:unix_dgram_socket create_socket_perms;
+
+# Networking
+allow neo4j_t self:udp_socket create_socket_perms;
+allow neo4j_t self:tcp_socket create_stream_socket_perms;
+
+manage_files_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_lib_t)
+manage_dirs_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_lib_t)
+
+manage_files_pattern(neo4j_t, neo4j_tmp_t, neo4j_tmp_t)
+manage_dirs_pattern(neo4j_t, neo4j_tmp_t, neo4j_tmp_t)
+files_tmp_filetrans(neo4j_t, neo4j_tmp_t, { file dir })
+
+read_files_pattern(neo4j_t, neo4j_conf_t, neo4j_conf_t)
+
+create_files_pattern(neo4j_t, neo4j_log_t, neo4j_log_t)
+append_files_pattern(neo4j_t, neo4j_log_t, neo4j_log_t)
+
+manage_files_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_run_t)
+filetrans_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_run_t, file, "neo4j-service.pid")
+
+corecmd_exec_shell(neo4j_t)
+corecmd_exec_bin(neo4j_t)
+# After su commands are executed through neo4j user default shell
+corecmd_shell_entry_type(neo4j_t)
+
+corenet_tcp_bind_generic_node(neo4j_t)
+corenet_udp_bind_generic_node(neo4j_t)
+corenet_tcp_bind_all_unreserved_ports(neo4j_t)
+corenet_udp_bind_all_unreserved_ports(neo4j_t)
+corenet_tcp_connect_all_unreserved_ports(neo4j_t)
+
+# For loading data 
+corenet_tcp_connect_http_port(neo4j_t)
+
+dev_read_rand(neo4j_t)
+dev_read_urand(neo4j_t)
+
+domain_use_interactive_fds(neo4j_t)
+
+files_read_etc_files(neo4j_t)
+files_read_etc_runtime(neo4j_t)
+files_read_usr_files(neo4j_t)
+
+java_exec(neo4j_t)
+
+kernel_read_network_state(neo4j_t)
+kernel_read_system_state(neo4j_t)
+kernel_read_net_sysctls(neo4j_t)
+
+miscfiles_read_localization(neo4j_t)
+
+selinux_compute_access_vector(neo4j_t)
+selinux_get_fs_mount(neo4j_t)
+
+sysnet_read_config(neo4j_t)
+
+userdom_use_user_terminals(neo4j_t)
+userdom_dontaudit_search_user_home_dirs(neo4j_t)
+
+
+#########################################
+#
+# Neo4j intermediate su policy
+#
+
+su_restricted_domain_template(neo4j, neo4j_t, system_r)
+userdom_use_user_ptys(neo4j_su_t)
+userdom_use_user_terminals(neo4j_su_t)
+
+## Test
+
+gen_require(`
+	type sysadm_t;
+	role sysadm_r;
+')
+
+neo4j_admin(sysadm_t, sysadm_r)

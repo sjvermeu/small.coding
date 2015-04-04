@@ -21,6 +21,7 @@ interface(`neo4j_admin',`
 		type neo4j_t;
 		type neo4j_var_lib_t;
 		type neo4j_conf_t;
+		type neo4j_key_t;
 		type neo4j_tmp_t;
 	')
 
@@ -34,6 +35,7 @@ interface(`neo4j_admin',`
 
 	files_search_etc($1)
 	admin_pattern($1, neo4j_conf_t)
+	admin_pattern($1, neo4j_key_t)
 	
 	files_search_var_lib($1)
 	admin_pattern($1, neo4j_var_lib_t)

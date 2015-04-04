@@ -27,6 +27,9 @@ files_type(neo4j_var_lib_t)
 type neo4j_tmp_t;
 files_tmp_file(neo4j_tmp_t)
 
+type neo4j_key_t;
+files_type(neo4j_key_t);
+
 #########################################
 #
 # Neo4J policy
@@ -49,18 +52,25 @@ allow neo4j_t self:tcp_socket create_stream_socket_perms;
 
 manage_files_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_lib_t)
 manage_dirs_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_lib_t)
+read_lnk_files_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_lib_t)
 
 manage_files_pattern(neo4j_t, neo4j_tmp_t, neo4j_tmp_t)
 manage_dirs_pattern(neo4j_t, neo4j_tmp_t, neo4j_tmp_t)
 files_tmp_filetrans(neo4j_t, neo4j_tmp_t, { file dir })
 
 read_files_pattern(neo4j_t, neo4j_conf_t, neo4j_conf_t)
+read_lnk_files_pattern(neo4j_t, neo4j_conf_t, neo4j_conf_t)
 
-create_files_pattern(neo4j_t, neo4j_log_t, neo4j_log_t)
-append_files_pattern(neo4j_t, neo4j_log_t, neo4j_log_t)
+manage_files_pattern(neo4j_t, neo4j_key_t, neo4j_key_t)
+create_dirs_pattern(neo4j_t, neo4j_key_t, neo4j_key_t)
+filetrans_pattern(neo4j_t, neo4j_conf_t, neo4j_key_t, dir, "ssl")
+
+manage_files_pattern(neo4j_t, neo4j_log_t, neo4j_log_t)
 
 manage_files_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_run_t)
 filetrans_pattern(neo4j_t, neo4j_var_lib_t, neo4j_var_run_t, file, "neo4j-service.pid")
+
+auth_use_pam(neo4j_t)
 
 corecmd_exec_shell(neo4j_t)
 corecmd_exec_bin(neo4j_t)
@@ -110,6 +120,8 @@ userdom_dontaudit_search_user_home_dirs(neo4j_t)
 su_restricted_domain_template(neo4j, neo4j_t, system_r)
 userdom_use_user_ptys(neo4j_su_t)
 userdom_use_user_terminals(neo4j_su_t)
+
+auth_use_pam(neo4j_su_t)
 
 ## Test
 

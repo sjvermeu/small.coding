@@ -10,5 +10,8 @@
 
 /etc/rc\.d/init\.d/neo4j	--	gen_context(system_u:object_r:neo4j_initrc_exec_t,s0)
 
-/opt/neo4j-community-.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
-/opt/neo4j-community-.*/instances/.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
+/opt/neo4j-.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
+/opt/neo4j-.*/bin/neo4j-backup	--	gen_context(system_u:object_r:neo4j_backup_exec_t,s0)
+# Support for AIMS instances
+/opt/neo4j-.*/instances/.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
+/opt/neo4j-.*/instances/.*/bin/neo4j-backup	--	gen_context(system_u:object_r:neo4j_backup_exec_t,s0)

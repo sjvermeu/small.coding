@@ -5,9 +5,17 @@ policy_module(neo4j, 1.0)
 # Declarations
 #
 
+attribute_role neo4j_roles;
+
 type neo4j_t;
 type neo4j_exec_t;
 init_daemon_domain(neo4j_t, neo4j_exec_t)
+
+type neo4j_backup_t;
+type neo4j_backup_exec_t;
+init_daemon_domain(neo4j_backup_t, neo4j_backup_exec_t)
+application_domain(neo4j_backup_t, neo4j_backup_exec_t)
+role neo4j_roles types neo4j_backup_t;
 
 type neo4j_initrc_exec_t;
 init_script_file(neo4j_initrc_exec_t)
@@ -122,6 +130,51 @@ userdom_use_user_ptys(neo4j_su_t)
 userdom_use_user_terminals(neo4j_su_t)
 
 auth_use_pam(neo4j_su_t)
+
+#########################################
+#
+# Neo4j backup policy
+#
+
+allow neo4j_backup_t self:process execmem;
+allow neo4j_backup_t self:process { getsched signal };
+allow neo4j_backup_t self:fifo_file rw_fifo_file_perms;
+allow neo4j_backup_t self:tcp_socket create_stream_socket_perms;
+allow neo4j_backup_t self:udp_socket create_socket_perms;
+
+# Assume backups are (temporarily) stored alongside the database files
+manage_dirs_pattern(neo4j_backup_t, neo4j_var_lib_t, neo4j_var_lib_t)
+manage_files_pattern(neo4j_backup_t, neo4j_var_lib_t, neo4j_var_lib_t)
+files_var_lib_filetrans(neo4j_backup_t, neo4j_var_lib_t, { file dir });
+
+# Backup tool connects to Neo4J database port
+corenet_tcp_connect_all_unreserved_ports(neo4j_backup_t)
+sysnet_read_config(neo4j_backup_t)
+# Why it needs this I do not know but it fails hard when it does not
+corenet_tcp_bind_generic_node(neo4j_backup_t)
+corenet_tcp_bind_all_unreserved_ports(neo4j_backup_t)
+
+# Shell script executing java
+corecmd_exec_shell(neo4j_backup_t)
+corecmd_exec_bin(neo4j_backup_t)
+java_exec(neo4j_backup_t)
+
+# Generic accesses for java
+miscfiles_read_localization(neo4j_backup_t)
+kernel_read_system_state(neo4j_backup_t)
+kernel_read_network_state(neo4j_backup_t)
+files_read_etc_files(neo4j_backup_t)
+
+# Diagnostics
+dev_read_sysfs(neo4j_backup_t)
+
+# Read output
+domain_use_interactive_fds(neo4j_backup_t)
+userdom_use_user_terminals(neo4j_backup_t)
+
+# Dontaudits
+userdom_dontaudit_search_user_home_dirs(neo4j_backup_t)
+userdom_dontaudit_search_user_home_content(neo4j_backup_t)
 
 ## Test
 

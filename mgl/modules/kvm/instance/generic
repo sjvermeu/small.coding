@@ -139,7 +139,7 @@ kvm_instance_create_execute() {
     echo ${VARLIST} | grep -q ${VALUE};
     if [ $? -ne 0 ];
     then
-      if [ ${VALUE} -lt 10 ];
+      if [ ${VALNUM} -lt 16 ];
       then
         VALUE="0${VALUE}";
       fi
@@ -147,16 +147,16 @@ kvm_instance_create_execute() {
     fi
   done
   echo "2001:db8:81:e2:211:22ff:fe33:40${VALUE}	${MGL_NAME}.internal.genfic.local ${MGL_NAME}" >> hosts;
-  echo "192.168.100.$((${NUM}+151))				${MGL_NAME}.ip4.internal.genfic.local ${MGL_NAME}_4" >> hosts;
+  echo "192.168.100.$((${VALNUM}+151))				${MGL_NAME}.ip4.internal.genfic.local ${MGL_NAME}_4" >> hosts;
   echo ">> Registering ${MGL_NAME} in dnsmasq-hosts file";
   # Set the MAC address
   MAC=""
-  if [ ${NUM} -lt 16 ] ; then
-    MAC="00:11:22:33:40:0$(echo "obase=16;${NUM}" | bc)";
+  if [ ${VALNUM} -lt 16 ] ; then
+    MAC="00:11:22:33:40:0$(echo "obase=16;${VALNUM}" | bc)";
   else
-    MAC="00:11:22:33:40:$(echo "obase=16;${NUM}" | bc)";
+    MAC="00:11:22:33:40:$(echo "obase=16;${VALNUM}" | bc)";
   fi
-  echo "${MAC},192.168.100.$((${NUM}+151)),${MGL_NAME},10m" >> dnsmasq-hosts;
+  echo "${MAC},192.168.100.$((${VALNUM}+151)),${MGL_NAME},10m" >> dnsmasq-hosts;
 
   echo ">> Refreshing dnsmasq cache";
   sudo /usr/bin/pkill -SIGHUP dnsmasq
@@ -225,7 +225,7 @@ kvm_instance_delete_execute() {
       MAC=$(keyval_get ${GUESTDIR}/ro-settings.conf MAC_ADDRESS);
       sed -i -e "/${MAC},/d" dnsmasq-hosts
       echo ">> Deregistering ${MGL_NAME} from hosts file";
-      sed -i -e "/${MGL_NAME}.internal.genfic.local/d" -e "/${MGL_NAME}.ip4.internal.genfic.local/d" hosts
+      sed -i -e "/	${MGL_NAME}.internal.genfic.local/d" -e "/	${MGL_NAME}.ip4.internal.genfic.local/d" hosts
       echo ">> Refreshing dnsmasq cache"
       sudo /usr/bin/pkill -SIGHUP dnsmasq
       echo ">> Removing configuration files";
@@ -388,8 +388,8 @@ kvm_instance_connect_execute() {
   if [ $? -eq 0 ];
   then
     # Is running
-    IPV6=$(grep -E "[ 	]${MGL_NAME}.internal.genfic.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
-    BASENUM=$(($(echo ${IPV6} | awk -F':' '{print $NF}') - 4000));
+    IPV6=$(grep -E "[ 	]${MGL_NAME}\.internal\.genfic\.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
+    BASENUM=$(echo "obase=10; ibase=16; $(echo ${IPV6} | awk -F':' '{print $NF}') - 4000" | bc);
     VNC=$((${BASENUM} + 10));
     echo ">>> Connecting to ${MGL_NAME} (VNC :${VNC})";
     vncviewer :${VNC};
@@ -407,7 +407,7 @@ kvm_instance_ssh_execute() {
   [ -z "${MGL_NAME}" ] && echo "!! No username provided." && return 1;
   [ -z "${MGL_TARGET}" ] && echo "!! No targetname provided." && return 1;
   IPV4=$(grep -E "[ 	]${MGL_TARGET}.ip4.internal.genfic.local" "${IMAGE_LOCATION}/hosts" | cut -f 1);
-  ssh ${MGL_NAME}@${IPV4};
+  ssh -A ${MGL_NAME}@${IPV4};
 }
 
 #

@@ -44,7 +44,7 @@ files_type(neo4j_key_t);
 #
 
 gen_require(`
-	class passwd rootok;
+	class passwd { passwd rootok };
 ')
 
 allow neo4j_t self:process { execmem getsched signal signull };
@@ -53,6 +53,7 @@ allow neo4j_t self:capability { dac_override kill setuid };
 allow neo4j_t self:capability { sys_ptrace };
 allow neo4j_t self:fifo_file rw_fifo_file_perms;
 allow neo4j_t self:unix_dgram_socket create_socket_perms;
+allow neo4j_t self:passwd passwd;
 
 # Networking
 allow neo4j_t self:udp_socket create_socket_perms;
@@ -130,6 +131,13 @@ userdom_use_user_ptys(neo4j_su_t)
 userdom_use_user_terminals(neo4j_su_t)
 
 auth_use_pam(neo4j_su_t)
+
+init_use_script_fds(neo4j_su_t)
+
+# Support for ulimit call
+allow neo4j_su_t neo4j_t:process rlimitinh;
+
+# allow neo4j_su_t self:netlink_selinux_socket { create bind read };
 
 #########################################
 #

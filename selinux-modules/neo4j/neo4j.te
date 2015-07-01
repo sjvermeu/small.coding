@@ -137,7 +137,8 @@ init_use_script_fds(neo4j_su_t)
 # Support for ulimit call
 allow neo4j_su_t neo4j_t:process rlimitinh;
 
-# allow neo4j_su_t self:netlink_selinux_socket { create bind read };
+# Might need to be in the su template
+allow neo4j_su_t self:netlink_selinux_socket { create bind read };
 
 #########################################
 #

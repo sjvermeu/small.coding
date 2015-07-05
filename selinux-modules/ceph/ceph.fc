@@ -1,7 +1,7 @@
 #
 # /etc
 #
-/etc/ceph(/.*)		gen_context(system_u:object_r:ceph_conf_t,s0)
+/etc/ceph(/.*)?		gen_context(system_u:object_r:ceph_conf_t,s0)
 /etc/ceph/.*\.secret	--	gen_context(system_u:object_r:ceph_key_t,s0)
 /etc/ceph/.*\.keyring	--	gen_context(system_u:object_r:ceph_key_t,s0)
 
@@ -15,9 +15,15 @@
 #
 # /var
 #
-/var/lib/ceph(/.*)		gen_context(system_u:object_r:ceph_var_lib_t,s0)
-/var/lib/ceph/mds(/.*)		gen_context(system_u:object_r:ceph_mds_data_t,s0)
-/var/lib/ceph/mon(/.*)		gen_context(system_u:object_r:ceph_mon_data_t,s0)
-/var/lib/ceph/osd(/.*)		gen_context(system_u:object_r:ceph_osd_data_t,s0)
+/var/lib/ceph(/.*)?		gen_context(system_u:object_r:ceph_var_lib_t,s0)
+/var/lib/ceph/mds(/.*)?		gen_context(system_u:object_r:ceph_mds_data_t,s0)
+/var/lib/ceph/mon(/.*)?		gen_context(system_u:object_r:ceph_mon_data_t,s0)
+/var/lib/ceph/osd(/.*)?		gen_context(system_u:object_r:ceph_osd_data_t,s0)
 
-/var/log/ceph(/.*)		gen_context(system_u:object_r:ceph_log_t,s0)
+/var/log/ceph(/.*)?		gen_context(system_u:object_r:ceph_log_t,s0)
+
+/var/run/ceph	-d	gen_context(system_u:object_r:ceph_var_run_t,s0)
+/var/run/ceph/ceph-osd.*		gen_context(system_u:object_r:ceph_osd_var_run_t,s0)
+/var/run/ceph/ceph-mon.*		gen_context(system_u:object_r:ceph_mon_var_run_t,s0)
+/var/run/ceph/ceph-mds.*		gen_context(system_u:object_r:ceph_mds_var_run_t,s0)
+/var/run/ceph/mds.*	--	gen_context(system_u:object_r:ceph_mds_var_run_t,s0)

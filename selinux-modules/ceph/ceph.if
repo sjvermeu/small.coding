@@ -1,1 +1,81 @@
-## <summary></summary>
+## <summary>Ceph distributed object storage</summary>
+
+#########################################
+## <summary>
+##	Create the individual Ceph domains
+## </summary>
+## <param name="cephdaemon">
+##	<summary>
+##	The daemon (osd, mds or mon) for which the rules are created
+##	</summary>
+## </param>
+#
+template(`ceph_domain_template',`
+	gen_require(`
+		attribute cephdomain;
+		attribute cephdata;
+		attribute cephpidfile;
+		attribute_role ceph_roles;
+		
+		type ceph_var_run_t;
+	')
+
+	type ceph_$1_t, cephdomain;
+	type ceph_$1_exec_t;
+	init_system_domain(ceph_$1_t, ceph_$1_exec_t)
+	role ceph_roles types ceph_$1_t;
+
+	type ceph_$1_data_t, cephdata;
+	files_type(ceph_$1_data_t)
+
+	type ceph_$1_var_run_t, cephpidfile;
+	files_pid_file(ceph_$1_var_run_t)
+
+	########################################
+	#
+	# Local policy 
+	#
+	# Rules which cannot be made part of the domain
+
+	allow ceph_$1_t ceph_$1_var_run_t:file manage_file_perms;
+	allow ceph_$1_t ceph_$1_var_run_t:sock_file manage_file_perms;
+	allow ceph_$1_t ceph_$1_data_t:dir manage_dir_perms;
+	allow ceph_$1_t ceph_$1_data_t:file manage_file_perms;
+
+	filetrans_pattern(ceph_$1_t, ceph_var_run_t, ceph_$1_var_run_t, { file sock_file })
+
+	files_var_lib_filetrans(ceph_$1_t, ceph_$1_data_t, { file dir })
+')
+
+#########################################
+## <summary>
+## 	Administrative access for Ceph
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+#
+interface(`ceph_admin',`
+	gen_require(`
+		attribute cephdomain;
+		attribute cephdata;
+	')
+
+	allow $1 cephdomain:process { ptrace signal_perms };
+	ps_process_pattern($1, cephdomain)
+
+	files_list_etc($1)
+	admin_pattern($1, ceph_conf_t)
+	admin_pattern($1, ceph_key_t)
+
+	admin_pattern($1, cephdata)
+
+	admin_pattern($1, ceph_log_t)
+')

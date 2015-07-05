@@ -2,7 +2,14 @@ policy_module(ceph, 1.0)
 
 attribute_role ceph_roles;
 
+# Attribute for all ceph runtime domains (not clients)
 attribute cephdomain;
+
+# Attribute for the ceph runtime daemon data
+attribute cephdata;
+
+# Attribute for the ceph pidfile data
+attribute cephpidfile;
 
 type ceph_conf_t;
 files_config_file(ceph_conf_t)
@@ -13,30 +20,6 @@ files_type(ceph_key_t)
 
 type ceph_log_t;
 logging_log_file(ceph_log_t)
-
-type ceph_mds_t, cephdomain;
-type ceph_mds_exec_t;
-init_system_domain(ceph_mds_t, ceph_mds_exec_t)
-role ceph_roles types ceph_mds_t;
-
-type ceph_mds_data_t;
-files_type(ceph_mds_data_t)
-
-type ceph_mon_t, cephdomain;
-type ceph_mon_exec_t;
-init_system_domain(ceph_mon_t, ceph_mon_exec_t)
-role ceph_roles types ceph_mon_t;
-
-type ceph_mon_data_t;
-files_type(ceph_mon_data_t)
-
-type ceph_osd_t, cephdomain;
-type ceph_osd_exec_t;
-init_system_domain(ceph_osd_t, ceph_osd_exec_t)
-role ceph_roles types ceph_osd_t;
-
-type ceph_osd_data_t;
-files_type(ceph_osd_data_t)
 
 type ceph_var_lib_t;
 files_type(ceph_var_lib_t)
@@ -49,6 +32,10 @@ files_pid_file(ceph_var_run_t)
 # General Ceph domain rules
 #
 
+ceph_domain_template(osd)
+ceph_domain_template(mds)
+ceph_domain_template(mon)
+
 allow cephdomain self:fifo_file rw_file_perms;
 
 read_files_pattern(cephdomain, ceph_conf_t, { ceph_conf_t ceph_key_t })
@@ -58,8 +45,7 @@ allow cephdomain ceph_var_lib_t:dir search_dir_perms;
 allow cephdomain self:netlink_route_socket { rw_netlink_socket_perms };
 allow cephdomain self:tcp_socket { create_socket_perms listen accept }; 
 allow cephdomain ceph_var_run_t:file manage_file_perms;
-# TODO Split out var_run for socket access ?
-allow cephdomain ceph_var_run_t:sock_file manage_file_perms;
+allow cephdomain ceph_var_run_t:dir manage_dir_perms;
 
 kernel_read_system_state(cephdomain)
 
@@ -70,8 +56,7 @@ corenet_tcp_connect_all_unreserved_ports(cephdomain)
 files_read_etc_files(cephdomain)
 files_search_pids(cephdomain)
 files_search_var_lib(cephdomain)
-# Perhaps var_run should be split
-files_pid_filetrans(cephdomain, ceph_var_run_t, { file sock_file })
+files_pid_filetrans(cephdomain, ceph_var_run_t, dir)
 
 fs_getattr_all_fs(cephdomain)
 
@@ -87,11 +72,6 @@ init_use_script_ptys(cephdomain)
 # Local OSD policy
 #
 
-allow ceph_osd_t ceph_osd_data_t:dir manage_dir_perms;
-allow ceph_osd_t ceph_osd_data_t:file manage_file_perms;
-
-files_var_lib_filetrans(ceph_osd_t, ceph_osd_data_t, { file dir })
-
 corecmd_exec_shell(ceph_osd_t)
 
 
@@ -100,18 +80,10 @@ corecmd_exec_shell(ceph_osd_t)
 # Local MDS policy
 #
 
-allow ceph_mds_t ceph_mds_data_t:dir manage_dir_perms;
-allow ceph_mds_t ceph_mds_data_t:file manage_file_perms;
-
-files_var_lib_filetrans(ceph_mds_t, ceph_mds_data_t, { file dir })
 
 #########################################
 #
 # Local MON policy
 #
 
-allow ceph_mon_t ceph_mon_data_t:dir manage_dir_perms;
-allow ceph_mon_t ceph_mon_data_t:file manage_file_perms;
-
-files_var_lib_filetrans(ceph_mon_t, ceph_mon_data_t, { file dir })
 

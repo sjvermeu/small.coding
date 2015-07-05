@@ -1,17 +1,30 @@
+#
+# /etc
+#
 /etc/neo4j(/.*)?		gen_context(system_u:object_r:neo4j_conf_t,s0)
-/opt/neo4j-community-.*/conf(/.*)?	gen_context(system_u:object_r:neo4j_conf_t,s0)
-
-/var/lib/neo4j(/.*)?		gen_context(system_u:object_r:neo4j_var_lib_t,s0)
-/opt/neo4j-community-.*/data(/.*)?	gen_context(system_u:object_r:neo4j_var_lib_t,s0)
-/opt/neo4j-community-.*/data/neo4j-service\.pid	--	gen_context(system_u:object_r:neo4j_var_run_t,s0)
-
-/var/log/neo4j(/.*)?		gen_context(system_u:object_r:neo4j_log_t,s0)
-/opt/neo4j-community-.*/data/log(/.*)?	gen_context(system_u:object_r:neo4j_log_t,s0)
-
 /etc/rc\.d/init\.d/neo4j	--	gen_context(system_u:object_r:neo4j_initrc_exec_t,s0)
 
+#
+# /opt
+#
 /opt/neo4j-.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
 /opt/neo4j-.*/bin/neo4j-backup	--	gen_context(system_u:object_r:neo4j_backup_exec_t,s0)
-# Support for AIMS instances
+
+/opt/neo4j-.*/conf(/.*)?	gen_context(system_u:object_r:neo4j_conf_t,s0)
+
+/opt/neo4j-.*/data(/.*)?	gen_context(system_u:object_r:neo4j_var_lib_t,s0)
+/opt/neo4j-.*/data/log(/.*)?	gen_context(system_u:object_r:neo4j_log_t,s0)
+/opt/neo4j-.*/data/neo4j-service\.pid	--	gen_context(system_u:object_r:neo4j_var_run_t,s0)
+
+#
+# /var
+#
+/var/lib/neo4j(/.*)?		gen_context(system_u:object_r:neo4j_var_lib_t,s0)
+
+/var/log/neo4j(/.*)?		gen_context(system_u:object_r:neo4j_log_t,s0)
+
+#
+# AIMS specifics
+#
 /opt/neo4j-.*/instances/.*/bin/neo4j	--	gen_context(system_u:object_r:neo4j_exec_t,s0)
 /opt/neo4j-.*/instances/.*/bin/neo4j-backup	--	gen_context(system_u:object_r:neo4j_backup_exec_t,s0)

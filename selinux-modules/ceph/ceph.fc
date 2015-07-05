@@ -1,0 +1,23 @@
+#
+# /etc
+#
+/etc/ceph(/.*)		gen_context(system_u:object_r:ceph_conf_t,s0)
+/etc/ceph/.*\.secret	--	gen_context(system_u:object_r:ceph_key_t,s0)
+/etc/ceph/.*\.keyring	--	gen_context(system_u:object_r:ceph_key_t,s0)
+
+#
+# /usr
+#
+/usr/bin/ceph-mds	--	gen_context(system_u:object_r:ceph_mds_exec_t,s0)
+/usr/bin/ceph-mon	--	gen_context(system_u:object_r:ceph_mon_exec_t,s0)
+/usr/bin/ceph-osd	--	gen_context(system_u:object_r:ceph_osd_exec_t,s0)
+
+#
+# /var
+#
+/var/lib/ceph(/.*)		gen_context(system_u:object_r:ceph_var_lib_t,s0)
+/var/lib/ceph/mds(/.*)		gen_context(system_u:object_r:ceph_mds_data_t,s0)
+/var/lib/ceph/mon(/.*)		gen_context(system_u:object_r:ceph_mon_data_t,s0)
+/var/lib/ceph/osd(/.*)		gen_context(system_u:object_r:ceph_osd_data_t,s0)
+
+/var/log/ceph(/.*)		gen_context(system_u:object_r:ceph_log_t,s0)

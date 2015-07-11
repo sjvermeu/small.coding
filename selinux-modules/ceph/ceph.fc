@@ -4,6 +4,7 @@
 /etc/ceph(/.*)?		gen_context(system_u:object_r:ceph_conf_t,s0)
 /etc/ceph/.*\.secret	--	gen_context(system_u:object_r:ceph_key_t,s0)
 /etc/ceph/.*\.keyring	--	gen_context(system_u:object_r:ceph_key_t,s0)
+/etc/rc\.d/init\.d/ceph.*	gen_context(system_u:object_r:ceph_initrc_exec_t,s0)
 
 #
 # /usr

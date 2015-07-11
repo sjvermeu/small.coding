@@ -66,10 +66,15 @@ interface(`ceph_admin',`
 	gen_require(`
 		attribute cephdomain;
 		attribute cephdata;
+		type ceph_initrc_exec_t;
 	')
 
 	allow $1 cephdomain:process { ptrace signal_perms };
 	ps_process_pattern($1, cephdomain)
+
+	init_startstop_service($1, $2, cephdomain, ceph_initrc_exec_t)
+	allow $1 ceph_initrc_exec_t:lnk_file read_lnk_file_perms;
+	allow $1 ceph_initrc_exec_t:file read_file_perms;
 
 	files_list_etc($1)
 	admin_pattern($1, ceph_conf_t)

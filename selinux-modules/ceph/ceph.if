@@ -84,3 +84,21 @@ interface(`ceph_admin',`
 
 	admin_pattern($1, ceph_log_t)
 ')
+
+#########################################
+## <summary>
+##	Read Ceph key files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access
+##	</summary>
+## </param>
+#
+interface(`ceph_read_key',`
+	gen_require(`
+		type ceph_key_t;
+	')
+
+	allow $1 ceph_key_t:file read_file_perms;
+')

@@ -1,0 +1,634 @@
+#!/bin/bash
+
+ALLFAMILIES="blosc bwt deflate lzma ppmd zpaq"
+
+showHelp() {
+  echo "Usage: $(basename $0) --infile=<inputfile> [--family=<family>[,...]] [--command=<cmd>]"
+  echo "       $(basename $0) -i <inputfile> [-f <family>[,...]] [-c <cmd>]"
+  echo "";
+  echo "Supported families: ${ALLFAMILIES}. These can be provided comma-separated."
+  echo "Command is an additional filter - only the tests that use this base command are run."
+  echo "";
+  echo "The output shows"
+  echo "  - The package (in Gentoo) that the command belongs to"
+  echo "  - The command run"
+  echo "  - The duration (in seconds)"
+  echo "  - The size (in bytes) of the resulting file"
+  echo "  - The compression delta (percentage) showing how much is reduced (higher is better)"
+  echo "  - The efficiency ratio showing how much reduction (percentage) per second (higher is better)"
+  echo "";
+  echo "When the command supports multithreading, we use the number of available cores on the system (as told by /proc/cpuinfo)."
+}
+
+filterCommand() {
+  local cmd1="$1";
+  local cmd2="$2";
+
+  if [ "${cmd1}" = "" ] || [ "${cmd1}" = "${cmd2}" ] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+flagInfile=0;
+flagHelp=0;
+INFILE="";
+FAMILY="";
+TIMETMP=$(mktemp)
+OUTPUTTMP=$(mktemp)
+NUMCORES=$(grep -c ^processor /proc/cpuinfo);
+RUNCMD="";
+
+params=$(getopt -n $(basename $0) -s sh -o i:f:hc: --long input:,family:,help,command: -- "$@")
+if [ $? -ne 0 ] ; then
+  showHelp;
+  exit 1;
+fi
+eval set -- "${params}"
+while [ $# -gt 0 ] ; do
+  case "$1" in
+    (-i) flagInfile=1; INFILE="$2"; shift;;
+    (--infile) flagInfile=1; INFILE="$2"; shift;;
+    (-f) FAMILY="${2//,/ }"; shift;;
+    (--family) FAMILY="${2//,/ }"; shift;;
+    (-h) flagHelp=1;;
+    (--help) flagHelp=1;;
+    (-c) RUNCMD="$2"; shift;;
+    (--command) RUNCMD="$2"; shift;;
+    (--) break;;
+    (-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+  esac
+  shift;
+done
+
+if [ ${flagHelp} -eq 1 ] ; then
+  showHelp;
+  exit 0;
+fi
+
+if [ ${flagInfile} -ne 1 ] ; then
+  echo "The -i <inputfile> (--infile <inputfile>) argument is mandatory."
+  echo "";
+  showHelp;
+  exit 2;
+fi
+
+if [ "${FAMILY}" = "" ] ; then
+  FAMILY="${ALLFAMILIES}";
+fi
+
+TIMECMD="/usr/bin/time -f %e -o ${TIMETMP}"
+SIZECMD="stat --printf=%s"
+
+ORIGSIZE=$(${SIZECMD} ${INFILE});
+BESTSIZE=0
+BESTCOMPR="null"
+BESTRATIO=0
+BESTSUFFIX="null"
+BESTTIME=0
+
+runCompression() {
+  pkgname="$1";
+  cmdname="$2";
+  runcommand="$3";
+  suffix="$4";
+
+  if [ -f ${INFILE}${suffix} ] ; then
+    echo "!!! File ${INFILE}${suffix} already exists. Bailing out..."
+    test -f ${INFILE} || cp orig-${INFILE} ${INFILE};
+    test -f orig-${INFILE} && rm orig-${INFILE};
+    test -f ${TIMETMP} && rm ${TIMETMP};
+    test -f ${OUTPUTTMP} && rm ${OUTPUTTMP};
+    exit 1;
+  fi
+
+  ${TIMECMD} ${runcommand} > ${OUTPUTTMP} 2>&1;
+  if [ $? -ne 0 ] ; then
+    echo "!!! Error: command returned non-zero return code."
+    echo "!!! Following is the executed command:"
+    echo ${TIMECMD} ${runcommand}
+    echo "!!! Following is command output. Bailing out afterwards..."
+    cat ${OUTPUTTMP};
+    test -f ${INFILE} || cp orig-${INFILE} ${INFILE};
+    return 4
+  fi
+  ELAPSED=$(cat ${TIMETMP});
+  if [ "${ELAPSED}" = "0.00" ] ; then
+    # Correct elapsed a bit so we do not divide by zero
+    ELAPSED="0.1"
+  fi
+  if [ ! -f ${INFILE}${suffix} ] ; then
+    echo "!!! Error: target ${INFILE}${suffix} does not exist?"
+    echo "!!! Following is the executed command:"
+    echo ${TIMECMD} ${runcommand}
+    echo "!!! Following is command output. Bailing out afterwards..."
+    cat ${OUTPUTTMP};
+    test -f ${INFILE} || cp orig-${INFILE} ${INFILE};
+    return 4
+  fi
+  SIZE=$(${SIZECMD} ${INFILE}${suffix});
+  PCTSIZE=$(echo "(${ORIGSIZE}-${SIZE})/${ORIGSIZE}" | bc -l);
+  EFFICIENCY=$(echo "${PCTSIZE}/${ELAPSED}" | bc -l);
+  printf "%18s	%50s	%8.1f	%15i	%7.5f	%.5f\n" "${pkgname}" "${cmdname}" ${ELAPSED} ${SIZE} ${PCTSIZE} ${EFFICIENCY}
+  if [ ${SIZE} -lt ${BESTSIZE} ] || [ ${BESTSIZE} -eq 0 ] ; then
+    BESTSIZE=${SIZE}
+    BESTCOMPR="${cmdname}"
+    BESTRATIO=${PCTSIZE}
+    BESTSUFFIX="${suffix}"
+    BESTTIME="${ELAPSED}"
+    mv ${INFILE}${suffix} best-${INFILE}
+  else
+    rm ${INFILE}${suffix}
+  fi
+
+  test -f ${INFILE} || cp orig-${INFILE} ${INFILE};
+}
+
+if [ -f best-${INFILE} ] ; then
+  echo "!!! File best-${INFILE} exists, but we use this to keep the current best compressed one :-( Bailing out...";
+  exit 2;
+fi
+
+if [ -f orig-${INFILE} ] ; then
+  echo "!!! File orig-${INFILE} exists, but we might use this as a way of keeping the original file with some commands :-( Bailing out...";
+  exit 3;
+else
+  cp ${INFILE} orig-${INFILE};
+fi
+
+printf "Original file (${INFILE}) size ${ORIGSIZE} bytes\n"
+printf "%18s	%50s	%8s	%15s	%7s	%6s\n" "package name" "command" "duration" "size" "compr.Δ" "effic.:"
+printf "%18s	%50s	%8s	%15s	%7s	%6s\n" "------------" "-------" "--------" "----" "-------" "-------"
+
+##
+## blosc family
+##
+echo "${FAMILY}" | grep -q "blosc";
+if [ $? -eq 0 ] ; then
+  # blpk compression
+  blpk --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" blpk; then
+    runCompression "app-arch/bloscpack" "blpk -n $((${NUMCORES}/2))" "blpk -n $((${NUMCORES}/2)) c ${INFILE}" ".blp"
+    runCompression "app-arch/bloscpack" "blpk -n ${NUMCORES}" "blpk -n ${NUMCORES} c ${INFILE}" ".blp"
+    runCompression "app-arch/bloscpack" "blpk -n $((${NUMCORES}*2))" "blpk -n $((${NUMCORES}*2)) c ${INFILE}" ".blp"
+  else
+    printf "# Command blpk of app-arch/bloscpack is not available (or filtered), skipping tests...\n";
+  fi
+fi
+
+##
+## bwt family (bzip2)
+##
+echo "${FAMILY}" | grep -q "bwt";
+if [ $? -eq 0 ] ; then
+  # bzip2 compression
+  bzip2 --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" bzip2 ; then
+    runCompression "app-arch/bzip2" "bzip2"    "bzip2 -k ${INFILE}"    ".bz2"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/bzip2" "bzip2 -${n}" "bzip2 -${n} -k ${INFILE}" ".bz2"
+    done
+  else
+    printf "# Command bzip2 of app-arch/bzip2 is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lrzip with bzip2 compression
+  lrzip -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lrzip ; then
+    runCompression "app-arch/lrzip" "lrzip -b"      "lrzip -b ${INFILE}"      ".lrz"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/lrzip" "lrzip -b -L ${n}" "lrzip -b -L ${n} ${INFILE}" ".lrz"
+    done
+  else
+    printf "# Command lrzip of app-arch/lrzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # 7za compression
+  #   Supported through ZIP method, with m=BZip2
+  #   Supported through BZip2 method
+  #   Supported through 7z method, with m0=BZip2
+  7za --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" 7za ; then
+    # ZIP
+    runCompression "app-arch/p7zip" "7za -tzip -mm=BZip2" "7za -tzip -mm=BZip2 a ${INFILE}.zip ${INFILE}" ".zip"
+    for x in 1 3 5 7 9 ; do
+      runCompression "app-arch/p7zip" "7za -tzip -mm=BZip2 -mx=${x}" "7za -tzip -mm=BZip2 -mx=${x} a ${INFILE}.zip ${INFILE}" ".zip"
+    done
+    # BZip2
+    runCompression "app-arch/p7zip" "7za -tbzip2" "7za -tbzip2 a ${INFILE}.bz2 ${INFILE}" ".bz2"
+    for x in 1 3 5 7 9 ; do
+      runCompression "app-arch/p7zip" "7za -tbzip2 -mx=${x}" "7za -tbzip2 -mx=${x} a ${INFILE}.bz2 ${INFILE}" ".bz2"
+    done
+    # 7z
+    runCompression "app-arch/p7zip" "7za -t7z -m0=BZip2" "7za -t7z -m0=BZip2 a ${INFILE}.7z ${INFILE}" ".7z"
+  else
+    printf "# Command 7za of app-arch/p7zip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # pbzip2 compression
+  pbzip2 -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" pbzip2 ; then
+    runCompression "app-arch/pbzip2" "pbzip2" "pbzip2 -k ${INFILE}" ".bz2"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/pbzip2" "pbzip2 -${n}" "pbzip2 -${n} -k ${INFILE}" ".bz2"
+    done
+  fi
+
+  # xar compression
+  xar --version > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" xar ; then
+    runCompression "app-arch/xar" "xar --compression bzip2" "xar --compression bzip2 -c -f ${INFILE}.xar ${INFILE}" ".xar"
+  else
+    printf "# Command xar of app-arch/xar is not available (or filtered), skipping tests...\n";
+  fi
+
+fi
+
+##
+## deflate family (lz77, gzip, zip, freeze)
+##
+echo "${FAMILY}" | grep -q "deflate";
+if [ $? -eq 0 ] ; then
+  # freeze compression
+  freeze -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" freeze; then
+    runCompression "app-arch/freeze" "freeze" "freeze -f ${INFILE}" ".F"
+    runCompression "app-arch/freeze" "freeze -g" "freeze -g -f ${INFILE}" ".F"
+    runCompression "app-arch/freeze" "freeze -gg" "freeze -gg -f ${INFILE}" ".F"
+    runCompression "app-arch/freeze" "freeze -ggg" "freeze -ggg -f ${INFILE}" ".F"
+    runCompression "app-arch/freeze" "freeze -x" "freeze -x -f ${INFILE}" ".F"
+  else
+    printf "# Command freeze of app-arch/freeze is not available (or filtered), skipping tests...\n";
+  fi
+
+  # gzip compression
+  gzip --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" gzip ; then
+    runCompression "app-arch/gzip" "gzip"    "gzip -k ${INFILE}"    ".gz"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/gzip" "gzip -${n}" "gzip -${n} -k ${INFILE}" ".gz"
+    done
+  else
+    printf "# Command gzip of app-arch/gzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # xar compression
+  xar --version > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" xar ; then
+    runCompression "app-arch/xar" "xar --compression gzip" "xar --compression gzip -c -f ${INFILE}.xar ${INFILE}" ".xar"
+  else
+    printf "# Command xar of app-arch/xar is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lrzip with gzip compression
+  lrzip -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lrzip ; then
+    runCompression "app-arch/lrzip" "lrzip -g"      "lrzip -g ${INFILE}"      ".lrz"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/lrzip" "lrzip -g -L ${n}" "lrzip -g -L ${n} ${INFILE}" ".lrz"
+    done
+  else
+    printf "# Command lrzip of app-arch/lrzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # 7za compression
+  # Support through ZIP with mm=Deflate and mm=Deflate64
+  # Support through GZip
+  # Support through 7z with m0=Deflate
+  7za --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" 7za ; then
+    # ZIP
+    runCompression "app-arch/p7zip" "7za -tzip -mm=Deflate"     "7za -tzip -mm=Deflate a ${INFILE}.zip ${INFILE}"     ".zip"
+    runCompression "app-arch/p7zip" "7za -tzip -mm=Deflate64"   "7za -tzip -mm=Deflate64 a ${INFILE}.zip ${INFILE}"   ".zip"
+    for n in 1 3 5 7 9 ; do
+      runCompression "app-arch/p7zip" "7za -tzip -mm=Deflate -mx=${n}"   "7za -tzip -mm=Deflate -mx=${n} a ${INFILE}.zip ${INFILE}"     ".zip"
+      runCompression "app-arch/p7zip" "7za -tzip -mm=Deflate64 -mx=${n}" "7za -tzip -mm=Deflate64 -mx=${n} a ${INFILE}.zip ${INFILE}"   ".zip"
+    done
+    # GZip
+    runCompression "app-arch/p7zip" "7za -tgzip" "7za -tgzip a ${INFILE}.gz ${INFILE}" ".gz"
+    for n in 1 3 5 7 9 ; do
+      runCompression "app-arch/p7zip" "7za -tgzip -mx=${n}" "7za -tgzip -mx=${n} a ${INFILE}.gz ${INFILE}" ".gz"
+    done
+    # 7z
+    runCompression "app-arch/p7zip" "7za -t7z -m0=Deflate" "7za -t7z -m0=Deflate a ${INFILE}.7z ${INFILE}" ".7z"
+  else
+    printf "# Command 7za of app-arch/p7zip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # zip compression
+  zip --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" zip ; then
+    runCompression "app-arch/zip" "zip" "zip ${INFILE}.zip ${INFILE}" ".zip"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/zip" "zip -${n}" "zip -${n} ${INFILE}.zip ${INFILE}" ".zip"
+    done
+  fi
+
+  # lrzip compression
+  lz4 -h > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lz4 ; then
+    runCompression "app-arch/lz4" "lz4"     "lz4 -z ${INFILE} ${INFILE}.lz4"     ".lz4"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/lz4" "lz4 -${n}"  "lz4 -z -${n} ${INFILE} ${INFILE}.lz4"  ".lz4"
+    done
+  else
+    printf "# Command lz4 of app-arch/lz4 is not available (or filtered), skipping tests...\n";
+  fi
+
+  # mscompress compression
+  mscompress -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" mscompress ; then
+    runCompression "app-arch/mscompress" "mscompress" "mscompress ${INFILE}" "_"
+  else
+    printf "# Command mscompress of app-arch/mscompress is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lha compression
+  lha --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lha ; then
+    runCompression "app-arch/lha" "lha"     "lha -c ${INFILE}.lha ${INFILE}"     ".lha"
+    runCompression "app-arch/lha" "lha -o5" "lha -c ${INFILE}.lha -o5 ${INFILE}" ".lha"
+    runCompression "app-arch/lha" "lha -o6" "lha -c ${INFILE}.lha -o6 ${INFILE}" ".lha"
+    runCompression "app-arch/lha" "lha -o7" "lha -c ${INFILE}.lha -o7 ${INFILE}" ".lha"
+  else
+    printf "# Command lha of app-arch/lha is not available (or filtered), skipping tests...\n";
+  fi
+
+  # pigz
+  pigz --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" pigz ; then
+    # gzip
+    runCompression "app-arch/pigz" "pigz" "pigz -k ${INFILE}" ".gz"
+    for n in 1 3 7 9 ; do
+      runCompression "app-arch/pigz" "pigz -${n}" "pigz -k -${n} ${INFILE}" ".gz"
+    done
+
+    # zip
+    runCompression "app-arch/pigz" "pigz -K" "pigz -k -K ${INFILE}" ".zip"
+    for n in 1 3 7 9 ; do
+      runCompression "app-arch/pigz" "pigz -K -${n}" "pigz -k -K -${n} ${INFILE}" ".zip"
+    done
+
+    # zz
+    runCompression "app-arch/pigz" "pigz -z" "pigz -k -z ${INFILE}" ".zz"
+    for n in 1 3 7 9 ; do
+      runCompression "app-arch/pigz" "pigz -z -${n}" "pigz -k -z -${n} ${INFILE}" ".zz"
+    done
+  else
+    printf "# Command pigz of app-arch/pigz is not available (or filtered), skipping tests...\n";
+  fi
+
+  # rzip
+  rzip -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" rzip ; then
+    runCompression "app-arch/rzip" "rzip" "rzip -k ${INFILE}" ".rz"
+    for n in $(seq 0 9) ; do
+      runCompression "app-arch/rzip" "rzip -${n}" "rzip -${n} -k ${INFILE}" ".rz"
+    done
+  else
+    printf "# Command rzip of app-arch/rzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # zopfli
+  zopfli -h > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" zopfli ; then
+    for t in gzip:gz zlib:zlib deflate:deflate ; do
+      runCompression "app-arch/zopfli" "zopfli --${t%%:*}" "zopfli --${t%%:*} ${INFILE}" ".${t##*:}"
+      for n in 10 15 20 30 50 100 ; do
+        runCompression "app-arch/zopfli" "zopfli --${t%%:*} --i${n}" "zopfli --${t%%:*} --i${n} ${INFILE}" ".${t##*:}"
+      done
+    done
+  else
+    printf "# Command zopfli of app-arch/zopfli is not available (or filtered), skipping tests...\n";
+  fi
+fi
+
+##
+## lzma family
+##
+echo "${FAMILY}" | grep -q "lzma";
+if [ $? -eq 0 ] ; then
+  # lzma compression
+  lzma --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lzma; then
+    runCompression "app-arch/xz-utils" "lzma"     "lzma -k ${INFILE}"    ".lzma"
+    runCompression "app-arch/xz-utils" "lzma -e"     "lzma -e -k ${INFILE}"    ".lzma"
+    for n in $(seq 0 9) ; do
+      runCompression "app-arch/xz-utils" "lzma -${n}"  "lzma -${n} -k ${INFILE}"  ".lzma"
+      runCompression "app-arch/xz-utils" "lzma -${n}e" "lzma -${n}e -k ${INFILE}" ".lzma"
+    done
+  else
+    printf "# Command lzma of app-arch/xz-utils is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lzip compression
+  lzip --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lzip ; then
+    runCompression "app-arch/lzip" "lzip"    "lzip -k ${INFILE}"    ".lz"
+    for n in $(seq 0 9); do
+      runCompression "app-arch/lzip" "lzip -${n}" "lzip -${n} -k ${INFILE}" ".lz"
+    done
+    for n in 1 6 9 ; do
+      for d in 32 36 40 44 48 52 56 60 64 128 256; do
+        runCompression "app-arch/lzip" "lzip -${n}m${d}"   "lzip -${n}m${d} -k ${INFILE}"   ".lz"
+      done
+    done
+  else
+    printf "# Command lzip of app-arch/lzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # plzip compression
+  plzip --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" plzip ; then
+    runCompression "app-arch/plzip" "plzip" "plzip -k ${INFILE}" ".lz"
+    for n in $(seq 0 9); do
+      runCompression "app-arch/plzip" "plzip -${n}" "lzip -${n} -k ${INFILE}" ".lz"
+    done
+    for n in 1 6 9 ; do
+      for d in 32 36 40 44 48 52 56 60 64 128 256; do
+        runCompression "app-arch/plzip" "plzip -${n}m${d}"   "plzip -${n}m${d} -k ${INFILE}"   ".lz"
+      done
+    done
+  else
+    printf "# Command plzip of app-arch/plzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # 7za compression
+  # Supported with ZIP through m=LZMA
+  # Supported with 7z through 0=LZMA and 0=LZMA2
+  # Supported with XZ
+  7za --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" 7za ; then
+    # ZIP
+    runCompression "app-arch/p7zip" "7za -tzip -mm=LZMA"     "7za -tzip -mm=LZMA a ${INFILE}.zip ${INFILE}"     ".zip"
+    # 7z
+    runCompression "app-arch/p7zip" "7za -t7z -m0=LZMA"   "7za -t7z -m0=LZMA a ${INFILE}.7z ${INFILE}"   ".7z"
+    runCompression "app-arch/p7zip" "7za -t7z -m0=LZMA2"  "7za -t7z -m0=LZMA2 a ${INFILE}.7z ${INFILE}"  ".7z"
+    for n in 1 3 5 7 9 ; do
+      runCompression "app-arch/p7zip" "7za -t7z -m0=LZMA -mx=${n}"   "7za -t7z -m0=LZMA -mx=${n} a ${INFILE}.7z ${INFILE}"   ".7z"
+      runCompression "app-arch/p7zip" "7za -t7z -m0=LZMA2 -mx=${n}"  "7za -t7z -m0=LZMA2 -mx=${n} a ${INFILE}.7z ${INFILE}"  ".7z"
+      runCompression "app-arch/p7zip" "7za -t7z -m0=LZMA:lc=8 -mx=${n}"   "7za -t7z -m0=LZMA:lc=8 -mx=${n} a ${INFILE}.7z ${INFILE}"   ".7z"
+    done
+    # XZ
+    runCompression "app-arch/p7zip"  "7za -tXZ"  "7za -tXZ a ${INFILE}.xz ${INFILE}" ".xz"
+    for n in 1 3 5 7 9; do
+      runCompression "app-arch/p7zip"  "7za -tXZ -mx=${n}"  "7za -tXZ -mx=${n} a ${INFILE}.xz ${INFILE}" ".xz"
+    done
+  else
+    printf "# Command 7za of app-arch/p7zip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # pdlzip compression
+  pdlzip --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" pdlzip; then
+    runCompression "app-arch/pdlzip" "pdlzip" "pdlzip -k ${INFILE}" ".lz"
+    for n in $(seq 1 9) ; do
+      runCompression "app-arch/pdlzip" "pdlzip -${n}" "pdlzip -k -${n} ${INFILE}" ".lz"
+    done
+  fi
+  
+  # lrzip compression
+  lrzip -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lrzip ; then
+    runCompression "app-arch/lrzip" "lrzip -l"      "lrzip -l ${INFILE}"      ".lrz"
+    for n in $(seq 1 9); do
+      runCompression "app-arch/lrzip" "lrzip -l -L ${n}" "lrzip -l -L ${n} ${INFILE}" ".lrz"
+    done
+  else
+    printf "# Command lrzip of app-arch/lrzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lzop compression
+  lzop --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lzop ; then
+    runCompression "app-arch/lzop" "lzop"     "lzop ${INFILE}"     ".lzo"
+    runCompression "app-arch/lzop" "lzop -1"  "lzop -1 ${INFILE}"  ".lzo"
+    runCompression "app-arch/lzop" "lzop -9"  "lzop -9 ${INFILE}"  ".lzo"
+  else
+    printf "# Command lzop of app-arch/lzop is not available (or filtered), skipping tests...\n";
+  fi
+  
+  # xz compression
+  xz --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" xz ; then
+    runCompression "app-arch/xz-utils" "xz"     "xz -k ${INFILE}"     ".xz"
+    runCompression "app-arch/xz-utils" "xz -e"  "xz -e -k ${INFILE}"  ".xz"
+    for n in $(seq 0 9) ; do
+      runCompression "app-arch/xz-utils" "xz -${n}"  "xz -${n} -k ${INFILE}"  ".xz"
+      runCompression "app-arch/xz-utils" "xz -${n}e" "xz -${n}e -k ${INFILE}" ".xz"
+    done
+  else 
+    printf "# Command xz of app-arch/xz-utils is not available (or filtered), skipping tests...\n";
+  fi
+
+  # pxz compression
+  pxz --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" pxz ; then
+    runCompression "app-arch/pxz" "pxz"     "pxz -k ${INFILE}"     ".xz"
+    runCompression "app-arch/pxz" "pxz -e"  "pxz -e -k ${INFILE}"  ".xz"
+    for n in $(seq 0 9) ; do
+      runCompression "app-arch/pxz" "pxz -${n}"  "xz -${n} -k ${INFILE}"  ".xz"
+      runCompression "app-arch/pxz" "pxz -${n}e" "xz -${n}e -k ${INFILE}" ".xz"
+    done
+  else 
+    printf "# Command pxz of app-arch/pxz is not available (or filtered), skipping tests...\n";
+  fi
+
+  # lzma
+  lzmacon -h > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lzmacon ; then
+    runCompression "app-arch/lzma" "lzmacon" "lzmacon e ${INFILE} ${INFILE}.lzma" ".lzma"
+    for d in 18 24 26 28 30; do
+      runCompression "app-arch/lzma" "lzmacon -d${d}" "lzmacon -d${d} e ${INFILE} ${INFILE}.lzma" ".lzma"
+      for fb in 16 64 128 256 ; do
+        runCompression "app-arch/lzma" "lzmacon -d${d} -fb${fb}" "lzmacon -d${d} -fb${fb} e ${INFILE} ${INFILE}.lzma" ".lzma"
+        for lc in 0 8 ; do
+          runCompression "app-arch/lzma" "lzmacon -d${d} -fb${fb} -lc${lc}" "lzmacon -d${d} -fb${fb} -lc${lc} e ${INFILE} ${INFILE}.lzma" ".lzma"
+        done
+      done
+    done
+  else
+    printf "# Command lzmacon of app-arch/lzma is not available (or filtered), skipping tests...\n";
+  fi
+
+  # pixz
+  pixz --help 2>&1 | grep -q Parallel
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" pixz ; then
+    runCompression "app-arch/pixz" "pixz" "pixz ${INFILE} ${INFILE}.xz" ".xz"
+    for n in $(seq 0 9); do
+      runCompression "app-arch/pixz" "pixz -${n}" "pixz -${n} ${INFILE} ${INFILE}.xz" ".xz"
+    done
+  else
+    printf "# Command pixz of app-arch/pixz is not available (or filtered), skipping tests...\n";
+  fi
+fi
+
+##
+## ppmd family
+##
+echo "${FAMILY}" | grep -q "ppmd";
+if [ $? -eq 0 ] ; then
+  # 7za compression
+  # Supported through ZIP with m=PPMd
+  # Supported through 7z with 0=PPMd
+  7za --help > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" 7za ; then
+    # ZIP
+    runCompression "app-arch/p7zip" "7za -tzip -mm=PPMd"  "7za -tzip -mm=PPMd a ${INFILE}.zip ${INFILE}" ".zip"
+    for n in $(seq 24 28) ; do
+      runCompression "app-arch/p7zip" "7za -tzip -mm=PPMd -mmem=${n}"  "7za -tzip -mm=PPMd -mmem=${n} a ${INFILE}.zip ${INFILE}" ".zip"
+    done
+    # 7z
+    runCompression "app-arch/p7zip" "7za -t7z -m0=PPMd"  "7za -t7z -m0=PPMd a ${INFILE}.7z ${INFILE}" ".7z"
+    for n in $(seq 24 28) ; do
+      runCompression "app-arch/p7zip" "7za -t7z -m0=PPMd:mem=${n}"  "7za -t7z -m0=PPMd:mem=${n} a ${INFILE}.7z ${INFILE}" ".7z"
+    done
+  else
+    printf "# Command 7za of app-arch/p7zip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # rar compression
+  rar > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" rar ; then
+    runCompression "app-arch/rar" "rar" "rar a ${INFILE}.rar ${INFILE}" ".rar"
+    for n in $(seq 0 5); do
+      runCompression "app-arch/rar" "rar -m${n}" "rar -m${n} a ${INFILE}.rar ${INFILE}" ".rar"
+    done
+  else
+    printf "# Command rar of app-arch/rar is not available (or filtered), skipping tests...\n";
+  fi
+fi
+
+##
+## zpaq family
+##
+echo "${FAMILY}" | grep -q "zpaq";
+if [ $? -eq 0 ] ; then
+  # lrzip compression
+  lrzip -V > /dev/null 2>&1;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" lrzip ; then
+    runCompression "app-arch/lrzip" "lrzip -z"      "lrzip -z ${INFILE}"      ".lrz"
+  else
+    printf "# Command lrzip of app-arch/lrzip is not available (or filtered), skipping tests...\n";
+  fi
+
+  # zpaq compression
+  zpaq | grep -q Usage;
+  if [ $? -eq 0 ] && filterCommand "${RUNCMD}" "zpaq" ; then
+    runCompression "app-arch/zpaq" "zpaq" "zpaq add ${INFILE}.zpaq ${INFILE}" ".zpaq"
+  else
+    printf "# Command zpaq of app-arch/zpaq is not available (or filtered), skipping tests...\n";
+  fi
+fi
+
+mv best-${INFILE} ${INFILE}${BESTSUFFIX};
+
+printf "The best compression was found with ${BESTCOMPR}.\n"
+printf "The compression delta obtained was %.5f within ${BESTTIME} seconds.\n" ${BESTRATIO}
+printf "This file is now available as ${INFILE}${BESTSUFFIX}.\n";
+
+test -f orig-${INFILE} && rm orig-${INFILE};
+test -f ${TIMETMP} && rm ${TIMETMP};
+test -f ${OUTPUTTMP} && rm ${OUTPUTTMP};

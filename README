@@ -22,3 +22,4 @@ mglshow - Script that easily displays (using scriptreplay) how to do stuff in th
 fileproc - Set of scripts to process files in a controlled manner
 infratest - Testing scripts for validating if my test VMs are still working properly
 mgl - Simple interface I use to manage multiple technologies
+sw_comprbest - Script to run a plethora of compression utilities against a file to find the best one

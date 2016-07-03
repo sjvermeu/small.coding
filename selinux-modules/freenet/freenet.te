@@ -1,0 +1,111 @@
+policy_module(freenet, 1.0.0)
+
+type freenet_t;
+type freenet_exec_t;
+userdom_user_application_domain(freenet_t, freenet_exec_t)
+
+type freenet_home_t;
+userdom_user_home_content(freenet_home_t)
+
+type freenet_tmp_t;
+userdom_user_tmp_file(freenet_tmp_t)
+
+type freenet_tmpfs_t;
+userdom_user_tmpfs_file(freenet_tmpfs_t)
+
+attribute_role freenet_roles;
+
+role freenet_roles types freenet_t;
+
+#########################################
+# 
+# Local policy
+# 
+
+allow freenet_t self:process { execmem getsched setsched signal_perms };
+allow freenet_t self:fifo_file rw_fifo_file_perms;
+allow freenet_t self:tcp_socket create_stream_socket_perms;
+allow freenet_t self:udp_socket create_socket_perms;
+# fms
+allow freenet_t self:netlink_route_socket create_netlink_socket_perms;
+
+manage_files_pattern(freenet_t, freenet_home_t, freenet_home_t)
+manage_lnk_files_pattern(freenet_t, freenet_home_t, freenet_home_t)
+manage_dirs_pattern(freenet_t, freenet_home_t, freenet_home_t)
+
+manage_dirs_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
+manage_files_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
+manage_lnk_files_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
+manage_sock_files_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
+manage_fifo_files_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
+fs_tmpfs_filetrans(freenet_t, freenet_tmpfs_t, { dir file lnk_file sock_file fifo_file })
+
+manage_files_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
+manage_dirs_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
+manage_fifo_files_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
+files_tmp_filetrans(freenet_t, freenet_tmp_t, { file fifo_file dir })
+
+userdom_use_user_terminals(freenet_t)
+userdom_user_home_dir_filetrans(freenet_t, freenet_home_t, { file dir })
+
+can_exec(freenet_t, freenet_home_t)
+can_exec(freenet_t, freenet_tmp_t)
+
+corecmd_exec_bin(freenet_t)
+corecmd_exec_shell(freenet_t)
+
+corenet_tcp_sendrecv_generic_if(freenet_t)
+corenet_udp_sendrecv_generic_if(freenet_t)
+corenet_tcp_sendrecv_generic_node(freenet_t)
+corenet_udp_sendrecv_generic_node(freenet_t)
+corenet_tcp_bind_generic_node(freenet_t)
+corenet_udp_bind_generic_node(freenet_t)
+corenet_tcp_bind_all_unreserved_ports(freenet_t)
+corenet_udp_bind_all_unreserved_ports(freenet_t)
+corenet_tcp_bind_http_port(freenet_t)
+corenet_tcp_bind_http_cache_port(freenet_t)
+# frost
+corenet_tcp_connect_all_unreserved_ports(freenet_t)
+
+java_exec(freenet_t)
+
+kernel_read_system_state(freenet_t)
+kernel_read_network_state(freenet_t)
+
+miscfiles_read_localization(freenet_t)
+miscfiles_read_generic_certs(freenet_t)
+
+sysnet_read_config(freenet_t)
+
+dev_read_rand(freenet_t)
+dev_read_sysfs(freenet_t)
+dev_read_urand(freenet_t)
+
+files_read_usr_files(freenet_t)
+files_read_etc_files(freenet_t)
+
+fs_getattr_all_fs(freenet_t)
+
+xserver_user_x_domain_template(freenet, freenet_t, freenet_tmpfs_t)
+
+#########################################
+#
+# Assignment
+#
+
+gen_require(`
+	role user_r;
+	type user_t;
+')
+
+# Should become freenet_role
+roleattribute user_r freenet_roles;
+
+allow user_t freenet_t:process { ptrace signal_perms };
+ps_process_pattern(user_t, freenet_t)
+
+domtrans_pattern(user_t, freenet_exec_t, freenet_t)
+
+admin_pattern(user_t, freenet_home_t)
+admin_pattern(user_t, freenet_tmp_t)
+admin_pattern(user_t, freenet_exec_t)

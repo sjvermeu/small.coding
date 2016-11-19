@@ -1,0 +1,4 @@
+HOME_DIR/\.minecraft(/.*)?	gen_context(system_u:object_r:minecraft_home_t,s0)
+HOME_DIR/\.minecraft-.*(/.*)?	gen_context(system_u:object_r:minecraft_home_t,s0)
+
+/usr/local/bin/minecraft	--	gen_context(system_u:object_r:minecraft_exec_t,s0)

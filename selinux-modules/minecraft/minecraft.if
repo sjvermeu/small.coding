@@ -1,0 +1,36 @@
+## <summary>Minecraft game</summary>
+
+#########################################
+## <summary>
+##	Role access for minecraft
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	User domain for the role
+##	</summary>
+## </param>
+#
+interface(`minecraft_role',`
+	gen_require(`
+		attribute_role minecraft_roles;
+		type minecraft_t, minecraft_exec_t, minecraft_home_t;
+		type minecraft_tmpfs_t, minecraft_tmp_t;
+	')
+
+	roleattribute $1 minecraft_roles;
+
+	domtrans_pattern($2, minecraft_exec_t, minecraft_t)
+
+	allow $2 minecraft_t:process { ptrace signal_perms };
+	ps_process_pattern($2, minecraft_t)
+
+	manage_files_pattern($2, minecraft_home_t, minecraft_home_t)
+	manage_dirs_pattern($2, minecraft_home_t, minecraft_home_t)
+	manage_lnk_files_pattern($2, minecraft_home_t, minecraft_home_t)
+	userdom_user_home_dir_filetrans($2, minecraft_home_t, dir, ".minecraft")
+')

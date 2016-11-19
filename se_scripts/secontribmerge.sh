@@ -2,6 +2,13 @@
 
 SRC=/home/swift/Development/Centralized/refpolicy/policy/modules/contrib
 
+if [ $# -ne 1 ] || [ $1 = "-h" ] || [ $1 = "--help" ] ; then
+  echo "Usage: $0 <patch-num>"
+  echo "";
+  echo "Execute it inside the contrib/ folder where the patches are to be applied."
+  exit 1;
+fi
+
 NUM=${1};
 PATCH=$(ls ${SRC}/${NUM}*.patch);
 

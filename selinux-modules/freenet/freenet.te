@@ -83,8 +83,16 @@ dev_read_urand(freenet_t)
 
 files_read_usr_files(freenet_t)
 files_read_etc_files(freenet_t)
+files_search_var_lib(freenet_t)
 
 fs_getattr_all_fs(freenet_t)
+
+userdom_read_user_home_content_symlinks(freenet_t)
+userdom_list_user_home_dirs(freenet_t)
+
+xdg_read_cache_home_files(freenet_t)
+xdg_read_config_home_files(freenet_t)
+xdg_read_data_home_files(freenet_t)
 
 xserver_user_x_domain_template(freenet, freenet_t, freenet_tmpfs_t)
 
@@ -109,3 +117,4 @@ domtrans_pattern(user_t, freenet_exec_t, freenet_t)
 admin_pattern(user_t, freenet_home_t)
 admin_pattern(user_t, freenet_tmp_t)
 admin_pattern(user_t, freenet_exec_t)
+

@@ -68,6 +68,7 @@ corenet_tcp_bind_http_cache_port(freenet_t)
 corenet_tcp_connect_all_unreserved_ports(freenet_t)
 
 java_exec(freenet_t)
+java_manage_generic_home_content(freenet_t)
 
 kernel_read_system_state(freenet_t)
 kernel_read_network_state(freenet_t)

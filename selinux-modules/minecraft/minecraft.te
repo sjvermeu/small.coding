@@ -28,9 +28,12 @@ userdom_user_home_content(minecraft_home_t)
 # Policy rules
 #
 
-allow minecraft_t self:process { getsched signal signull execmem };
+allow minecraft_t self:process { getsched setsched signal signull execmem };
 allow minecraft_t self:fifo_file rw_fifo_file_perms;
 allow minecraft_t self:netlink_route_socket { create_netlink_socket_perms rw_netlink_socket_perms };
+allow minecraft_t self:netlink_kobject_uevent_socket create_socket_perms;
+
+can_exec(minecraft_t, minecraft_exec_t)
 
 allow minecraft_t minecraft_home_t:file { execute };
 manage_files_pattern(minecraft_t, minecraft_home_t, minecraft_home_t)
@@ -45,6 +48,8 @@ manage_files_pattern(minecraft_t, minecraft_tmpfs_t, minecraft_tmpfs_t)
 manage_dirs_pattern(minecraft_t, minecraft_tmpfs_t, minecraft_tmpfs_t)
 
 alsa_domain(minecraft_t, minecraft_tmpfs_t)
+
+domain_use_interactive_fds(minecraft_t)
 
 files_read_etc_files(minecraft_t)
 files_read_usr_files(minecraft_t)
@@ -68,6 +73,7 @@ dev_read_sound(minecraft_t)
 dev_read_sysfs(minecraft_t)
 dev_read_urand(minecraft_t)
 dev_rw_dri(minecraft_t)
+dev_rw_xserver_misc(minecraft_t)
 dev_write_sound(minecraft_t)
 
 # Do not use java_domain_type as it overrules tmp_t transition
@@ -90,10 +96,12 @@ sysnet_read_config(minecraft_t)
 
 # To read ~/.gentoo/java... stuff (symlink to actual java bin)
 userdom_read_user_home_content_symlinks(minecraft_t)
+userdom_read_user_certs(minecraft_t)
 userdom_use_user_terminals(minecraft_t)
 userdom_basic_networking_template(minecraft)
 userdom_list_user_home_dirs(minecraft_t)
 userdom_read_user_tmp_files(minecraft_t)
+userdom_user_home_dir_filetrans(minecraft_t, minecraft_home_t, dir, ".minecraft")
 
 xdg_read_cache_home_files(minecraft_t)
 xdg_read_config_home_files(minecraft_t)

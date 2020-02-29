@@ -41,6 +41,7 @@ manage_fifo_files_pattern(freenet_t, freenet_tmpfs_t, freenet_tmpfs_t)
 fs_tmpfs_filetrans(freenet_t, freenet_tmpfs_t, { dir file lnk_file sock_file fifo_file })
 
 manage_files_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
+manage_lnk_files_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
 manage_dirs_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
 manage_fifo_files_pattern(freenet_t, freenet_tmp_t, freenet_tmp_t)
 files_tmp_filetrans(freenet_t, freenet_tmp_t, { file fifo_file dir })
@@ -84,7 +85,10 @@ dev_read_urand(freenet_t)
 
 files_read_usr_files(freenet_t)
 files_read_etc_files(freenet_t)
+files_read_var_files(freenet_t)
 files_search_var_lib(freenet_t)
+files_list_var(freenet_t)
+files_list_mnt(freenet_t)
 
 fs_getattr_all_fs(freenet_t)
 

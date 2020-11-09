@@ -1,31 +1,83 @@
 #!/bin/bash
 
-PATCH=$1;
+showHelp() {
+  echo "Usage: $0 [-q] [-d] <patchfile>"
+  echo "";
+  echo "  -q (--quiet)  Enable quiet mode, only log detected issues"
+  echo "  -d (--debug)  Enable debug mode (very verbose)"
+}
+
+# Arguments
+flagQuiet=0;
+flagDebug=0;
+PATCH="";
+
+# Local
 INTLIST=$(mktemp);
 RC=0;
 
-echo "SELinux patch verification helper utility";
-echo "-----------------------------------------";
-echo "Patch (argument)         = ${PATCH}";
-echo "Policy (POLICY_LOCATION) = ${POLICY_LOCATION}";
-echo "";
-echo "0. Preparing (meta)data for validation.";
-selist > ${INTLIST};
+params=$(getopt -n $(basename $0) -s sh -o qd --long quiet,debug -- "$@")
+if [ $? -ne 0 ] ; then
+  showHelp
+  exit 1
+fi
 
-echo "1. Validating if called interfaces exist.";
+eval set -- "${params}"
+while [ $# -gt 0 ] ; do
+  case "$1" in
+    (-q) flagQuiet=1;;
+    (--quiet) flagQuiet=1;;
+    (-d) flagDebug=1;;
+    (--debug) flagDebug=1;;
+    (--) shift; break;;
+    (-*) echo "$(basename $0): error: Unrecognized option $1" 1>&2; exit 1;;
+    (*) break;
+  esac
+  shift;
+done
+
+PATCH=$1;
+
+log() {
+  if [ $flagQuiet -eq 0 ] ; then
+    echo $*;
+  fi
+}
+
+debug() {
+  if [ $flagDebug -eq 1 ] ; then
+    echo "DEBUG: $*";
+  fi
+}
+
+log "SELinux patch verification helper utility";
+log "-----------------------------------------";
+log "Patch (argument)         = ${PATCH}";
+log "Policy (POLICY_LOCATION) = ${POLICY_LOCATION}";
+log "";
+log "0. Preparing (meta)data for validation.";
+
+debug "Calling selist, storing as ${INTLIST}";
+selist > ${INTLIST};
+debug "selist finished, ${INTLIST} written with $(wc -l ${INTLIST} | cut -f 1 -d ' ') lines"
+
+log "1. Validating if called interfaces exist.";
 
 # The CALLED_INTERFACE variable must contain a called interface
 # name, without the (...), which is used in the patch (as
 # an added (+) line).
 
 for CALLED_INTERFACE in $(
-	grep -A 99999 -m 1 '^diff \-\-git' ${PATCH} | \
+	grep -A 99999 '^diff \-\-git' ${PATCH} | \
 	grep -E '^\+[ 	]*[a-zA-Z0-9_]+\([^`]*\)' | \
 	sed -e 's:^\+[ 	]*::g' | \
-	sed -e 's:(.*::g'
+	sed -e 's:(.*::g' | \
+	sort | uniq
 ); do
+  debug "Checking if interface exists: ${CALLED_INTERFACE}"
   grep -q ${CALLED_INTERFACE} ${INTLIST};
   if [ $? -ne 0 ] ; then
+    debug "  No interface, macro?"
     # Perhaps it is a macro, so we expand the interface
     # as if it was a macro. If a "define(" line comes up,
     # then it is a definition/macro.
@@ -37,7 +89,7 @@ for CALLED_INTERFACE in $(
   fi
 done
 
-echo "2. Validating if types exist in the main file.";
+log "2. Validating if types exist in the main file.";
 
 # CHANGED_FILE should be the filename as is documented
 # in the patch (but without the leading "b/").
@@ -46,6 +98,8 @@ for CHANGED_FILE in $(
 	grep '^+++ b/' ${PATCH} | \
 	sed -e 's:^+++ b/::g'
 ) ; do
+
+  debug "Checking file: ${CHANGED_FILE}"
 
   # FQP_CHANGED_FILE is the fully qualified path of the same file
   # Use ${FQP_CHANGED_FILE%%.??}.te to refer to the type declaration.
@@ -60,6 +114,8 @@ for CHANGED_FILE in $(
     RC=1;
   fi
 
+  debug "  File is at ${FQP_CHANGED_FILE}";
+
   # Changed file is at FQP_CHANGED_FILE
   # Let's find all types that are used
 
@@ -68,18 +124,21 @@ for CHANGED_FILE in $(
   TYPE_CALLS=$(grep -A 99999 -m 1 "^\+\+\+ b/${CHANGED_FILE}" ${PATCH} | \
   	grep -B 99999 -m 1 -E "^(diff \-\-git|\-\- )" | \
 	grep "^\+" | \
-	grep -o -E "[a-zA-Z0-9_]*_t[ ,($]" | \
-	sed -e "s:[ ,(]::g" | sort | uniq);
+	grep -o -E "[a-zA-Z0-9_]*_t[ ,()$;]" | \
+	sed -e "s:[ ,();]::g" | sort | uniq);
   for TYPE_CALL in ${TYPE_CALLS};
   do
+    debug "  Checking type existence: ${TYPE_CALL}";
     # TYPE_CALL contains a type that is explicitly used in the patch,
     # for the CHANGED_FILE, so its definition *must* be in that file.
     # We look for "type ..." declarations...
     grep -q "^[ 	]*type ${TYPE_CALL}" ${FQP_CHANGED_FILE%%.??}.te;
     if [ $? -ne 0 ] ; then
+      debug "    No explicit type declaration, is it an alias?"
       # No declaration, but perhaps it is an alias
       grep -q ".* alias.* ${TYPE_CALL}" ${FQP_CHANGED_FILE%%.??}.te;
       if [ $? -ne 0 ] ; then
+        debug "    No explicit alias declaration, perhaps in a template?"
         # Type might be declared in a template. Let us assume that there is
 	# no template-in-a-template, so call through all templates...
 	FOUND=0;
@@ -99,6 +158,8 @@ for CHANGED_FILE in $(
 	  TEMPLATE_NAME=$(echo ${TEMPLATE} | sed -e 's:(.*)::g');
 	  TEMPLATE_ARG=$(echo ${TEMPLATE} | sed -e 's:.*(\(.*\)):\1:g');
 
+          debug "      Trying ${TEMPLATE_NAME} with argument ${TEMPLATE_ARG}";
+
 	  # If TEMPLATE_ARG is not part of TYPE_CALL then we can dismiss it
 	  echo ${TYPE_CALL} | grep -q ${TEMPLATE_ARG} || continue;
 
@@ -108,6 +169,7 @@ for CHANGED_FILE in $(
           if [ $? -eq 0 ] ; then
             # Definition OK, break
 	    FOUND=1;
+	    debug "        Template ${TEMPLATE_NAME} generated ${TYPE_CALL}"
 	    break;
 	  fi
 	done
@@ -119,7 +181,7 @@ for CHANGED_FILE in $(
       else
         # TYPE_CALL is an alias, so should *not* be shown in any additional lines
 	grep "^\+" ${PATCH} | grep -v " alias " | grep -q ${TYPE_CALL};
-	if [ $? -ne 0 ] ; then
+	if [ $? -eq 0 ] ; then
           echo "  > Patch refers to alias ${TYPE_CALL} in ${CHANGED_FILE} outside plain alias definition";
 	  RC=1;
 	fi
